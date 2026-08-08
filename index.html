@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.3.1 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.3.2 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1082,6 +1082,29 @@ main{
   padding:18px;
 }
 
+
+/* v2.9.3.2 Match Progression & Profile Overlay Fix */
+.sheet{
+  z-index:3500!important;
+  padding-top:calc(10px + env(safe-area-inset-top));
+  align-items:flex-end!important;
+}
+.sheetbox{
+  position:relative;
+  z-index:3501;
+  width:min(100%,720px)!important;
+  max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+  margin:0 auto;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:20px 16px calc(28px + env(safe-area-inset-bottom))!important;
+}
+@supports not (height:100dvh){
+  .sheetbox{max-height:88vh!important}
+}
+
 </style>
 </head>
 <body>
@@ -1148,7 +1171,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.3.1 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.3.2 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1402,6 +1425,49 @@ function playerAwardsView(p){
  let rows=awards.map(a=>'<div class="profileTableRow"><div><b>'+a.name+'</b><span>'+playerClubNameNow(a.clubId,a.clubNameAtTime)+'</span></div><div class="right">'+a.season+'</div><div class="right">★</div></div>').join("");
  return '<div class="card profileTableCard"><div class="title">Awards</div><div class="profileTableHead"><div>Award / Club</div><div>Season</div><div></div></div>'+
  (rows||'<div class="profileEmpty">No career awards yet.</div>')+'</div>';
+}
+
+
+function teamBestForSlot(teamId,slot,used){
+ let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring);
+ let family=slotFamily(slot);
+ let exact=candidates.filter(p=>p.pos===slot).sort((a,b)=>b.ovr-a.ovr);
+ let compatible=candidates.filter(p=>family.includes(p.pos)).sort((a,b)=>{
+   let ap=family.indexOf(a.pos),bp=family.indexOf(b.pos);
+   return ap-bp||b.ovr-a.ovr;
+ });
+ let group=positionGroup(slot);
+ let near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
+ let p=exact[0]||compatible[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
+ if(p)used.add(p.id);
+ return p;
+}
+function formationSlotsForClub(teamId){
+ let c=G.clubs[teamId];
+ if(!c)return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
+ if(!c.formation)c.formation=["4-3-3","4-2-3-1","4-4-2","3-4-3"][Math.abs(c.id)%4];
+ let f=c.formation;
+ if(f==="4-2-3-1")return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
+ if(f==="4-4-2")return[["ST","ST"],["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
+ if(f==="3-4-3")return[["LW","ST","RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
+ return[["LW","ST","RW"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]];
+}
+function selectStartingXI(teamId){
+ let used=new Set(),xi=[];
+ formationSlotsForClub(teamId).forEach(line=>{
+   line.forEach(slot=>{
+     let p=teamBestForSlot(teamId,slot,used);
+     if(p)xi.push(p);
+   });
+ });
+ if(xi.length<11){
+   roster(teamId)
+     .filter(p=>!used.has(p.id)&&!p.retiring)
+     .sort((a,b)=>b.ovr-a.ovr)
+     .slice(0,11-xi.length)
+     .forEach(p=>{used.add(p.id);xi.push(p)});
+ }
+ return xi.slice(0,11);
 }
 
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
@@ -2786,7 +2852,7 @@ function ensureRecordState(){
  if(!G.careerMode)G.careerMode="GM";
  if(typeof G.playerEditingEnabled==="undefined")G.playerEditingEnabled=true;
 }
-function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();G.players.forEach(ensurePlayerClubHistory);$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
+function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();G.players.forEach(ensurePlayerClubHistory);$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc){hc.onclick=function(ev){ev.preventDefault();advance();}}}
 renderBuildVersion();
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
