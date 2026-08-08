@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.3.2 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.3.3 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -410,7 +410,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.3.2 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.3.3 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
@@ -495,7 +495,15 @@ function advance(){
   if(i===G.club||j===G.club){
    let perfA=buildMatchPerformance(i,r[0],r[1],dataA),perfB=buildMatchPerformance(j,r[1],r[0],dataB);
    let best=[...perfA,...perfB].sort((a,b)=>b.rating-a.rating)[0];if(best){let bp=G.players.find(p=>p.id===best.id);if(bp)bp.stats.potm++}
-   userResult={a:i,b:j,ga:r[0],gb:r[1],perfA,perfB,statsA:teamMatchStats(r[0],r[1],true),statsB:teamMatchStats(r[1],r[0],false),potm:best};
+   let statsA=teamMatchStats(r[0],r[1],true),statsB=teamMatchStats(r[1],r[0],false);
+   let homePoss=Math.max(30,Math.min(70,Math.round((statsA.possession+100-statsB.possession)/2)));
+   statsA.possession=homePoss;
+   statsB.possession=100-homePoss;
+   statsA.shots=Math.max(0,Math.round(statsA.shots));
+   statsB.shots=Math.max(0,Math.round(statsB.shots));
+   statsA.onTarget=Math.max(0,Math.min(statsA.shots,Math.round(statsA.onTarget)));
+   statsB.onTarget=Math.max(0,Math.min(statsB.shots,Math.round(statsB.onTarget)));
+   userResult={a:i,b:j,ga:r[0],gb:r[1],perfA,perfB,statsA,statsB,potm:best};
    G.feed.unshift({t:"MATCH RESULT",m:G.clubs[i].name+" "+r[0]+"–"+r[1]+" "+G.clubs[j].name});
   }
  }
