@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.6 Rivalries Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.6.1 Rivalries Stability Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1343,6 +1343,7 @@ body.career-hub-active .continueDock{
 .rivalryHistoryRow b{font-size:12px}.rivalryHistoryRow span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
 .rivalryTag{display:inline-flex;align-items:center;border:1px solid #705d25;background:#d9b54a12;color:var(--gold);border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}
 
+/* v2.9.6.1 Rivalries Stability: startup parser fix */
 </style>
 </head>
 <body>
@@ -1415,7 +1416,7 @@ body.career-hub-active .continueDock{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.6 Rivalries Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.6.1 Rivalries Stability Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1608,7 +1609,7 @@ function archiveRivalrySeason(){
      if(!exists)G.rivalryHistory.push({season:G.season,clubs:[...r.clubs],score:Math.round(score),level:rivalryLevel(score)});
    }
    r.score=Math.max(0,score*.88);
- }
+ });
 }
 function historicRivalsForClub(id){
  ensureRivalryState();
@@ -1625,7 +1626,7 @@ function rivalryProfileHtml(id){
    let c=G.clubs[x.opponentId],h=headToHead(id,x.opponentId);
    return '<div class="rivalryCard '+(i===0?'primary':'')+'"><div class="rank">'+(i===0?'PRIMARY RIVAL':'SECONDARY RIVAL')+'</div><b>'+(c?c.name:'Unknown Club')+'</b><div class="score">'+x.score+'</div><span>'+rivalryLevel(x.score)+' · '+h.played+' meetings · '+h.w+'W '+h.d+'D '+h.l+'L</span></div>';
  }).join(""):'<div class="sub">No rivalry has crossed the active threshold yet. Rivalries build naturally through repeated competitive meetings.</div>';
- let hist=historic.length?historic.map(x=>'<div class="rivalryHistoryRow"><div><b>'+(G.clubs[x.opponentId]?.name||"Unknown Club")+'</b><span>Peak '+x.score+' · '+x.level+' · '+x.season+'</span></div><div>'+headToHeadLabel(id,x.opponentId)+'</div></div>').join(""):'<div class="sub">Historic rivalries will be preserved here as seasons pass.</div>';
+ let hist=historic.length?historic.map(x=>'<div class="rivalryHistoryRow"><div><b>'+((G.clubs[x.opponentId]&&G.clubs[x.opponentId].name)||"Unknown Club")+'</b><span>Peak '+x.score+' · '+x.level+' · '+x.season+'</span></div><div>'+headToHeadLabel(id,x.opponentId)+'</div></div>').join(""):'<div class="sub">Historic rivalries will be preserved here as seasons pass.</div>';
  return '<div class="card"><div class="title">Rivalries</div><div class="sub">Relationships emerge from competitive history. They do not change match simulation odds.</div><div class="rivalryGrid">'+cards+'</div></div>'+
  '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
 }
