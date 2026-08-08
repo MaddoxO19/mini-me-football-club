@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.3.2 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.3.3 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1105,6 +1105,11 @@ main{
   .sheetbox{max-height:88vh!important}
 }
 
+
+/* v2.9.3.3 Match Rating Calibration
+   Player ratings now use match-local contribution values rather than cumulative
+   season totals. This prevents late-season rating inflation. */
+
 </style>
 </head>
 <body>
@@ -1171,7 +1176,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.3.2 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.3.3 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1473,67 +1478,137 @@ function selectStartingXI(teamId){
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
  ensurePlayerStats();
- let starters=selectStartingXI(team),events=[];
+ let starters=selectStartingXI(team),events=[],contrib={};
+
  starters.forEach(p=>{
    p.stats.apps++;
    if(!p.career)p.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
    p.career.apps++;
+   contrib[p.id]={tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0};
  });
+
  for(let g=0;g<goals;g++){
-  let sc=weightedPick(starters,p=>{let x=positionGroup(p.pos);return(x==="FWD"?6:x==="MID"?3:x==="DEF"?.8:.15)*(p.ovr/70)});
+  let sc=weightedPick(starters,p=>{
+    let x=positionGroup(p.pos);
+    return(x==="FWD"?6:x==="MID"?3:x==="DEF"?.8:.15)*(p.ovr/70);
+  });
+
   if(sc){
    sc.stats.goals++;
    sc.career.goals++;
-   sc.stats.shotsOnTarget+=1+rnd(0,1);
+   let sot=1+rnd(0,1);
+   sc.stats.shotsOnTarget+=sot;
+   contrib[sc.id].shotsOnTarget+=sot;
   }
+
   let as=null;
   if(Math.random()<.72){
-   as=weightedPick(starters.filter(p=>!sc||p.id!==sc.id),p=>{let x=positionGroup(p.pos);return(x==="MID"?4:x==="FWD"?2.6:x==="DEF"?1:.1)*(p.ovr/70)});
+   as=weightedPick(
+     starters.filter(p=>!sc||p.id!==sc.id),
+     p=>{
+       let x=positionGroup(p.pos);
+       return(x==="MID"?4:x==="FWD"?2.6:x==="DEF"?1:.1)*(p.ovr/70);
+     }
+   );
    if(as){
     as.stats.assists++;
-    as.stats.keyPasses+=rnd(1,2);
     as.career.assists++;
+    let kp=rnd(1,2);
+    as.stats.keyPasses+=kp;
+    contrib[as.id].keyPasses+=kp;
    }
   }
   events.push({scorer:sc?sc.id:null,assist:as?as.id:null});
  }
+
  starters.forEach(p=>{
    let grp=positionGroup(p.pos);
+
    if(grp==="DEF"){
-     p.stats.tackles+=rnd(1,5);
-     p.stats.interceptions+=rnd(1,4);
+     let tackles=rnd(1,5),ints=rnd(1,4);
+     p.stats.tackles+=tackles;
+     p.stats.interceptions+=ints;
+     contrib[p.id].tackles+=tackles;
+     contrib[p.id].interceptions+=ints;
    }else if(grp==="MID"){
-     p.stats.tackles+=rnd(0,3);
-     p.stats.interceptions+=rnd(0,3);
-     p.stats.keyPasses+=rnd(0,3);
+     let tackles=rnd(0,3),ints=rnd(0,3),kp=rnd(0,3);
+     p.stats.tackles+=tackles;
+     p.stats.interceptions+=ints;
+     p.stats.keyPasses+=kp;
+     contrib[p.id].tackles+=tackles;
+     contrib[p.id].interceptions+=ints;
+     contrib[p.id].keyPasses+=kp;
    }else if(grp==="FWD"){
-     p.stats.keyPasses+=rnd(0,2);
-     p.stats.shotsOnTarget+=rnd(0,3);
+     let kp=rnd(0,2),sot=rnd(0,3);
+     p.stats.keyPasses+=kp;
+     p.stats.shotsOnTarget+=sot;
+     contrib[p.id].keyPasses+=kp;
+     contrib[p.id].shotsOnTarget+=sot;
    }
  });
- return{starters:starters.map(p=>p.id),events};
+
+ return{starters:starters.map(p=>p.id),events,contrib};
 }
 function buildMatchPerformance(team,goalsFor,goalsAgainst,matchData,opponentShotsOnTarget=0){
- let ids=matchData&&matchData.starters?matchData.starters:[],events=matchData&&matchData.events?matchData.events:[],won=goalsFor>goalsAgainst,draw=goalsFor===goalsAgainst;
+ let ids=matchData&&matchData.starters?matchData.starters:[],
+     events=matchData&&matchData.events?matchData.events:[],
+     contrib=matchData&&matchData.contrib?matchData.contrib:{},
+     won=goalsFor>goalsAgainst,
+     draw=goalsFor===goalsAgainst;
+
  let rows=ids.map(id=>{
-  let p=G.players.find(x=>x.id===id),g=events.filter(e=>e.scorer===id).length,a=events.filter(e=>e.assist===id).length;
-  let base=6.15+(won?.45:draw?.1:-.3)+(Number(p.ovr)-72)*.012+rnd(-35,35)/100+g*.85+a*.5;
+  let p=G.players.find(x=>x.id===id);
+  let g=events.filter(e=>e.scorer===id).length;
+  let a=events.filter(e=>e.assist===id).length;
+  let m=contrib[id]||{tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0};
+
+  // Calibrated baseline: most players should land around 6–7.5.
+  let base=6.05
+    +(won?.28:draw?.06:-.22)
+    +(Number(p.ovr)-72)*.008
+    +rnd(-28,28)/100
+    +g*.68
+    +a*.38;
+
   let grp=positionGroup(p.pos);
-  if(grp==="GK"||grp==="DEF")base+=(goalsAgainst===0?.55:-Math.min(.5,goalsAgainst*.1));
-  if(grp==="DEF")base+=(p.stats.tackles+p.stats.interceptions)*.015;
-  if(grp==="MID")base+=(p.stats.keyPasses)*.012;
-  if(grp==="FWD")base+=(p.stats.shotsOnTarget)*.01;
+
   if(grp==="GK"){
     let saves=Math.max(0,Math.round(opponentShotsOnTarget-goalsAgainst));
-    p.stats.saves+=saves;p.career.saves+=saves;
-    if(goalsAgainst===0){p.stats.cleanSheets++;p.career.cleanSheets++}
-    base+=Math.min(.8,saves*.08);
+    p.stats.saves+=saves;
+    p.career.saves+=saves;
+    if(goalsAgainst===0){
+      p.stats.cleanSheets++;
+      p.career.cleanSheets++;
+      base+=.28;
+    }
+    base+=Math.min(.55,saves*.055);
+    base-=Math.max(0,goalsAgainst-2)*.10;
   }
-  if(grp==="DEF"&&goalsAgainst===0)p.stats.cleanSheets++;
+
+  if(grp==="DEF"){
+    if(goalsAgainst===0){
+      p.stats.cleanSheets++;
+      base+=.22;
+    }
+    base+=Math.min(.40,m.tackles*.035+m.interceptions*.05);
+    base-=Math.max(0,goalsAgainst-2)*.08;
+  }
+
+  if(grp==="MID"){
+    base+=Math.min(.34,m.keyPasses*.045+m.tackles*.018+m.interceptions*.025);
+  }
+
+  if(grp==="FWD"){
+    base+=Math.min(.28,m.shotsOnTarget*.04+m.keyPasses*.025);
+  }
+
   let rating=Math.max(4.8,Math.min(10,Math.round(base*10)/10));
-  p.stats.ratingTotal+=rating;p.stats.ratedApps++;
+  p.stats.ratingTotal+=rating;
+  p.stats.ratedApps++;
+
   return{id:p.id,name:p.name,pos:p.pos,rating,goals:g,assists:a};
  }).sort((a,b)=>b.rating-a.rating);
+
  return rows;
 }
 function teamMatchStats(gf,ga,home){
