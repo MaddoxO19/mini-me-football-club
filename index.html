@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8.2 Squad Integrity & Player Sheet Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8.3 Squad Flexibility & Player Market Balance Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1816,6 +1816,19 @@ nav button:active{
 .sheetPersistentClose:active{background:#253442}
 .playerBottomClose{margin-top:12px!important;margin-bottom:4px}
 
+
+/* v2.9.8.3 Squad Flexibility & Player Market Balance */
+.marketPoolNote{
+  margin-top:8px;
+  padding:8px 10px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--card2);
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.4;
+}
+
 </style>
 </head>
 <body>
@@ -1892,7 +1905,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8.2 Squad Integrity & Player Sheet Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8.3 Squad Flexibility & Player Market Balance Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -2842,6 +2855,38 @@ function activeFreeAgents(){
  ensureLifecycleState();
  return G.players.filter(p=>p.freeAgent||p.team===-1);
 }
+function freeAgentGroupCounts(){
+ let counts={GK:0,DEF:0,MID:0,FWD:0};
+ activeFreeAgents().filter(p=>!p.retiring).forEach(p=>{let g=positionGroup(p.pos);if(counts[g]!==undefined)counts[g]++});
+ return counts;
+}
+function ensureFreeAgentMarketHealth(){
+ ensureLifecycleState();
+ if(!Array.isArray(G.freeAgents))G.freeAgents=[];
+ let targets={GK:3,DEF:7,MID:7,FWD:7},counts=freeAgentGroupCounts(),created=0;
+ Object.keys(targets).forEach(group=>{
+   let shortage=Math.max(0,targets[group]-counts[group]);
+   for(let i=0;i<shortage;i++){
+     // Affordable depth first, with only occasional stronger options.
+     let roll=Math.random(),bias=roll<.65?rnd(-5,-1):roll<.93?rnd(-1,3):rnd(3,6);
+     let young=Math.random()<.58;
+     let np=generateWorldPlayer(-1,bias,young,group);
+     if(young)np.age=rnd(18,22);
+     np.ovr=Math.max(55,Math.min(80,np.ovr));
+     np.pot=Math.max(np.ovr+2,Math.min(92,np.pot));
+     np.wage=Math.round((8000+Math.max(0,np.ovr-55)*2600+rnd(0,9000))/1000)*1000;
+     np.value=np.ovr*np.ovr*rnd(3000,5200);
+     G.players.push(np);
+     if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);
+     created++;
+   }
+ });
+ if(created){
+   G._runtimeHydrationStamp=null;
+ }
+ return created;
+}
+
 function moveToFreeAgency(p){
  closePlayerClubSpell(p,null);
  p.team=-1;p.freeAgent=true;p.listed=false;p.years=0;
@@ -2863,14 +2908,25 @@ function signFreeAgent(id){
 }
 
 
-function generateWorldPlayer(team=-1,qualityBias=0,young=false){
+const MARKET_ROLE_POSITIONS={
+ GK:["GK"],
+ DEF:["LB","CB","CB","RB","LWB","RWB"],
+ MID:["DM","CDM","CM","CM","AM","CAM","LM","RM"],
+ FWD:["LW","RW","CF","ST","ST"]
+};
+function randomPositionForGroup(group){
+ let arr=MARKET_ROLE_POSITIONS[group]||POS;
+ return arr[rnd(0,arr.length-1)];
+}
+function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null){
  let age=young?rnd(17,22):rnd(18,31);
  let base=rnd(58+qualityBias,74+qualityBias);
  if(young&&Math.random()<.18)base+=rnd(3,8);
  base=Math.max(50,Math.min(86,base));
- let pos=POS[rnd(0,POS.length-1)];
+ let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)];
  let pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- let np={id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};seedSecondaryPositions(np);return np;
+ let np={id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};
+ seedSecondaryPositions(np);return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 function aiWorldEvolution(){
@@ -2920,18 +2976,24 @@ function aiWorldEvolution(){
    }
  });
 
- // Fresh annual player intake. Some prospects are unattached.
- let intake=rnd(28,42);
+ // Fresh annual player intake. Keep the world supplied across all role groups,
+ // with affordable young free agents available to financially constrained clubs.
+ let roleCycle=["GK","DEF","MID","FWD","DEF","MID","FWD"];
+ let intake=rnd(32,44);
  for(let i=0;i<intake;i++){
-   if(Math.random()<.38){
-     let np=generateWorldPlayer(-1,rnd(-2,2),true);
+   let group=roleCycle[i%roleCycle.length];
+   if(Math.random()<.42){
+     let np=generateWorldPlayer(-1,rnd(-4,2),true,group);
+     np.wage=Math.round((7000+Math.max(0,np.ovr-55)*2200+rnd(0,7000))/1000)*1000;
      G.players.push(np);
      if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);
    }else{
      let cid=rnd(0,G.clubs.length-1);
-     G.players.push(generateWorldPlayer(cid,rnd(-1,3),true));
+     let club=G.clubs[cid],youthLvl=club&&club.facilities?Number(club.facilities.youth)||1:1;
+     G.players.push(generateWorldPlayer(cid,rnd(-2,Math.min(4,youthLvl)),true,group));
    }
  }
+ ensureFreeAgentMarketHealth();
 
  // AI squad balancing: release surplus fringe players and fill shortages.
  G.clubs.forEach(c=>{
@@ -3434,10 +3496,29 @@ const TACTICAL_EQUIVALENTS={
  LAM:["AM","CAM","LAM"],RAM:["AM","CAM","RAM"],AM:["AM","CAM","LAM","RAM"],CAM:["AM","CAM","LAM","RAM"]
 };
 function naturalForTacticalSlot(p,slot){if(!p)return false;if(p.pos===slot)return true;return(TACTICAL_EQUIVALENTS[slot]||[]).includes(p.pos)}
-function playerEligibleForSlot(p,slot){if(!p)return false;seedSecondaryPositions(p);return naturalForTacticalSlot(p,slot)||p.secondaryPositions.includes(slot)}
+const SIDE_SWITCH_MAP={
+ LW:["RW"],RW:["LW"],
+ LM:["RM"],RM:["LM"],
+ LWB:["RWB"],RWB:["LWB"]
+};
+function sideSwitchEligible(p,slot){
+ if(!p)return false;
+ return (SIDE_SWITCH_MAP[slot]||[]).includes(p.pos);
+}
+function playerEligibleForSlot(p,slot){
+ if(!p)return false;
+ seedSecondaryPositions(p);
+ return naturalForTacticalSlot(p,slot)||sideSwitchEligible(p,slot)||p.secondaryPositions.includes(slot);
+}
 function coachAdaptationBand(teamId=G.club){let o=Number(coachProfile(teamId).ovr)||0;if(o>=90)return{label:"Elite",recovery:.50};if(o>=80)return{label:"Strong",recovery:.35};if(o>=65)return{label:"Capable",recovery:.20};return{label:"Developing",recovery:.10}}
 function baseSecondaryPenalty(p,slot){
- if(!p)return null;if(naturalForTacticalSlot(p,slot))return 0;if(!playerEligibleForSlot(p,slot))return null;
+ if(!p)return null;
+ if(naturalForTacticalSlot(p,slot))return 0;
+ if(sideSwitchEligible(p,slot)){
+   if(["LW","RW","LM","RM"].includes(p.pos))return 2;
+   if(["LWB","RWB"].includes(p.pos))return 4;
+ }
+ if(!playerEligibleForSlot(p,slot))return null;
  let close=[["LB","LWB"],["RB","RWB"],["DM","CM"],["CDM","CM"],["AM","CM"],["CAM","CM"],["LM","LW"],["RM","RW"],["CF","ST"]];
  return close.some(x=>x.includes(p.pos)&&x.includes(slot))?3:5;
 }
@@ -3446,7 +3527,8 @@ function positionalEffectiveness(p,slot,teamId=G.club){
  if(naturalForTacticalSlot(p,slot))return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
  let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
  let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
- return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:"Secondary",coachBand:band.label};
+ let roleType=sideSwitchEligible(p,slot)?"Side switch":"Secondary";
+ return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:roleType,coachBand:band.label};
 }
 function systemFitScore(p,slot=null,teamId=G.club){
  if(!p)return 0;let h=coachProfile(teamId),profile=coachStyleProfile(teamId),target=slot||preferredSlotForPlayer(p,teamId),pe=positionalEffectiveness(p,target,teamId);
@@ -3463,7 +3545,11 @@ function fitSelectionModifier(score){
  return l==="Excellent"?3:l==="Good"?1.5:l==="Fair"?0:-2.5;
 }
 function preferredSlotForPlayer(p,teamId=G.club){
- seedSecondaryPositions(p);let slots=formationSlotsForCoach(teamId).flat();let natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
+ seedSecondaryPositions(p);
+ let slots=formationSlotsForCoach(teamId).flat();
+ let natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;
+ let side=slots.find(s=>sideSwitchEligible(p,s));if(side)return side;
+ let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
 }
 function bestFitForPlayer(p,teamId=G.club){
  let slot=preferredSlotForPlayer(p,teamId),score=systemFitScore(p,slot,teamId);
@@ -3585,9 +3671,11 @@ function playerDevelopmentOffseason(){
 }
 function youthAcademyIntake(){
  ensureFacilityState();let c=G.clubs[G.club],lvl=c.facilities.youth;
- let count=lvl>=5?3:lvl>=3?2:1,added=[];
+ let count=lvl>=5?3:lvl>=3?2:1,added=[],coverage=formationCoverage(G.club);
+ let missingGroups=[...new Set((coverage.missing||[]).map(positionGroup))];
+ let cycle=["DEF","MID","FWD","GK"];
  for(let i=0;i<count;i++){
-  let bias=lvl-2,np=generateWorldPlayer(G.club,bias,true);
+  let bias=lvl-2,group=missingGroups[i]||cycle[(G.season+i)%cycle.length],np=generateWorldPlayer(G.club,bias,true,group);
   np.age=rnd(17,19);
   np.ovr=Math.max(55,Math.min(78,np.ovr+rnd(-2,lvl)));
   np.pot=Math.min(95,Math.max(np.ovr+4,np.pot+lvl+rnd(0,3)));
@@ -3769,31 +3857,52 @@ function staffView(){
  '<div class="identityRoles"><span>Preferred tactical roles</span><b>'+roleText+'</b></div></div>'+
  '<div class="card"><div class="title">Squad System Fit</div><div class="sub">Fit measures suitability to this coach. It does not change a player’s OVR.</div>'+
  '<div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div>'+
- '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR only helps players perform in valid secondary positions. It never makes an ineligible player suitable for a role.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of a secondary-position penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
+ '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR helps players execute valid secondary roles and opposite-side wide roles. It never makes an unrelated player eligible for a position.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of an eligible role penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
  return tabs+(squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
- ensureLifecycleState();refreshMarketActivity();
+ ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();
  let needs=squadNeeds(),needGroups=[...new Set(needs.map(n=>positionGroup(n.pos)))];
- let fas=activeFreeAgents().filter(p=>!p.retiring).sort((a,b)=>{
-   let an=needGroups.includes(positionGroup(a.pos))?1:0,bn=needGroups.includes(positionGroup(b.pos))?1:0;
-   return bn-an||b.ovr-a.ovr
- }).slice(0,24);
+
+ // Build a deliberately mixed free-agent shortlist so one positional group cannot crowd out the pool.
+ let allFA=activeFreeAgents().filter(p=>!p.retiring);
+ let groupOrder=["GK","DEF","MID","FWD"],faBuckets={};
+ groupOrder.forEach(g=>{
+   faBuckets[g]=allFA.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>{
+     let an=needGroups.includes(g)?1:0,bn=needGroups.includes(g)?1:0;
+     return bn-an||b.ovr-a.ovr||a.age-b.age;
+   }).slice(0,g==="GK"?3:6);
+ });
+ let fas=groupOrder.flatMap(g=>faBuckets[g]).slice(0,21);
 
  let pool=G.players.filter(p=>p.team!==G.club&&p.team>=0&&!p.freeAgent&&!p.retiring);
  pool.forEach(p=>{
    p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+Math.random()*18;
  });
- let ps=pool.sort((a,b)=>b._marketScore-a._marketScore).slice(0,52);
+ let ps=[...pool].sort((a,b)=>b._marketScore-a._marketScore).slice(0,40);
+
+ let lowerIds=new Set((G.leagues&&G.leagues.lower&&G.leagues.lower.clubIds)||[]);
+ let lower=pool.filter(p=>lowerIds.has(p.team))
+   .sort((a,b)=>{
+     let ag=needGroups.includes(positionGroup(a.pos))?1:0,bg=needGroups.includes(positionGroup(b.pos))?1:0;
+     let av=(a.ovr*.8)+(a.pot*.35)-(a.age*.15),bv=(b.ovr*.8)+(b.pot*.35)-(b.age*.15);
+     return bg-ag||bv-av;
+   }).slice(0,14);
+
  let needHtml=needs.map(n=>'<div class="need '+(n.level==="High"?"high":"")+'"><div class="needPos">'+n.level+' priority</div><b>'+n.pos+' · '+n.rating+' OVR</b><div class="sub">Current starter</div></div>').join("");
- let faHtml=fas.length?'<div class="card"><div class="title">Free Agents</div><div class="sub">'+fas.length+' available · no transfer fee required.</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':
+
+ let counts=freeAgentGroupCounts();
+ let faHtml=fas.length?'<div class="card"><div class="title">Free Agents</div><div class="sub">Balanced shortlist · '+counts.GK+' GK · '+counts.DEF+' DEF · '+counts.MID+' MID · '+counts.FWD+' FWD available in the wider pool.</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':
  '<div class="card"><div class="title">Free Agents</div><div class="sub">No suitable free agents are currently available.</div></div>';
+
+ let lowerHtml=lower.length?'<div class="card"><div class="title">Championship Opportunities</div><div class="sub">Lower division players are available to Premier clubs. This shortlist favours positional needs, upside and value.</div>'+lower.map(p=>playerRow(p,true)).join("")+'</div>':'';
+
  return'<div class="card"><div class="title">Recruitment Priorities</div><div class="sub">Needs are based on the Head Coach’s '+coachProfile().formation+' system, current Starting XI and positional fit.</div><div class="needs">'+needHtml+'</div></div>'+
- faHtml+
- '<div class="card"><div class="title">Transfer Market</div><div class="sub">Availability changes with listings, contracts, club activity and squad needs. System Fit is shown against your current Head Coach.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
+ faHtml+lowerHtml+
+ '<div class="card"><div class="title">Transfer Market</div><div class="sub">Recommended players can come from either division. System Fit is shown against your current Head Coach.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
 }
 function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
@@ -4085,8 +4194,7 @@ function playerOverviewContent(p){
    body='<div class="gmActions"><div class="actionHeading"><div class="title">GM Actions</div>'+state+'</div>'+contract+
      '<div class="actionGroup"><div class="actionLabel">TRANSFER STATUS</div><div class="sub">Estimated market range: '+estimatedMarketRange(p)+'</div>'+
      '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div>'+
-     (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>'+
-     '<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
+     (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>';
  }else if(free){
    let d=contractDemand(p);
    body='<div class="freeAgentBanner"><b>FREE AGENT</b><span class="sub">No transfer fee required · Expected terms around '+d.years+' years at '+money(d.wage)+'/week.</span></div><button class="btn primary full" data-sign-free="'+p.id+'">OFFER CONTRACT</button>';
