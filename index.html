@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.4 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.5 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -368,6 +368,160 @@ main{
 .devDelta{font-weight:900}
 @media(max-width:430px){.recordGrid{grid-template-columns:1fr 1fr}.sectionTabs button{padding:9px 13px}}
 
+
+/* v2.5 Presentation & History */
+.pitch{
+  position:relative!important;
+  min-height:560px!important;
+  border-radius:20px!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(rgba(15,80,50,.88),rgba(8,52,34,.96)),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 36px,rgba(0,0,0,.025) 36px 72px)!important;
+  border:1px solid rgba(174,222,194,.22)!important;
+}
+.pitch:before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border:2px solid rgba(225,244,232,.36);
+  border-radius:4px;
+  pointer-events:none;
+}
+.pitch:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:18px;
+  width:150px;
+  height:75px;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,244,232,.36);
+  border-top:0;
+  border-radius:0 0 80px 80px;
+  pointer-events:none;
+}
+.pitchGoal{
+  position:absolute;
+  left:50%;
+  bottom:18px;
+  width:120px;
+  height:18px;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,244,232,.46);
+  border-bottom:0;
+  border-radius:4px 4px 0 0;
+  z-index:1;
+}
+.pitchPenalty{
+  position:absolute;
+  left:50%;
+  bottom:18px;
+  width:250px;
+  height:110px;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,244,232,.36);
+  border-bottom:0;
+  z-index:1;
+}
+.pitchSix{
+  position:absolute;
+  left:50%;
+  bottom:18px;
+  width:150px;
+  height:50px;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,244,232,.36);
+  border-bottom:0;
+  z-index:1;
+}
+.pitchArc{
+  position:absolute;
+  left:50%;
+  bottom:105px;
+  width:90px;
+  height:38px;
+  transform:translateX(-50%);
+  border:2px solid rgba(225,244,232,.32);
+  border-top:0;
+  border-radius:0 0 60px 60px;
+  z-index:1;
+}
+.pitchLine{
+  position:relative!important;
+  z-index:2!important;
+}
+.pitchPlayer{
+  min-width:72px!important;
+}
+.pitchBadge{
+  width:52px!important;
+  height:52px!important;
+  font-size:17px!important;
+  box-shadow:0 0 0 3px rgba(217,181,74,.12)!important;
+}
+.pitchName{margin-top:6px!important;font-size:12px!important}
+.pitchPos{font-size:10px!important}
+
+.devCardRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:13px 0;
+  border-bottom:1px solid var(--line);
+}
+.devCardRow:last-child{border-bottom:0}
+.devPlayerMain{min-width:0}
+.devPlayerMain b{
+  display:block;
+  font-size:14px;
+  line-height:1.2;
+}
+.devPlayerMeta{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+}
+.devMetric{
+  text-align:right;
+  white-space:nowrap;
+  font-weight:900;
+  font-size:14px;
+}
+.devMetric.up{color:var(--green)}
+.devMetric.down{color:#ff8798}
+
+.homeBrief{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+.briefCard{
+  border:1px solid var(--line);
+  background:var(--card2);
+  border-radius:16px;
+  padding:14px;
+}
+.briefCard .briefTitle{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.briefCard .briefValue{font-size:18px;font-weight:900;margin-top:5px}
+.newsItem{padding:11px 0;border-bottom:1px solid var(--line)}
+.newsItem:last-child{border-bottom:0}
+.newsItem b{display:block;font-size:12px}
+.newsItem span{display:block;color:var(--muted);font-size:10px;margin-top:3px;line-height:1.35}
+
+.recordHero{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+.recordHero .recordTile{min-height:104px}
+.recordHighlight{color:var(--gold)}
+.recordNote{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
+
 </style>
 </head>
 <body>
@@ -429,7 +583,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.4 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.5 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
@@ -447,7 +601,7 @@ function renderBuildVersion(){
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
 function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);return{id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false}}
-function world(){let clubs=CLUBS.map((name,i)=>({id:i,name,rep:90-i+rnd(-2,2),balance:rnd(50,180)*1e6,budget:rnd(18,65)*1e6,facility:rnd(2,4),facilities:{training:rnd(2,4),youth:rnd(1,3),scouting:rnd(1,3),medical:rnd(1,3)},coach:rnd(66,88),p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})),players=[];clubs.forEach((c,i)=>{for(let j=0;j<28;j++)players.push(player(i,j))});return{season:2026,week:0,club:selected,clubs,players,history:[],feed:[{t:"WELCOME TO THE CLUB",m:"The board has handed you control of football operations."}]}}
+function world(){let clubs=CLUBS.map((name,i)=>({id:i,name,rep:90-i+rnd(-2,2),balance:rnd(50,180)*1e6,budget:rnd(18,65)*1e6,facility:rnd(2,4),facilities:{training:rnd(2,4),youth:rnd(1,3),scouting:rnd(1,3),medical:rnd(1,3)},coach:rnd(66,88),p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})),players=[];clubs.forEach((c,i)=>{for(let j=0;j<28;j++)players.push(player(i,j))});return{season:2026,week:0,club:selected,clubs,players,history:[],records:{biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null},feed:[{t:"WELCOME TO THE CLUB",m:"The board has handed you control of football operations."}]}}
 function save(){
  try{
   localStorage.setItem("soccerGMAlpha",JSON.stringify(G));
@@ -513,6 +667,11 @@ function advance(){
   let dataA=recordMatchStats(i,r[0]),dataB=recordMatchStats(j,r[1]);
   if(i!==G.club&&j!==G.club){buildMatchPerformance(i,r[0],r[1],dataA);buildMatchPerformance(j,r[1],r[0],dataB)}
   if(i===G.club||j===G.club){
+   ensureRecordState();
+   let userGoals=i===G.club?r[0]:r[1],oppGoals=i===G.club?r[1]:r[0];
+   if(userGoals>=oppGoals){G.records.currentUnbeaten++;G.records.longestUnbeaten=Math.max(G.records.longestUnbeaten,G.records.currentUnbeaten)}else G.records.currentUnbeaten=0;
+   let margin=userGoals-oppGoals;
+   if(margin>0&&(!G.records.biggestWin||margin>G.records.biggestWin.margin))G.records.biggestWin={margin,score:userGoals+"–"+oppGoals,opponent:G.clubs[i===G.club?j:i].name,season:G.season};
    let perfA=buildMatchPerformance(i,r[0],r[1],dataA),perfB=buildMatchPerformance(j,r[1],r[0],dataB);
    let best=[...perfA,...perfB].sort((a,b)=>b.rating-a.rating)[0];if(best){let bp=G.players.find(p=>p.id===best.id);if(bp){bp.stats.potm++;if(!bp.career)bp.career={apps:0,goals:0,assists:0,potm:0};bp.career.potm++}}
    let statsA=teamMatchStats(r[0],r[1],true),statsB=teamMatchStats(r[1],r[0],false);
@@ -1163,31 +1322,20 @@ function financeView(){
 
 function home(){
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1,avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1);
+ let target=G.boardTarget||4,boardProgress=Math.max(0,Math.min(100,Math.round((21-pos)/(21-target)*100)));
+ let recent=G.feed.slice(0,4);
  return'<div class="grid2">'+stat("LEAGUE",pos+" / 20","Week "+G.week+" of 38")+stat("SQUAD",avg,"Club squad average")+stat("BUDGET",money(c.budget),"Transfers")+stat("BOARD","74","Stable")+'</div>'+
+ '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div><div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>'+
  '<div class="card"><div class="title">Next Fixture</div><div class="fixture"><div class="label">LEAGUE · WEEK '+(G.week+1)+'</div><div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div><div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,38-G.week)+' matches remaining</div></div><div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>'+
- '<div class="card"><div class="title">Inbox</div>'+G.feed.slice(0,5).map(x=>'<div class="feed"><b>'+x.t+'</b><p>'+x.m+'</p></div>').join("")+'</div>'+
- '<div class="card"><div class="title">Top Players</div>'+[...roster()].sort((a,b)=>b.ovr-a.ovr).slice(0,5).map(p=>playerRow(p,false)).join("")+'</div>'
+ '<div class="card"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
 }
 
-function tabsHtml(scope,active,items){
- return '<div class="sectionTabs">'+items.map(x=>'<button data-section-tab="'+scope+'" data-tab="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';
-}
-function developmentView(){
- let dev=G.lastDevelopment&&G.lastDevelopment.changes?G.lastDevelopment.changes:[];
- let youth=roster().filter(p=>p.age<=23).sort((a,b)=>(b.pot-b.ovr)-(a.pot-a.ovr)).slice(0,6);
- let decline=roster().filter(p=>p.age>=30).sort((a,b)=>b.age-a.age).slice(0,6);
- let recent=dev.length?dev.slice(0,12).map(x=>'<div class="recordRow"><div><b>'+x.name+'</b><span>Last offseason</span></div><div class="devDelta '+(x.delta>0?'devUp':'devDown')+'">'+x.from+' → '+x.to+' ('+(x.delta>0?'+':'')+x.delta+')</div></div>').join(""):'<div class="sub">Development changes will appear after the next offseason.</div>';
- return '<div class="card"><div class="title">Development Centre</div><div class="sub">Player progression, potential and age profile. Infrastructure remains under Club.</div></div>'+
- '<div class="card"><div class="title">Recent Development</div>'+recent+'</div>'+
- '<div class="card"><div class="title">High Potential</div>'+youth.map(p=>'<div class="recordRow"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+'</span></div><b>'+p.ovr+' → '+p.pot+'</b></div>').join("")+'</div>'+
- '<div class="card"><div class="title">Veteran Watch</div>'+(decline.length?decline.map(p=>'<div class="recordRow"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+'</span></div><b>'+p.ovr+' OVR</b></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
-}
 function squadTeamView(){
  let c=coachProfile(),xi=startingXI(),lineClasses=["attack","mid","mid","def","gk"];
  let pitchLines=xi.lines.map((line,i)=>'<div class="pitchLine '+(lineClasses[Math.min(i,lineClasses.length-1)])+'">'+line.map(p=>p?'<div class="pitchPlayer" data-player="'+p.id+'"><div class="pitchBadge">'+p.ovr+'</div><div class="pitchName">'+p.name.split(" ").slice(-1)[0]+'</div><div class="pitchPos">'+p.pos+'</div></div>':'').join("")+'</div>').join("");
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
  let depth=groups.map(g=>{let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>'}).join("");
- return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div><div class="pitch">'+pitchLines+'</div></div>'+
+ return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div><div class="pitch"><div class="pitchGoal"></div><div class="pitchPenalty"></div><div class="pitchSix"></div><div class="pitchArc"></div>'+pitchLines+'</div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>'
 }
 function squad(){
@@ -1239,13 +1387,19 @@ function leagueRecordsView(){
  let bestGF=complete.length?[...complete].sort((a,b)=>(b.gf||0)-(a.gf||0))[0]:null;
  let champs={};hs.forEach(h=>{if(h.champ)champs[h.champ]=(champs[h.champ]||0)+1});
  let dynasty=Object.entries(champs).sort((a,b)=>b[1]-a[1])[0];
+ let golden={};hs.forEach(h=>{let g=h.awards&&h.awards.goldenBoot;if(g)golden[g.name]=(golden[g.name]||0)+1});
+ let gbLead=Object.entries(golden).sort((a,b)=>b[1]-a[1])[0];
  let seasons=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+h.champ+'</b><div class="seasonMeta">Champion'+(h.awards&&h.awards.goldenBoot?' · Golden Boot: '+h.awards.goldenBoot.name+' ('+h.awards.goldenBoot.pos+')':'')+'</div></div><div>'+((h.w||0)*3+(h.d||0))+' pts</div></div>').join("");
- return '<div class="recordGrid">'+
+ return '<div class="recordHero">'+
   '<div class="recordTile"><div class="label">SEASONS ARCHIVED</div><div class="recordValue">'+hs.length+'</div></div>'+
-  '<div class="recordTile"><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="sub">'+(dynasty?dynasty[0]:'No champion archived')+'</div></div>'+
-  '<div class="recordTile"><div class="label">YOUR BEST POINTS</div><div class="recordValue">'+(bestPts?bestPts.w*3+bestPts.d:'—')+'</div><div class="sub">'+(bestPts?bestPts.season:'Tracking from v2.4')+'</div></div>'+
-  '<div class="recordTile"><div class="label">YOUR MOST GOALS</div><div class="recordValue">'+(bestGF?bestGF.gf:'—')+'</div><div class="sub">'+(bestGF?bestGF.season:'Tracking from v2.4')+'</div></div></div>'+
-  '<div class="card"><div class="title">League Archive</div><div class="sub">Season awards and records are preserved as each campaign finishes.</div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
+  '<div class="recordTile"><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?dynasty[0]:'No champion archived')+'</div></div>'+
+  '<div class="recordTile"><div class="label">MOST GOLDEN BOOTS</div><div class="recordValue">'+(gbLead?gbLead[1]:'—')+'</div><div class="recordNote">'+(gbLead?gbLead[0]:'Tracking from v2.2')+'</div></div>'+
+  '<div class="recordTile"><div class="label">YOUR BEST POINTS</div><div class="recordValue">'+(bestPts?bestPts.w*3+bestPts.d:'—')+'</div><div class="recordNote">'+(bestPts?bestPts.season:'Tracking from v2.4')+'</div></div></div>'+
+  '<div class="card"><div class="title">League Records</div>'+
+  '<div class="recordRow"><div><b>Your highest scoring season</b><span>Club record</span></div><b>'+(bestGF?bestGF.gf:'—')+'</b></div>'+
+  '<div class="recordRow"><div><b>Historic title leader</b><span>Archived era</span></div><b>'+(dynasty?dynasty[0]+' · '+dynasty[1]:'—')+'</b></div>'+
+  '<div class="recordRow"><div><b>Golden Boot leader</b><span>Archived era</span></div><b>'+(gbLead?gbLead[0]+' · '+gbLead[1]:'—')+'</b></div></div>'+
+  '<div class="card"><div class="title">League Archive</div><div class="sub">Champions and major awards are preserved as each campaign finishes.</div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
 }
 function league(){
  let tabs=tabsHtml("league",leagueTab,[["table","Table"],["leaders","Leaders"],["records","Records"]]);
@@ -1263,6 +1417,7 @@ function clubFacilitiesView(){
  return '<div class="card"><div class="title">Facilities</div><div class="sub">Permanent infrastructure investment. Upgrades improve club capability but increase annual operating costs.</div><div class="facilityGrid">'+["training","youth","scouting","medical"].map(facilityCard).join("")+'</div></div>';
 }
 function clubHistoryView(){
+ ensureRecordState();
  let c=G.clubs[G.club],hs=Array.isArray(G.history)?G.history:[],tracked=hs.filter(h=>Number.isFinite(h.p));
  let titles=hs.filter(h=>h.champ===c.name).length;
  let best=tracked.length?[...tracked].sort((a,b)=>a.pos-b.pos)[0]:null;
@@ -1273,11 +1428,20 @@ function clubHistoryView(){
  let goals=[...own].sort((a,b)=>(b.career.goals||0)-(a.career.goals||0))[0];
  let assists=[...own].sort((a,b)=>(b.career.assists||0)-(a.career.assists||0))[0];
  let seasons=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+ordinal(h.pos)+' place</b><div class="seasonMeta">'+h.champ+' champions'+(h.w!==undefined?' · '+h.w+'-'+h.d+'-'+h.l:'')+'</div></div><div>'+(h.w!==undefined?(h.w*3+h.d)+' pts':'')+'</div></div>').join("");
- return '<div class="recordGrid"><div class="recordTile"><div class="label">LEAGUE TITLES</div><div class="recordValue">'+titles+'</div></div><div class="recordTile"><div class="label">BEST FINISH</div><div class="recordValue">'+(best?ordinal(best.pos):"—")+'</div></div><div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(pts?pts.w*3+pts.d:"—")+'</div><div class="sub">'+(pts?pts.season:"Tracking from v2.4")+'</div></div><div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(gf?gf.gf:"—")+'</div><div class="sub">'+(gf?gf.season:"Tracking from v2.4")+'</div></div></div>'+
- '<div class="card"><div class="title">Player Records</div><div class="sub">Career-era records are tracked from v2.4 onward.</div>'+
+ return '<div class="recordHero">'+
+ '<div class="recordTile"><div class="label">LEAGUE TITLES</div><div class="recordValue">'+titles+'</div></div>'+
+ '<div class="recordTile"><div class="label">BEST FINISH</div><div class="recordValue">'+(best?ordinal(best.pos):"—")+'</div></div>'+
+ '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(pts?pts.w*3+pts.d:"—")+'</div><div class="recordNote">'+(pts?pts.season:"Tracking from v2.4")+'</div></div>'+
+ '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(gf?gf.gf:"—")+'</div><div class="recordNote">'+(gf?gf.season:"Tracking from v2.4")+'</div></div></div>'+
+ '<div class="card"><div class="title">Player Records</div><div class="sub">Club career records are tracked from v2.4 onward.</div>'+
  '<div class="recordRow"><div><b>Appearances</b><span>Club career</span></div><b>'+(apps?apps.name+' · '+apps.career.apps:"—")+'</b></div>'+
  '<div class="recordRow"><div><b>Goals</b><span>Club career</span></div><b>'+(goals?goals.name+' · '+goals.career.goals:"—")+'</b></div>'+
  '<div class="recordRow"><div><b>Assists</b><span>Club career</span></div><b>'+(assists?assists.name+' · '+assists.career.assists:"—")+'</b></div></div>'+
+ '<div class="card"><div class="title">Club Records</div>'+
+ '<div class="recordRow"><div><b>Longest unbeaten run</b><span>League matches</span></div><b>'+G.records.longestUnbeaten+'</b></div>'+
+ '<div class="recordRow"><div><b>Biggest league win</b><span>'+(G.records.biggestWin?G.records.biggestWin.opponent+' · '+G.records.biggestWin.season:'Tracking from v2.5')+'</span></div><b>'+(G.records.biggestWin?G.records.biggestWin.score:'—')+'</b></div>'+
+ '<div class="recordRow"><div><b>Record signing</b><span>'+(G.records.highestBuy?G.records.highestBuy.name+' · '+G.records.highestBuy.season:'Tracking from v2.5')+'</span></div><b>'+(G.records.highestBuy?money(G.records.highestBuy.fee):'—')+'</b></div>'+
+ '<div class="recordRow"><div><b>Record sale</b><span>'+(G.records.highestSale?G.records.highestSale.name+' · '+G.records.highestSale.season:'Tracking from v2.5')+'</span></div><b>'+(G.records.highestSale?money(G.records.highestSale.fee):'—')+'</b></div></div>'+
  '<div class="card"><div class="title">Season History</div>'+(seasons||'<div class="sub">Complete a season to begin the club archive.</div>')+'</div>';
 }
 function club(){
@@ -1328,7 +1492,7 @@ function acceptSale(offerId){
  let oldName=p.name,fee=o.fee;
  buyer.balance=Math.max(0,buyer.balance-fee);
  ensureFinanceState();seller.balance+=fee;
- seller.budget+=Math.round(fee*.8);seller.finance.seasonTransferOut+=fee;
+ seller.budget+=Math.round(fee*.8);seller.finance.seasonTransferOut+=fee;if(!G.records.highestSale||fee>G.records.highestSale.fee)G.records.highestSale={name:p.name,fee:fee,season:G.season};
  p.team=buyer.id;
  p.listed=false;
  p.years=Math.max(2,p.years);
@@ -1402,8 +1566,11 @@ function showPlayer(id){
  '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+avgRating+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div></div>'+body;
  $("#sheet").classList.remove("hidden");
 }
-function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;p.team=G.club;p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
-function render(){if(!G)return;ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
+function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};p.team=G.club;p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
+function ensureRecordState(){
+ if(!G.records)G.records={biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null};
+}
+function render(){if(!G)return;ensureRecordState();ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
 renderBuildVersion();
 $("#clubs").innerHTML=CLUBS.map((c,i)=>{
  let tier=i<4?"Title Contender":i<10?"Established":i<16?"Building":"Rebuild";
