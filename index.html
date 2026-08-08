@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0f14">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Mini&Me Football Club v2.1 Alpha Mobile</title>
+<style>
+:root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button{font:inherit}.hidden{display:none!important}
+header{padding:calc(14px + env(safe-area-inset-top)) 18px 12px;position:sticky;top:0;z-index:5;background:#080d12ee;backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.brand{font-weight:850;letter-spacing:.7px;font-size:18px}.brand span{color:var(--gold)}#clubline{font-size:12px;color:var(--muted);margin-top:3px}
+main{padding:14px;max-width:720px;margin:auto}.card{background:linear-gradient(180deg,var(--card),#0e151d);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{min-height:92px}.label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}.value{font-size:24px;font-weight:850;margin-top:5px}.sub{font-size:12px;color:var(--muted);line-height:1.4}.title{font-size:17px;font-weight:800;margin-bottom:10px}
+.fixture{text-align:center;padding:8px 0}.fixture .teams{font-size:19px;font-weight:800;margin:10px 0}.btn{border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--text);padding:12px 14px;font-weight:700}.btn.primary{background:var(--gold);border-color:var(--gold);color:#17130a}.btn.full{width:100%}.btn:active{transform:scale(.98)}
+.player{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #202c38}.player:last-child{border:0}.pos{width:40px;height:40px;border-radius:12px;background:var(--card2);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--gold)}.pname{font-weight:750;font-size:14px}.meta{font-size:11px;color:var(--muted);margin-top:3px}.rating{text-align:right}.ovr{font-size:19px;font-weight:850}.pot{font-size:10px;color:var(--muted)}
+.feed{padding:11px 0;border-bottom:1px solid #202c38}.feed:last-child{border:0}.feed b{font-size:12px}.feed p{font-size:12px;color:var(--muted);margin:4px 0 0}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:9;background:#0b1119f5;backdrop-filter:blur(20px);border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{background:none;border:0;color:var(--muted);font-size:10px;padding:8px 2px}nav button b{display:block;font-size:17px;margin-bottom:2px;font-weight:600}nav button.active{color:var(--gold)}
+.start{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 15%,#182332,#080d12 55%);overflow:auto;padding:calc(44px + env(safe-area-inset-top)) 18px 30px;text-align:center}.start h1{font-size:42px;margin:8px 0 4px}.start h1 span{color:var(--gold)}.start .intro{max-width:460px;margin:10px auto 20px;color:var(--muted);font-size:14px;line-height:1.5}.clubs{display:grid;gap:8px;max-width:500px;margin:0 auto 16px;text-align:left}.clubpick{background:var(--card);border:1px solid var(--line);padding:13px;border-radius:13px;color:var(--text);width:100%;text-align:left}.clubpick.selected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}.clubpick b{font-size:14px}.clubpick span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.startActions{max-width:500px;margin:auto;display:grid;gap:8px}.careerStep{max-width:500px;margin:auto}.careerStep h2{font-size:22px;margin:8px 0}.careerStep .sub{margin-bottom:14px}.careerTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.backBtn{background:none;border:0;color:var(--muted);padding:8px 0;font-weight:700}
+.leagueWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -15px -15px;padding:0 15px 15px}.leagueTable{min-width:720px}.leagueRow{display:grid;grid-template-columns:30px 190px repeat(7,42px) 50px;align-items:center;border-bottom:1px solid #202c38;font-size:12px;min-height:40px}.leagueRow.head{color:var(--muted);font-size:10px;font-weight:700;position:sticky;top:0;background:#111923;z-index:2}.leagueCell{padding:9px 6px;text-align:center}.leagueCell.club{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.leagueRow.me{color:var(--gold);font-weight:800;background:#d9b54a0a}.leagueRow .stickyPos{position:sticky;left:0;background:#111923;z-index:1}.leagueRow .stickyClub{position:sticky;left:30px;background:#111923;z-index:1}.leagueRow.me .stickyPos,.leagueRow.me .stickyClub{background:#151b20}.leagueMark{width:4px;height:26px;border-radius:4px;display:inline-block;vertical-align:middle;margin-right:6px}.leagueMark.top{background:var(--gold)}.leagueMark.drop{background:var(--red)}.legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 2px;font-size:10px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.legend i{width:8px;height:8px;border-radius:3px;display:inline-block}.legend .top{background:var(--gold)}.legend .drop{background:var(--red)}
+.sheet{position:fixed;inset:0;background:#0009;z-index:15;display:flex;align-items:flex-end}.sheetbox{background:#101821;border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-height:82vh;overflow:auto;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}
+.continueDock{position:fixed;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:8}.continueDock .btn{box-shadow:0 8px 28px #0008}
+
+.resultScreen{position:fixed;inset:0;z-index:30;background:linear-gradient(180deg,#0b1118,#080d12 60%);padding:calc(34px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center}.resultCard{width:100%;max-width:520px;text-align:center}.resultBadge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:18px}.resultState{font-size:13px;font-weight:850;letter-spacing:1.4px;margin-bottom:8px}.resultState.win{color:var(--green)}.resultState.loss{color:var(--red)}.resultState.draw{color:var(--gold)}.resultTeams{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:20px 0}.resultTeam{font-size:16px;font-weight:800;line-height:1.3}.resultScore{font-size:42px;font-weight:900;white-space:nowrap}.resultMeta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.resultMeta .card{margin:0;text-align:left}
+
+/* v1.3 squad, recruitment and compact league */
+.coachStrip{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;padding:12px;background:var(--card2);border:1px solid var(--line);border-radius:13px}
+.coachStrip b{display:block;font-size:14px}.coachStrip .formation{font-size:20px;font-weight:900;color:var(--gold);text-align:right}
+.pitch{position:relative;min-height:480px;border:1px solid #355145;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#163629,#10291f);margin-top:12px;padding:18px 8px}
+.pitch:before{content:"";position:absolute;inset:18px;border:1px solid #ffffff35;border-radius:4px}
+.pitch:after{content:"";position:absolute;left:18px;right:18px;top:50%;border-top:1px solid #ffffff35}
+.pitchLine{position:relative;z-index:1;display:flex;justify-content:space-around;align-items:center;gap:5px}
+.pitchLine.attack{height:100px}.pitchLine.mid{height:105px}.pitchLine.def{height:105px}.pitchLine.gk{height:95px}
+.pitchPlayer{width:72px;text-align:center}
+.pitchBadge{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;margin:auto;background:#0c151c;border:2px solid var(--gold);font-weight:900;font-size:15px}
+.pitchName{font-size:10px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:5px}.pitchPos{font-size:9px;color:#b8c3cb}
+.depthGroup{margin-top:14px}.depthHead{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line)}.depthHead b{font-size:13px}.depthHead span{font-size:11px;color:var(--muted)}
+.needs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.need{padding:11px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}.need .needPos{font-size:11px;color:var(--muted)}.need b{display:block;margin-top:3px}.need.high b{color:var(--gold)}
+.marketFilter{display:flex;gap:7px;overflow:auto;padding:3px 0 10px}.marketFilter button{white-space:nowrap;border:1px solid var(--line);background:var(--card2);color:var(--muted);border-radius:999px;padding:8px 11px;font-size:11px}.marketFilter button.active{color:#17130a;background:var(--gold);border-color:var(--gold);font-weight:800}
+.fixturePos{color:var(--gold);font-size:12px;font-weight:800;margin-left:5px}
+.leagueTable{min-width:660px!important}.leagueRow{grid-template-columns:40px 150px repeat(8,56px)!important}.stickyClub{left:40px!important}.leagueCell.club{font-size:12px!important}.stickyPos{width:40px!important}.leagueCell{padding-left:7px!important;padding-right:7px!important}.leagueRow.me .stickyClub,.leagueRow.me .stickyPos{background:#151c20!important}
+
+
+/* v1.4 selling and outgoing transfer system */
+.transferActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.transferTag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;border:1px solid var(--line);border-radius:999px;padding:5px 8px;margin-top:6px;color:var(--muted)}
+.transferTag.listed{color:var(--gold);border-color:#6b5a22;background:#d9b54a12}
+.offerCard{padding:12px;background:var(--card2);border:1px solid var(--line);border-radius:13px;margin-top:9px}
+.offerTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.offerClub{font-weight:800}.offerValue{font-size:18px;font-weight:900;color:var(--gold)}
+.offerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sellSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.sellSummary .card{margin:0}
+
+
+/* v1.4.1 iPhone navigation hotfix */
+html,body{min-height:100dvh}
+body{padding-bottom:calc(152px + env(safe-area-inset-bottom))}
+nav{
+  bottom:calc(62px + env(safe-area-inset-bottom))!important;
+  padding-bottom:7px!important;
+  box-shadow:0 -8px 24px #0007;
+}
+.continueDock{
+  bottom:calc(138px + env(safe-area-inset-bottom))!important;
+}
+@supports (height: 100dvh){
+  nav{bottom:calc(8px + env(safe-area-inset-bottom))!important}
+  .continueDock{bottom:calc(88px + env(safe-area-inset-bottom))!important}
+  body{padding-bottom:calc(98px + env(safe-area-inset-bottom))}
+}
+
+
+/* v1.5 offseason and iPhone navigation */
+.seasonReview{position:fixed;inset:0;z-index:40;background:linear-gradient(180deg,#0b1118,#080d12 60%);overflow:auto;padding:calc(28px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom))}
+.reviewWrap{max-width:620px;margin:auto}.reviewHero{text-align:center;padding:14px 0 20px}.reviewHero h1{font-size:32px;margin:7px 0}.reviewFinish{font-size:54px;font-weight:900;color:var(--gold)}
+.reviewGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.reviewGrid .card{margin:0}.reviewSection{margin-top:12px}
+.contractRow{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px 0;border-bottom:1px solid #202c38}.contractRow:last-child{border:0}.contractRow b{font-size:13px}.contractRow span{font-size:11px;color:var(--muted)}
+.boardOutcome{font-size:20px;font-weight:900;margin:6px 0}.boardOutcome.pass{color:var(--green)}.boardOutcome.fail{color:var(--red)}
+nav{bottom:calc(82px + env(safe-area-inset-bottom))!important}
+.continueDock{bottom:calc(162px + env(safe-area-inset-bottom))!important}
+body{padding-bottom:calc(178px + env(safe-area-inset-bottom))!important}
+@supports (height:100dvh){
+ nav{bottom:calc(64px + env(safe-area-inset-bottom))!important}
+ .continueDock{bottom:calc(144px + env(safe-area-inset-bottom))!important}
+ body{padding-bottom:calc(160px + env(safe-area-inset-bottom))!important}
+}
+
+
+/* v1.6 contract, free agency and retirement */
+.contractActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.contractPanel{margin-top:14px;padding:13px;background:var(--card2);border:1px solid var(--line);border-radius:14px}
+.contractDemand{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.contractDemand .card{margin:0}
+.contractStatus{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800;margin-top:7px}
+.contractStatus.expiring{color:var(--gold);border-color:#7a6526;background:#d9b54a14}
+.contractStatus.retiring{color:var(--red);border-color:#73303a;background:#fb718514}
+.contractStatus.renewed{color:var(--green);border-color:#285c3b;background:#4ade8012}
+.offerChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.offerChoices button{padding:10px 6px}
+.freeAgentBanner{padding:12px;background:var(--card2);border:1px solid var(--line);border-radius:13px;margin:12px 0}
+.freeAgentBanner b{display:block}
+.retireNote{margin-top:10px;padding:10px;border-radius:12px;background:#fb718510;border:1px solid #71303a;font-size:12px;color:#f4b8c1}
+
+
+/* v1.7 Experience Refinement */
+:root{--dock:#0d151e}
+body{padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}
+nav{
+ left:14px!important;right:14px!important;width:auto!important;
+ bottom:calc(72px + env(safe-area-inset-bottom))!important;
+ border:1px solid #31404f!important;border-radius:22px!important;
+ background:#0d151ef5!important;
+ box-shadow:0 12px 32px #000b,0 0 0 1px #ffffff05 inset!important;
+ padding:8px 5px 9px!important;
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+nav button{border-radius:15px!important;padding:7px 2px!important;transition:.15s ease}
+nav button.active{background:#d9b54a14!important}
+nav button.active .ico,nav button.active span{color:var(--gold)!important}
+.continueDock{
+ right:24px!important;bottom:calc(174px + env(safe-area-inset-bottom))!important;
+ filter:drop-shadow(0 9px 18px #0009)
+}
+.continueDock .btn,.continueDock button{border-radius:18px!important;min-height:58px!important}
+.gmActions{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#0b1219}
+.actionHeading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.actionHeading .title{margin:0}
+.actionGroup{padding-top:12px;margin-top:12px;border-top:1px solid var(--line)}
+.actionLabel{font-size:10px;letter-spacing:.14em;font-weight:800;color:var(--muted);margin-bottom:8px}
+.statusPill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}
+.statusPill.warn{color:var(--gold);border-color:#705d25;background:#d9b54a12}
+.statusPill.good{color:var(--green);border-color:#285c3b;background:#4ade8010}
+.statusPill.danger{color:#ff8798;border-color:#71303a;background:#fb718510}
+.playerFlags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.miniFlag{font-size:9px;font-weight:900;letter-spacing:.05em;padding:3px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.miniFlag.gold{color:var(--gold);border-color:#685822}
+.miniFlag.red{color:#ff8798;border-color:#71303a}
+.contractBox{padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.contractCompare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.contractFigure{padding:10px;border-radius:12px;background:#0a1016;border:1px solid #263442}
+.contractFigure .label{font-size:9px}.contractFigure b{display:block;margin-top:4px;font-size:14px}
+.adjustRow{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:7px;margin-top:8px}
+.adjustRow button{height:34px;border-radius:10px;border:1px solid var(--line);background:#16212c;color:var(--text);font-weight:900}
+.adjustValue{text-align:center;font-size:13px;font-weight:800}
+.marketRange{font-size:11px;color:var(--muted);margin-top:5px}
+@supports (height:100dvh){
+ nav{bottom:calc(62px + env(safe-area-inset-bottom))!important}
+ .continueDock{bottom:calc(164px + env(safe-area-inset-bottom))!important}
+}
+
+
+/* v1.8.1 build identification */
+.buildLabel{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.04em}
+.startBuild{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.08em}
+
+/* v1.8.2 stable app navigation */
+body{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;border:0!important;border-top:1px solid #263442!important;border-radius:0!important;background:#0d151ef8!important;box-shadow:0 -8px 24px #0008!important;padding:7px 7px calc(8px + env(safe-area-inset-bottom))!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:30!important}
+nav button{border-radius:12px!important;padding:7px 2px!important}nav button.active{background:#d9b54a12!important}.continueDock{display:none!important}
+.homeContinue{margin-top:12px}.homeContinue .btn{min-height:52px;border-radius:15px;font-size:13px;font-weight:900}
+@supports (height:100dvh){body{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}nav{bottom:0!important}}
+
+/* Mini&Me Football Club v2.0 identity */
+:root{
+  --mm-gold:#d9b54a;
+  --mm-gold-soft:#f1d77d;
+  --mm-ink:#080d12;
+  --mm-panel:#111923;
+  --mm-line:#2a3948;
+}
+.brand{font-weight:900;letter-spacing:.04em}
+.brandMini{font-size:11px;letter-spacing:.18em;color:var(--mm-gold);font-weight:900;text-transform:uppercase}
+.brandTitle{font-size:18px;line-height:1.05;font-weight:950;letter-spacing:.04em}
+.brandTag{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+.start h1{font-size:38px;line-height:.95;margin:10px 0 8px;letter-spacing:.01em}
+.start h1 .mini{display:block;font-size:15px;letter-spacing:.22em;color:var(--mm-gold);margin-bottom:9px}
+.start h1 .club{display:block;font-size:43px;font-weight:950}
+.start .tagline{font-size:13px;font-weight:800;letter-spacing:.04em;color:var(--mm-gold-soft);margin-top:10px}
+.start .intro{max-width:480px;margin:12px auto 22px}
+.brandRule{width:54px;height:2px;background:var(--mm-gold);border-radius:99px;margin:12px auto}
+.mmBadge{display:inline-flex;align-items:center;gap:6px;border:1px solid #6e5a24;background:#d9b54a10;color:var(--mm-gold);border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}
+.card{box-shadow:0 10px 24px #00000016}
+.btn.primary{box-shadow:0 8px 18px #d9b54a16}
+nav button.active{color:var(--mm-gold)!important}
+.versionWordmark{font-size:9px;color:var(--muted);letter-spacing:.05em;margin-top:2px}
+
+
+.financeHero{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card2);margin-bottom:12px}
+.financeStatus{font-size:24px;font-weight:900;margin-top:4px}
+.financeStatus.healthy{color:var(--green)}.financeStatus.watch{color:var(--gold)}.financeStatus.pressure{color:#ff8798}
+.financeRows{margin-top:10px}.financeRow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}.financeRow:last-child{border:0}.financeRow b{font-size:13px}
+.wageBar{height:9px;border-radius:999px;background:#18232d;overflow:hidden;margin:8px 0}.wageFill{height:100%;background:var(--gold);border-radius:999px}
+
+
+/* v2.0.3 Safari visual viewport navigation fix */
+:root{
+  --browser-bottom-offset: 0px;
+  --game-nav-height: 74px;
+}
+body{
+  padding-bottom:calc(var(--game-nav-height) + var(--browser-bottom-offset) + env(safe-area-inset-bottom) + 10px)!important;
+}
+nav{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  bottom:calc(var(--browser-bottom-offset) + env(safe-area-inset-bottom))!important;
+  z-index:999!important;
+  border-top:1px solid #263442!important;
+  background:#0d151efa!important;
+  box-shadow:0 -10px 28px #000a!important;
+  padding:7px 7px 8px!important;
+  transform:translateZ(0);
+  will-change:bottom;
+}
+nav button{
+  min-height:58px!important;
+}
+
+
+/* v2.0.4 navigation redesign: top sticky game menu */
+body{
+  padding-bottom:calc(20px + env(safe-area-inset-bottom))!important;
+}
+header{
+  position:sticky!important;
+  top:0!important;
+  z-index:1000!important;
+}
+nav{
+  position:sticky!important;
+  top:var(--nav-top, 104px)!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  z-index:999!important;
+  border:0!important;
+  border-bottom:1px solid #263442!important;
+  border-top:1px solid #263442!important;
+  border-radius:0!important;
+  background:#0d151ef8!important;
+  box-shadow:0 8px 20px #0006!important;
+  padding:6px 6px!important;
+  transform:none!important;
+  will-change:auto!important;
+}
+nav button{
+  min-height:50px!important;
+  border-radius:10px!important;
+  padding:5px 2px!important;
+}
+nav button.active{
+  background:#d9b54a12!important;
+}
+main{
+  padding-top:14px!important;
+}
+
+
+/* v2.1 Club Development */
+.facilityGrid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.facilityCard{border:1px solid var(--line);border-radius:16px;background:var(--card2);padding:14px}
+.facilityTop{display:flex;align-items:center;gap:11px}
+.facilityIcon{width:42px;height:42px;border-radius:12px;border:1px solid #5f5126;background:#d9b54a10;color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900}
+.facilityInfo{flex:1}.facilityInfo b{display:block;font-size:14px}.facilityInfo span{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.35}
+.facilityLevel{font-weight:900;color:var(--gold);font-size:13px;white-space:nowrap}
+.facilityPips{display:flex;gap:5px;margin:11px 0}.facilityPip{height:5px;flex:1;border-radius:99px;background:#23303b}.facilityPip.on{background:var(--gold)}
+.facilityCost{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)}
+.devSummary{border:1px solid #5f5126;background:#d9b54a0b;border-radius:14px;padding:12px;margin-bottom:12px}
+.devChange{font-weight:900}.devUp{color:var(--green)}.devDown{color:#ff8798}.devFlat{color:var(--muted)}
+
+</style>
+</head>
+<body>
+<section id="start" class="start">
+<div id="launchStep" class="careerStep">
+  <div id="startBuild" class="startBuild"></div><h1><span class="mini">MINI&ME</span><span class="club">FOOTBALL CLUB</span></h1><div class="brandRule"></div><div class="tagline">Build the Club. Shape the Legacy.</div>
+  <div class="intro">Build a football club across generations. Recruit players, manage contracts, shape the finances and create a legacy that lasts beyond one season.</div>
+  <div class="startActions">
+    <button id="newBtn" class="btn primary full">START NEW CAREER</button>
+    <button id="loadBtn" class="btn full">LOAD CAREER</button>
+    <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking for saved career…</div>
+  </div>
+</div>
+<div id="clubStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
+  <h2>Choose Your Club</h2>
+  <div class="sub">Tap the club you want to lead to begin your career. Expectations and resources vary across the league.</div>
+  <div id="clubs" class="clubs"></div>
+  <button id="beginCareerBtn" class="btn primary full" style="display:none">BEGIN CAREER</button>
+</div>
+</section>
+
+<header>
+<div class="brand">
+  <div class="brandMini">MINI&ME</div>
+  <div class="brandTitle">FOOTBALL CLUB</div>
+  <div class="brandTag">Build the Club. Shape the Legacy.</div>
+</div>
+<div id="clubline"></div>
+<div id="gameBuild" class="versionWordmark"></div>
+</header>
+<nav id="nav">
+<button data-page="home" class="active"><b>⌂</b>HOME</button>
+<button data-page="squad"><b>◎</b>SQUAD</button>
+<button data-page="market"><b>⇄</b>MARKET</button>
+<button data-page="league"><b>≡</b>LEAGUE</button>
+<button data-page="club"><b>◇</b>CLUB</button>
+</nav>
+<main id="app"></main>
+<div id="continueDock" class="continueDock hidden"><button id="continueBtn" class="btn primary">CONTINUE</button></div>
+
+
+
+<div id="seasonReview" class="seasonReview hidden">
+ <div class="reviewWrap">
+  <div class="reviewHero">
+   <div class="label">SEASON REVIEW</div>
+   <h1 id="reviewSeason"></h1>
+   <div id="reviewFinish" class="reviewFinish"></div>
+   <div id="reviewHeadline" class="sub"></div>
+  </div>
+  <div id="reviewContent"></div>
+  <button id="newSeasonBtn" class="btn primary full" style="margin-top:14px">CONTINUE TO NEW SEASON</button>
+ </div>
+</div>
+
+<div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="resultBadge">MATCH COMPLETE</div><div id="resultState" class="resultState"></div><div class="card"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div id="resultScore" class="resultScore"></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div></div><div class="resultMeta"><div class="card"><div class="label">LEAGUE POSITION</div><div id="resultPos" class="value"></div><div id="resultPosSub" class="sub"></div></div><div class="card"><div class="label">NEXT FIXTURE</div><div id="resultNext" style="font-weight:800;margin-top:8px"></div><div id="resultNextSub" class="sub" style="margin-top:6px"></div></div></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
+<div id="sheet" class="sheet hidden"><div id="sheetbox" class="sheetbox"></div></div>
+<script>
+(function(){
+"use strict";
+const BUILD_VERSION="Mini&Me Football Club v2.1 Alpha Mobile";
+const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
+const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
+const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
+const POS=["GK","LB","CB","CB","RB","DM","CM","CM","AM","LW","RW","ST","ST"];
+let G=null, selected=0, page="home";
+const $=s=>document.querySelector(s), rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+function renderBuildVersion(){
+ let a=$("#startBuild"),b=$("#gameBuild");
+ if(a)a.textContent=BUILD_VERSION;
+ if(b)b.textContent=BUILD_VERSION;
+}
+
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
+function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);return{id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false}}
+function world(){let clubs=CLUBS.map((name,i)=>({id:i,name,rep:90-i+rnd(-2,2),balance:rnd(50,180)*1e6,budget:rnd(18,65)*1e6,facility:rnd(2,4),facilities:{training:rnd(2,4),youth:rnd(1,3),scouting:rnd(1,3),medical:rnd(1,3)},coach:rnd(66,88),p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})),players=[];clubs.forEach((c,i)=>{for(let j=0;j<28;j++)players.push(player(i,j))});return{season:2026,week:0,club:selected,clubs,players,history:[],feed:[{t:"WELCOME TO THE CLUB",m:"The board has handed you control of football operations."}]}}
+function save(){
+ try{
+  localStorage.setItem("soccerGMAlpha",JSON.stringify(G));
+  localStorage.setItem("soccerGMSaveCheck","ok");
+  return true;
+ }catch(e){
+  return false;
+ }
+}
+function roster(id=G.club){return G.players.filter(p=>p.team===id)}
+function strength(id){let ps=[...roster(id)].sort((a,b)=>b.ovr-a.ovr).slice(0,11);return ps.reduce((s,p)=>s+p.ovr,0)/11+G.clubs[id].coach*.07}
+function standings(){return [...G.clubs].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga))}
+function nextOpp(){return (G.club+G.week+1)%20}
+function sim(a,b){let sa=strength(a)+2.5,sb=strength(b),ga=0,gb=0;for(let i=0;i<6;i++){if(Math.random()<Math.max(.08,.19+(sa-sb)*.011))ga++;if(Math.random()<Math.max(.08,.18+(sb-sa)*.011))gb++}return[Math.min(ga,6),Math.min(gb,6)]}
+function apply(a,b,ga,gb){let A=G.clubs[a],B=G.clubs[b];A.p++;B.p++;A.gf+=ga;A.ga+=gb;B.gf+=gb;B.ga+=ga;if(ga>gb){A.w++;B.l++;A.pts+=3}else if(gb>ga){B.w++;A.l++;B.pts+=3}else{A.d++;B.d++;A.pts++;B.pts++}}
+function advance(){
+ if(G.week>=38){endSeason();return}
+ let used=new Set(),userResult=null,playedWeek=G.week+1;
+ for(let i=0;i<20;i++){
+  if(used.has(i))continue;
+  let j=(i+G.week+1)%20;
+  while(j===i||used.has(j))j=(j+1)%20;
+  used.add(i);used.add(j);
+  let r=sim(i,j);
+  apply(i,j,r[0],r[1]);
+  if(i===G.club||j===G.club){
+   userResult={a:i,b:j,ga:r[0],gb:r[1]};
+   G.feed.unshift({t:"MATCH RESULT",m:G.clubs[i].name+" "+r[0]+"–"+r[1]+" "+G.clubs[j].name});
+  }
+ }
+ roster().forEach(p=>{
+  if(p.age<25&&Math.random()<.11)p.ovr=Math.min(p.pot,p.ovr+1);
+  p.morale=Math.max(45,Math.min(100,p.morale+rnd(-3,4)));
+ });
+ G.week++;
+ refreshMarketActivity();
+ save();
+ render();
+ if(userResult)showMatchResult(userResult,playedWeek);
+}
+function showMatchResult(r,playedWeek){
+ let userHome=r.a===G.club;
+ let userGoals=userHome?r.ga:r.gb;
+ let oppGoals=userHome?r.gb:r.ga;
+ let state=userGoals>oppGoals?"WIN":userGoals<oppGoals?"LOSS":"DRAW";
+ let pos=standings().findIndex(c=>c.id===G.club)+1;
+ let opp=G.clubs[nextOpp()];
+ $("#resultState").textContent=state;
+ $("#resultState").className="resultState "+state.toLowerCase();
+ $("#resultWeek").textContent="LEAGUE · WEEK "+playedWeek;
+ $("#resultHome").textContent=G.clubs[r.a].name;
+ $("#resultAway").textContent=G.clubs[r.b].name;
+ $("#resultScore").textContent=r.ga+" – "+r.gb;
+ $("#resultSummary").textContent=state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.";
+ $("#resultPos").textContent=pos+" / 20";
+ $("#resultPosSub").textContent="After "+G.week+" matches";
+ $("#resultNext").textContent=G.clubs[G.club].name+" vs "+opp.name;
+ $("#resultNextSub").textContent="League · Week "+(G.week+1);
+ $("#resultScreen").classList.remove("hidden");
+}
+
+
+function ensureLifecycleState(){
+ if(!G.freeAgents)G.freeAgents=[];
+ G.players.forEach(p=>{
+   if(typeof p.retiring==="undefined")p.retiring=false;
+   if(typeof p.renewedThisSeason==="undefined")p.renewedThisSeason=false;
+   if(typeof p.freeAgent==="undefined")p.freeAgent=false;
+ });
+}
+function contractDemand(p){
+ let quality=Math.max(0,p.ovr-65);
+ let ageFactor=p.age<=24?1.12:p.age<=29?1.08:p.age<=32?1.0:.9;
+ let base=Math.max(p.wage,Math.round((25000+quality*6500)*ageFactor/1000)*1000);
+ let years=p.age<=23?4:p.age<=28?4:p.age<=31?3:p.age<=34?2:1;
+ return{wage:base,years};
+}
+
+let contractDrafts={};
+function contractDraft(p){
+ let d=contractDemand(p);
+ if(!contractDrafts[p.id])contractDrafts[p.id]={years:d.years,wage:d.wage};
+ return contractDrafts[p.id];
+}
+function adjustContract(id,field,delta){
+ let p=G.players.find(x=>x.id===id);if(!p)return;
+ let d=contractDraft(p);
+ if(field==="years")d.years=Math.max(1,Math.min(5,d.years+delta));
+ if(field==="wage")d.wage=Math.max(10000,d.wage+delta*10000);
+ showPlayer(id);
+}
+function submitContractOffer(id){
+ let p=G.players.find(x=>x.id===id);if(!p||p.retiring)return;
+ let demand=contractDemand(p),offer=contractDraft(p);
+ let wageRatio=offer.wage/demand.wage;
+ let score=48+(wageRatio-1)*125+(offer.years-demand.years)*9+((p.morale||75)-75)*.45+rnd(-14,14);
+ if(score>=52){
+   p.wage=offer.wage;p.years=offer.years;p.renewedThisSeason=true;
+   delete contractDrafts[p.id];
+   G.feed.unshift({t:"CONTRACT RENEWED",m:p.name+" signs for "+offer.years+" years at "+money(offer.wage)+"/week."});
+   save();showPlayer(id);return;
+ }
+ if(score>=35){
+   let counterWage=Math.round(Math.max(demand.wage,offer.wage*1.06)/1000)*1000;
+   let counterYears=demand.years;
+   contractDrafts[p.id]={years:counterYears,wage:counterWage};
+   G.feed.unshift({t:"CONTRACT COUNTER",m:p.name+" has countered at "+counterYears+" years and "+money(counterWage)+"/week."});
+   save();showPlayer(id);return;
+ }
+ G.feed.unshift({t:"CONTRACT TALKS",m:p.name+" rejected the proposal and wants improved terms."});
+ save();showPlayer(id);
+}
+function estimatedMarketRange(p){
+ let lo=Math.round(p.value*.82/100000)*100000,hi=Math.round(p.value*1.12/100000)*100000;
+ return money(lo)+" – "+money(hi);
+}
+
+function negotiateExtension(id,mode){
+ let p=G.players.find(x=>x.id===id);if(!p||p.team!==G.club||p.retiring)return;
+ let d=contractDemand(p),offerWage=d.wage,offerYears=d.years;
+ if(mode==="low"){offerWage=Math.round(d.wage*.9/1000)*1000;offerYears=Math.max(1,d.years-1)}
+ if(mode==="high"){offerWage=Math.round(d.wage*1.1/1000)*1000;offerYears=Math.min(5,d.years+1)}
+ let willingness=50+(offerWage/d.wage-1)*120+(offerYears-d.years)*10;
+ willingness+=p.morale?((p.morale-75)*.5):0;
+ willingness+=rnd(-18,18);
+ if(willingness>=48){
+   p.wage=offerWage;p.years=offerYears;p.renewedThisSeason=true;
+   G.feed.unshift({t:"CONTRACT RENEWED",m:p.name+" signs a "+offerYears+" year extension worth "+money(offerWage)+"/week."});
+   save();
+   showPlayer(id);
+ }else{
+   G.feed.unshift({t:"CONTRACT TALKS",m:p.name+" rejected the latest contract proposal."});
+   save();
+   showPlayer(id);
+ }
+}
+function considerRetirements(){
+ ensureLifecycleState();
+ G.players.forEach(p=>{
+   if(p.retiring||p.freeAgent)return;
+   let chance=0;
+   if(p.age>=38)chance=.55;
+   else if(p.age>=36)chance=.32;
+   else if(p.age>=34)chance=.14;
+   else if(p.age>=33)chance=.06;
+   if(chance>0&&Math.random()<chance){
+     p.retiring=true;
+     if(p.team===G.club)G.feed.unshift({t:"RETIREMENT",m:p.name+" has announced he will retire at the end of the season."});
+   }
+ });
+}
+function activeFreeAgents(){
+ ensureLifecycleState();
+ return G.players.filter(p=>p.freeAgent||p.team===-1);
+}
+function moveToFreeAgency(p){
+ p.team=-1;p.freeAgent=true;p.listed=false;p.years=0;
+ if(!G.freeAgents.includes(p.id))G.freeAgents.push(p.id);
+}
+function signFreeAgent(id){
+ let p=G.players.find(x=>x.id===id);if(!p||!(p.freeAgent||p.team===-1))return;
+ let d=contractDemand(p),fee=0;
+ if(!confirm("Offer "+p.name+" "+d.years+" years at "+money(d.wage)+"/week?"))return;
+ let accept=55+(G.clubs[G.club].rep-80)*1.2+rnd(-20,20);
+ if(accept>=48){
+   p.team=G.club;p.freeAgent=false;p.years=d.years;p.wage=d.wage;p.renewedThisSeason=true;
+   G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
+   G.feed.unshift({t:"FREE AGENT SIGNING",m:p.name+" has signed a "+d.years+" year contract."});
+   save();$("#sheet").classList.add("hidden");render();
+ }else{
+   alert(p.name+" rejected the contract offer.");
+ }
+}
+
+
+function generateWorldPlayer(team=-1,qualityBias=0,young=false){
+ let age=young?rnd(17,22):rnd(18,31);
+ let base=rnd(58+qualityBias,74+qualityBias);
+ if(young&&Math.random()<.18)base+=rnd(3,8);
+ base=Math.max(50,Math.min(86,base));
+ let pos=POS[rnd(0,POS.length-1)];
+ let pot=Math.min(94,base+rnd(young?5:2,young?16:8));
+ return{id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0};
+}
+function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
+function aiWorldEvolution(){
+ ensureLifecycleState();
+ if(!Array.isArray(G.players))G.players=[];
+ if(!Array.isArray(G.clubs))G.clubs=[];
+ if(!Array.isArray(G.freeAgents))G.freeAgents=[];
+ G.freeAgents=G.freeAgents.filter(id=>G.players.some(p=>p.id===id&&(p.freeAgent||p.team<0)));
+ let events=[];
+
+ // League-wide retirements: strong age curve, with rare exceptional longevity.
+ G.players.forEach(p=>{
+   if(p.team===-2)return;
+   let chance=0;
+   if(p.age>=40)chance=.92;
+   else if(p.age>=38)chance=.68;
+   else if(p.age>=36)chance=.38;
+   else if(p.age>=34)chance=.16;
+   else if(p.age>=33)chance=.07;
+   if(chance&&Math.random()<chance){
+     p.retiring=true;
+   }
+ });
+
+ // AI contract decisions and end-of-contract free agency.
+ G.players.forEach(p=>{
+   if(p.team<0||p.team===G.club||p.retiring)return;
+   if(p.years<=1){
+     let club=G.clubs[p.team];
+     if(!club){moveToFreeAgency(p);return}
+     let keepChance=.56+(p.ovr-70)*.018-(p.age>32?.12:0);
+     if(Math.random()<keepChance){
+       p.years=p.age>=33?rnd(1,2):rnd(2,4);
+       p.wage=Math.round(Math.max(p.wage,p.wage*(1+rnd(3,18)/100))/1000)*1000;
+     }else{
+       moveToFreeAgency(p);
+       events.push(p.name+" entered free agency");
+     }
+   }
+ });
+
+ // Retire announced players across the world at offseason transition.
+ G.players.forEach(p=>{
+   if(p.retiring&&p.team!==G.club){
+     p.team=-2;p.freeAgent=false;
+     events.push(p.name+" retired");
+   }
+ });
+
+ // Fresh annual player intake. Some prospects are unattached.
+ let intake=rnd(28,42);
+ for(let i=0;i<intake;i++){
+   if(Math.random()<.38){
+     let np=generateWorldPlayer(-1,rnd(-2,2),true);
+     G.players.push(np);
+     if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);
+   }else{
+     let cid=rnd(0,G.clubs.length-1);
+     G.players.push(generateWorldPlayer(cid,rnd(-1,3),true));
+   }
+ }
+
+ // AI squad balancing: release surplus fringe players and fill shortages.
+ G.clubs.forEach(c=>{
+   if(c.id===G.club)return;
+   let squad=aiSquad(c.id).filter(p=>p.team>=0);
+   if(squad.length>30){
+     squad.sort((a,b)=>a.ovr-b.ovr||b.age-a.age).slice(0,squad.length-28).forEach(p=>{
+       moveToFreeAgency(p);
+     });
+   }
+   squad=aiSquad(c.id);
+   let refillGuard=0;
+   while(squad.length<24&&refillGuard<40){
+     refillGuard++;
+     let free=activeFreeAgents().filter(p=>p.ovr<=82).sort((a,b)=>b.ovr-a.ovr)[0];
+     if(free){
+       free.team=c.id;free.freeAgent=false;free.years=rnd(1,3);
+       G.freeAgents=G.freeAgents.filter(x=>x!==free.id);
+     }else{
+       G.players.push(generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.55));
+     }
+     squad=aiSquad(c.id);
+   }
+ });
+
+ // AI transfer activity driven by weak positional groups.
+ let moves=0,moveCap=rnd(10,18);
+ let clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
+ clubs.forEach(buyer=>{
+   if(!buyer||buyer.id===G.club||moves>=moveCap)return;
+   let squad=aiSquad(buyer.id);
+   let groups=["GK","DEF","MID","FWD"];
+   let weakest=groups.map(g=>{
+     let ps=squad.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr);
+     return{g,score:ps.length?ps.slice(0,Math.min(3,ps.length)).reduce((s,p)=>s+p.ovr,0)/Math.min(3,ps.length):50};
+   }).sort((a,b)=>a.score-b.score)[0];
+   let targets=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&positionGroup(p.pos)===weakest.g&&p.ovr>weakest.score+2);
+   targets.sort((a,b)=>(a.years-b.years)||(b.ovr-a.ovr));
+   let p=targets[0];
+   if(p&&buyer.balance>p.value*.75&&Math.random()<.58){
+     let seller=G.clubs[p.team];
+     let fee=Math.round(p.value*(.82+Math.random()*.28)/100000)*100000;
+     if(buyer.balance>=fee){
+       buyer.balance-=fee;if(seller)seller.balance+=fee;
+       p.team=buyer.id;p.years=rnd(2,4);p.listed=false;p.freeAgent=false;
+       moves++;
+     }
+   }
+ });
+
+ // Mid/low-level free-agent churn: AI signs some, leaving a changing pool.
+ let fas=activeFreeAgents().filter(p=>!p.retiring).sort(()=>Math.random()-.5);
+ fas.forEach(p=>{
+   if(Math.random()<.34){
+     let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30);
+     if(possible.length){
+       let c=possible[rnd(0,possible.length-1)];
+       p.team=c.id;p.freeAgent=false;p.years=rnd(1,3);
+       G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
+     }
+   }
+ });
+
+ G.worldLastRefresh=G.season;
+ if(events.length)G.feed.unshift({t:"LEAGUE MOVEMENT",m:events.slice(0,4).join(" · ")+(events.length>4?" · and more":"")});
+}
+function refreshMarketActivity(){
+ ensureLifecycleState();
+ // Light in-season market movement every six weeks.
+ if(G.week>0&&G.week%6===0&&G.lastMarketWeek!==G.week){
+   let aiPlayers=G.players.filter(p=>p.team>=0&&p.team!==G.club&&!p.retiring);
+   aiPlayers.forEach(p=>{
+     if(p.years<=1&&Math.random()<.08)moveToFreeAgency(p);
+     else if(Math.random()<.025)p.listed=true;
+     else if(p.listed&&Math.random()<.18)p.listed=false;
+   });
+   G.lastMarketWeek=G.week;
+   save();
+ }
+}
+
+function ensureSeasonState(){
+ ensureLifecycleState();
+ if(!G.boardTarget){
+   let rep=G.clubs[G.club].rep;
+   G.boardTarget=rep>=88?4:rep>=84?8:12;
+ }
+ if(!G.pendingSeasonReview)G.pendingSeasonReview=null;
+}
+function boardExpectationText(target){
+ return target<=4?"Finish in the Top 4":target<=8?"Finish in the Top 8":"Finish in the Top 12";
+}
+function prepareSeasonReview(){
+ ensureSeasonState();
+ let table=standings(),c=G.clubs[G.club],pos=table.findIndex(x=>x.id===G.club)+1;
+ let champion=table[0],target=G.boardTarget,met=pos<=target;
+ let expiring=roster().filter(p=>p.years<=1).map(p=>({id:p.id,name:p.name,pos:p.pos,ovr:p.ovr,wage:p.wage}));
+ let finalYear=roster().filter(p=>p.years===2).map(p=>({name:p.name,pos:p.pos,ovr:p.ovr}));
+ G.pendingSeasonReview={
+   season:G.season,pos,champion:champion.name,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
+   target,met,expiring,finalYear
+ };
+ save();
+ showSeasonReview();
+}
+function showSeasonReview(){
+ ensureSeasonState();
+ let r=G.pendingSeasonReview;if(!r)return;
+ $("#reviewSeason").textContent=r.season+" Season";
+ $("#reviewFinish").textContent=ordinal(r.pos);
+ $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
+ let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id);let label=live&&live.retiring?"Retiring":"Entering free agency";return'<div class="contractRow"><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>'+label+'</span></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
+ let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>'<div class="contractRow"><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>1 year remaining</span></div>').join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ $("#reviewContent").innerHTML=
+ '<div class="reviewGrid">'+
+ stat("RECORD",r.w+"-"+r.d+"-"+r.l,r.p+" matches")+
+ stat("GOAL DIFF",(r.gd>=0?"+":"")+r.gd,r.gf+" GF · "+r.ga+" GA")+
+ stat("CHAMPION",r.champion,"League winner")+
+ stat("FINAL POSITION",ordinal(r.pos),"Premier Division")+
+ '</div>'+
+ '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
+ '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
+ '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>';
+ $("#seasonReview").classList.remove("hidden");
+}
+
+function runSafeWorldEvolution(){
+ try{
+   aiWorldEvolution();
+   return true;
+ }catch(err){
+   console.error("World Evolution rollover error",err);
+   G.feed.unshift({t:"WORLD UPDATE WARNING",m:"The new season started, but some AI market activity was skipped this offseason."});
+   return false;
+ }
+}
+
+function beginNewSeason(){
+ try{
+  let r=G.pendingSeasonReview;
+  if(!r){
+    alert("No season review is available to roll forward. Reload the career and try again.");
+    return;
+  }
+  ensureLifecycleState();ensureFacilityState();ensureFinanceState();ensureTransferState();
+
+  let financial=financeSnapshot();
+  let userClub=G.clubs[G.club];
+  if(!userClub)throw new Error("User club could not be found.");
+
+  userClub.balance+=Number.isFinite(financial.profit)?financial.profit:0;
+  userClub.finance.lastProfit=Number.isFinite(financial.profit)?financial.profit:0;
+  G.feed.unshift({t:"SEASON FINANCES",m:"Operating result: "+(financial.profit>=0?"+":"")+money(financial.profit)+". Club balance is now "+money(userClub.balance)+"."});
+
+  let expiringList=Array.isArray(r.expiring)?r.expiring:[];
+  let expiredIds=new Set(expiringList.map(x=>x.id));
+  let expired=G.players.filter(p=>expiredIds.has(p.id)&&p.team===G.club);
+  let retirees=G.players.filter(p=>p.team===G.club&&p.retiring);
+
+  expired.forEach(p=>{if(!p.retiring)moveToFreeAgency(p)});
+  retirees.forEach(p=>{p.team=-2;p.freeAgent=false});
+
+  if(retirees.length)G.feed.unshift({t:"RETIREMENTS",m:retirees.map(p=>p.name).join(", ")+" retired from professional football."});
+  let freeDepartures=expired.filter(p=>!p.retiring);
+  if(freeDepartures.length)G.feed.unshift({t:"FREE AGENCY",m:freeDepartures.map(p=>p.name).join(", ")+" entered free agency."});
+
+  if(!Array.isArray(G.history))G.history=[];
+  G.history.unshift({season:r.season,champ:r.champion,pos:r.pos});
+
+  G.season=(Number(G.season)||2026)+1;
+  G.week=0;
+  G.clubs.forEach(c=>{if(c)Object.assign(c,{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})});
+
+  G.players.forEach(p=>{
+    if(p.team===-2)return;
+    p.age=(Number(p.age)||18)+1;
+    if(p.team>=0&&p.years>0)p.years=Math.max(1,p.years-1);
+    p.renewedThisSeason=false;
+  });
+  playerDevelopmentOffseason();
+  youthAcademyIntake();
+
+  let pos=Number(r.pos)||12;
+  G.boardTarget=pos<=4?4:pos<=8?8:12;
+
+  userClub.finance.seasonTransferIn=0;
+  userClub.finance.seasonTransferOut=0;
+  userClub.finance.broadcast=Math.round((Number(userClub.finance.broadcast)||70000000)*(.98+Math.random()*.05));
+  userClub.finance.commercial=Math.round((Number(userClub.finance.commercial)||30000000)*(pos<=4?1.06:pos<=8?1.03:pos>=15?.97:1.0));
+  userClub.wageBudget=Math.max(Number(userClub.wageBudget)||70000000,Math.round(annualWages()*1.12/1000000)*1000000);
+
+  G.feed.unshift({t:"NEW SEASON",m:"Board expectation: "+boardExpectationText(G.boardTarget)+"."});
+
+  // Commit the core season rollover before optional AI-world churn.
+  G.pendingSeasonReview=null;
+  save();
+
+  runSafeWorldEvolution();
+  considerRetirements();
+  save();
+
+  $("#seasonReview").classList.add("hidden");
+  page="home";
+  render();
+ }catch(err){
+  console.error("New season rollover failed",err);
+  alert("The new season could not start: "+(err&&err.message?err.message:String(err))+". Your current save has been preserved.");
+ }
+}
+function endSeason(){
+ prepareSeasonReview();
+}
+function stat(k,v,s){return'<div class="card stat"><div class="label">'+k+'</div><div class="value">'+v+'</div><div class="sub">'+s+'</div></div>'}
+function playerRow(p,market){return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div></div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'}
+
+function coachProfile(){
+ let c=G.clubs[G.club];
+ if(!c.formation)c.formation=["4-3-3","4-2-3-1","4-4-2","3-4-3"][c.id%4];
+ if(!c.style)c.style=["Possession","Balanced","High Press","Direct"][c.id%4];
+ return c;
+}
+function positionGroup(pos){if(pos==="GK")return"GK";if(["LB","CB","RB"].includes(pos))return"DEF";if(["DM","CM","AM"].includes(pos))return"MID";return"FWD"}
+function formationSlots(){
+ let f=coachProfile().formation;
+ if(f==="4-2-3-1")return[["ST"],["LW","AM","RW"],["CM","CM"],["LB","CB","CB","RB"],["GK"]];
+ if(f==="4-4-2")return[["ST","ST"],["LW","CM","CM","RW"],["LB","CB","CB","RB"],["GK"]];
+ if(f==="3-4-3")return[["LW","ST","RW"],["LB","CM","CM","RB"],["CB","CB","CB"],["GK"]];
+ return[["LW","ST","RW"],["CM","CM","CM"],["LB","CB","CB","RB"],["GK"]];
+}
+function bestForSlot(slot,used){
+ let candidates=roster().filter(p=>!used.has(p.id));
+ let exact=candidates.filter(p=>p.pos===slot).sort((a,b)=>b.ovr-a.ovr);
+ let group=positionGroup(slot),near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
+ let p=exact[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
+ if(p)used.add(p.id);return p;
+}
+function startingXI(){
+ let used=new Set(),lines=[];
+ formationSlots().forEach(slots=>lines.push(slots.map(s=>bestForSlot(s,used))));
+ return{lines,used};
+}
+function squadNeeds(){
+ let xi=startingXI(),flat=xi.lines.flat().filter(Boolean),needs=[];
+ flat.forEach(p=>{if(p.ovr<74)needs.push({pos:p.pos,rating:p.ovr,level:p.ovr<69?"High":"Medium"})});
+ if(!needs.length)flat.sort((a,b)=>a.ovr-b.ovr).slice(0,3).forEach(p=>needs.push({pos:p.pos,rating:p.ovr,level:"Upgrade"}));
+ return needs.sort((a,b)=>a.rating-b.rating).slice(0,4);
+}
+function ordinal(n){let s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+
+
+
+const FACILITY_INFO={
+ training:{name:"Training Centre",icon:"TC",desc:"Improves offseason player development and helps older players maintain ability.",base:12000000,annual:1800000},
+ youth:{name:"Youth Academy",icon:"YA",desc:"Produces better academy prospects for your club each offseason.",base:14000000,annual:2200000},
+ scouting:{name:"Scouting Department",icon:"SC",desc:"Improves potential-rating accuracy and player discovery.",base:10000000,annual:1500000},
+ medical:{name:"Medical Centre",icon:"MC",desc:"Builds player-care infrastructure and will reduce injury impact as the medical system expands.",base:9000000,annual:1400000}
+};
+function ensureFacilityState(){
+ let c=G&&G.clubs?G.clubs[G.club]:null;if(!c)return;
+ if(!c.facilities){
+  let legacy=Math.max(1,Math.min(5,Math.round((Number(c.facility)||3)/2)));
+  c.facilities={training:legacy,youth:2,scouting:2,medical:2};
+ }
+ ["training","youth","scouting","medical"].forEach(k=>{
+  let n=Number(c.facilities[k]);c.facilities[k]=Math.max(1,Math.min(5,Number.isFinite(n)?Math.round(n):1));
+ });
+ c.facility=c.facilities.training;
+}
+function facilityCost(key){
+ ensureFacilityState();let lvl=G.clubs[G.club].facilities[key],info=FACILITY_INFO[key];
+ return Math.round(info.base*(1+(lvl-1)*.72)/100000)*100000;
+}
+function facilityAnnualCost(){
+ ensureFacilityState();let c=G.clubs[G.club];
+ return Object.keys(FACILITY_INFO).reduce((sum,k)=>sum+FACILITY_INFO[k].annual*c.facilities[k],0);
+}
+function upgradeFacility(key){
+ ensureFacilityState();ensureFinanceState();
+ let c=G.clubs[G.club],info=FACILITY_INFO[key];if(!info)return;
+ let lvl=c.facilities[key];if(lvl>=5){alert(info.name+" is already Level 5.");return}
+ let cost=facilityCost(key);
+ if(c.balance<cost){alert("The club needs "+money(cost)+" in available cash for this upgrade.");return}
+ c.balance-=cost;c.facilities[key]++;
+ c.facility=c.facilities.training;
+ c.finance.facilityCosts=facilityAnnualCost();
+ G.feed.unshift({t:"FACILITY UPGRADE",m:info.name+" upgraded to Level "+c.facilities[key]+". Annual club operating costs have increased."});
+ save();render();
+}
+function playerDevelopmentOffseason(){
+ ensureFacilityState();
+ let c=G.clubs[G.club],training=c.facilities.training,coach=Number(c.coach)||75,changes=[];
+ roster().forEach(p=>{
+  let before=Number(p.ovr)||60,delta=0;
+  if(p.age<=20){
+   let room=Math.max(0,(Number(p.pot)||before)-before);
+   let chance=.35+training*.08+(coach-70)*.006;
+   if(room>0&&Math.random()<chance)delta=rnd(1,Math.min(3,Math.max(1,room)));
+  }else if(p.age<=24){
+   let room=Math.max(0,(Number(p.pot)||before)-before);
+   let chance=.24+training*.065+(coach-70)*.005;
+   if(room>0&&Math.random()<chance)delta=rnd(1,Math.min(2,Math.max(1,room)));
+  }else if(p.age<=29){
+   if(Math.random()<.08+training*.015&&before<(Number(p.pot)||before))delta=1;
+  }else if(p.age<=32){
+   if(Math.random()<Math.max(.08,.31-training*.04))delta=-1;
+  }else{
+   let declineChance=Math.max(.20,.62-training*.055);
+   if(Math.random()<declineChance)delta=-(Math.random()<.22?2:1);
+  }
+  p.ovr=Math.max(50,Math.min(Number(p.pot)||96,before+delta));
+  if(delta)changes.push({name:p.name,delta,from:before,to:p.ovr});
+ });
+ G.lastDevelopment={season:G.season,changes};
+ if(changes.length){
+  let ups=changes.filter(x=>x.delta>0).length,downs=changes.filter(x=>x.delta<0).length;
+  G.feed.unshift({t:"PLAYER DEVELOPMENT",m:ups+" players improved during the offseason"+(downs?" · "+downs+" players declined.":".")});
+ }
+}
+function youthAcademyIntake(){
+ ensureFacilityState();let c=G.clubs[G.club],lvl=c.facilities.youth;
+ let count=lvl>=5?3:lvl>=3?2:1,added=[];
+ for(let i=0;i<count;i++){
+  let bias=lvl-2,np=generateWorldPlayer(G.club,bias,true);
+  np.age=rnd(17,19);
+  np.ovr=Math.max(55,Math.min(78,np.ovr+rnd(-2,lvl)));
+  np.pot=Math.min(95,Math.max(np.ovr+4,np.pot+lvl+rnd(0,3)));
+  np.years=3;np.wage=rnd(5,18)*1000;np.value=np.ovr*np.ovr*rnd(3500,6000);
+  G.players.push(np);added.push(np);
+ }
+ if(added.length)G.feed.unshift({t:"YOUTH INTAKE",m:added.map(p=>p.name+" ("+p.pos+", "+p.ovr+" OVR)").join(" · ")+" joined from the academy."});
+}
+function scoutPotentialRange(p){
+ ensureFacilityState();let lvl=G.clubs[G.club].facilities.scouting;
+ let lowSpread=[7,6,4,3,2][lvl-1],highSpread=[7,5,4,2,1][lvl-1];
+ return[Math.max(p.ovr,(Number(p.pot)||p.ovr)-lowSpread),Math.min(96,(Number(p.pot)||p.ovr)+highSpread)];
+}
+function facilityCard(key){
+ ensureFacilityState();let c=G.clubs[G.club],info=FACILITY_INFO[key],lvl=c.facilities[key],cost=lvl<5?facilityCost(key):0;
+ let pips=[1,2,3,4,5].map(i=>'<span class="facilityPip '+(i<=lvl?'on':'')+'"></span>').join("");
+ return'<div class="facilityCard"><div class="facilityTop"><div class="facilityIcon">'+info.icon+'</div><div class="facilityInfo"><b>'+info.name+'</b><span>'+info.desc+'</span></div><div class="facilityLevel">LV '+lvl+'/5</div></div><div class="facilityPips">'+pips+'</div>'+
+ (lvl<5?'<button class="btn full" data-upgrade-facility="'+key+'">UPGRADE · '+money(cost)+'</button><div class="facilityCost"><span>Annual operations</span><b>'+money(info.annual*lvl)+'</b></div>':'<button class="btn full" disabled>MAXIMUM LEVEL</button><div class="facilityCost"><span>Annual operations</span><b>'+money(info.annual*lvl)+'</b></div>')+'</div>';
+}
+
+function ensureFinanceState(){
+ let c=G.clubs[G.club];
+ if(!c)return;
+ ensureFacilityState();
+ if(!c.finance){
+   let rep=c.rep||82;
+   c.finance={
+     broadcast:Math.round((68+(rep-75)*2.2)*1000000),
+     commercial:Math.round((28+(rep-75)*2.0)*1000000),
+     matchday:0,prize:0,staffCosts:12000000,facilityCosts:7000000,
+     seasonTransferIn:0,seasonTransferOut:0,lastProfit:0
+   };
+ }
+ if(!Number.isFinite(c.finance.broadcast))c.finance.broadcast=70000000;
+ if(!Number.isFinite(c.finance.commercial))c.finance.commercial=30000000;
+ if(!Number.isFinite(c.finance.staffCosts))c.finance.staffCosts=12000000;
+ if(!Number.isFinite(c.finance.facilityCosts))c.finance.facilityCosts=7000000;
+ c.finance.facilityCosts=facilityAnnualCost();
+ if(!Number.isFinite(c.finance.seasonTransferIn))c.finance.seasonTransferIn=0;
+ if(!Number.isFinite(c.finance.seasonTransferOut))c.finance.seasonTransferOut=0;
+ if(!Number.isFinite(c.wageBudget)||c.wageBudget<=0){
+   c.wageBudget=Math.max(70000000,Math.round(annualWages()*1.18/1000000)*1000000);
+ }
+}
+function annualWages(){
+ return roster().reduce((s,p)=>s+(Number(p.wage)||0)*52,0);
+}
+function projectedMatchday(){
+ let c=G.clubs[G.club],rep=(c&&c.rep)||82;
+ return Math.round((18+(rep-75)*.9)*1000000);
+}
+function projectedPrize(){
+ let pos=standings().findIndex(x=>x.id===G.club)+1;
+ if(pos<1)pos=20;
+ return Math.round(Math.max(5,52-(pos-1)*2.3)*1000000);
+}
+function financeSnapshot(){
+ ensureFinanceState();
+ let c=G.clubs[G.club],f=c.finance,wages=annualWages();
+ let matchday=projectedMatchday(),prize=projectedPrize();
+ let revenue=(f.broadcast||0)+(f.commercial||0)+matchday+prize+(f.seasonTransferOut||0);
+ let costs=wages+(f.staffCosts||0)+(f.facilityCosts||0)+(f.seasonTransferIn||0);
+ let profit=revenue-costs;
+ let usage=c.wageBudget>0?Math.round(wages/c.wageBudget*100):0;
+ let status=profit>=10000000&&usage<=90?"Healthy":profit>=-10000000&&usage<=100?"Watch":"Under Pressure";
+ return{revenue,costs,profit,wages,usage,status,matchday,prize,f};
+}
+function financeView(){
+ let x=financeSnapshot(),c=G.clubs[G.club],cls=x.status==="Healthy"?"healthy":x.status==="Watch"?"watch":"pressure";
+ let pct=Math.min(100,Math.max(0,x.usage));
+ return'<div class="financeHero"><div class="label">FINANCIAL OUTLOOK</div><div class="financeStatus '+cls+'">'+x.status+'</div><div class="sub">Projected season result '+(x.profit>=0?"+":"")+money(x.profit)+'</div></div>'+
+ '<div class="grid2">'+stat("CLUB BALANCE",money(c.balance),"Available cash")+stat("TRANSFER BUDGET",money(c.budget),"Recruitment")+stat("WAGE SPEND",money(x.wages),"Annual")+stat("WAGE BUDGET",x.usage+"%","Used")+'</div>'+
+ '<div class="card"><div class="title">Wage Budget</div><div class="wageBar"><div class="wageFill" style="width:'+pct+'%"></div></div><div class="sub">'+money(x.wages)+' of '+money(c.wageBudget)+' annual wage budget</div></div>'+
+ '<div class="card"><div class="title">Projected Revenue</div><div class="financeRows">'+
+ '<div class="financeRow"><span>Broadcasting</span><b>'+money(x.f.broadcast)+'</b></div>'+
+ '<div class="financeRow"><span>Commercial</span><b>'+money(x.f.commercial)+'</b></div>'+
+ '<div class="financeRow"><span>Matchday</span><b>'+money(x.matchday)+'</b></div>'+
+ '<div class="financeRow"><span>League / Prize</span><b>'+money(x.prize)+'</b></div>'+
+ '<div class="financeRow"><span>Player Sales</span><b>'+money(x.f.seasonTransferOut)+'</b></div></div></div>'+
+ '<div class="card"><div class="title">Projected Costs</div><div class="financeRows">'+
+ '<div class="financeRow"><span>Player Wages</span><b>'+money(x.wages)+'</b></div>'+
+ '<div class="financeRow"><span>Staff</span><b>'+money(x.f.staffCosts)+'</b></div>'+
+ '<div class="financeRow"><span>Club Operations</span><b>'+money(x.f.facilityCosts)+'</b></div>'+
+ '<div class="financeRow"><span>Player Purchases</span><b>'+money(x.f.seasonTransferIn)+'</b></div></div></div>';
+}
+
+function home(){
+ let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1,avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1);
+ return'<div class="grid2">'+stat("LEAGUE",pos+" / 20","Week "+G.week+" of 38")+stat("SQUAD",avg,"Club squad average")+stat("BUDGET",money(c.budget),"Transfers")+stat("BOARD","74","Stable")+'</div>'+
+ '<div class="card"><div class="title">Next Fixture</div><div class="fixture"><div class="label">LEAGUE · WEEK '+(G.week+1)+'</div><div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div><div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,38-G.week)+' matches remaining</div></div><div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>'+
+ '<div class="card"><div class="title">Inbox</div>'+G.feed.slice(0,5).map(x=>'<div class="feed"><b>'+x.t+'</b><p>'+x.m+'</p></div>').join("")+'</div>'+
+ '<div class="card"><div class="title">Top Players</div>'+[...roster()].sort((a,b)=>b.ovr-a.ovr).slice(0,5).map(p=>playerRow(p,false)).join("")+'</div>'
+}
+function squad(){
+ let c=coachProfile(),xi=startingXI(),lineClasses=["attack","mid","mid","def","gk"];
+ let pitchLines=xi.lines.map((line,i)=>'<div class="pitchLine '+(lineClasses[Math.min(i,lineClasses.length-1)])+'">'+line.map(p=>p?'<div class="pitchPlayer" data-player="'+p.id+'"><div class="pitchBadge">'+p.ovr+'</div><div class="pitchName">'+p.name.split(" ").slice(-1)[0]+'</div><div class="pitchPos">'+p.pos+'</div></div>':'').join("")+'</div>').join("");
+ let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
+ let depth=groups.map(g=>{let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>'}).join("");
+ return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div><div class="pitch">'+pitchLines+'</div></div>'+
+ '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>'
+}
+function market(){
+ ensureLifecycleState();refreshMarketActivity();
+ let needs=squadNeeds(),needGroups=[...new Set(needs.map(n=>positionGroup(n.pos)))];
+ let fas=activeFreeAgents().filter(p=>!p.retiring).sort((a,b)=>{
+   let an=needGroups.includes(positionGroup(a.pos))?1:0,bn=needGroups.includes(positionGroup(b.pos))?1:0;
+   return bn-an||b.ovr-a.ovr
+ }).slice(0,24);
+
+ let pool=G.players.filter(p=>p.team!==G.club&&p.team>=0&&!p.freeAgent&&!p.retiring);
+ pool.forEach(p=>{
+   p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+Math.random()*18;
+ });
+ let ps=pool.sort((a,b)=>b._marketScore-a._marketScore).slice(0,52);
+ let needHtml=needs.map(n=>'<div class="need '+(n.level==="High"?"high":"")+'"><div class="needPos">'+n.level+' priority</div><b>'+n.pos+' · '+n.rating+' OVR</b><div class="sub">Current starter</div></div>').join("");
+ let faHtml=fas.length?'<div class="card"><div class="title">Free Agents</div><div class="sub">'+fas.length+' available · no transfer fee required.</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':
+ '<div class="card"><div class="title">Free Agents</div><div class="sub">No suitable free agents are currently available.</div></div>';
+ return'<div class="card"><div class="title">Recruitment Priorities</div><div class="sub">Needs are based on the Head Coach’s '+coachProfile().formation+' and current Starting XI.</div><div class="needs">'+needHtml+'</div></div>'+
+ faHtml+
+ '<div class="card"><div class="title">Transfer Market</div><div class="sub">Availability changes with listings, contracts, club activity and squad needs.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
+}
+function league(){
+ let rows=standings().map((c,i)=>{
+  let gd=c.gf-c.ga;
+  let mark=i<4?'<i class="leagueMark top"></i>':i>=17?'<i class="leagueMark drop"></i>':'';
+  return '<div class="leagueRow '+(c.id===G.club?'me':'')+'">'+
+   '<div class="leagueCell stickyPos">'+(i+1)+'</div>'+
+   '<div class="leagueCell club stickyClub">'+mark+c.name+'</div>'+
+   '<div class="leagueCell">'+c.p+'</div>'+
+   '<div class="leagueCell">'+c.w+'</div>'+
+   '<div class="leagueCell">'+c.d+'</div>'+
+   '<div class="leagueCell">'+c.l+'</div>'+
+   '<div class="leagueCell">'+c.gf+'</div>'+
+   '<div class="leagueCell">'+c.ga+'</div>'+
+   '<div class="leagueCell">'+(gd>0?'+':'')+gd+'</div>'+
+   '<div class="leagueCell"><b>'+c.pts+'</b></div></div>';
+ }).join('');
+ return '<div class="card"><div class="title">Premier Division · '+G.season+'</div><div class="sub">Swipe across the table to view all statistics.</div><div class="legend"><span><i class="top"></i>Top four</span><span><i class="drop"></i>Relegation places</span></div><div class="leagueWrap"><div class="leagueTable"><div class="leagueRow head"><div class="leagueCell stickyPos">#</div><div class="leagueCell club stickyClub">CLUB</div><div class="leagueCell">P</div><div class="leagueCell">W</div><div class="leagueCell">D</div><div class="leagueCell">L</div><div class="leagueCell">GF</div><div class="leagueCell">GA</div><div class="leagueCell">GD</div><div class="leagueCell">PTS</div></div>'+rows+'</div></div></div>'
+}
+function club(){
+ ensureFacilityState();ensureFinanceState();
+ let c=G.clubs[G.club],dev=G.lastDevelopment&&G.lastDevelopment.changes?G.lastDevelopment.changes:[];
+ let devHtml=dev.length?'<div class="card"><div class="title">Last Offseason Development</div>'+dev.slice(0,8).map(x=>'<div class="feed"><b>'+x.name+'</b><p class="devChange '+(x.delta>0?'devUp':'devDown')+'">'+x.from+' → '+x.to+' ('+(x.delta>0?'+':'')+x.delta+')</p></div>').join("")+'</div>':'';
+ return'<div class="grid2">'+stat("BALANCE",money(c.balance),"Club cash")+stat("BUDGET",money(c.budget),"Transfers")+stat("REPUTATION",c.rep,"Club standing")+stat("COACH",c.coach,"Head Coach")+'</div>'+
+ '<div class="devSummary"><b>Club Development</b><div class="sub" style="margin-top:5px">Invest in infrastructure or preserve cash for the squad. Facility levels carry across every season.</div></div>'+
+ '<div class="card"><div class="title">Facilities</div><div class="sub">Upgrades have an immediate cost and increase annual club operations.</div><div class="facilityGrid">'+["training","youth","scouting","medical"].map(facilityCard).join("")+'</div></div>'+
+ devHtml+
+ '<div class="card"><div class="title">Career History</div>'+(G.history.length?G.history.map(h=>'<div class="feed"><b>'+h.season+' · '+h.champ+'</b><p>Your finish: '+h.pos+'</p></div>').join(""):'<div class="sub">Complete your first season to begin your career history.</div>')+'</div>';
+}
+
+function ensureTransferState(){
+ if(!G.transferOffers)G.transferOffers=[];
+ G.players.forEach(p=>{if(typeof p.listed==="undefined")p.listed=false});
+}
+function saleDemandScore(p,club){
+ let ageScore=p.age<=24?14:p.age<=29?8:p.age<=32?2:-6;
+ let quality=(p.ovr-65)*1.4;
+ let affordability=club.balance>p.value*1.2?10:club.balance>p.value*.8?4:-12;
+ let need=0;
+ let own=G.players.filter(x=>x.team===club.id&&positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>b.ovr-a.ovr);
+ if(!own.length||own[0].ovr<p.ovr-2)need=12;
+ return quality+ageScore+affordability+need+(p.listed?8:0)+rnd(-10,10);
+}
+function generateSaleOffers(p){
+ ensureTransferState();
+ G.transferOffers=G.transferOffers.filter(o=>o.playerId!==p.id);
+ let candidates=G.clubs.filter(c=>c.id!==G.club&&c.balance>p.value*.55)
+   .map(c=>({club:c,score:saleDemandScore(p,c)}))
+   .filter(x=>x.score>18)
+   .sort((a,b)=>b.score-a.score)
+   .slice(0,rnd(1,3));
+ candidates.forEach(x=>{
+   let listedAdj=p.listed?.92:1;
+   let ageAdj=p.age>31?.86:p.age<24?1.08:1;
+   let mult=(.82+Math.random()*.32)*listedAdj*ageAdj;
+   let fee=Math.max(500000,Math.round((p.value*mult)/100000)*100000);
+   fee=Math.min(fee,Math.round(x.club.balance*.65));
+   if(fee>0)G.transferOffers.push({id:uid(),playerId:p.id,clubId:x.club.id,fee});
+ });
+ save();
+}
+function playerOffers(id){
+ ensureTransferState();
+ return G.transferOffers.filter(o=>o.playerId===id);
+}
+function acceptSale(offerId){
+ ensureTransferState();
+ let o=G.transferOffers.find(x=>x.id===offerId);
+ if(!o)return;
+ let p=G.players.find(x=>x.id===o.playerId),buyer=G.clubs[o.clubId],seller=G.clubs[G.club];
+ if(!p||!buyer)return;
+ let oldName=p.name,fee=o.fee;
+ buyer.balance=Math.max(0,buyer.balance-fee);
+ ensureFinanceState();seller.balance+=fee;
+ seller.budget+=Math.round(fee*.8);seller.finance.seasonTransferOut+=fee;
+ p.team=buyer.id;
+ p.listed=false;
+ p.years=Math.max(2,p.years);
+ G.transferOffers=G.transferOffers.filter(x=>x.playerId!==p.id);
+ G.feed.unshift({t:"PLAYER SOLD",m:oldName+" joins "+buyer.name+" for "+money(fee)+". "+money(Math.round(fee*.8))+" added to your transfer budget."});
+ save();
+ $("#sheet").classList.add("hidden");
+ render();
+}
+function rejectSale(offerId){
+ ensureTransferState();
+ G.transferOffers=G.transferOffers.filter(o=>o.id!==offerId);
+ save();
+ let open=document.querySelector("[data-player]");
+ render();
+}
+function toggleListed(id){
+ let p=G.players.find(x=>x.id===id);if(!p||p.team!==G.club)return;
+ p.listed=!p.listed;
+ if(!p.listed)G.transferOffers=G.transferOffers.filter(o=>o.playerId!==p.id);
+ save();
+ showPlayer(id);
+}
+
+function showPlayer(id){
+ ensureTransferState();ensureLifecycleState();
+ let p=G.players.find(x=>x.id===id);if(!p)return;
+ let own=p.team===G.club,free=!!p.freeAgent||p.team<0,market=!own&&!free,offers=playerOffers(p.id);
+ let body="";
+
+ if(own){
+   let state=p.retiring?'<span class="statusPill danger">RETIRING</span>':
+     p.renewedThisSeason?'<span class="statusPill good">RENEWED</span>':
+     p.years<=1?'<span class="statusPill warn">FINAL YEAR</span>':
+     '<span class="statusPill">'+p.years+' YEARS</span>';
+
+   let contract="";
+   if(p.retiring){
+     contract='<div class="retireNote">Retirement has been announced for the end of the season. Contract negotiations are closed.</div>';
+   }else if(p.years<=1&&!p.renewedThisSeason){
+     let demand=contractDemand(p),draft=contractDraft(p);
+     contract='<div class="contractBox"><div class="actionLabel">CONTRACT NEGOTIATION</div>'+
+       '<div class="contractCompare"><div class="contractFigure"><div class="label">PLAYER DEMAND</div><b>'+demand.years+' yr · '+money(demand.wage)+'/wk</b></div>'+
+       '<div class="contractFigure"><div class="label">YOUR OFFER</div><b>'+draft.years+' yr · '+money(draft.wage)+'/wk</b></div></div>'+
+       '<div class="sub">Contract length</div><div class="adjustRow"><button data-adjust-contract="'+p.id+'" data-field="years" data-delta="-1">−</button><div class="adjustValue">'+draft.years+' years</div><button data-adjust-contract="'+p.id+'" data-field="years" data-delta="1">+</button></div>'+
+       '<div class="sub" style="margin-top:8px">Weekly salary</div><div class="adjustRow"><button data-adjust-contract="'+p.id+'" data-field="wage" data-delta="-1">−</button><div class="adjustValue">'+money(draft.wage)+'/week</div><button data-adjust-contract="'+p.id+'" data-field="wage" data-delta="1">+</button></div>'+
+       '<button class="btn primary full" data-submit-contract="'+p.id+'" style="margin-top:10px">SUBMIT OFFER</button></div>';
+   }
+
+   let offerHtml=offers.length?'<div class="actionGroup"><div class="actionLabel">TRANSFER OFFERS</div>'+offers.map(o=>{
+     let c=G.clubs[o.clubId];
+     return'<div class="offerCard"><div class="offerTop"><div><div class="offerClub">'+c.name+'</div><div class="sub">Permanent transfer</div></div><div class="offerValue">'+money(o.fee)+'</div></div><div class="offerActions"><button class="btn primary" data-accept-sale="'+o.id+'">ACCEPT</button><button class="btn" data-reject-sale="'+o.id+'">REJECT</button></div></div>'
+   }).join("")+'</div>':'';
+
+   body='<div class="gmActions"><div class="actionHeading"><div class="title">GM Actions</div>'+state+'</div>'+
+     contract+
+     '<div class="actionGroup"><div class="actionLabel">TRANSFER STATUS</div><div class="sub">Estimated market range: '+estimatedMarketRange(p)+'</div>'+
+     '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div>'+
+     (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>'+
+     '<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
+ }else if(free){
+   let d=contractDemand(p);
+   body='<div class="freeAgentBanner"><b>FREE AGENT</b><span class="sub">No transfer fee required · Expected terms around '+d.years+' years at '+money(d.wage)+'/week.</span></div><button class="btn primary full" data-sign-free="'+p.id+'">OFFER CONTRACT</button>';
+ }else{
+   body='<div class="gmActions"><div class="actionHeading"><div class="title">Transfer Assessment</div><span class="statusPill">'+G.clubs[p.team].name+'</span></div><div class="sub">Market value '+money(p.value)+' · Estimated range '+estimatedMarketRange(p)+'</div><button class="btn primary full" data-buy="'+p.id+'" style="margin-top:12px">APPROACH CLUB</button></div>';
+ }
+
+ $("#sheetbox").innerHTML='<div class="label">'+p.pos+' · AGE '+p.age+'</div><h2>'+p.name+'</h2>'+
+ '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+body;
+ $("#sheet").classList.remove("hidden");
+}
+function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;p.team=G.club;p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
+function render(){if(!G)return;ensureFacilityState();$("#clubline").textContent=G.clubs[G.club].name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
+renderBuildVersion();
+$("#clubs").innerHTML=CLUBS.map((c,i)=>{
+ let tier=i<4?"Title Contender":i<10?"Established":i<16?"Building":"Rebuild";
+ let difficulty=i<4?"High expectations":i<10?"Balanced":i<16?"Development focus":"Underdog";
+ return '<button class="clubpick '+(i===0?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · Reputation '+(90-i)+' · '+difficulty+'</span></button>';
+}).join("");
+function startSelectedCareer(){
+ var status=$("#startStatus");
+ try{
+  G=world();
+  var saved=save();
+  $("#start").classList.add("hidden");
+  page="home";
+  render();
+  if(!saved)G.feed.unshift({t:"SAVE WARNING",m:"Safari is running the game but local saving is unavailable in this browsing mode."});
+ }catch(e){
+  $("#clubStep").classList.add("hidden");
+  $("#launchStep").classList.remove("hidden");
+  status.textContent="Game startup failed: "+(e&&e.message?e.message:String(e));
+ }
+}
+document.addEventListener("click",function(e){let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
+let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
+let offerBtn=e.target.closest("[data-offer-player]");if(offerBtn){let p=G.players.find(x=>x.id===offerBtn.dataset.offerPlayer);if(p){generateSaleOffers(p);showPlayer(p.id)}return}
+let acceptBtn=e.target.closest("[data-accept-sale]");if(acceptBtn){acceptSale(acceptBtn.dataset.acceptSale);return}
+
+let signFreeBtn=e.target.closest("[data-sign-free]");if(signFreeBtn){signFreeAgent(signFreeBtn.dataset.signFree);return}
+let adjustContractBtn=e.target.closest("[data-adjust-contract]");if(adjustContractBtn){adjustContract(adjustContractBtn.dataset.adjustContract,adjustContractBtn.dataset.field,Number(adjustContractBtn.dataset.delta));return}
+let submitContractBtn=e.target.closest("[data-submit-contract]");if(submitContractBtn){submitContractOffer(submitContractBtn.dataset.submitContract);return}
+
+
+let rejectBtn=e.target.closest("[data-reject-sale]");if(rejectBtn){let o=G.transferOffers.find(x=>x.id===rejectBtn.dataset.rejectSale);let pid=o?o.playerId:null;rejectSale(rejectBtn.dataset.rejectSale);if(pid)showPlayer(pid);return}
+let facilityBtn=e.target.closest("[data-upgrade-facility]");if(facilityBtn){upgradeFacility(facilityBtn.dataset.upgradeFacility);return}
+if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
+$("#newBtn").addEventListener("click",function(){
+ $("#launchStep").classList.add("hidden");
+ $("#clubStep").classList.remove("hidden");
+});
+$("#backToLaunch").addEventListener("click",function(){
+ $("#clubStep").classList.add("hidden");
+ $("#launchStep").classList.remove("hidden");
+});
+$("#beginCareerBtn").addEventListener("click",startSelectedCareer);
+$("#loadBtn").addEventListener("click",function(){
+ var status=$("#startStatus");
+ try{
+  let s=localStorage.getItem("soccerGMAlpha");
+  if(!s){
+   status.textContent="No saved career exists on this iPhone yet. Start a new career first.";
+   return;
+  }
+  G=JSON.parse(s);
+  $("#start").classList.add("hidden");
+  page="home";
+  render();
+ }catch(e){
+  status.textContent="Safari could not access the saved career: "+(e && e.message ? e.message : String(e));
+ }
+});
+$("#continueBtn").addEventListener("click",advance);
+$("#newSeasonBtn").addEventListener("click",beginNewSeason);
+$("#resultContinueBtn").addEventListener("click",function(){
+ $("#resultScreen").classList.add("hidden");
+ if(G.week>=38){prepareSeasonReview();return}
+ page="home";
+ render();
+});
+
+try{
+ var existing=localStorage.getItem("soccerGMAlpha");
+ $("#startStatus").textContent=existing ? "Saved career found on this iPhone." : "No saved career yet. Start a new career to create one.";
+}catch(e){
+ $("#startStatus").textContent="Safari storage is unavailable in this browsing mode.";
+}
+
+
+
+
+function updateTopNavOffset(){
+ try{
+  let h=document.querySelector("header");
+  let px=h?Math.ceil(h.getBoundingClientRect().height):104;
+  document.documentElement.style.setProperty("--nav-top",px+"px");
+ }catch(e){}
+}
+window.addEventListener("resize",updateTopNavOffset);
+window.addEventListener("orientationchange",()=>setTimeout(updateTopNavOffset,120));
+setTimeout(updateTopNavOffset,0);
+setTimeout(updateTopNavOffset,250);
+
+})();
+</script>
+</body>
+</html>
