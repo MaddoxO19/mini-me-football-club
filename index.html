@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8.1 Positional Roles & World Navigation Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8.2 Squad Integrity & Player Sheet Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1806,6 +1806,16 @@ nav button:active{
 .reviewWorldRow:active,.worldLinkRow:active,.worldAwardCard:active{background:#d9b54a0d}.worldLinkRow,.worldAwardCard{cursor:pointer}.worldAwardCard{transition:background .12s ease,border-color .12s ease}
 @media(max-width:430px){.reviewWorldRow{grid-template-columns:minmax(0,1fr) 112px}}
 
+
+/* v2.9.8.2 Squad Integrity & Player Sheet Fix */
+.xiIntegrity{margin:-2px 0 10px;padding:7px 9px;border-radius:10px;font-size:8px;font-weight:950;letter-spacing:.07em;text-align:center}
+.xiIntegrity.ok{border:1px solid #285c43;color:var(--green);background:#58d68d0b}
+.xiIntegrity.bad{border:1px solid #71303a;color:var(--red);background:#ff80900b}
+.sheetbox{position:relative}
+.sheetPersistentClose{position:sticky;top:0;float:right;z-index:30;width:42px;height:42px;margin:-6px -2px 8px 8px;border-radius:999px;border:1px solid var(--line);background:#18232e;color:var(--text);font-size:27px;line-height:1;font-weight:500;box-shadow:0 8px 24px #0008;touch-action:manipulation}
+.sheetPersistentClose:active{background:#253442}
+.playerBottomClose{margin-top:12px!important;margin-bottom:4px}
+
 </style>
 </head>
 <body>
@@ -1882,7 +1892,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8.1 Positional Roles & World Navigation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8.2 Squad Integrity & Player Sheet Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -2430,8 +2440,9 @@ function formationSlotsForClub(teamId){return formationSlotsForCoach(teamId)}
 function formationCoverage(teamId=G.club){
  let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>!p.retiring),missing=[],used=new Set();
  slots.forEach(slot=>{let eligible=pool.filter(p=>!used.has(p.id)&&playerEligibleForSlot(p,slot)).sort((a,b)=>positionalEffectiveness(b,slot,teamId).effectiveOvr-positionalEffectiveness(a,slot,teamId).effectiveOvr);if(eligible[0])used.add(eligible[0].id);else missing.push(slot)});
- return{ok:missing.length===0,missing,slots};
+ return{ok:missing.length===0,missing,slots,selected:used.size};
 }
+function startingXIIntegrity(teamId=G.club){let coverage=formationCoverage(teamId),xi=selectStartingXI(teamId);return{ok:coverage.ok&&xi.length===11,count:xi.length,missing:coverage.missing,formation:coachProfile(teamId).formation}}
 function selectStartingXI(teamId){let used=new Set(),xi=[];formationSlotsForClub(teamId).forEach(line=>line.forEach(slot=>{let p=teamBestForSlot(teamId,slot,used);if(p)xi.push(p)}));return xi.slice(0,11)}
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
@@ -2705,7 +2716,7 @@ function simulateDivisionWeek(key){
  });
  return userResult;
 }
-function advance(){
+function advance(){let integrity=startingXIIntegrity(G.club);if(!integrity.ok){alert("You cannot play this fixture yet. "+integrity.formation+" requires 11 eligible starters. Missing roles: "+(integrity.missing.length?integrity.missing.join(" · "):"squad coverage incomplete")+".");page="squad";squadTab="team";renderSoon();return}
  ensureLeagueWorld();let weeks=leagueSeasonWeeks();
  if(G.week>=weeks){endSeason();return}
  let userResult=null,playedWeek=G.week+1;
@@ -3416,16 +3427,23 @@ function seedSecondaryPositions(p){
  normaliseSecondaryPositions(p);
 }
 function ensurePlayerPositionState(){if(G&&Array.isArray(G.players))G.players.forEach(seedSecondaryPositions)}
-function playerEligibleForSlot(p,slot){if(!p)return false;seedSecondaryPositions(p);return p.pos===slot||p.secondaryPositions.includes(slot)}
+const TACTICAL_EQUIVALENTS={
+ LCB:["CB","LCB"],RCB:["CB","RCB"],CB:["CB","LCB","RCB"],
+ LCM:["CM","LCM"],RCM:["CM","RCM"],CM:["CM","LCM","RCM"],
+ LDM:["DM","CDM","LDM"],RDM:["DM","CDM","RDM"],DM:["DM","CDM","LDM","RDM"],CDM:["DM","CDM","LDM","RDM"],
+ LAM:["AM","CAM","LAM"],RAM:["AM","CAM","RAM"],AM:["AM","CAM","LAM","RAM"],CAM:["AM","CAM","LAM","RAM"]
+};
+function naturalForTacticalSlot(p,slot){if(!p)return false;if(p.pos===slot)return true;return(TACTICAL_EQUIVALENTS[slot]||[]).includes(p.pos)}
+function playerEligibleForSlot(p,slot){if(!p)return false;seedSecondaryPositions(p);return naturalForTacticalSlot(p,slot)||p.secondaryPositions.includes(slot)}
 function coachAdaptationBand(teamId=G.club){let o=Number(coachProfile(teamId).ovr)||0;if(o>=90)return{label:"Elite",recovery:.50};if(o>=80)return{label:"Strong",recovery:.35};if(o>=65)return{label:"Capable",recovery:.20};return{label:"Developing",recovery:.10}}
 function baseSecondaryPenalty(p,slot){
- if(!p||p.pos===slot)return 0;if(!playerEligibleForSlot(p,slot))return null;
- let close=[["LB","LWB"],["RB","RWB"],["CB","LCB"],["CB","RCB"],["DM","CDM"],["AM","CAM"],["LM","LW"],["RM","RW"],["CF","ST"]];
+ if(!p)return null;if(naturalForTacticalSlot(p,slot))return 0;if(!playerEligibleForSlot(p,slot))return null;
+ let close=[["LB","LWB"],["RB","RWB"],["DM","CM"],["CDM","CM"],["AM","CM"],["CAM","CM"],["LM","LW"],["RM","RW"],["CF","ST"]];
  return close.some(x=>x.includes(p.pos)&&x.includes(slot))?3:5;
 }
 function positionalEffectiveness(p,slot,teamId=G.club){
  if(!p)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
- if(p.pos===slot)return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
+ if(naturalForTacticalSlot(p,slot))return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
  let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
  let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
  return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:"Secondary",coachBand:band.label};
@@ -3445,7 +3463,7 @@ function fitSelectionModifier(score){
  return l==="Excellent"?3:l==="Good"?1.5:l==="Fair"?0:-2.5;
 }
 function preferredSlotForPlayer(p,teamId=G.club){
- seedSecondaryPositions(p);let slots=formationSlotsForCoach(teamId).flat();if(slots.includes(p.pos))return p.pos;let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
+ seedSecondaryPositions(p);let slots=formationSlotsForCoach(teamId).flat();let natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
 }
 function bestFitForPlayer(p,teamId=G.club){
  let slot=preferredSlotForPlayer(p,teamId),score=systemFitScore(p,slot,teamId);
@@ -3733,8 +3751,9 @@ function squadTeamView(){
    let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);
    return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';
  }).join("");
- let profile=coachStyleProfile(G.club);
- return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Selected by ability and suitability to the Head Coach’s system.</div></div><div class="formationBadge">'+c.formation+'</div></div><div class="coachStrip coachStripCompact"><div><div class="label">HEAD COACH</div><b>'+c.name+' · '+c.ovr+' OVR</b><div class="sub">'+c.style+' · '+profile.tag+'</div></div><div class="coachIdentityMark">'+c.style.split(" ").map(x=>x[0]).join("")+'</div></div>'+
+ let profile=coachStyleProfile(G.club),integrity=startingXIIntegrity(G.club);
+ let integrityHtml=integrity.ok?'<div class="xiIntegrity ok">XI READY · 11/11 ELIGIBLE</div>':'<div class="xiIntegrity bad">XI INCOMPLETE · '+integrity.count+'/11 · Missing '+integrity.missing.join(" · ")+'</div>';
+ return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Selected by ability and suitability to the Head Coach’s system.</div></div><div class="formationBadge">'+c.formation+'</div></div>'+integrityHtml+'<div class="coachStrip coachStripCompact"><div><div class="label">HEAD COACH</div><b>'+c.name+' · '+c.ovr+' OVR</b><div class="sub">'+c.style+' · '+profile.tag+'</div></div><div class="coachIdentityMark">'+c.style.split(" ").map(x=>x[0]).join("")+'</div></div>'+
  '<div class="tacticalPitch"><div class="pitchBoundary"></div><div class="pitchHalfway"></div><div class="pitchCentreArc"></div><div class="pitchCentreSpot"></div><div class="pitchPenaltyBox"></div><div class="pitchSixBox"></div><div class="pitchGoal"></div><div class="pitchPenaltySpot"></div><div class="pitchPenaltyArc"></div><div class="pitchCorner bl"></div><div class="pitchCorner br"></div>'+playerHtml+'</div>'+
  '<div class="pitchLegend">Tactical role is shown first. Natural position is shown when different. System Fit reflects the Head Coach’s formation and football identity, not player OVR.</div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>';
@@ -4096,9 +4115,11 @@ function showPlayer(id,tab="overview"){
  let tabs=[["overview","Overview"],["career","Career"],["clubs","Clubs"],["awards","Awards"]];
  let body=tab==="career"?playerCareerView(p):tab==="clubs"?playerClubsView(p):tab==="awards"?playerAwardsView(p):playerOverviewContent(p);
  $("#sheetbox").innerHTML=
+ '<button class="sheetPersistentClose" data-close="1" aria-label="Close player profile">×</button>'+
  '<div class="playerProfileHero"><div class="label">PLAYER PROFILE</div><div class="playerProfileName">'+p.name+'</div><div class="playerProfileMeta">'+p.pos+' · Age '+p.age+' · '+clubLabel+'</div></div>'+
  '<div class="playerProfileTabs">'+tabs.map(x=>'<button data-player-profile-tab="'+p.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
- body;
+ body+
+ '<button class="btn full playerBottomClose" data-close="1">CLOSE</button>';
  $("#sheet").classList.remove("hidden");
 }
 function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};closePlayerClubSpell(p,ask);p.team=G.club;openPlayerClubSpell(p,G.club,ask);p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
