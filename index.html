@@ -583,7 +583,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.5 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.5.1 Stability";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
@@ -1330,6 +1330,13 @@ function home(){
  '<div class="card"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
 }
 
+
+function tabsHtml(scope,active,items){
+ return '<div class="sectionTabs">'+items.map(function(x){return '<button data-section-tab="'+scope+'" data-tab="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>';}).join("")+'</div>';
+}
+function developmentView(){
+ return '<div class="card"><div class="title">Development Centre</div><div class="sub">Development view temporarily restored during stability update.</div></div>';
+}
 function squadTeamView(){
  let c=coachProfile(),xi=startingXI(),lineClasses=["attack","mid","mid","def","gk"];
  let pitchLines=xi.lines.map((line,i)=>'<div class="pitchLine '+(lineClasses[Math.min(i,lineClasses.length-1)])+'">'+line.map(p=>p?'<div class="pitchPlayer" data-player="'+p.id+'"><div class="pitchBadge">'+p.ovr+'</div><div class="pitchName">'+p.name.split(" ").slice(-1)[0]+'</div><div class="pitchPos">'+p.pos+'</div></div>':'').join("")+'</div>').join("");
