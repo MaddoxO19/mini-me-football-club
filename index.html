@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.3 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.3.1 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1043,6 +1043,45 @@ main{
   .playerCareerHero{grid-template-columns:1fr 1fr}
 }
 
+
+/* v2.9.3.1 Statistics Stability & Player Profile Polish */
+.profileTableCard{min-height:280px}
+.profileTableHead{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 88px 64px;
+  gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid var(--line);
+  color:var(--muted);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.profileTableRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 88px 64px;
+  gap:10px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
+.profileTableRow:last-child{border-bottom:0}
+.profileTableRow b{display:block;font-size:12px;line-height:1.25}
+.profileTableRow span{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:3px}
+.profileTableRow .right{text-align:right;font-weight:900}
+.profileEmpty{
+  min-height:150px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+  padding:18px;
+}
+
 </style>
 </head>
 <body>
@@ -1109,7 +1148,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.3 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.3.1 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1334,36 +1373,41 @@ function playerCareerView(p){
    avgRating:p.stats.ratedApps?Number((p.stats.ratingTotal/p.stats.ratedApps).toFixed(2)):null,
    potm:p.stats.potm||0
  }:null;
- let rows=[current,...hs].filter(Boolean).map(h=>'<div class="playerSeasonRow"><div class="yr">'+h.season+'</div><div><b>'+playerClubNameNow(h.clubId,h.clubNameAtTime)+'</b><span>'+((h.divisionName||"No division")+' · '+h.position+' · Age '+h.age+' · '+h.apps+' apps · '+h.goals+' G · '+h.assists+' A')+'</span></div><div class="pts">'+(h.avgRating?h.avgRating.toFixed(2):"—")+'</div></div>').join("");
+ let rows=[current,...hs].filter(Boolean).map(h=>'<div class="profileTableRow"><div><b>'+h.season+' · '+playerClubNameNow(h.clubId,h.clubNameAtTime)+'</b><span>'+((h.divisionName||"No division")+' · '+h.position+' · Age '+h.age)+'</span></div><div class="right">'+h.apps+' apps<br><span>'+h.goals+' G · '+h.assists+' A</span></div><div class="right">'+(h.avgRating?h.avgRating.toFixed(2):"—")+'</div></div>').join("");
  return '<div class="playerCareerHero">'+
    '<div class="recordTile"><div class="label">APPEARANCES</div><div class="recordValue">'+t.apps+'</div></div>'+
    '<div class="recordTile"><div class="label">GOALS</div><div class="recordValue">'+t.goals+'</div></div>'+
    '<div class="recordTile"><div class="label">ASSISTS</div><div class="recordValue">'+t.assists+'</div></div>'+
    '<div class="recordTile"><div class="label">POTM</div><div class="recordValue">'+t.potm+'</div></div></div>'+
-   '<div class="card"><div class="title">Season by Season</div><div class="sub">Average rating shown at right.</div>'+
-   (rows||'<div class="sub">No career history has been archived yet.</div>')+'</div>';
+   '<div class="card profileTableCard"><div class="title">Career History</div><div class="profileTableHead"><div>Season / Club</div><div>Stats</div><div>AVG</div></div>'+
+   (rows||'<div class="profileEmpty">No archived career seasons yet. This season will be added when it is completed.</div>')+'</div>';
 }
 function playerClubsView(p){
  ensurePlayerClubHistory(p);
  let spells=[...p.clubHistory].reverse();
  let rows=spells.map(sp=>{
    let end=sp.endSeason||"Present";
-   return '<div class="playerClubRow"><div><b>'+playerClubNameNow(sp.clubId,sp.clubNameAtStart)+'</b><span>'+sp.startSeason+' – '+end+(Number.isFinite(sp.transferInFee)?' · Joined for '+money(sp.transferInFee):'')+(Number.isFinite(sp.transferOutFee)?' · Left for '+money(sp.transferOutFee):'')+'</span></div><div class="season">'+(sp.endSeason?sp.endSeason-sp.startSeason+1:Math.max(1,G.season-sp.startSeason+1))+' yr</div></div>';
+   let seasons=sp.endSeason?sp.endSeason-sp.startSeason+1:Math.max(1,G.season-sp.startSeason+1);
+   let archived=(p.careerHistory||[]).filter(h=>h.clubId===sp.clubId&&h.season>=sp.startSeason&&(!sp.endSeason||h.season<=sp.endSeason));
+   let apps=archived.reduce((s,h)=>s+(h.apps||0),0);
+   let goals=archived.reduce((s,h)=>s+(h.goals||0),0);
+   if(!sp.endSeason&&p.stats&&p.team===sp.clubId){apps+=p.stats.apps||0;goals+=p.stats.goals||0}
+   return '<div class="profileTableRow"><div><b>'+playerClubNameNow(sp.clubId,sp.clubNameAtStart)+'</b><span>'+sp.startSeason+' – '+end+'</span></div><div class="right">'+apps+' apps<br><span>'+goals+' goals</span></div><div class="right">'+seasons+' yr</div></div>';
  }).join("");
- return '<div class="card"><div class="title">Club History</div><div class="sub">Club spells remain attached to permanent Club IDs even when clubs are renamed.</div>'+
- (rows||'<div class="sub" style="margin-top:10px">No club history recorded yet.</div>')+'</div>';
+ return '<div class="card profileTableCard"><div class="title">Club History</div><div class="profileTableHead"><div>Club / Seasons</div><div>Stats</div><div>Tenure</div></div>'+
+ (rows||'<div class="profileEmpty">No club history recorded yet.</div>')+'</div>';
 }
 function playerAwardsView(p){
  let awards=Array.isArray(p.awards)?p.awards:[];
- let rows=awards.map(a=>'<div class="playerAwardRow"><div><b>'+a.name+'</b><span>'+playerClubNameNow(a.clubId,a.clubNameAtTime)+'</span></div><div class="season">'+a.season+'</div></div>').join("");
- return '<div class="card"><div class="title">Awards</div><div class="sub">Individual honours earned during this career.</div>'+
- (rows||'<div class="sub" style="margin-top:10px">No individual awards recorded yet.</div>')+'</div>';
+ let rows=awards.map(a=>'<div class="profileTableRow"><div><b>'+a.name+'</b><span>'+playerClubNameNow(a.clubId,a.clubNameAtTime)+'</span></div><div class="right">'+a.season+'</div><div class="right">★</div></div>').join("");
+ return '<div class="card profileTableCard"><div class="title">Awards</div><div class="profileTableHead"><div>Award / Club</div><div>Season</div><div></div></div>'+
+ (rows||'<div class="profileEmpty">No career awards yet.</div>')+'</div>';
 }
 
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
  ensurePlayerStats();
- let s=[...roster(team)].sort((a,b)=>b.ovr-a.ovr).slice(0,16),starters=s.slice(0,11),events=[];
+ let starters=selectStartingXI(team),events=[];
  starters.forEach(p=>{
    p.stats.apps++;
    if(!p.career)p.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
@@ -1373,7 +1417,6 @@ function recordMatchStats(team,goals){
   let sc=weightedPick(starters,p=>{let x=positionGroup(p.pos);return(x==="FWD"?6:x==="MID"?3:x==="DEF"?.8:.15)*(p.ovr/70)});
   if(sc){
    sc.stats.goals++;
-   if(!sc.career)sc.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
    sc.career.goals++;
    sc.stats.shotsOnTarget+=1+rnd(0,1);
   }
@@ -1383,7 +1426,6 @@ function recordMatchStats(team,goals){
    if(as){
     as.stats.assists++;
     as.stats.keyPasses+=rnd(1,2);
-    if(!as.career)as.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
     as.career.assists++;
    }
   }
@@ -1436,8 +1478,13 @@ function teamMatchStats(gf,ga,home){
 function leagueStatPlayers(){ensurePlayerStats();return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&p.team>=0)}
 function topScorers(n=5){return [...leagueStatPlayers()].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists||b.ovr-a.ovr).slice(0,n)}
 function avgRating(p){let s=p.stats||{};return s.ratedApps?s.ratingTotal/s.ratedApps:0}
-function qualifiedPlayers(filterFn,minApps=15){
- return leagueStatPlayers().filter(p=>(p.stats.apps||0)>=minApps&&(!filterFn||filterFn(p)));
+function awardMinimumApps(kind="outfield"){
+ let weeks=leagueSeasonWeeks();
+ return kind==="gk"?Math.max(8,Math.ceil(weeks*.50)):Math.max(8,Math.ceil(weeks*.40));
+}
+function qualifiedPlayers(filterFn,minApps=null){
+ let threshold=Number.isFinite(minApps)?minApps:awardMinimumApps();
+ return leagueStatPlayers().filter(p=>(p.stats.apps||0)>=threshold&&(!filterFn||filterFn(p)));
 }
 function awardPayload(p){
  if(!p)return null;
@@ -1471,7 +1518,7 @@ function goalkeeperSeasonScore(p){
  return avg*10+s.cleanSheets*1.8+s.saves*.12-gaPerApp*2+s.potm;
 }
 function teamOfSeason(){
- let ps=qualifiedPlayers(null,15);
+ let ps=qualifiedPlayers(null,awardMinimumApps());
  let pick=(positions,count,scoreFn)=>{
    let arr=ps.filter(p=>positions.includes(positionGroup(p.pos))||positions.includes(p.pos)).sort((a,b)=>scoreFn(b)-scoreFn(a));
    return arr.slice(0,count).map(awardPayload);
@@ -1483,15 +1530,15 @@ function teamOfSeason(){
  return [...gk,...def,...mid,...fwd].filter(Boolean);
 }
 function seasonAwards(){
- let ps=qualifiedPlayers(null,15),all=leagueStatPlayers();
+ let ps=qualifiedPlayers(null,awardMinimumApps()),all=leagueStatPlayers();
  let gb=[...all].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists||avgRating(b)-avgRating(a))[0];
  let assist=[...all].sort((a,b)=>b.stats.assists-a.stats.assists||b.stats.keyPasses-a.stats.keyPasses||avgRating(b)-avgRating(a))[0];
  let poty=[...ps].sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0];
  let young=[...ps].filter(p=>p.age<=21).sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0];
- let gks=qualifiedPlayers(p=>positionGroup(p.pos)==="GK",15);
- let defs=qualifiedPlayers(p=>positionGroup(p.pos)==="DEF",15);
- let mids=qualifiedPlayers(p=>positionGroup(p.pos)==="MID",15);
- let fwds=qualifiedPlayers(p=>positionGroup(p.pos)==="FWD",15);
+ let gks=qualifiedPlayers(p=>positionGroup(p.pos)==="GK",awardMinimumApps("gk"));
+ let defs=qualifiedPlayers(p=>positionGroup(p.pos)==="DEF",awardMinimumApps());
+ let mids=qualifiedPlayers(p=>positionGroup(p.pos)==="MID",awardMinimumApps());
+ let fwds=qualifiedPlayers(p=>positionGroup(p.pos)==="FWD",awardMinimumApps());
  let glove=[...gks].sort((a,b)=>goalkeeperSeasonScore(b)-goalkeeperSeasonScore(a))[0];
  let def=[...defs].sort((a,b)=>defenderSeasonScore(b)-defenderSeasonScore(a))[0];
  let mid=[...mids].sort((a,b)=>midfielderSeasonScore(b)-midfielderSeasonScore(a))[0];
@@ -1522,8 +1569,8 @@ function leagueLeadersHtml(){
  let ps=leagueStatPlayers();
  let scorers=[...ps].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists).slice(0,5);
  let assists=[...ps].sort((a,b)=>b.stats.assists-a.stats.assists||b.stats.keyPasses-a.stats.keyPasses).slice(0,5);
- let ratings=ps.filter(p=>p.stats.apps>=10).sort((a,b)=>avgRating(b)-avgRating(a)).slice(0,5);
- let keepers=ps.filter(p=>positionGroup(p.pos)==="GK"&&p.stats.apps>=8).sort((a,b)=>b.stats.cleanSheets-a.stats.cleanSheets||b.stats.saves-a.stats.saves).slice(0,5);
+ let ratings=ps.filter(p=>p.stats.apps>=awardMinimumApps()).sort((a,b)=>avgRating(b)-avgRating(a)).slice(0,5);
+ let keepers=ps.filter(p=>positionGroup(p.pos)==="GK"&&p.stats.apps>=awardMinimumApps("gk")).sort((a,b)=>b.stats.cleanSheets-a.stats.cleanSheets||b.stats.saves-a.stats.saves||avgRating(b)-avgRating(a)).slice(0,5);
  return leaderCard("Golden Boot Race","League goals · "+G.season,scorers,p=>p.stats.goals+" G")+
         leaderCard("Assist Leaders","League assists · "+G.season,assists,p=>p.stats.assists+" A")+
         leaderCard("Highest Average Rating","Minimum 10 appearances",ratings,p=>avgRating(p).toFixed(2))+
