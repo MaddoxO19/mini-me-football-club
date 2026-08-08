@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.7.2 Career Save Foundation Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8 Staff & Football Identity Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1727,6 +1727,84 @@ nav button:active{
   }
 }
 
+
+/* v2.9.8 Staff & Football Identity */
+.miniFit{
+  display:inline-flex;
+  margin-top:5px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:3px 6px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.055em;
+}
+.miniFit.excellent,.pitchFit.excellent{color:var(--green)}
+.miniFit.good,.pitchFit.good{color:var(--gold)}
+.miniFit.fair,.pitchFit.fair{color:#b9c4ce}
+.miniFit.poor,.pitchFit.poor{color:var(--red)}
+.tacticalPlayer.fit-excellent .pitchBadge{border-color:var(--green)!important}
+.tacticalPlayer.fit-good .pitchBadge{border-color:var(--gold)!important}
+.tacticalPlayer.fit-fair .pitchBadge{border-color:#9ca7af!important}
+.tacticalPlayer.fit-poor .pitchBadge{border-color:var(--red)!important}
+.pitchFit{
+  margin-top:2px;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.coachIdentityMark{
+  width:40px;height:40px;border-radius:12px;
+  display:grid;place-items:center;
+  border:1px solid #705d25;
+  background:#d9b54a12;
+  color:var(--gold);
+  font-size:11px;font-weight:950;letter-spacing:.06em;
+}
+.staffHero{
+  border-color:#705d25;
+  background:linear-gradient(180deg,#18190f,#101821);
+}
+.staffName{font-size:24px;font-weight:950;margin-top:5px}
+.staffMeta{color:var(--muted);font-size:11px;margin-top:5px}
+.staffIdentityGrid{
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;
+}
+.staffIdentityGrid>div{
+  border:1px solid var(--line);background:var(--card2);
+  border-radius:13px;padding:11px;
+}
+.staffIdentityGrid span,.identityRoles span{
+  display:block;color:var(--muted);font-size:9px;letter-spacing:.07em;
+}
+.staffIdentityGrid b{display:block;margin-top:4px;font-size:13px}
+.identityTag{
+  display:inline-flex;border:1px solid #705d25;background:#d9b54a10;
+  color:var(--gold);border-radius:999px;padding:6px 9px;
+  font-size:9px;font-weight:900;letter-spacing:.06em;
+}
+.identityRoles{
+  margin-top:12px;padding:11px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card2);
+}
+.identityRoles b{display:block;margin-top:5px;font-size:11px;line-height:1.5}
+.fitSummaryGrid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px;
+}
+.fitSummary{
+  text-align:center;border:1px solid var(--line);border-radius:12px;
+  background:var(--card2);padding:10px 4px;
+}
+.fitSummary b{display:block;font-size:18px}
+.fitSummary span{display:block;margin-top:3px;font-size:8px;color:var(--muted)}
+.fitSummary.excellent b{color:var(--green)}
+.fitSummary.good b{color:var(--gold)}
+.fitSummary.poor b{color:var(--red)}
+@media(max-width:430px){
+  .fitSummaryGrid{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -1803,12 +1881,45 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.7.2 Career Save Foundation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8 Staff & Football Identity Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
+const COACH_STYLES=["Possession","Balanced","High Press","Direct","Counter Attack"];
+const COACH_STYLE_PROFILES={
+ "Possession":{
+   desc:"Control the ball, build through midfield and favour technically connected attacking roles.",
+   roles:["CF","CAM","CM","LCM","RCM","CDM","LW","RW"],
+   formations:["4-3-3","4-2-3-1"],
+   tag:"Control & combinations"
+ },
+ "Balanced":{
+   desc:"A flexible football identity with fewer positional extremes and broad squad compatibility.",
+   roles:["ST","CF","CAM","CM","CDM","LB","RB","LW","RW"],
+   formations:["4-3-3","4-2-3-1","4-4-2"],
+   tag:"Flexible structure"
+ },
+ "High Press":{
+   desc:"Front-foot football built around aggressive forwards, energetic midfielders and advanced wide roles.",
+   roles:["ST","CF","LW","RW","CAM","CM","LWB","RWB"],
+   formations:["4-3-3","4-2-3-1","3-4-3"],
+   tag:"Intensity & pressure"
+ },
+ "Direct":{
+   desc:"Progress the ball quickly, attack territory and favour traditional forwards and wide service.",
+   roles:["ST","CF","LM","RM","CM","CB","LB","RB"],
+   formations:["4-4-2","4-2-3-1"],
+   tag:"Vertical & physical"
+ },
+ "Counter Attack":{
+   desc:"Defend compactly and break quickly through pace, direct runners and disciplined midfield roles.",
+   roles:["ST","LW","RW","DM","CDM","LDM","RDM","LB","RB"],
+   formations:["4-2-3-1","4-3-3"],
+   tag:"Compact & explosive"
+ }
+};
 let G=null, selected=0, page="home", selectedLeagueSize=20;
 let clubTab="overview",leagueTab="table",squadTab="team";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -2141,7 +2252,14 @@ function loadCareerSlot(slot){
  $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();return true;
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
-function strength(id){let ps=[...roster(id)].sort((a,b)=>b.ovr-a.ovr).slice(0,11);return ps.reduce((s,p)=>s+p.ovr,0)/11+G.clubs[id].coach*.07}
+function strength(id){
+ let xi=selectStartingXI(id),slots=formationSlotsForCoach(id).flat(),fitTotal=0;
+ let avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||0),0)/xi.length:60;
+ xi.forEach((p,i)=>{let slot=slots[i]||preferredSlotForPlayer(p,id);fitTotal+=systemFitScore(p,slot,id)});
+ let fitAvg=xi.length?fitTotal/xi.length:60;
+ let fitEffect=Math.max(-1.8,Math.min(1.8,(fitAvg-65)*.055));
+ return avg+fitEffect+coachProfile(id).ovr*.07;
+}
 
 function ensurePlayerStats(){
  G.players.forEach(p=>{
@@ -2306,28 +2424,18 @@ function playerAwardsView(p){
 
 function teamBestForSlot(teamId,slot,used){
  let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring);
+ let rank=p=>(Number(p.ovr)||0)+fitSelectionModifier(systemFitScore(p,slot,teamId));
+ candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);
  let family=slotFamily(slot);
- let exact=candidates.filter(p=>p.pos===slot).sort((a,b)=>b.ovr-a.ovr);
- let compatible=candidates.filter(p=>family.includes(p.pos)).sort((a,b)=>{
-   let ap=family.indexOf(a.pos),bp=family.indexOf(b.pos);
-   return ap-bp||b.ovr-a.ovr;
- });
+ let exact=candidates.filter(p=>p.pos===slot);
+ let compatible=candidates.filter(p=>family.includes(p.pos));
  let group=positionGroup(slot);
- let near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
- let p=exact[0]||compatible[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
+ let near=candidates.filter(p=>positionGroup(p.pos)===group);
+ let p=exact[0]||compatible[0]||near[0]||candidates[0];
  if(p)used.add(p.id);
  return p;
 }
-function formationSlotsForClub(teamId){
- let c=G.clubs[teamId];
- if(!c)return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
- if(!c.formation)c.formation=["4-3-3","4-2-3-1","4-4-2","3-4-3"][Math.abs(c.id)%4];
- let f=c.formation;
- if(f==="4-2-3-1")return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
- if(f==="4-4-2")return[["ST","ST"],["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
- if(f==="3-4-3")return[["LW","ST","RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
- return[["LW","ST","RW"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]];
-}
+function formationSlotsForClub(teamId){return formationSlotsForCoach(teamId)}
 function selectStartingXI(teamId){
  let used=new Set(),xi=[];
  formationSlotsForClub(teamId).forEach(line=>{
@@ -2568,7 +2676,7 @@ function seasonAwards(){
   midfielder:awardPayload(mid),
   forward:awardPayload(fwd),
   young:awardPayload(young),
-  manager:mc?{club:mc.name,coach:mc.coach}:null,
+  manager:mc?{club:mc.name,coach:coachProfile(mc.id).ovr}:null,
   teamOfSeason:teamOfSeason()
  };
 }
@@ -3057,7 +3165,7 @@ function clubProfileOverview(id){
  '<div class="clubProfileStat"><div class="label">POSITION</div><div class="v">'+(pos?ordinal(pos):"—")+'</div></div>'+
  '<div class="clubProfileStat"><div class="label">SQUAD AVG</div><div class="v">'+avg+'</div></div>'+
  '<div class="clubProfileStat"><div class="label">REPUTATION</div><div class="v">'+c.rep+'</div></div>'+
- '<div class="clubProfileStat"><div class="label">COACH</div><div class="v">'+c.coach+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">HEAD COACH</div><div class="v">'+coachProfile(id).ovr+'</div><div class="recordNote">'+coachProfile(id).name+'</div></div>'+
  '<div class="clubProfileStat"><div class="label">BUDGET</div><div class="v">'+money(c.budget)+'</div></div></div>'+
  '<div class="card" style="margin-top:12px"><div class="title">Current Season</div><div class="financeRows">'+
  '<div class="financeRow"><span>Record</span><b>'+c.w+'W · '+c.d+'D · '+c.l+'L</b></div>'+
@@ -3203,13 +3311,62 @@ function endSeason(){
  prepareSeasonReview();
 }
 function stat(k,v,s){return'<div class="card stat"><div class="label">'+k+'</div><div class="value">'+v+'</div><div class="sub">'+s+'</div></div>'}
-function playerRow(p,market){return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div></div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'}
+function playerRow(p,market){
+ let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null;
+ let fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'';
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
+}
 
-function coachProfile(){
- let c=G.clubs[G.club];
- if(!c.formation)c.formation=["4-3-3","4-2-3-1","4-4-2","3-4-3"][c.id%4];
- if(!c.style)c.style=["Possession","Balanced","High Press","Direct"][c.id%4];
- return c;
+function generatedCoachName(clubId){
+ let a=FIRST[Math.abs((clubId*7+3)%FIRST.length)],b=LAST[Math.abs((clubId*11+5)%LAST.length)];
+ return a+" "+b;
+}
+function defaultCoachStyle(clubId){
+ return COACH_STYLES[Math.abs(Number(clubId)||0)%COACH_STYLES.length];
+}
+function defaultCoachFormation(style,clubId){
+ let profile=COACH_STYLE_PROFILES[style]||COACH_STYLE_PROFILES.Balanced;
+ return profile.formations[Math.abs(Number(clubId)||0)%profile.formations.length];
+}
+function ensureClubStaff(c){
+ if(!c)return null;
+ if(!c.staff||typeof c.staff!=="object")c.staff={};
+ if(!c.staff.headCoach||typeof c.staff.headCoach!=="object"){
+   let style=c.style&&COACH_STYLE_PROFILES[c.style]?c.style:defaultCoachStyle(c.id);
+   let formation=c.formation||defaultCoachFormation(style,c.id);
+   c.staff.headCoach={
+     id:"HC-"+c.id,
+     name:generatedCoachName(c.id),
+     ovr:Number(c.coach)||rnd(64,82),
+     style,
+     formation,
+     appointedSeason:G?G.season:2026
+   };
+ }
+ let h=c.staff.headCoach;
+ if(!h.name)h.name=generatedCoachName(c.id);
+ if(!Number.isFinite(Number(h.ovr)))h.ovr=Number(c.coach)||75;
+ if(!COACH_STYLE_PROFILES[h.style])h.style=defaultCoachStyle(c.id);
+ if(!h.formation)h.formation=defaultCoachFormation(h.style,c.id);
+ if(!Number.isFinite(Number(h.appointedSeason)))h.appointedSeason=G?G.season:2026;
+
+ // Keep legacy fields synchronized for older systems while staff becomes canonical.
+ c.coach=Number(h.ovr);
+ c.style=h.style;
+ c.formation=h.formation;
+ return h;
+}
+function ensureStaffState(){
+ if(!G||!Array.isArray(G.clubs))return;
+ G.clubs.forEach(ensureClubStaff);
+}
+function coachProfile(teamId=G.club){
+ let c=G.clubs[teamId];
+ return ensureClubStaff(c);
+}
+function coachStyleProfile(teamId=G.club){
+ let h=coachProfile(teamId);
+ return COACH_STYLE_PROFILES[h.style]||COACH_STYLE_PROFILES.Balanced;
 }
 function positionGroup(pos){
  if(pos==="GK")return"GK";
@@ -3217,13 +3374,28 @@ function positionGroup(pos){
  if(["DM","CDM","LDM","RDM","CM","LCM","RCM","AM","CAM","LAM","RAM","LM","RM"].includes(pos))return"MID";
  return"FWD";
 }
-function formationSlots(){
- let f=coachProfile().formation;
- if(f==="4-2-3-1")return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
- if(f==="4-4-2")return[["ST","ST"],["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
- if(f==="3-4-3")return[["LW","ST","RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
- return[["LW","ST","RW"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]];
+function formationSlotsForCoach(teamId=G.club){
+ let h=coachProfile(teamId),f=h.formation,style=h.style;
+
+ if(f==="4-2-3-1"){
+   let striker=style==="Possession"?"CF":"ST";
+   let wide=style==="Direct"?["LM","CAM","RM"]:["LW","CAM","RW"];
+   return[[striker],wide,["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
+ }
+ if(f==="4-4-2"){
+   let front=style==="Possession"?["CF","CF"]:["ST","ST"];
+   return[front,["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
+ }
+ if(f==="3-4-3"){
+   let striker=style==="Possession"?"CF":"ST";
+   return[["LW",striker,"RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
+ }
+ // 4-3-3
+ let striker=style==="Possession"?"CF":"ST";
+ let midfield=style==="Counter Attack"?["LDM","CM","RDM"]:style==="High Press"?["LCM","CAM","RCM"]:["LCM","CM","RCM"];
+ return[["LW",striker,"RW"],midfield,["LB","LCB","RCB","RB"],["GK"]];
 }
+function formationSlots(){return formationSlotsForCoach(G.club)}
 function slotFamily(slot){
  const families={
   GK:["GK"],
@@ -3242,17 +3414,49 @@ function slotFamily(slot){
  };
  return families[slot]||[slot];
 }
+function systemFitScore(p,slot=null,teamId=G.club){
+ if(!p)return 0;
+ let h=coachProfile(teamId),profile=coachStyleProfile(teamId);
+ let target=slot||preferredSlotForPlayer(p,teamId);
+ let family=slotFamily(target);
+ let positional=p.pos===target?58:family.includes(p.pos)?46:positionGroup(p.pos)===positionGroup(target)?30:12;
+ let styleBonus=profile.roles.includes(p.pos)?18:profile.roles.includes(target)?11:4;
+ let formationBonus=profile.formations.includes(h.formation)?10:5;
+ let score=positional+styleBonus+formationBonus;
+ return Math.max(20,Math.min(100,Math.round(score)));
+}
+function systemFitLabel(score){
+ score=Number(score)||0;
+ return score>=82?"Excellent":score>=68?"Good":score>=50?"Fair":"Poor";
+}
+function systemFitClass(score){let l=systemFitLabel(score);return l==="Excellent"?"excellent":l==="Good"?"good":l==="Fair"?"fair":"poor"}
+function fitSelectionModifier(score){
+ let l=systemFitLabel(score);
+ return l==="Excellent"?3:l==="Good"?1.5:l==="Fair"?0:-2.5;
+}
+function preferredSlotForPlayer(p,teamId=G.club){
+ let slots=formationSlotsForCoach(teamId).flat();
+ if(slots.includes(p.pos))return p.pos;
+ let compatible=slots.filter(s=>slotFamily(s).includes(p.pos));
+ if(compatible.length)return compatible.sort((a,b)=>slotFamily(a).indexOf(p.pos)-slotFamily(b).indexOf(p.pos))[0];
+ let same=slots.find(s=>positionGroup(s)===positionGroup(p.pos));
+ return same||p.pos;
+}
+function bestFitForPlayer(p,teamId=G.club){
+ let slot=preferredSlotForPlayer(p,teamId),score=systemFitScore(p,slot,teamId);
+ return{slot,score,label:systemFitLabel(score)};
+}
+
 function bestForSlot(slot,used){
  let candidates=roster().filter(p=>!used.has(p.id));
+ let rank=p=>(Number(p.ovr)||0)+fitSelectionModifier(systemFitScore(p,slot,G.club));
+ candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);
  let family=slotFamily(slot);
- let exact=candidates.filter(p=>p.pos===slot).sort((a,b)=>b.ovr-a.ovr);
- let compatible=candidates.filter(p=>family.includes(p.pos)).sort((a,b)=>{
-   let ap=family.indexOf(a.pos),bp=family.indexOf(b.pos);
-   return ap-bp||b.ovr-a.ovr;
- });
+ let exact=candidates.filter(p=>p.pos===slot);
+ let compatible=candidates.filter(p=>family.includes(p.pos));
  let group=positionGroup(slot);
- let near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
- let p=exact[0]||compatible[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
+ let near=candidates.filter(p=>positionGroup(p.pos)===group);
+ let p=exact[0]||compatible[0]||near[0]||candidates[0];
  if(p)used.add(p.id);
  return p;
 }
@@ -3336,7 +3540,7 @@ function upgradeFacility(key){
 }
 function playerDevelopmentOffseason(){
  ensureFacilityState();
- let c=G.clubs[G.club],training=c.facilities.training,coach=Number(c.coach)||75,changes=[];
+ let c=G.clubs[G.club],training=c.facilities.training,coach=Number(coachProfile(G.club).ovr)||75,changes=[];
  roster().forEach(p=>{
   let before=Number(p.ovr)||60,delta=0;
   if(p.age<=20){
@@ -3521,25 +3725,40 @@ function squadTeamView(){
    });
  });
  let playerHtml=placed.map(x=>{
-   let compatible=x.p.pos===x.slot||slotFamily(x.slot).includes(x.p.pos);
-   return '<div class="tacticalPlayer '+(compatible?'':'outOfRole')+'" data-player="'+x.p.id+'" style="left:'+x.x+'%;top:'+x.y+'%">'+
+   let fit=systemFitScore(x.p,x.slot,G.club),fitLabel=systemFitLabel(fit);
+   return '<div class="tacticalPlayer fit-'+systemFitClass(fit)+'" data-player="'+x.p.id+'" style="left:'+x.x+'%;top:'+x.y+'%">'+
     '<div class="pitchBadge">'+x.p.ovr+'</div>'+
     '<div class="pitchName">'+x.p.name.split(" ").slice(-1)[0]+'</div>'+
-    '<div class="pitchPos">'+x.slot+(x.p.pos!==x.slot?' · '+x.p.pos:'')+'</div></div>';
+    '<div class="pitchPos">'+x.slot+(x.p.pos!==x.slot?' · '+x.p.pos:'')+'</div>'+
+    '<div class="pitchFit">'+fitLabel+'</div></div>';
  }).join("");
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
  let depth=groups.map(g=>{
    let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);
    return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';
  }).join("");
- return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Current tactical selection</div></div><div class="formationBadge">'+c.formation+'</div></div><div class="coachStrip coachStripCompact"><div><div class="label">COACH PROFILE</div><b>'+c.style+'</b><div class="sub">Rating '+c.coach+' · Tactical identity</div></div><div class="coachFutureTag">STAFF SYSTEM<br><span>v2.9.8</span></div></div>'+
+ let profile=coachStyleProfile(G.club);
+ return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Selected by ability and suitability to the Head Coach’s system.</div></div><div class="formationBadge">'+c.formation+'</div></div><div class="coachStrip coachStripCompact"><div><div class="label">HEAD COACH</div><b>'+c.name+' · '+c.ovr+' OVR</b><div class="sub">'+c.style+' · '+profile.tag+'</div></div><div class="coachIdentityMark">'+c.style.split(" ").map(x=>x[0]).join("")+'</div></div>'+
  '<div class="tacticalPitch"><div class="pitchBoundary"></div><div class="pitchHalfway"></div><div class="pitchCentreArc"></div><div class="pitchCentreSpot"></div><div class="pitchPenaltyBox"></div><div class="pitchSixBox"></div><div class="pitchGoal"></div><div class="pitchPenaltySpot"></div><div class="pitchPenaltyArc"></div><div class="pitchCorner bl"></div><div class="pitchCorner br"></div>'+playerHtml+'</div>'+
- '<div class="pitchLegend">Tactical role is shown first. Natural position is also displayed when different.</div></div>'+
+ '<div class="pitchLegend">Tactical role is shown first. Natural position is shown when different. System Fit reflects the Head Coach’s formation and football identity, not player OVR.</div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>';
 }
+function staffView(){
+ let h=coachProfile(G.club),profile=coachStyleProfile(G.club),slots=formationSlotsForCoach(G.club).flat();
+ let fits=roster().map(p=>bestFitForPlayer(p,G.club));
+ let counts={Excellent:0,Good:0,Fair:0,Poor:0};fits.forEach(f=>counts[f.label]++);
+ let roleText=[...new Set(slots)].join(" · ");
+ return '<div class="card staffHero"><div class="label">HEAD COACH</div><div class="staffName">'+h.name+'</div><div class="staffMeta">'+h.ovr+' OVR · Appointed '+h.appointedSeason+'</div>'+
+ '<div class="staffIdentityGrid"><div><span>PLAY STYLE</span><b>'+h.style+'</b></div><div><span>FORMATION</span><b>'+h.formation+'</b></div></div></div>'+
+ '<div class="card"><div class="title">Football Identity</div><div class="identityTag">'+profile.tag+'</div><div class="sub" style="margin-top:8px">'+profile.desc+'</div>'+
+ '<div class="identityRoles"><span>Preferred tactical roles</span><b>'+roleText+'</b></div></div>'+
+ '<div class="card"><div class="title">Squad System Fit</div><div class="sub">Fit measures suitability to this coach. It does not change a player’s OVR.</div>'+
+ '<div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div>'+
+ '<div class="card"><div class="title">GM Impact</div><div class="sub">The Head Coach now influences role selection and gives a small, capped match effect through overall XI fit. A strong player can still play, but a similarly rated player who better suits the system may be preferred.</div></div>';
+}
 function squad(){
- let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"]]);
- return tabs+(squadTab==="development"?developmentView():squadTeamView());
+ let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
+ return tabs+(squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
  ensureLifecycleState();refreshMarketActivity();
@@ -3557,9 +3776,9 @@ function market(){
  let needHtml=needs.map(n=>'<div class="need '+(n.level==="High"?"high":"")+'"><div class="needPos">'+n.level+' priority</div><b>'+n.pos+' · '+n.rating+' OVR</b><div class="sub">Current starter</div></div>').join("");
  let faHtml=fas.length?'<div class="card"><div class="title">Free Agents</div><div class="sub">'+fas.length+' available · no transfer fee required.</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':
  '<div class="card"><div class="title">Free Agents</div><div class="sub">No suitable free agents are currently available.</div></div>';
- return'<div class="card"><div class="title">Recruitment Priorities</div><div class="sub">Needs are based on the Head Coach’s '+coachProfile().formation+' and current Starting XI.</div><div class="needs">'+needHtml+'</div></div>'+
+ return'<div class="card"><div class="title">Recruitment Priorities</div><div class="sub">Needs are based on the Head Coach’s '+coachProfile().formation+' system, current Starting XI and positional fit.</div><div class="needs">'+needHtml+'</div></div>'+
  faHtml+
- '<div class="card"><div class="title">Transfer Market</div><div class="sub">Availability changes with listings, contracts, club activity and squad needs.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
+ '<div class="card"><div class="title">Transfer Market</div><div class="sub">Availability changes with listings, contracts, club activity and squad needs. System Fit is shown against your current Head Coach.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
 }
 function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
@@ -3862,7 +4081,8 @@ function playerOverviewContent(p){
 
  let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},ar=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
  let editorAction=(G.playerEditingEnabled!==false&&p.team!==-2)?'<div class="actionGroup"><div class="actionLabel">CAREER CONTROL</div><button class="btn full" data-edit-player="'+p.id+'">EDIT PLAYER</button></div><div id="playerEditorHost"></div>':'';
- return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
+ let fit=bestFitForPlayer(p,G.club),fitContext=p.team===G.club?"Current coach":"Fit with your Head Coach";
+ return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("SYSTEM FIT",fit.label,fitContext+" · "+fit.slot)+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
  '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+ar+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
  '<div class="financeRows" style="margin-top:9px">'+
  (positionGroup(p.pos)==="GK"?'<div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div><div class="financeRow"><span>Saves</span><b>'+ss.saves+'</b></div>':'')+
@@ -3897,6 +4117,7 @@ function ensureRuntimeState(){
  ensureRecordState();
  ensureClubHistoryState();
  ensureFacilityState();
+ ensureStaffState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
