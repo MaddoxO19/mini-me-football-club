@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.3.3 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.3.4 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1110,6 +1110,50 @@ main{
    Player ratings now use match-local contribution values rather than cumulative
    season totals. This prevents late-season rating inflation. */
 
+
+/* v2.9.3.4 Season Review UX */
+.seasonReview{
+  z-index:4200!important;
+  padding-bottom:calc(150px + env(safe-area-inset-bottom))!important;
+  -webkit-overflow-scrolling:touch;
+}
+body.season-review-active nav{
+  pointer-events:none!important;
+  visibility:hidden!important;
+}
+body.season-review-active header{
+  pointer-events:none!important;
+}
+#newSeasonBtn{
+  position:sticky;
+  bottom:calc(18px + env(safe-area-inset-bottom));
+  z-index:4;
+  margin-top:18px!important;
+  box-shadow:0 12px 34px #000b;
+}
+.reviewPlayerRow{
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.reviewPlayerRow:active{
+  background:#d9b54a10;
+}
+.reviewPlayerRow::after{
+  content:"›";
+  color:var(--gold);
+  font-size:22px;
+  font-weight:700;
+  margin-left:8px;
+}
+
+
+body.season-review-active .sheet{
+  z-index:5000!important;
+}
+body.season-review-active .sheetbox{
+  z-index:5001!important;
+}
+
 </style>
 </head>
 <body>
@@ -1176,7 +1220,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.3.3 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.3.4 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -2057,7 +2101,7 @@ function prepareSeasonReview(){
  let table=standings(),c=G.clubs[G.club],pos=table.findIndex(x=>x.id===G.club)+1;
  let champion=table[0],target=G.boardTarget,met=pos<=target;
  let expiring=roster().filter(p=>p.years<=1).map(p=>({id:p.id,name:p.name,pos:p.pos,ovr:p.ovr,wage:p.wage}));
- let finalYear=roster().filter(p=>p.years===2).map(p=>({name:p.name,pos:p.pos,ovr:p.ovr}));
+ let finalYear=roster().filter(p=>p.years===2).map(p=>({id:p.id,name:p.name,pos:p.pos,ovr:p.ovr}));
  let key=currentLeagueKey();
  let topFour=table.slice(0,Math.min(4,table.length)).map((x,i)=>({pos:i+1,name:x.name,pts:x.pts}));
  let relegated=key==="top"?table.slice(-3).map((x,i)=>({pos:table.length-2+i,name:x.name,pts:x.pts})):[];
@@ -2070,14 +2114,23 @@ function prepareSeasonReview(){
  save();
  showSeasonReview();
 }
+
+function resolveReviewPlayerId(item){
+ if(item&&item.id)return item.id;
+ if(!item)return null;
+ let p=G.players.find(x=>x.name===item.name&&x.pos===item.pos&&Number(x.ovr)===Number(item.ovr));
+ if(!p)p=G.players.find(x=>x.name===item.name&&x.pos===item.pos);
+ return p?p.id:null;
+}
+
 function showSeasonReview(){
  ensureSeasonState();
  let r=G.pendingSeasonReview;if(!r)return;
  $("#reviewSeason").textContent=r.season+" Season";
  $("#reviewFinish").textContent=ordinal(r.pos);
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
- let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id);let label=live&&live.retiring?"Retiring":"Entering free agency";return'<div class="contractRow"><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>'+label+'</span></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
- let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>'<div class="contractRow"><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>1 year remaining</span></div>').join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>'+label+'</span></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
+ let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>1 year remaining</span></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
  $("#reviewContent").innerHTML=
  '<div class="reviewGrid">'+
  stat("RECORD",r.w+"-"+r.d+"-"+r.l,r.p+" matches")+
@@ -2103,6 +2156,7 @@ function showSeasonReview(){
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
  '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>';
  $("#seasonReview").classList.remove("hidden");
+ document.body.classList.add("season-review-active");
 }
 
 function runSafeWorldEvolution(){
@@ -2284,6 +2338,7 @@ function beginNewSeason(){
   save();
 
   $("#seasonReview").classList.add("hidden");
+  document.body.classList.remove("season-review-active");
   page="home";
   render();
  }catch(err){
@@ -2956,7 +3011,8 @@ function startSelectedCareer(){
 document.addEventListener("click",function(e){
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;render();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
+let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
+let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
 let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
 let offerBtn=e.target.closest("[data-offer-player]");if(offerBtn){let p=G.players.find(x=>x.id===offerBtn.dataset.offerPlayer);if(p){generateSaleOffers(p);showPlayer(p.id)}return}
