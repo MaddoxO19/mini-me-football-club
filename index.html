@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.2 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.3 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -953,6 +953,96 @@ main{
 .honourRow:last-child{border-bottom:0}.honourRow b{font-size:12px}.honourRow span{font-size:10px;color:var(--muted)}
 .aiClubLink{cursor:pointer;text-decoration:none}.aiClubLink:hover{color:var(--gold)}
 
+
+/* v2.9.3 Player Careers & Historical Records */
+.playerProfileHero{
+  border:1px solid #5f5126;
+  background:linear-gradient(180deg,#171a16,#101821);
+  border-radius:18px;
+  padding:15px;
+  margin-bottom:12px;
+}
+.playerProfileHero .playerProfileName{
+  font-size:24px;
+  font-weight:950;
+  margin-top:5px;
+  line-height:1.08;
+}
+.playerProfileHero .playerProfileMeta{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+}
+.playerProfileTabs{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:0 0 12px;
+  scrollbar-width:none;
+}
+.playerProfileTabs::-webkit-scrollbar{display:none}
+.playerProfileTabs button{
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  background:var(--card2);
+  color:var(--muted);
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:10px;
+  font-weight:900;
+}
+.playerProfileTabs button.active{
+  border-color:var(--gold);
+  color:var(--gold);
+  background:#d9b54a10;
+}
+.playerCareerHero{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.playerCareerHero .recordTile{min-height:92px}
+.playerSeasonRow{
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
+.playerSeasonRow:last-child{border-bottom:0}
+.playerSeasonRow .yr{font-weight:900;color:var(--gold)}
+.playerSeasonRow b{display:block;font-size:12px}
+.playerSeasonRow span{display:block;color:var(--muted);font-size:10px;margin-top:3px;line-height:1.35}
+.playerSeasonRow .pts{text-align:right;font-weight:900;font-size:12px}
+.playerClubRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+.playerClubRow:last-child{border-bottom:0}
+.playerClubRow b{display:block;font-size:12px}
+.playerClubRow span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.playerAwardRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+.playerAwardRow:last-child{border-bottom:0}
+.playerAwardRow b{font-size:12px}
+.playerAwardRow span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.playerAwardRow .season{font-weight:900;color:var(--gold);font-size:11px}
+@media(max-width:480px){
+  .playerCareerHero{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -1019,7 +1109,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.2 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.3 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1119,12 +1209,157 @@ function ensurePlayerStats(){
  G.players.forEach(p=>{
   if(!p.career)p.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
   ["apps","goals","assists","potm","cleanSheets","saves"].forEach(k=>{if(!Number.isFinite(p.career[k]))p.career[k]=0});
+  if(!Array.isArray(p.careerHistory))p.careerHistory=[];
+  if(!Array.isArray(p.awards))p.awards=[];
+  if(!Array.isArray(p.clubHistory))p.clubHistory=[];
   if(!p.stats||p.stats.season!==G.season){
    p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0};
   }
   ["apps","goals","assists","ratingTotal","ratedApps","potm","cleanSheets","saves","tackles","interceptions","keyPasses","shotsOnTarget"].forEach(k=>{if(!Number.isFinite(p.stats[k]))p.stats[k]=0});
  });
 }
+
+function playerDivisionForClubId(clubId){
+ if(!Number.isFinite(clubId)||clubId<0)return null;
+ if(G.leagues.top.clubIds.includes(clubId))return{key:"top",name:G.leagues.top.name};
+ if(G.leagues.lower.clubIds.includes(clubId))return{key:"lower",name:G.leagues.lower.name};
+ return null;
+}
+function playerClubNameNow(clubId,fallback){
+ let c=G.clubs.find(x=>x.id===clubId);
+ return c?c.name:(fallback||"Unknown Club");
+}
+function ensurePlayerClubHistory(p){
+ if(!Array.isArray(p.clubHistory))p.clubHistory=[];
+ if(p.team>=0){
+   let last=p.clubHistory[p.clubHistory.length-1];
+   if(!last||last.clubId!==p.team||last.endSeason){
+     p.clubHistory.push({
+       clubId:p.team,
+       clubNameAtStart:playerClubNameNow(p.team),
+       startSeason:G.season,
+       endSeason:null,
+       transferInFee:null,
+       transferOutFee:null
+     });
+   }
+ }
+}
+function closePlayerClubSpell(p,fee=null){
+ if(!Array.isArray(p.clubHistory))p.clubHistory=[];
+ let last=[...p.clubHistory].reverse().find(x=>x.clubId===p.team&&!x.endSeason);
+ if(last){
+   last.endSeason=G.season;
+   if(Number.isFinite(fee))last.transferOutFee=fee;
+ }
+}
+function openPlayerClubSpell(p,clubId,fee=null){
+ if(!Array.isArray(p.clubHistory))p.clubHistory=[];
+ p.clubHistory.push({
+   clubId,
+   clubNameAtStart:playerClubNameNow(clubId),
+   startSeason:G.season,
+   endSeason:null,
+   transferInFee:Number.isFinite(fee)?fee:null,
+   transferOutFee:null
+ });
+}
+function snapshotPlayerSeasonHistory(){
+ ensurePlayerStats();
+ G.players.forEach(p=>{
+   if(p.team===-2)return;
+   let s=p.stats||{};
+   if(!Number.isFinite(s.season)||s.season!==G.season)return;
+   let div=playerDivisionForClubId(p.team);
+   let avg=s.ratedApps?Number((s.ratingTotal/s.ratedApps).toFixed(2)):null;
+   p.careerHistory.unshift({
+     season:G.season,
+     clubId:p.team,
+     clubNameAtTime:p.team>=0?playerClubNameNow(p.team):p.team===-1?"Free Agent":"Retired",
+     divisionKey:div?div.key:null,
+     divisionName:div?div.name:null,
+     age:p.age,
+     position:p.pos,
+     ovr:p.ovr,
+     apps:s.apps||0,
+     goals:s.goals||0,
+     assists:s.assists||0,
+     avgRating:avg,
+     potm:s.potm||0,
+     cleanSheets:s.cleanSheets||0,
+     saves:s.saves||0,
+     tackles:s.tackles||0,
+     interceptions:s.interceptions||0,
+     keyPasses:s.keyPasses||0,
+     shotsOnTarget:s.shotsOnTarget||0
+   });
+ });
+}
+function addPlayerAwardByName(name,awardName,season,clubName){
+ let p=G.players.find(x=>x.name===name);
+ if(!p)return;
+ ensurePlayerStats();
+ if(!p.awards.some(a=>a.name===awardName&&a.season===season)){
+   p.awards.unshift({name:awardName,season,clubId:p.team,clubNameAtTime:clubName||playerClubNameNow(p.team)});
+ }
+}
+function archiveSeasonAwardsToPlayers(review){
+ if(!review||!review.awards)return;
+ let a=review.awards,s=review.season;
+ if(a.player)addPlayerAwardByName(a.player.name,"Player of the Year",s,a.player.club);
+ if(a.goldenBoot)addPlayerAwardByName(a.goldenBoot.name,"Golden Boot",s,a.goldenBoot.club);
+ if(a.assistKing)addPlayerAwardByName(a.assistKing.name,"Playmaker Award",s,a.assistKing.club);
+ if(a.goldenGlove)addPlayerAwardByName(a.goldenGlove.name,"Golden Glove",s,a.goldenGlove.club);
+ if(a.defender)addPlayerAwardByName(a.defender.name,"Defender of the Year",s,a.defender.club);
+ if(a.midfielder)addPlayerAwardByName(a.midfielder.name,"Midfielder of the Year",s,a.midfielder.club);
+ if(a.forward)addPlayerAwardByName(a.forward.name,"Forward of the Year",s,a.forward.club);
+ if(a.young)addPlayerAwardByName(a.young.name,"Young Player of the Year",s,a.young.club);
+ (a.teamOfSeason||[]).forEach(x=>addPlayerAwardByName(x.name,"Team of the Season",s,x.club));
+}
+function playerCareerTotals(p){
+ let hs=Array.isArray(p.careerHistory)?p.careerHistory:[];
+ let current=p.stats&&p.stats.season===G.season?p.stats:null;
+ let apps=hs.reduce((s,h)=>s+(h.apps||0),0)+(current?current.apps||0:0);
+ let goals=hs.reduce((s,h)=>s+(h.goals||0),0)+(current?current.goals||0:0);
+ let assists=hs.reduce((s,h)=>s+(h.assists||0),0)+(current?current.assists||0:0);
+ let potm=hs.reduce((s,h)=>s+(h.potm||0),0)+(current?current.potm||0:0);
+ return{apps,goals,assists,potm};
+}
+function playerCareerView(p){
+ let t=playerCareerTotals(p),hs=Array.isArray(p.careerHistory)?p.careerHistory:[];
+ let current=p.stats&&p.stats.season===G.season?{
+   season:G.season,clubId:p.team,clubNameAtTime:p.team>=0?playerClubNameNow(p.team):p.team===-1?"Free Agent":"Retired",
+   divisionName:(playerDivisionForClubId(p.team)||{}).name||null,age:p.age,position:p.pos,ovr:p.ovr,
+   apps:p.stats.apps||0,goals:p.stats.goals||0,assists:p.stats.assists||0,
+   avgRating:p.stats.ratedApps?Number((p.stats.ratingTotal/p.stats.ratedApps).toFixed(2)):null,
+   potm:p.stats.potm||0
+ }:null;
+ let rows=[current,...hs].filter(Boolean).map(h=>'<div class="playerSeasonRow"><div class="yr">'+h.season+'</div><div><b>'+playerClubNameNow(h.clubId,h.clubNameAtTime)+'</b><span>'+((h.divisionName||"No division")+' · '+h.position+' · Age '+h.age+' · '+h.apps+' apps · '+h.goals+' G · '+h.assists+' A')+'</span></div><div class="pts">'+(h.avgRating?h.avgRating.toFixed(2):"—")+'</div></div>').join("");
+ return '<div class="playerCareerHero">'+
+   '<div class="recordTile"><div class="label">APPEARANCES</div><div class="recordValue">'+t.apps+'</div></div>'+
+   '<div class="recordTile"><div class="label">GOALS</div><div class="recordValue">'+t.goals+'</div></div>'+
+   '<div class="recordTile"><div class="label">ASSISTS</div><div class="recordValue">'+t.assists+'</div></div>'+
+   '<div class="recordTile"><div class="label">POTM</div><div class="recordValue">'+t.potm+'</div></div></div>'+
+   '<div class="card"><div class="title">Season by Season</div><div class="sub">Average rating shown at right.</div>'+
+   (rows||'<div class="sub">No career history has been archived yet.</div>')+'</div>';
+}
+function playerClubsView(p){
+ ensurePlayerClubHistory(p);
+ let spells=[...p.clubHistory].reverse();
+ let rows=spells.map(sp=>{
+   let end=sp.endSeason||"Present";
+   return '<div class="playerClubRow"><div><b>'+playerClubNameNow(sp.clubId,sp.clubNameAtStart)+'</b><span>'+sp.startSeason+' – '+end+(Number.isFinite(sp.transferInFee)?' · Joined for '+money(sp.transferInFee):'')+(Number.isFinite(sp.transferOutFee)?' · Left for '+money(sp.transferOutFee):'')+'</span></div><div class="season">'+(sp.endSeason?sp.endSeason-sp.startSeason+1:Math.max(1,G.season-sp.startSeason+1))+' yr</div></div>';
+ }).join("");
+ return '<div class="card"><div class="title">Club History</div><div class="sub">Club spells remain attached to permanent Club IDs even when clubs are renamed.</div>'+
+ (rows||'<div class="sub" style="margin-top:10px">No club history recorded yet.</div>')+'</div>';
+}
+function playerAwardsView(p){
+ let awards=Array.isArray(p.awards)?p.awards:[];
+ let rows=awards.map(a=>'<div class="playerAwardRow"><div><b>'+a.name+'</b><span>'+playerClubNameNow(a.clubId,a.clubNameAtTime)+'</span></div><div class="season">'+a.season+'</div></div>').join("");
+ return '<div class="card"><div class="title">Awards</div><div class="sub">Individual honours earned during this career.</div>'+
+ (rows||'<div class="sub" style="margin-top:10px">No individual awards recorded yet.</div>')+'</div>';
+}
+
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
  ensurePlayerStats();
@@ -1448,6 +1683,7 @@ function activeFreeAgents(){
  return G.players.filter(p=>p.freeAgent||p.team===-1);
 }
 function moveToFreeAgency(p){
+ closePlayerClubSpell(p,null);
  p.team=-1;p.freeAgent=true;p.listed=false;p.years=0;
  if(!G.freeAgents.includes(p.id))G.freeAgents.push(p.id);
 }
@@ -1457,7 +1693,7 @@ function signFreeAgent(id){
  if(!confirm("Offer "+p.name+" "+d.years+" years at "+money(d.wage)+"/week?"))return;
  let accept=55+(G.clubs[G.club].rep-80)*1.2+rnd(-20,20);
  if(accept>=48){
-   p.team=G.club;p.freeAgent=false;p.years=d.years;p.wage=d.wage;p.renewedThisSeason=true;
+   p.team=G.club;openPlayerClubSpell(p,G.club,null);p.freeAgent=false;p.years=d.years;p.wage=d.wage;p.renewedThisSeason=true;
    G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
    G.feed.unshift({t:"FREE AGENT SIGNING",m:p.name+" has signed a "+d.years+" year contract."});
    save();$("#sheet").classList.add("hidden");render();
@@ -1519,7 +1755,7 @@ function aiWorldEvolution(){
  // Retire announced players across the world at offseason transition.
  G.players.forEach(p=>{
    if(p.retiring&&p.team!==G.club){
-     p.team=-2;p.freeAgent=false;
+     closePlayerClubSpell(p,null);p.team=-2;p.freeAgent=false;
      events.push(p.name+" retired");
    }
  });
@@ -1552,7 +1788,7 @@ function aiWorldEvolution(){
      refillGuard++;
      let free=activeFreeAgents().filter(p=>p.ovr<=82).sort((a,b)=>b.ovr-a.ovr)[0];
      if(free){
-       free.team=c.id;free.freeAgent=false;free.years=rnd(1,3);
+       free.team=c.id;openPlayerClubSpell(free,c.id,null);free.freeAgent=false;free.years=rnd(1,3);
        G.freeAgents=G.freeAgents.filter(x=>x!==free.id);
      }else{
        G.players.push(generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.55));
@@ -1580,7 +1816,7 @@ function aiWorldEvolution(){
      let fee=Math.round(p.value*(.82+Math.random()*.28)/100000)*100000;
      if(buyer.balance>=fee){
        buyer.balance-=fee;if(seller)seller.balance+=fee;
-       p.team=buyer.id;p.years=rnd(2,4);p.listed=false;p.freeAgent=false;
+       closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.years=rnd(2,4);p.listed=false;p.freeAgent=false;
        moves++;
      }
    }
@@ -1593,7 +1829,7 @@ function aiWorldEvolution(){
      let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30);
      if(possible.length){
        let c=possible[rnd(0,possible.length-1)];
-       p.team=c.id;p.freeAgent=false;p.years=rnd(1,3);
+       p.team=c.id;openPlayerClubSpell(p,c.id,null);p.freeAgent=false;p.years=rnd(1,3);
        G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
      }
    }
@@ -1812,7 +2048,7 @@ function beginNewSeason(){
   let retirees=G.players.filter(p=>p.team===G.club&&p.retiring);
 
   expired.forEach(p=>{if(!p.retiring)moveToFreeAgency(p)});
-  retirees.forEach(p=>{p.team=-2;p.freeAgent=false});
+  retirees.forEach(p=>{closePlayerClubSpell(p,null);p.team=-2;p.freeAgent=false});
 
   if(retirees.length)G.feed.unshift({t:"RETIREMENTS",m:retirees.map(p=>p.name).join(", ")+" retired from professional football."});
   let freeDepartures=expired.filter(p=>!p.retiring);
@@ -1821,6 +2057,8 @@ function beginNewSeason(){
   if(!Array.isArray(G.history))G.history=[];
   G.history.unshift({season:r.season,champ:r.champion,champClubId:r.championClubId,pos:r.pos,clubId:G.club,p:r.p,w:r.w,d:r.d,l:r.l,gf:r.gf,ga:r.ga,gd:r.gd,topFour:r.topFour,relegated:r.relegated,promoted:r.promoted,division:r.division,divisionName:r.divisionName,awards:r.awards});
 
+  snapshotPlayerSeasonHistory();
+  archiveSeasonAwardsToPlayers(r);
   snapshotAllClubHistories();
   applyPromotionRelegation();
   G.season=(Number(G.season)||2026)+1;
@@ -2332,7 +2570,9 @@ function acceptSale(offerId){
  buyer.balance=Math.max(0,buyer.balance-fee);
  ensureFinanceState();seller.balance+=fee;
  seller.budget+=Math.round(fee*.8);seller.finance.seasonTransferOut+=fee;if(!G.records.highestSale||fee>G.records.highestSale.fee)G.records.highestSale={name:p.name,fee:fee,season:G.season};
+ closePlayerClubSpell(p,fee);
  p.team=buyer.id;
+ openPlayerClubSpell(p,buyer.id,fee);
  p.listed=false;
  p.years=Math.max(2,p.years);
  G.transferOffers=G.transferOffers.filter(x=>x.playerId!==p.id);
@@ -2433,18 +2673,14 @@ function cancelPlayerEdit(id){
  showPlayer(id);
 }
 
-function showPlayer(id){
- ensureTransferState();ensureLifecycleState();
- let p=G.players.find(x=>x.id===id);if(!p)return;
- let own=p.team===G.club,free=!!p.freeAgent||p.team<0,market=!own&&!free,offers=playerOffers(p.id);
- let body="";
-
+function playerOverviewContent(p){
+ ensureTransferState();ensureLifecycleState();ensurePlayerStats();
+ let own=p.team===G.club,free=!!p.freeAgent||p.team<0,market=!own&&!free,offers=playerOffers(p.id),body="";
  if(own){
    let state=p.retiring?'<span class="statusPill danger">RETIRING</span>':
      p.renewedThisSeason?'<span class="statusPill good">RENEWED</span>':
      p.years<=1?'<span class="statusPill warn">FINAL YEAR</span>':
      '<span class="statusPill">'+p.years+' YEARS</span>';
-
    let contract="";
    if(p.retiring){
      contract='<div class="retireNote">Retirement has been announced for the end of the season. Contract negotiations are closed.</div>';
@@ -2457,14 +2693,11 @@ function showPlayer(id){
        '<div class="sub" style="margin-top:8px">Weekly salary</div><div class="adjustRow"><button data-adjust-contract="'+p.id+'" data-field="wage" data-delta="-1">−</button><div class="adjustValue">'+money(draft.wage)+'/week</div><button data-adjust-contract="'+p.id+'" data-field="wage" data-delta="1">+</button></div>'+
        '<button class="btn primary full" data-submit-contract="'+p.id+'" style="margin-top:10px">SUBMIT OFFER</button></div>';
    }
-
    let offerHtml=offers.length?'<div class="actionGroup"><div class="actionLabel">TRANSFER OFFERS</div>'+offers.map(o=>{
      let c=G.clubs[o.clubId];
      return'<div class="offerCard"><div class="offerTop"><div><div class="offerClub">'+c.name+'</div><div class="sub">Permanent transfer</div></div><div class="offerValue">'+money(o.fee)+'</div></div><div class="offerActions"><button class="btn primary" data-accept-sale="'+o.id+'">ACCEPT</button><button class="btn" data-reject-sale="'+o.id+'">REJECT</button></div></div>'
    }).join("")+'</div>':'';
-
-   body='<div class="gmActions"><div class="actionHeading"><div class="title">GM Actions</div>'+state+'</div>'+
-     contract+
+   body='<div class="gmActions"><div class="actionHeading"><div class="title">GM Actions</div>'+state+'</div>'+contract+
      '<div class="actionGroup"><div class="actionLabel">TRANSFER STATUS</div><div class="sub">Estimated market range: '+estimatedMarketRange(p)+'</div>'+
      '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div>'+
      (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>'+
@@ -2476,26 +2709,37 @@ function showPlayer(id){
    body='<div class="gmActions"><div class="actionHeading"><div class="title">Transfer Assessment</div><span class="statusPill">'+G.clubs[p.team].name+'</span></div><div class="sub">Market value '+money(p.value)+' · Estimated range '+estimatedMarketRange(p)+'</div><button class="btn primary full" data-buy="'+p.id+'" style="margin-top:12px">APPROACH CLUB</button></div>';
  }
 
- let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},avgRating=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
+ let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},ar=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
  let editorAction=(G.playerEditingEnabled!==false&&p.team!==-2)?'<div class="actionGroup"><div class="actionLabel">CAREER CONTROL</div><button class="btn full" data-edit-player="'+p.id+'">EDIT PLAYER</button></div><div id="playerEditorHost"></div>':'';
- $("#sheetbox").innerHTML='<div class="label">'+p.pos+' · AGE '+p.age+'</div><h2>'+p.name+'</h2>'+
- '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
- '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+avgRating+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
+ return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
+ '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+ar+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
  '<div class="financeRows" style="margin-top:9px">'+
  (positionGroup(p.pos)==="GK"?'<div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div><div class="financeRow"><span>Saves</span><b>'+ss.saves+'</b></div>':'')+
  (positionGroup(p.pos)==="DEF"?'<div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div><div class="financeRow"><span>Interceptions</span><b>'+ss.interceptions+'</b></div><div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div>':'')+
  (positionGroup(p.pos)==="MID"?'<div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div><div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div>':'')+
  (positionGroup(p.pos)==="FWD"?'<div class="financeRow"><span>Shots on target</span><b>'+ss.shotsOnTarget+'</b></div><div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div>':'')+
  '</div></div>'+editorAction+body;
+}
+function showPlayer(id,tab="overview"){
+ ensureTransferState();ensureLifecycleState();ensurePlayerStats();
+ let p=G.players.find(x=>x.id===id);if(!p)return;
+ ensurePlayerClubHistory(p);
+ let clubLabel=p.team>=0?playerClubNameNow(p.team):p.team===-1?"Free Agent":"Retired";
+ let tabs=[["overview","Overview"],["career","Career"],["clubs","Clubs"],["awards","Awards"]];
+ let body=tab==="career"?playerCareerView(p):tab==="clubs"?playerClubsView(p):tab==="awards"?playerAwardsView(p):playerOverviewContent(p);
+ $("#sheetbox").innerHTML=
+ '<div class="playerProfileHero"><div class="label">PLAYER PROFILE</div><div class="playerProfileName">'+p.name+'</div><div class="playerProfileMeta">'+p.pos+' · Age '+p.age+' · '+clubLabel+'</div></div>'+
+ '<div class="playerProfileTabs">'+tabs.map(x=>'<button data-player-profile-tab="'+p.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
+ body;
  $("#sheet").classList.remove("hidden");
 }
-function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};p.team=G.club;p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
+function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};closePlayerClubSpell(p,ask);p.team=G.club;openPlayerClubSpell(p,G.club,ask);p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
 function ensureRecordState(){
  if(!G.records)G.records={biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null};
  if(!G.careerMode)G.careerMode="GM";
  if(typeof G.playerEditingEnabled==="undefined")G.playerEditingEnabled=true;
 }
-function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
+function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();G.players.forEach(ensurePlayerClubHistory);$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
 renderBuildVersion();
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
@@ -2524,7 +2768,8 @@ function startSelectedCareer(){
 document.addEventListener("click",function(e){
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;render();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
+let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
+let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
 let offerBtn=e.target.closest("[data-offer-player]");if(offerBtn){let p=G.players.find(x=>x.id===offerBtn.dataset.offerPlayer);if(p){generateSaleOffers(p);showPlayer(p.id)}return}
 let acceptBtn=e.target.closest("[data-accept-sale]");if(acceptBtn){acceptSale(acceptBtn.dataset.acceptSale);return}
