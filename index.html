@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.3.1 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.3.2 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -310,6 +310,45 @@ main{
   .resultScreen .card{margin-bottom:12px}
 }
 
+
+/* v2.3.2 Match Report + Awards fix */
+.resultScreen{
+  position:fixed!important;
+  inset:0!important;
+  z-index:5000!important;
+  display:block!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:contain!important;
+  background:#080d12!important;
+  padding:calc(16px + env(safe-area-inset-top)) 0 calc(110px + env(safe-area-inset-bottom))!important;
+  align-items:initial!important;
+  justify-content:initial!important;
+}
+.resultScreen.hidden{display:none!important}
+.resultCard{
+  width:100%!important;
+  max-width:560px!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  padding:0 16px 30px!important;
+  transform:none!important;
+}
+#resultContinueBtn{
+  position:static!important;
+  display:block!important;
+  width:100%!important;
+  margin:22px 0 8px!important;
+  bottom:auto!important;
+  z-index:auto!important;
+  box-shadow:none!important;
+}
+.resultMeta{margin-top:14px!important}
+@media(max-width:600px){
+  .resultMeta{grid-template-columns:1fr 1fr!important}
+}
+
 </style>
 </head>
 <body>
@@ -371,7 +410,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.3.1 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.3.2 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
@@ -436,8 +475,8 @@ function teamMatchStats(gf,ga,home){
 function leagueStatPlayers(){ensurePlayerStats();return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&p.team>=0)}
 function topScorers(n=5){return [...leagueStatPlayers()].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists||b.ovr-a.ovr).slice(0,n)}
 function playerSeasonScore(p){let s=p.stats,po=standings().findIndex(c=>c.id===p.team)+1;let avg=s.ratedApps?s.ratingTotal/s.ratedApps:6;return p.ovr*.35+s.goals*1.8+s.assists*1.15+s.apps*.08+avg*7+s.potm*1.5+Math.max(0,21-po)*.3}
-function seasonAwards(){let ps=leagueStatPlayers(),gb=topScorers(1)[0],poty=[...ps].sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0],young=[...ps].filter(p=>p.age<=21).sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0],table=standings(),mc=[...G.clubs].sort((a,b)=>{let ap=table.findIndex(x=>x.id===a.id)+1,bp=table.findIndex(x=>x.id===b.id)+1;return((21-bp)*4+(95-b.rep)*1.25)-((21-ap)*4+(95-a.rep)*1.25)})[0];let f=p=>p?{name:p.name,club:G.clubs[p.team].name,goals:p.stats.goals,assists:p.stats.assists,age:p.age}:null;return{player:f(poty),goldenBoot:f(gb),young:f(young),manager:mc?{club:mc.name,coach:mc.coach}:null}}
-function leagueLeadersHtml(){let ps=topScorers(5);return'<div class="card"><div class="title">League Leaders</div><div class="sub">Golden Boot race · '+G.season+'</div><div class="leadersList">'+(ps.length?ps.map((p,i)=>'<div class="leaderRow"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+p.stats.goals+' G</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+'</div></div>'}
+function seasonAwards(){let ps=leagueStatPlayers(),gb=topScorers(1)[0],poty=[...ps].sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0],young=[...ps].filter(p=>p.age<=21).sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0],table=standings(),mc=[...G.clubs].sort((a,b)=>{let ap=table.findIndex(x=>x.id===a.id)+1,bp=table.findIndex(x=>x.id===b.id)+1;return((21-bp)*4+(95-b.rep)*1.25)-((21-ap)*4+(95-a.rep)*1.25)})[0];let f=p=>p?{name:p.name,pos:p.pos,club:G.clubs[p.team].name,goals:p.stats.goals,assists:p.stats.assists,age:p.age}:null;return{player:f(poty),goldenBoot:f(gb),young:f(young),manager:mc?{club:mc.name,coach:mc.coach}:null}}
+function leagueLeadersHtml(){let ps=topScorers(5);return'<div class="card"><div class="title">League Leaders</div><div class="sub">Golden Boot race · '+G.season+'</div><div class="leadersList">'+(ps.length?ps.map((p,i)=>'<div class="leaderRow"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+p.stats.goals+' G</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+'</div></div>'}
 
 function sim(a,b){let sa=strength(a)+2.5,sb=strength(b),ga=0,gb=0;for(let i=0;i<6;i++){if(Math.random()<Math.max(.08,.19+(sa-sb)*.011))ga++;if(Math.random()<Math.max(.08,.18+(sb-sa)*.011))gb++}return[Math.min(ga,6),Math.min(gb,6)]}
 function apply(a,b,ga,gb){let A=G.clubs[a],B=G.clubs[b];A.p++;B.p++;A.gf+=ga;A.ga+=gb;B.gf+=gb;B.ga+=ga;if(ga>gb){A.w++;B.l++;A.pts+=3}else if(gb>ga){B.w++;A.l++;B.pts+=3}else{A.d++;B.d++;A.pts++;B.pts++}}
@@ -803,7 +842,7 @@ function showSeasonReview(){
  stat("FINAL POSITION",ordinal(r.pos),"Premier Division")+
  '</div>'+
  '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">Top four</div>'+((r.topFour||[]).map(x=>'<div class="podiumRow"><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated"><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+'</div>'+
- '<div class="card reviewSection"><div class="title">Season Awards</div>'+(r.awards&&r.awards.player?'<div class="awardRow"><div class="label">PLAYER OF THE YEAR</div><b>'+r.awards.player.name+'</b><span>'+r.awards.player.club+' · '+r.awards.player.goals+' goals · '+r.awards.player.assists+' assists</span></div>':'')+(r.awards&&r.awards.goldenBoot?'<div class="awardRow"><div class="label">GOLDEN BOOT</div><b>'+r.awards.goldenBoot.name+'</b><span>'+r.awards.goldenBoot.club+' · '+r.awards.goldenBoot.goals+' goals</span></div>':'')+(r.awards&&r.awards.young?'<div class="awardRow"><div class="label">YOUNG PLAYER OF THE YEAR</div><b>'+r.awards.young.name+'</b><span>'+r.awards.young.club+' · Age '+r.awards.young.age+'</span></div>':'')+(r.awards&&r.awards.manager?'<div class="awardRow"><div class="label">MANAGER OF THE YEAR</div><b>'+r.awards.manager.club+'</b><span>Head Coach · '+r.awards.manager.coach+' rating</span></div>':'')+'</div>'+
+ '<div class="card reviewSection"><div class="title">Season Awards</div>'+(r.awards&&r.awards.player?'<div class="awardRow"><div class="label">PLAYER OF THE YEAR</div><b>'+r.awards.player.name+' · '+r.awards.player.pos+'</b><span>'+r.awards.player.club+' · '+r.awards.player.goals+' goals · '+r.awards.player.assists+' assists</span></div>':'')+(r.awards&&r.awards.goldenBoot?'<div class="awardRow"><div class="label">GOLDEN BOOT</div><b>'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</b><span>'+r.awards.goldenBoot.club+' · '+r.awards.goldenBoot.goals+' goals</span></div>':'')+(r.awards&&r.awards.young?'<div class="awardRow"><div class="label">YOUNG PLAYER OF THE YEAR</div><b>'+r.awards.young.name+' · '+r.awards.young.pos+'</b><span>'+r.awards.young.club+' · Age '+r.awards.young.age+'</span></div>':'')+(r.awards&&r.awards.manager?'<div class="awardRow"><div class="label">MANAGER OF THE YEAR</div><b>'+r.awards.manager.club+'</b><span>Head Coach · '+r.awards.manager.coach+' rating</span></div>':'')+'</div>'+
  '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
  '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>';
