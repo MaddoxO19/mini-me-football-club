@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8 Staff & Football Identity Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8.1 Positional Roles & World Navigation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1138,13 +1138,6 @@ body.season-review-active header{
 .reviewPlayerRow:active{
   background:#d9b54a10;
 }
-.reviewPlayerRow::after{
-  content:"›";
-  color:var(--gold);
-  font-size:22px;
-  font-weight:700;
-  margin-left:8px;
-}
 
 
 body.season-review-active .sheet{
@@ -1805,6 +1798,14 @@ nav button:active{
   .fitSummaryGrid{grid-template-columns:1fr 1fr}
 }
 
+
+/* v2.9.8.1 Positional Roles & World Navigation */
+.secondaryRoleTag{display:inline-flex;margin-top:5px;margin-right:5px;border:1px solid var(--line);border-radius:999px;padding:3px 6px;font-size:8px;font-weight:850;color:#c4ced6;letter-spacing:.04em}
+.adaptBand{margin-top:12px;padding:11px;border:1px solid #705d25;border-radius:12px;background:#d9b54a0b}.adaptBand b{display:block;color:var(--gold);font-size:14px}.adaptBand span{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.reviewWorldRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(112px,auto);gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}.reviewWorldRow:last-child{border-bottom:0}.reviewWorldRow b{display:block;font-size:13px;line-height:1.25}.reviewWorldRow span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.reviewWorldStatus{text-align:right;color:var(--muted);font-size:10px;line-height:1.3}
+.reviewWorldRow:active,.worldLinkRow:active,.worldAwardCard:active{background:#d9b54a0d}.worldLinkRow,.worldAwardCard{cursor:pointer}.worldAwardCard{transition:background .12s ease,border-color .12s ease}
+@media(max-width:430px){.reviewWorldRow{grid-template-columns:minmax(0,1fr) 112px}}
+
 </style>
 </head>
 <body>
@@ -1881,7 +1882,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8 Staff & Football Identity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8.1 Positional Roles & World Navigation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1938,7 +1939,7 @@ function renderBuildVersion(){
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
-function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);return{id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false}}
+function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);let p={id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[]};seedSecondaryPositions(p);return p}
 function buildClubRecord(name,i,tier){
  let baseRep=tier==="top"?90-(i%24):72-Math.floor((i%24)/2);
  return{id:i,name,shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
@@ -2253,12 +2254,10 @@ function loadCareerSlot(slot){
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
 function strength(id){
- let xi=selectStartingXI(id),slots=formationSlotsForCoach(id).flat(),fitTotal=0;
- let avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||0),0)/xi.length:60;
- xi.forEach((p,i)=>{let slot=slots[i]||preferredSlotForPlayer(p,id);fitTotal+=systemFitScore(p,slot,id)});
- let fitAvg=xi.length?fitTotal/xi.length:60;
- let fitEffect=Math.max(-1.8,Math.min(1.8,(fitAvg-65)*.055));
- return avg+fitEffect+coachProfile(id).ovr*.07;
+ let xi=selectStartingXI(id),slots=formationSlotsForCoach(id).flat(),fitTotal=0,effectiveTotal=0;
+ xi.forEach((p,i)=>{let slot=slots[i],pe=positionalEffectiveness(p,slot,id);effectiveTotal+=pe.effectiveOvr;fitTotal+=systemFitScore(p,slot,id)});
+ let coverage=formationCoverage(id),avg=xi.length?effectiveTotal/xi.length:52,fitAvg=xi.length?fitTotal/xi.length:55,fitEffect=Math.max(-1.8,Math.min(1.8,(fitAvg-65)*.055)),coveragePenalty=coverage.ok?0:Math.min(12,coverage.missing.length*4);
+ return avg+fitEffect+coachProfile(id).ovr*.07-coveragePenalty;
 }
 
 function ensurePlayerStats(){
@@ -2423,37 +2422,17 @@ function playerAwardsView(p){
 
 
 function teamBestForSlot(teamId,slot,used){
- let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring);
- let rank=p=>(Number(p.ovr)||0)+fitSelectionModifier(systemFitScore(p,slot,teamId));
- candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);
- let family=slotFamily(slot);
- let exact=candidates.filter(p=>p.pos===slot);
- let compatible=candidates.filter(p=>family.includes(p.pos));
- let group=positionGroup(slot);
- let near=candidates.filter(p=>positionGroup(p.pos)===group);
- let p=exact[0]||compatible[0]||near[0]||candidates[0];
- if(p)used.add(p.id);
- return p;
+ let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring&&playerEligibleForSlot(p,slot));
+ let rank=p=>{let pe=positionalEffectiveness(p,slot,teamId);return pe.effectiveOvr+fitSelectionModifier(systemFitScore(p,slot,teamId))};
+ candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);let p=candidates[0]||null;if(p)used.add(p.id);return p;
 }
 function formationSlotsForClub(teamId){return formationSlotsForCoach(teamId)}
-function selectStartingXI(teamId){
- let used=new Set(),xi=[];
- formationSlotsForClub(teamId).forEach(line=>{
-   line.forEach(slot=>{
-     let p=teamBestForSlot(teamId,slot,used);
-     if(p)xi.push(p);
-   });
- });
- if(xi.length<11){
-   roster(teamId)
-     .filter(p=>!used.has(p.id)&&!p.retiring)
-     .sort((a,b)=>b.ovr-a.ovr)
-     .slice(0,11-xi.length)
-     .forEach(p=>{used.add(p.id);xi.push(p)});
- }
- return xi.slice(0,11);
+function formationCoverage(teamId=G.club){
+ let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>!p.retiring),missing=[],used=new Set();
+ slots.forEach(slot=>{let eligible=pool.filter(p=>!used.has(p.id)&&playerEligibleForSlot(p,slot)).sort((a,b)=>positionalEffectiveness(b,slot,teamId).effectiveOvr-positionalEffectiveness(a,slot,teamId).effectiveOvr);if(eligible[0])used.add(eligible[0].id);else missing.push(slot)});
+ return{ok:missing.length===0,missing,slots};
 }
-
+function selectStartingXI(teamId){let used=new Set(),xi=[];formationSlotsForClub(teamId).forEach(line=>line.forEach(slot=>{let p=teamBestForSlot(teamId,slot,used);if(p)xi.push(p)}));return xi.slice(0,11)}
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
  ensurePlayerStats();
@@ -2880,7 +2859,7 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false){
  base=Math.max(50,Math.min(86,base));
  let pos=POS[rnd(0,POS.length-1)];
  let pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- return{id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0};
+ let np={id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};seedSecondaryPositions(np);return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 function aiWorldEvolution(){
@@ -3066,6 +3045,10 @@ function prepareSeasonReview(){
  showSeasonReview();
 }
 
+function resolvePlayerIdFromAward(item){if(!item)return null;if(item.id)return item.id;let p=G.players.find(x=>x.name===item.name&&x.pos===item.pos);return p?p.id:null}
+function resolveClubIdByName(name){let c=G.clubs.find(x=>x.name===name);return c?c.id:null}
+function worldPlayerAttrs(item){let id=resolvePlayerIdFromAward(item);return id?' data-world-player="'+id+'"':''}
+function worldClubAttrs(name){let id=resolveClubIdByName(name);return id!==null?' data-world-club="'+id+'"':''}
 function resolveReviewPlayerId(item){
  if(item&&item.id)return item.id;
  if(!item)return null;
@@ -3080,8 +3063,8 @@ function showSeasonReview(){
  $("#reviewSeason").textContent=r.season+" Season";
  $("#reviewFinish").textContent=ordinal(r.pos);
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
- let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div class="reviewContractPlayer"><b>'+p.name+'</b><span class="reviewContractMeta">'+p.pos+' · '+p.ovr+' OVR</span></div><div class="reviewContractStatus">'+label+'</div></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
- let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div class="reviewContractPlayer"><b>'+p.name+'</b><span class="reviewContractMeta">'+p.pos+' · '+p.ovr+' OVR</span></div><div class="reviewContractStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">'+label+'</div></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
+ let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
  let clubRetirements=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
  let leagueRetirements=Array.isArray(r.leagueRetirements)?r.leagueRetirements:[];
  let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
@@ -3093,20 +3076,20 @@ function showSeasonReview(){
  stat("CHAMPION",r.champion,"League winner")+
  stat("FINAL POSITION",ordinal(r.pos),r.divisionName||leagueInfo().name)+
  '</div>'+
- '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">'+(r.division==="lower"?"Promotion places":"Top four")+'</div>'+(((r.division==="lower"?r.promoted:r.topFour)||[]).map(x=>'<div class="podiumRow"><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+(r.division==="top"?'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated"><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join("")):"")+'</div>'+
+ '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">'+(r.division==="lower"?"Promotion places":"Top four")+'</div>'+(((r.division==="lower"?r.promoted:r.topFour)||[]).map(x=>'<div class="podiumRow worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+(r.division==="top"?'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join("")):"")+'</div>'+
   '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Annual Football Awards</div><div class="sub">League honours based on the completed season.</div></div>'+
  '<div class="awardsGrid">'+
- (r.awards&&r.awards.player?'<div class="awardCard major"><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.player.name+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.goldenBoot?'<div class="awardCard"><div class="label">GOLDEN BOOT</div><div class="awardName">'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
- (r.awards&&r.awards.assistKing?'<div class="awardCard"><div class="label">PLAYMAKER AWARD</div><div class="awardName">'+r.awards.assistKing.name+' · '+r.awards.assistKing.pos+'</div><div class="awardMeta">'+r.awards.assistKing.club+'</div><div class="awardValue">'+r.awards.assistKing.assists+' assists</div></div>':'')+
- (r.awards&&r.awards.goldenGlove?'<div class="awardCard"><div class="label">GOLDEN GLOVE</div><div class="awardName">'+r.awards.goldenGlove.name+' · '+r.awards.goldenGlove.pos+'</div><div class="awardMeta">'+r.awards.goldenGlove.club+' · '+r.awards.goldenGlove.saves+' saves</div><div class="awardValue">'+r.awards.goldenGlove.cleanSheets+' clean sheets</div></div>':'')+
- (r.awards&&r.awards.defender?'<div class="awardCard"><div class="label">DEFENDER OF THE YEAR</div><div class="awardName">'+r.awards.defender.name+' · '+r.awards.defender.pos+'</div><div class="awardMeta">'+r.awards.defender.club+'</div><div class="awardValue">'+r.awards.defender.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.midfielder?'<div class="awardCard"><div class="label">MIDFIELDER OF THE YEAR</div><div class="awardName">'+r.awards.midfielder.name+' · '+r.awards.midfielder.pos+'</div><div class="awardMeta">'+r.awards.midfielder.club+'</div><div class="awardValue">'+r.awards.midfielder.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.forward?'<div class="awardCard"><div class="label">FORWARD OF THE YEAR</div><div class="awardName">'+r.awards.forward.name+' · '+r.awards.forward.pos+'</div><div class="awardMeta">'+r.awards.forward.club+'</div><div class="awardValue">'+r.awards.forward.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.young?'<div class="awardCard"><div class="label">YOUNG PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.young.name+' · '+r.awards.young.pos+'</div><div class="awardMeta">'+r.awards.young.club+' · Age '+r.awards.young.age+'</div><div class="awardValue">'+r.awards.young.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.manager?'<div class="awardCard"><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.club+'</div><div class="awardMeta">Head Coach</div><div class="awardValue">'+r.awards.manager.coach+' rating</div></div>':'')+
+ (r.awards&&r.awards.player?'<div class="awardCard major worldAwardCard" '+worldPlayerAttrs(r.awards.player)+'><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.player.name+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.goldenBoot?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenBoot)+'><div class="label">GOLDEN BOOT</div><div class="awardName">'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
+ (r.awards&&r.awards.assistKing?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.assistKing)+'><div class="label">PLAYMAKER AWARD</div><div class="awardName">'+r.awards.assistKing.name+' · '+r.awards.assistKing.pos+'</div><div class="awardMeta">'+r.awards.assistKing.club+'</div><div class="awardValue">'+r.awards.assistKing.assists+' assists</div></div>':'')+
+ (r.awards&&r.awards.goldenGlove?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenGlove)+'><div class="label">GOLDEN GLOVE</div><div class="awardName">'+r.awards.goldenGlove.name+' · '+r.awards.goldenGlove.pos+'</div><div class="awardMeta">'+r.awards.goldenGlove.club+' · '+r.awards.goldenGlove.saves+' saves</div><div class="awardValue">'+r.awards.goldenGlove.cleanSheets+' clean sheets</div></div>':'')+
+ (r.awards&&r.awards.defender?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.defender)+'><div class="label">DEFENDER OF THE YEAR</div><div class="awardName">'+r.awards.defender.name+' · '+r.awards.defender.pos+'</div><div class="awardMeta">'+r.awards.defender.club+'</div><div class="awardValue">'+r.awards.defender.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.midfielder?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.midfielder)+'><div class="label">MIDFIELDER OF THE YEAR</div><div class="awardName">'+r.awards.midfielder.name+' · '+r.awards.midfielder.pos+'</div><div class="awardMeta">'+r.awards.midfielder.club+'</div><div class="awardValue">'+r.awards.midfielder.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.forward?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.forward)+'><div class="label">FORWARD OF THE YEAR</div><div class="awardName">'+r.awards.forward.name+' · '+r.awards.forward.pos+'</div><div class="awardMeta">'+r.awards.forward.club+'</div><div class="awardValue">'+r.awards.forward.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.young?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.young)+'><div class="label">YOUNG PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.young.name+' · '+r.awards.young.pos+'</div><div class="awardMeta">'+r.awards.young.club+' · Age '+r.awards.young.age+'</div><div class="awardValue">'+r.awards.young.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.manager?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.manager.club)+'><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.club+'</div><div class="awardMeta">Head Coach</div><div class="awardValue">'+r.awards.manager.coach+' rating</div></div>':'')+
  '</div>'+
- (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer"><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
+ (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer worldAwardCard" '+worldPlayerAttrs(p)+'><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
 '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
  '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>'+
@@ -3312,9 +3295,8 @@ function endSeason(){
 }
 function stat(k,v,s){return'<div class="card stat"><div class="label">'+k+'</div><div class="value">'+v+'</div><div class="sub">'+s+'</div></div>'}
 function playerRow(p,market){
- let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null;
- let fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
+ seedSecondaryPositions(p);let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null,fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'';
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
@@ -3414,16 +3396,44 @@ function slotFamily(slot){
  };
  return families[slot]||[slot];
 }
+
+const SECONDARY_POSITION_MAP={
+ GK:[],LB:["LWB"],LWB:["LB","LM"],RB:["RWB"],RWB:["RB","RM"],
+ CB:["LCB","RCB"],LCB:["CB"],RCB:["CB"],DM:["CDM","CM"],CDM:["DM","CM"],
+ CM:["DM","CAM"],LCM:["CM","LM"],RCM:["CM","RM"],AM:["CAM","CM"],CAM:["AM","CM"],
+ LM:["LW","LWB"],RM:["RW","RWB"],LW:["LM","CF"],RW:["RM","CF"],CF:["ST","CAM"],SS:["CF","ST"],ST:["CF"]
+};
+function normaliseSecondaryPositions(p){
+ if(!p)return[];if(!Array.isArray(p.secondaryPositions))p.secondaryPositions=[];
+ p.secondaryPositions=[...new Set(p.secondaryPositions)].filter(x=>x&&x!==p.pos&&(SECONDARY_POSITION_MAP[p.pos]||[]).includes(x)).slice(0,2);
+ return p.secondaryPositions;
+}
+function seedSecondaryPositions(p){
+ if(!p)return;normaliseSecondaryPositions(p);if(p._secondarySeeded)return;p._secondarySeeded=true;if(p.secondaryPositions.length)return;
+ let options=SECONDARY_POSITION_MAP[p.pos]||[];if(!options.length)return;
+ let chance=p.age<=24?.58:p.age<=29?.46:.34;
+ if(Math.random()<chance){p.secondaryPositions.push(options[0]);if(options[1]&&Math.random()<.28)p.secondaryPositions.push(options[1])}
+ normaliseSecondaryPositions(p);
+}
+function ensurePlayerPositionState(){if(G&&Array.isArray(G.players))G.players.forEach(seedSecondaryPositions)}
+function playerEligibleForSlot(p,slot){if(!p)return false;seedSecondaryPositions(p);return p.pos===slot||p.secondaryPositions.includes(slot)}
+function coachAdaptationBand(teamId=G.club){let o=Number(coachProfile(teamId).ovr)||0;if(o>=90)return{label:"Elite",recovery:.50};if(o>=80)return{label:"Strong",recovery:.35};if(o>=65)return{label:"Capable",recovery:.20};return{label:"Developing",recovery:.10}}
+function baseSecondaryPenalty(p,slot){
+ if(!p||p.pos===slot)return 0;if(!playerEligibleForSlot(p,slot))return null;
+ let close=[["LB","LWB"],["RB","RWB"],["CB","LCB"],["CB","RCB"],["DM","CDM"],["AM","CAM"],["LM","LW"],["RM","RW"],["CF","ST"]];
+ return close.some(x=>x.includes(p.pos)&&x.includes(slot))?3:5;
+}
+function positionalEffectiveness(p,slot,teamId=G.club){
+ if(!p)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
+ if(p.pos===slot)return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
+ let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
+ let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
+ return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:"Secondary",coachBand:band.label};
+}
 function systemFitScore(p,slot=null,teamId=G.club){
- if(!p)return 0;
- let h=coachProfile(teamId),profile=coachStyleProfile(teamId);
- let target=slot||preferredSlotForPlayer(p,teamId);
- let family=slotFamily(target);
- let positional=p.pos===target?58:family.includes(p.pos)?46:positionGroup(p.pos)===positionGroup(target)?30:12;
- let styleBonus=profile.roles.includes(p.pos)?18:profile.roles.includes(target)?11:4;
- let formationBonus=profile.formations.includes(h.formation)?10:5;
- let score=positional+styleBonus+formationBonus;
- return Math.max(20,Math.min(100,Math.round(score)));
+ if(!p)return 0;let h=coachProfile(teamId),profile=coachStyleProfile(teamId),target=slot||preferredSlotForPlayer(p,teamId),pe=positionalEffectiveness(p,target,teamId);
+ if(!pe.eligible)return 0;let positional=p.pos===target?60:48,styleBonus=profile.roles.includes(p.pos)?18:profile.roles.includes(target)?12:6,formationBonus=profile.formations.includes(h.formation)?10:5;
+ return Math.max(20,Math.min(100,Math.round(positional+styleBonus+formationBonus)));
 }
 function systemFitLabel(score){
  score=Number(score)||0;
@@ -3435,12 +3445,7 @@ function fitSelectionModifier(score){
  return l==="Excellent"?3:l==="Good"?1.5:l==="Fair"?0:-2.5;
 }
 function preferredSlotForPlayer(p,teamId=G.club){
- let slots=formationSlotsForCoach(teamId).flat();
- if(slots.includes(p.pos))return p.pos;
- let compatible=slots.filter(s=>slotFamily(s).includes(p.pos));
- if(compatible.length)return compatible.sort((a,b)=>slotFamily(a).indexOf(p.pos)-slotFamily(b).indexOf(p.pos))[0];
- let same=slots.find(s=>positionGroup(s)===positionGroup(p.pos));
- return same||p.pos;
+ seedSecondaryPositions(p);let slots=formationSlotsForCoach(teamId).flat();if(slots.includes(p.pos))return p.pos;let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
 }
 function bestFitForPlayer(p,teamId=G.club){
  let slot=preferredSlotForPlayer(p,teamId),score=systemFitScore(p,slot,teamId);
@@ -3448,17 +3453,9 @@ function bestFitForPlayer(p,teamId=G.club){
 }
 
 function bestForSlot(slot,used){
- let candidates=roster().filter(p=>!used.has(p.id));
- let rank=p=>(Number(p.ovr)||0)+fitSelectionModifier(systemFitScore(p,slot,G.club));
- candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);
- let family=slotFamily(slot);
- let exact=candidates.filter(p=>p.pos===slot);
- let compatible=candidates.filter(p=>family.includes(p.pos));
- let group=positionGroup(slot);
- let near=candidates.filter(p=>positionGroup(p.pos)===group);
- let p=exact[0]||compatible[0]||near[0]||candidates[0];
- if(p)used.add(p.id);
- return p;
+ let candidates=roster().filter(p=>!used.has(p.id)&&playerEligibleForSlot(p,slot));
+ let rank=p=>{let pe=positionalEffectiveness(p,slot,G.club);return pe.effectiveOvr+fitSelectionModifier(systemFitScore(p,slot,G.club))};
+ candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);let p=candidates[0]||null;if(p)used.add(p.id);return p;
 }
 const POSITION_COORDS={
  GK:[50,89],
@@ -3678,7 +3675,6 @@ function home(){
  (recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
 
  let dashboard=
- '<div class="divisionBanner homeDivisionBanner"><div><b>'+info.name+'</b><span>'+info.clubIds.length+' clubs · '+weeks+' league matches</span></div><div class="divisionBadge">'+(currentLeagueKey()==="top"?"TOP FLIGHT":"SECOND TIER")+'</div></div>'+
  '<div class="grid2 homeDashboardGrid">'+
  stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+
  stat("SQUAD",avg,"Club squad average")+
@@ -3725,12 +3721,12 @@ function squadTeamView(){
    });
  });
  let playerHtml=placed.map(x=>{
-   let fit=systemFitScore(x.p,x.slot,G.club),fitLabel=systemFitLabel(fit);
+   let fit=systemFitScore(x.p,x.slot,G.club),fitLabel=systemFitLabel(fit),pe=positionalEffectiveness(x.p,x.slot,G.club);
    return '<div class="tacticalPlayer fit-'+systemFitClass(fit)+'" data-player="'+x.p.id+'" style="left:'+x.x+'%;top:'+x.y+'%">'+
-    '<div class="pitchBadge">'+x.p.ovr+'</div>'+
+    '<div class="pitchBadge">'+pe.effectiveOvr+'</div>'+
     '<div class="pitchName">'+x.p.name.split(" ").slice(-1)[0]+'</div>'+
     '<div class="pitchPos">'+x.slot+(x.p.pos!==x.slot?' · '+x.p.pos:'')+'</div>'+
-    '<div class="pitchFit">'+fitLabel+'</div></div>';
+    '<div class="pitchFit">'+fitLabel+(x.p.pos!==x.slot?' · '+pe.familiarity+'%':'')+'</div></div>';
  }).join("");
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
  let depth=groups.map(g=>{
@@ -3744,7 +3740,7 @@ function squadTeamView(){
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>';
 }
 function staffView(){
- let h=coachProfile(G.club),profile=coachStyleProfile(G.club),slots=formationSlotsForCoach(G.club).flat();
+ let h=coachProfile(G.club),profile=coachStyleProfile(G.club),slots=formationSlotsForCoach(G.club).flat(),band=coachAdaptationBand(G.club),coverage=formationCoverage(G.club);
  let fits=roster().map(p=>bestFitForPlayer(p,G.club));
  let counts={Excellent:0,Good:0,Fair:0,Poor:0};fits.forEach(f=>counts[f.label]++);
  let roleText=[...new Set(slots)].join(" · ");
@@ -3754,7 +3750,7 @@ function staffView(){
  '<div class="identityRoles"><span>Preferred tactical roles</span><b>'+roleText+'</b></div></div>'+
  '<div class="card"><div class="title">Squad System Fit</div><div class="sub">Fit measures suitability to this coach. It does not change a player’s OVR.</div>'+
  '<div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div>'+
- '<div class="card"><div class="title">GM Impact</div><div class="sub">The Head Coach now influences role selection and gives a small, capped match effect through overall XI fit. A strong player can still play, but a similarly rated player who better suits the system may be preferred.</div></div>';
+ '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR only helps players perform in valid secondary positions. It never makes an ineligible player suitable for a role.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of a secondary-position penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
@@ -4081,8 +4077,9 @@ function playerOverviewContent(p){
 
  let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},ar=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
  let editorAction=(G.playerEditingEnabled!==false&&p.team!==-2)?'<div class="actionGroup"><div class="actionLabel">CAREER CONTROL</div><button class="btn full" data-edit-player="'+p.id+'">EDIT PLAYER</button></div><div id="playerEditorHost"></div>':'';
- let fit=bestFitForPlayer(p,G.club),fitContext=p.team===G.club?"Current coach":"Fit with your Head Coach";
- return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("SYSTEM FIT",fit.label,fitContext+" · "+fit.slot)+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
+ seedSecondaryPositions(p);
+ let fit=bestFitForPlayer(p,G.club),fitContext=p.team===G.club?"Current coach":"Fit with your Head Coach",pe=positionalEffectiveness(p,fit.slot,G.club),roleText=[p.pos,...p.secondaryPositions].join(" · ");
+ return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POSITIONS",roleText,p.secondaryPositions.length?"Natural + secondary roles":"Natural role only")+stat("SYSTEM FIT",fit.label,fitContext+" · "+fit.slot)+stat("ROLE EFFECT",pe.eligible?(pe.effectiveOvr+" OVR"):"INELIGIBLE",pe.eligible?(pe.familiarity+"% familiarity · "+pe.label):"Not available in this role")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
  '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+ar+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
  '<div class="financeRows" style="margin-top:9px">'+
  (positionGroup(p.pos)==="GK"?'<div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div><div class="financeRow"><span>Saves</span><b>'+ss.saves+'</b></div>':'')+
@@ -4118,6 +4115,7 @@ function ensureRuntimeState(){
  ensureClubHistoryState();
  ensureFacilityState();
  ensureStaffState();
+ ensurePlayerPositionState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
@@ -4196,7 +4194,9 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  renderClubChoices();
  return;
 }
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){navigateTo(nav.dataset.page);return}let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
+let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){navigateTo(nav.dataset.page);return}let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
+let worldClub=e.target.closest("[data-world-club]");if(worldClub){showClubProfile(Number(worldClub.dataset.worldClub));return}
+let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
 let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
 let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
