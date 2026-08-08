@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.6.1 Rivalries Stability Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.6.2 Save Recovery Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1344,6 +1344,45 @@ body.career-hub-active .continueDock{
 .rivalryTag{display:inline-flex;align-items:center;border:1px solid #705d25;background:#d9b54a12;color:var(--gold);border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}
 
 /* v2.9.6.1 Rivalries Stability: startup parser fix */
+
+/* v2.9.6.2 Save Recovery */
+.recoverySummary{
+  margin-top:14px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:13px;
+  background:var(--card2);
+  text-align:left;
+}
+.recoverySummary b{display:block;font-size:13px}
+.recoverySummary span{display:block;color:var(--muted);font-size:10px;line-height:1.45;margin-top:4px}
+.recoveryCandidates{display:grid;gap:9px;margin-top:12px;text-align:left}
+.recoveryCandidate{
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:13px;
+  background:linear-gradient(180deg,var(--card),#0e151d);
+}
+.recoveryCandidate.good{border-color:#35624a}
+.recoveryCandidate.legacy{border-color:#705d25}
+.recoveryCandidateTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.recoveryCandidate b{display:block;font-size:14px}
+.recoveryCandidate span{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:3px}
+.recoveryCandidate .source{font-size:9px;color:var(--gold);font-weight:900;letter-spacing:.08em}
+.recoveryCandidate .btn{margin-top:10px}
+.recoveryTools{display:grid;gap:8px;margin-top:14px}
+.recoveryImportLabel{display:block;text-align:center;cursor:pointer}
+.recoveryDanger{
+  border:1px solid #71303a;
+  background:#fb718510;
+  border-radius:13px;
+  padding:11px;
+  color:#f1b5be;
+  font-size:10px;
+  line-height:1.45;
+  margin-top:10px;
+}
+
 </style>
 </head>
 <body>
@@ -1354,6 +1393,7 @@ body.career-hub-active .continueDock{
   <div class="startActions">
     <button id="newBtn" class="btn primary full">NEW CAREER</button>
     <button id="loadBtn" class="btn full">LOAD CAREER</button>
+    <button id="recoverBtn" class="btn full">RECOVER CAREER</button>
     <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking career slots…</div>
   </div>
 </div>
@@ -1362,6 +1402,18 @@ body.career-hub-active .continueDock{
   <h2 id="saveSlotHeading">Choose a Career</h2>
   <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
   <div id="careerSlots" class="careerSlots"></div>
+</div>
+<div id="recoveryStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToLaunchFromRecovery" class="backBtn">‹ BACK</button><div class="label">SAVE RECOVERY</div><span style="width:44px"></span></div>
+  <h2>Career Recovery</h2>
+  <div class="sub">This screen only reads browser storage until you explicitly choose Restore. It does not create or overwrite a career automatically.</div>
+  <div id="recoverySummary" class="recoverySummary"></div>
+  <div id="recoveryCandidates" class="recoveryCandidates"></div>
+  <div class="recoveryTools">
+    <button id="rescanRecoveryBtn" class="btn full">SCAN AGAIN</button>
+    <label class="btn full recoveryImportLabel">IMPORT CAREER JSON<input id="recoveryFileInput" type="file" accept=".json,application/json" hidden></label>
+  </div>
+  <div id="recoveryMessage" class="sub" style="margin-top:12px"></div>
 </div>
 <div id="clubStep" class="careerStep hidden">
   <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
@@ -1416,7 +1468,7 @@ body.career-hub-active .continueDock{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.6.1 Rivalries Stability Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.6.2 Save Recovery Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1634,10 +1686,10 @@ function rivalryProfileHtml(id){
 function careerSlotKey(slot){return CAREER_SLOT_PREFIX+String(slot)}
 function migrateLegacyCareerSave(){
  try{
-   let anySlot=[1,2,3].some(i=>!!localStorage.getItem(careerSlotKey(i)));
-   let legacy=localStorage.getItem("soccerGMAlpha");
-   if(legacy&&!anySlot){
-     localStorage.setItem(careerSlotKey(1),legacy);
+   let validSlots=[1,2,3].filter(i=>safeParseCareer(localStorage.getItem(careerSlotKey(i))));
+   let legacyRaw=localStorage.getItem("soccerGMAlpha"),legacy=safeParseCareer(legacyRaw);
+   if(legacy&&!validSlots.length){
+     localStorage.setItem(careerSlotKey(1),legacyRaw);
      localStorage.setItem(ACTIVE_SLOT_KEY,"1");
    }
  }catch(e){}
@@ -1686,6 +1738,123 @@ function formatSlotDate(ts){
  if(!ts)return"Earlier save";
  try{return new Date(ts).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return"Saved career"}
 }
+
+function looksLikeCareerObject(g){
+ return !!(g&&typeof g==="object"&&Array.isArray(g.clubs)&&Array.isArray(g.players)&&Number.isFinite(Number(g.season))&&Number.isFinite(Number(g.club)));
+}
+function safeParseCareer(raw){
+ if(!raw||typeof raw!=="string")return null;
+ try{
+   let g=JSON.parse(raw);
+   return looksLikeCareerObject(g)?g:null;
+ }catch(e){return null}
+}
+function describeRecoveredCareer(g){
+ let club=(g.clubs||[]).find(c=>Number(c.id)===Number(g.club))||(g.clubs||[])[Number(g.club)];
+ let clubName=club&&club.name?club.name:"Unknown Club";
+ let division="League";
+ if(g.leagues){
+   if(g.leagues.lower&&Array.isArray(g.leagues.lower.clubIds)&&g.leagues.lower.clubIds.includes(g.club))division=g.leagues.lower.name||"Championship";
+   else if(g.leagues.top)division=g.leagues.top.name||"Premier Division";
+ }
+ return{club:clubName,season:Number(g.season)||2026,week:Number(g.week)||0,division,players:Array.isArray(g.players)?g.players.length:0,history:Array.isArray(g.history)?g.history.length:0};
+}
+function scanRecoveryCandidates(){
+ let found=[],seen=new Set();
+ function add(source,key,raw,storageType){
+   if(!raw)return;
+   let g=safeParseCareer(raw);if(!g)return;
+   let fingerprint=(g._lastPlayedAt||"")+"|"+g.season+"|"+g.week+"|"+g.club+"|"+raw.length;
+   if(seen.has(fingerprint))return;
+   seen.add(fingerprint);
+   found.push({source,key,raw,g,storageType,desc:describeRecoveredCareer(g)});
+ }
+ try{
+   ["miniMeFootballCareerSlot1","miniMeFootballCareerSlot2","miniMeFootballCareerSlot3","soccerGMAlpha"].forEach(k=>add(k.startsWith("miniMe")?"Career Slot":"Legacy Save",k,localStorage.getItem(k),"localStorage"));
+   for(let i=0;i<localStorage.length;i++){
+     let k=localStorage.key(i);if(!k)continue;
+     let raw=localStorage.getItem(k);
+     if(k!=="soccerGMAlpha"&&!k.startsWith("miniMeFootballCareerSlot"))add("Other Browser Save",k,raw,"localStorage");
+   }
+ }catch(e){}
+ try{
+   for(let i=0;i<sessionStorage.length;i++){
+     let k=sessionStorage.key(i);if(k)add("Session Storage",k,sessionStorage.getItem(k),"sessionStorage");
+   }
+ }catch(e){}
+ return found.sort((a,b)=>(Number(b.g._lastPlayedAt)||0)-(Number(a.g._lastPlayedAt)||0)||b.desc.season-a.desc.season||b.desc.week-a.desc.week);
+}
+function recoveryCandidateHtml(c,index){
+ let d=c.desc,legacy=c.key==="soccerGMAlpha";
+ return '<div class="recoveryCandidate '+(legacy?'legacy':'good')+'">'+
+   '<div class="recoveryCandidateTop"><div><div class="source">'+c.source.toUpperCase()+' · '+c.key+'</div><b>'+d.club+'</b><span>'+d.division+' · '+d.season+' Season · Week '+d.week+'</span><span>'+d.players+' players · '+d.history+' archived seasons</span></div><div class="careerSlotSeason">'+d.season+'</div></div>'+
+   '<button class="btn primary full" data-restore-recovery="'+index+'">RESTORE TO CAREER SLOT 1</button></div>';
+}
+let recoveryScanCache=[];
+function renderRecoveryScan(){
+ let summary=$("#recoverySummary"),host=$("#recoveryCandidates"),message=$("#recoveryMessage");
+ recoveryScanCache=scanRecoveryCandidates();
+ let localCount=0,legacy=false,slots=0;
+ try{
+   localCount=localStorage.length;
+   legacy=!!localStorage.getItem("soccerGMAlpha");
+   slots=[1,2,3].filter(i=>!!localStorage.getItem(careerSlotKey(i))).length;
+ }catch(e){}
+ summary.innerHTML='<b>Browser storage scan complete</b><span>'+localCount+' local storage entries found · '+slots+' career slot'+(slots===1?'':'s')+' · Legacy save '+(legacy?'found':'not found')+'.</span>';
+ if(recoveryScanCache.length){
+   host.innerHTML=recoveryScanCache.map(recoveryCandidateHtml).join("");
+   message.textContent="Select Restore only after confirming the club and season shown above.";
+ }else{
+   host.innerHTML='<div class="recoveryDanger">No valid Mini&Me career object is visible to this web origin. This does not overwrite anything. If you previously exported a JSON backup, use Import Career JSON below. If the career was stored under another website origin, Safari does not allow this page to read that other site’s storage.</div>';
+   message.textContent="Do not start a replacement career in Slot 1 if you still want to investigate the old browser data.";
+ }
+}
+function showRecovery(){
+ $("#launchStep").classList.add("hidden");
+ $("#saveSlotStep").classList.add("hidden");
+ $("#clubStep").classList.add("hidden");
+ $("#recoveryStep").classList.remove("hidden");
+ renderRecoveryScan();
+}
+function restoreRecoveryCandidate(index){
+ let c=recoveryScanCache[Number(index)];if(!c||!looksLikeCareerObject(c.g)){alert("That recovery candidate is no longer available.");return}
+ let d=c.desc;
+ if(!confirm("Restore "+d.club+" · "+d.season+" Season into Career Slot 1?\\n\\nThe existing Slot 1 will be backed up first if one is present."))return;
+ try{
+   let existing=localStorage.getItem(careerSlotKey(1));
+   if(existing)localStorage.setItem("miniMeFootballRecoveryBackup_"+Date.now(),existing);
+   localStorage.setItem(careerSlotKey(1),c.raw);
+   localStorage.setItem("soccerGMAlpha",c.raw);
+   localStorage.setItem(ACTIVE_SLOT_KEY,"1");
+   activeSaveSlot=1;
+   $("#recoveryMessage").textContent="Career restored to Slot 1. You can now return and choose Load Career.";
+   renderRecoveryScan();
+ }catch(e){
+   alert("Safari could not write the recovered career: "+(e&&e.message?e.message:String(e)));
+ }
+}
+function importRecoveryFile(file){
+ if(!file)return;
+ let reader=new FileReader();
+ reader.onload=function(){
+   let raw=String(reader.result||""),g=safeParseCareer(raw);
+   if(!g){$("#recoveryMessage").textContent="That file does not contain a valid Mini&Me Football Club career.";return}
+   let d=describeRecoveredCareer(g);
+   if(!confirm("Import "+d.club+" · "+d.season+" Season into Career Slot 1?"))return;
+   try{
+     let existing=localStorage.getItem(careerSlotKey(1));
+     if(existing)localStorage.setItem("miniMeFootballRecoveryBackup_"+Date.now(),existing);
+     localStorage.setItem(careerSlotKey(1),JSON.stringify(g));
+     localStorage.setItem("soccerGMAlpha",JSON.stringify(g));
+     localStorage.setItem(ACTIVE_SLOT_KEY,"1");
+     activeSaveSlot=1;
+     $("#recoveryMessage").textContent="Imported career restored to Slot 1.";
+     renderRecoveryScan();
+   }catch(e){$("#recoveryMessage").textContent="Safari could not store the imported career."}
+ };
+ reader.readAsText(file);
+}
+
 function renderCareerSlots(mode=careerSlotMode){
  careerSlotMode=mode;
  let host=$("#careerSlots");if(!host)return;
@@ -3486,6 +3655,7 @@ function startSelectedCareer(){
 }
 document.addEventListener("click",function(e){
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;render();return}
+let restoreRecovery=e.target.closest("[data-restore-recovery]");if(restoreRecovery){restoreRecoveryCandidate(restoreRecovery.dataset.restoreRecovery);return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
@@ -3527,6 +3697,13 @@ let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlaye
 if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
 $("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
 $("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
+$("#recoverBtn").addEventListener("click",showRecovery);
+$("#backToLaunchFromRecovery").addEventListener("click",function(){
+ $("#recoveryStep").classList.add("hidden");
+ $("#launchStep").classList.remove("hidden");
+});
+$("#rescanRecoveryBtn").addEventListener("click",renderRecoveryScan);
+$("#recoveryFileInput").addEventListener("change",function(){importRecoveryFile(this.files&&this.files[0]);this.value=""});
 $("#backToLaunchFromSlots").addEventListener("click",function(){
  $("#saveSlotStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
@@ -3552,7 +3729,7 @@ try{
  let slots=[1,2,3].map(careerSlotSummary).filter(Boolean);
  let preferred=Number(localStorage.getItem(ACTIVE_SLOT_KEY))||1;
  if([1,2,3].includes(preferred))activeSaveSlot=preferred;
- $("#startStatus").textContent=slots.length ? slots.length+" saved career"+(slots.length===1?"":"s")+" available on this device." : "No saved careers yet. Start a new career to create one.";
+ $("#startStatus").textContent=slots.length ? slots.length+" saved career"+(slots.length===1?"":"s")+" available on this device." : "No career slots detected. Use Recover Career before starting a replacement.";
 }catch(e){
  $("#startStatus").textContent="Safari storage is unavailable in this browsing mode.";
 }
