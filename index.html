@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.6.4 Rivalries UI Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.7 Rivalries Experience Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1488,6 +1488,180 @@ header{
   .launchTitle{font-size:32px}
 }
 
+
+/* v2.9.7 Rivalries Experience + Mobile UI Refinement */
+
+/* Stronger rivalry presentation without changing simulation odds */
+.rivalryBanner{
+  padding:12px 13px!important;
+  border-radius:14px!important;
+}
+.rivalryEyebrow{
+  color:var(--gold);
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.11em;
+  margin-bottom:5px;
+}
+.rivalryBanner b{
+  font-size:12px!important;
+  line-height:1.3;
+}
+.rivalryBanner span{
+  line-height:1.4!important;
+}
+.resultRivalryRecap{
+  margin-top:10px;
+  padding:10px 11px;
+  border:1px solid #705d25;
+  background:#d9b54a0c;
+  border-radius:12px;
+  text-align:left;
+}
+.resultRivalryRecap b{
+  display:block;
+  color:var(--gold);
+  font-size:11px;
+}
+.resultRivalryRecap span{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  margin-top:3px;
+  line-height:1.35;
+}
+
+/* Squad header and interim coach presentation */
+.startingXIHead{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+.formationBadge{
+  flex:0 0 auto;
+  border:1px solid #705d25;
+  background:#d9b54a10;
+  color:var(--gold);
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.03em;
+}
+.coachStripCompact{
+  margin-bottom:10px!important;
+  padding:10px 11px!important;
+}
+.coachStripCompact b{
+  font-size:13px!important;
+}
+.coachFutureTag{
+  text-align:right;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  line-height:1.25;
+}
+.coachFutureTag span{
+  color:var(--gold);
+  font-size:9px;
+}
+
+/* Compact half-pitch: same geometry, less vertical dominance */
+.tacticalPitch{
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:.82!important;
+  max-height:none!important;
+  margin-top:10px!important;
+  border-radius:18px!important;
+}
+.pitchBoundary{
+  inset:14px!important;
+}
+.pitchHalfway{
+  left:14px!important;
+  right:14px!important;
+  top:14px!important;
+}
+.pitchCentreArc{
+  top:14px!important;
+  width:112px!important;
+  height:56px!important;
+}
+.pitchCentreSpot{
+  top:14px!important;
+}
+.pitchPenaltyBox{
+  bottom:14px!important;
+  height:20%!important;
+}
+.pitchSixBox{
+  bottom:14px!important;
+}
+.pitchGoal{
+  bottom:14px!important;
+}
+.pitchPenaltySpot{
+  bottom:15.5%!important;
+}
+.pitchPenaltyArc{
+  bottom:17.8%!important;
+}
+.pitchCorner.bl{left:14px!important;bottom:14px!important}
+.pitchCorner.br{right:14px!important;bottom:14px!important}
+
+.tacticalPlayer{
+  width:60px!important;
+}
+.tacticalPlayer .pitchBadge{
+  width:42px!important;
+  height:42px!important;
+  font-size:14px!important;
+}
+.tacticalPlayer .pitchName{
+  max-width:60px!important;
+  font-size:9px!important;
+  margin-top:4px!important;
+}
+.tacticalPlayer .pitchPos{
+  font-size:8px!important;
+}
+.pitchLegend{
+  margin-top:8px!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+}
+
+/* Slight coordinate compression so the XI uses the shorter pitch naturally */
+@media(max-width:600px){
+  .tacticalPitch{
+    aspect-ratio:.84!important;
+    min-height:0!important;
+  }
+  .tacticalPlayer{
+    width:56px!important;
+  }
+  .tacticalPlayer .pitchBadge{
+    width:40px!important;
+    height:40px!important;
+    font-size:13px!important;
+  }
+  .tacticalPlayer .pitchName{
+    max-width:56px!important;
+    font-size:8.5px!important;
+  }
+}
+
+/* Keep the Squad card from feeling oversized on mobile */
+@media(max-width:430px){
+  main{padding-left:12px!important;padding-right:12px!important}
+  .card{padding:13px!important}
+}
+
 </style>
 </head>
 <body>
@@ -1577,7 +1751,7 @@ header{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.6.4 Rivalries UI Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.7 Rivalries Experience Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1781,6 +1955,25 @@ function historicRivalsForClub(id){
  });
  return Object.values(map).sort((a,b)=>b.score-a.score).slice(0,6);
 }
+
+function rivalryNarrative(a,b){
+ let status=rivalryStatus(a,b),score=rivalryScore(a,b),h=headToHead(a,b);
+ if(!status)return null;
+ let level=rivalryLevel(score);
+ let context=level;
+ if(h.played>=6&&Math.abs(h.w-h.l)<=1)context+=" · finely balanced series";
+ else if(h.played>=4&&h.w>=h.l+3)context+=" · your club has the edge";
+ else if(h.played>=4&&h.l>=h.w+3)context+=" · difficult opponent";
+ return{
+   status,
+   score,
+   level,
+   h2h:h,
+   title:status==="primary"?"Primary Rival":"Secondary Rival",
+   context
+ };
+}
+
 function rivalryProfileHtml(id){
  let active=activeRivalsForClub(id),historic=historicRivalsForClub(id);
  let cards=active.length?active.map((x,i)=>{
@@ -2558,12 +2751,13 @@ function showMatchResult(r,playedWeek){
  let opp=G.clubs[nextOpp()];
  $("#resultState").textContent=state;
  $("#resultState").className="resultState "+state.toLowerCase();
- let playedOpp=userHome?r.b:r.a,playedRival=rivalryStatus(G.club,playedOpp);
- $("#resultWeek").textContent=(playedRival?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
+ let playedOpp=userHome?r.b:r.a,playedRivalInfo=rivalryNarrative(G.club,playedOpp);
+ $("#resultWeek").textContent=(playedRivalInfo?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
  $("#resultHome").textContent=G.clubs[r.a].name;
  $("#resultAway").textContent=G.clubs[r.b].name;
  $("#resultScore").textContent=r.ga+" – "+r.gb;
- $("#resultSummary").textContent=state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.";
+ $("#resultSummary").innerHTML=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.")+
+ (playedRivalInfo?'<div class="resultRivalryRecap"><b>'+playedRivalInfo.title+'</b><span>'+playedRivalInfo.level+' · Rivalry score '+playedRivalInfo.score+' · Career H2H '+headToHeadLabel(G.club,playedOpp)+'</span></div>':'');
  let sa=r.statsA||{},sb=r.statsB||{};
  $("#resultTeamStats").innerHTML='<div class="matchStats"><div class="matchStatSide">'+(sa.possession||50)+'%</div><div class="matchStatLabel">POSSESSION</div><div class="matchStatSide right">'+(sb.possession||50)+'%</div></div><div class="matchStats"><div class="matchStatSide">'+(sa.shots||0)+'</div><div class="matchStatLabel">SHOTS</div><div class="matchStatSide right">'+(sb.shots||0)+'</div></div><div class="matchStats"><div class="matchStatSide">'+(sa.onTarget||0)+'</div><div class="matchStatLabel">ON TARGET</div><div class="matchStatSide right">'+(sb.onTarget||0)+'</div></div>';
  let userPerf=userHome?(r.perfA||[]):(r.perfB||[]),top=userPerf.slice(0,3);
@@ -3178,16 +3372,16 @@ function bestForSlot(slot,used){
  return p;
 }
 const POSITION_COORDS={
- GK:[50,91],
- LB:[13,76],LWB:[9,60],WB:[10,61],
- LCB:[36,78],CB:[50,80],RCB:[64,78],RB:[87,76],RWB:[91,60],SW:[50,85],
- DM:[50,66],CDM:[50,66],LDM:[38,65],RDM:[62,65],
- CM:[50,55],LCM:[34,54],RCM:[66,54],
- AM:[50,39],CAM:[50,39],LAM:[34,38],RAM:[66,38],
- LM:[14,47],RM:[86,47],
- LW:[15,25],RW:[85,25],
+ GK:[50,89],
+ LB:[13,74],LWB:[9,59],WB:[10,60],
+ LCB:[36,76],CB:[50,78],RCB:[64,76],RB:[87,74],RWB:[91,59],SW:[50,83],
+ DM:[50,64],CDM:[50,64],LDM:[38,63],RDM:[62,63],
+ CM:[50,53],LCM:[34,52],RCM:[66,52],
+ AM:[50,38],CAM:[50,38],LAM:[34,37],RAM:[66,37],
+ LM:[14,46],RM:[86,46],
+ LW:[15,24],RW:[85,24],
  LF:[34,22],RF:[66,22],
- CF:[50,24],SS:[50,30],ST:[50,16]
+ CF:[50,23],SS:[50,29],ST:[50,16]
 };
 function pitchCoordinate(slot,index,total){
  let key=slot;
@@ -3380,7 +3574,8 @@ function home(){
  ensureLeagueWorld();ensureRivalryState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
- let rivalStatus=rivalryStatus(G.club,opp.id),rScore=rivalryScore(G.club,opp.id),rivalBanner=rivalStatus?'<div class="rivalryBanner '+rivalStatus+'"><b>RIVALRY MATCH · '+(rivalStatus==="primary"?"PRIMARY RIVAL":"SECONDARY RIVAL")+'</b><span>'+rivalryLevel(rScore)+' · Rivalry score '+rScore+' · '+headToHeadLabel(G.club,opp.id)+'</span></div>':'';
+ let rivalInfo=rivalryNarrative(G.club,opp.id);
+ let rivalBanner=rivalInfo?'<div class="rivalryBanner '+rivalInfo.status+'"><div class="rivalryEyebrow">RIVALRY MATCH · '+rivalInfo.title.toUpperCase()+'</div><b>'+rivalInfo.context+'</b><span>Career H2H · '+headToHeadLabel(G.club,opp.id)+' · Goals '+rivalInfo.h2h.gf+'–'+rivalInfo.h2h.ga+'</span></div>':'';
  return'<div class="divisionBanner"><div><b>'+info.name+'</b><span>'+info.clubIds.length+' clubs · '+weeks+' league matches</span></div><div class="divisionBadge">'+(currentLeagueKey()==="top"?"TOP FLIGHT":"SECOND TIER")+'</div></div>'+
  '<div class="grid2">'+stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+stat("SQUAD",avg,"Club squad average")+stat("BUDGET",money(c.budget),"Transfers")+stat("BOARD","74","Stable")+'</div>'+
  '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div><div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>'+
@@ -3433,9 +3628,9 @@ function squadTeamView(){
    let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);
    return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';
  }).join("");
- return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div>'+
+ return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Current tactical selection</div></div><div class="formationBadge">'+c.formation+'</div></div><div class="coachStrip coachStripCompact"><div><div class="label">COACH PROFILE</div><b>'+c.style+'</b><div class="sub">Rating '+c.coach+' · Tactical identity</div></div><div class="coachFutureTag">STAFF SYSTEM<br><span>v2.9.8</span></div></div>'+
  '<div class="tacticalPitch"><div class="pitchBoundary"></div><div class="pitchHalfway"></div><div class="pitchCentreArc"></div><div class="pitchCentreSpot"></div><div class="pitchPenaltyBox"></div><div class="pitchSixBox"></div><div class="pitchGoal"></div><div class="pitchPenaltySpot"></div><div class="pitchPenaltyArc"></div><div class="pitchCorner bl"></div><div class="pitchCorner br"></div>'+playerHtml+'</div>'+
- '<div class="pitchLegend">Players are placed by tactical role. Where a natural position differs from the coach’s slot, both roles are shown.</div></div>'+
+ '<div class="pitchLegend">Tactical role is shown first. Natural position is also displayed when different.</div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>';
 }
 function squad(){
