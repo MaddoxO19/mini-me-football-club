@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.7 Rivalries Experience Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.7.1 Home Navigation Refinement Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1662,6 +1662,71 @@ header{
   .card{padding:13px!important}
 }
 
+
+/* v2.9.7.1 Home & Navigation Refinement */
+
+/* Home now leads with the next action */
+.homePrimaryFixture{margin-top:0}
+.homeNewsCard{margin-top:2px}
+.homeDivisionBanner{margin-top:4px}
+.homeDashboardGrid .stat{min-height:88px}
+
+/* Immediate navigation feedback while the next view renders */
+nav button{
+  touch-action:manipulation;
+}
+nav button.navPending,
+nav button:active{
+  background:#d9b54a10!important;
+}
+#resultContinueBtn{
+  touch-action:manipulation;
+}
+
+/* Season-review contract rows */
+.contractRow{
+  grid-template-columns:minmax(0,1fr) minmax(104px,auto)!important;
+  gap:14px!important;
+  align-items:center!important;
+  padding:13px 0!important;
+}
+.reviewContractPlayer{
+  min-width:0;
+}
+.reviewContractPlayer b{
+  display:block!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+  overflow-wrap:anywhere;
+}
+.reviewContractMeta{
+  display:block!important;
+  margin-top:4px!important;
+  color:var(--muted)!important;
+  font-size:10px!important;
+  line-height:1.25!important;
+  white-space:normal!important;
+}
+.reviewContractStatus{
+  text-align:right;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.3;
+  white-space:normal;
+}
+.reviewPlayerRow::after{
+  align-self:center;
+}
+@media(max-width:430px){
+  .contractRow{
+    grid-template-columns:minmax(0,1fr) 112px!important;
+    gap:10px!important;
+  }
+  .reviewContractStatus{
+    font-size:9.5px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1751,7 +1816,7 @@ header{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.7 Rivalries Experience Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.7.1 Home Navigation Refinement Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -3088,8 +3153,8 @@ function showSeasonReview(){
  $("#reviewSeason").textContent=r.season+" Season";
  $("#reviewFinish").textContent=ordinal(r.pos);
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
- let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>'+label+'</span></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
- let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>1 year remaining</span></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div class="reviewContractPlayer"><b>'+p.name+'</b><span class="reviewContractMeta">'+p.pos+' · '+p.ovr+' OVR</span></div><div class="reviewContractStatus">'+label+'</div></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
+ let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div class="reviewContractPlayer"><b>'+p.name+'</b><span class="reviewContractMeta">'+p.pos+' · '+p.ovr+' OVR</span></div><div class="reviewContractStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
  let clubRetirements=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
  let leagueRetirements=Array.isArray(r.leagueRetirements)?r.leagueRetirements:[];
  let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
@@ -3273,6 +3338,7 @@ function beginNewSeason(){
   applyPromotionRelegation();
   G.season=(Number(G.season)||2026)+1;
   G.week=0;
+  G._runtimeHydrationStamp=null;
   G.players.forEach(p=>{p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0}});
   G.clubs.forEach(c=>{if(c)Object.assign(c,{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})});
   G.schedule=buildWorldSchedule(G);
@@ -3576,11 +3642,30 @@ function home(){
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
  let rivalInfo=rivalryNarrative(G.club,opp.id);
  let rivalBanner=rivalInfo?'<div class="rivalryBanner '+rivalInfo.status+'"><div class="rivalryEyebrow">RIVALRY MATCH · '+rivalInfo.title.toUpperCase()+'</div><b>'+rivalInfo.context+'</b><span>Career H2H · '+headToHeadLabel(G.club,opp.id)+' · Goals '+rivalInfo.h2h.gf+'–'+rivalInfo.h2h.ga+'</span></div>':'';
- return'<div class="divisionBanner"><div><b>'+info.name+'</b><span>'+info.clubIds.length+' clubs · '+weeks+' league matches</span></div><div class="divisionBadge">'+(currentLeagueKey()==="top"?"TOP FLIGHT":"SECOND TIER")+'</div></div>'+
- '<div class="grid2">'+stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+stat("SQUAD",avg,"Club squad average")+stat("BUDGET",money(c.budget),"Transfers")+stat("BOARD","74","Stable")+'</div>'+
- '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div><div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>'+
- '<div class="card"><div class="title">Next Fixture</div>'+rivalBanner+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div><div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(headToHead(G.club,opp.id).played?'Career record · Goals '+headToHead(G.club,opp.id).gf+'–'+headToHead(G.club,opp.id).ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div><div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>'+
- '<div class="card"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
+ let h2h=headToHead(G.club,opp.id);
+ let fixture=
+ '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+rivalBanner+
+ '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
+ '<div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
+ '<div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div>'+
+ '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
+ '<div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>';
+
+ let news='<div class="card homeNewsCard"><div class="title">Club News</div>'+
+ (recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
+
+ let dashboard=
+ '<div class="divisionBanner homeDivisionBanner"><div><b>'+info.name+'</b><span>'+info.clubIds.length+' clubs · '+weeks+' league matches</span></div><div class="divisionBadge">'+(currentLeagueKey()==="top"?"TOP FLIGHT":"SECOND TIER")+'</div></div>'+
+ '<div class="grid2 homeDashboardGrid">'+
+ stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+
+ stat("SQUAD",avg,"Club squad average")+
+ stat("BUDGET",money(c.budget),"Transfers")+
+ stat("BOARD","74","Stable")+
+ '</div>'+
+ '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div>'+
+ '<div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>';
+
+ return fixture+news+dashboard;
 }
 
 function tabsHtml(scope,active,items){
@@ -3986,7 +4071,45 @@ function ensureRecordState(){
  if(!G.careerMode)G.careerMode="GM";
  if(typeof G.playerEditingEnabled==="undefined")G.playerEditingEnabled=true;
 }
-function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();G.players.forEach(ensurePlayerClubHistory);$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc){hc.onclick=function(ev){ev.preventDefault();advance();}}}
+let renderQueued=false;
+function ensureRuntimeState(){
+ if(!G)return;
+ ensureLeagueWorld();
+ ensureRecordState();
+ ensureClubHistoryState();
+ ensureFacilityState();
+ // Player-wide normalisation is expensive on large careers.
+ // Only run it once per loaded season instead of on every navigation click.
+ let stamp=String(G.season)+"|"+G.players.length;
+ if(G._runtimeHydrationStamp!==stamp){
+   ensurePlayerStats();
+   G.players.forEach(ensurePlayerClubHistory);
+   G._runtimeHydrationStamp=stamp;
+ }
+}
+function render(){
+ if(!G)return;
+ ensureRuntimeState();
+ $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
+ $("#app").innerHTML=({home,squad,market,league,club})[page]();
+ $("#continueDock").classList.add("hidden");
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ let hc=$("#homeContinueBtn");
+ if(hc){hc.onclick=function(ev){ev.preventDefault();advance();}}
+ renderQueued=false;
+}
+function renderSoon(){
+ if(renderQueued)return;
+ renderQueued=true;
+ requestAnimationFrame(render);
+}
+function navigateTo(nextPage){
+ if(!nextPage||nextPage===page)return;
+ page=nextPage;
+ // Give immediate visual feedback before rebuilding the view.
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ renderSoon();
+}
 renderBuildVersion();
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
@@ -4017,7 +4140,7 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
-let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;render();return}
+let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
 let openRecovery=e.target.closest("[data-open-recovery]");if(openRecovery){openRecoveryCandidate(openRecovery.dataset.openRecovery);return}
 let loadLegacy=e.target.closest("[data-load-legacy]");if(loadLegacy){loadLegacyCareer();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
@@ -4037,7 +4160,7 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  renderClubChoices();
  return;
 }
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
+let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){navigateTo(nav.dataset.page);return}let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
 let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
 let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
@@ -4082,10 +4205,15 @@ $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",beginNewSeason);
 $("#resultContinueBtn").addEventListener("click",function(){
+ // Close the match report immediately so the tap feels responsive.
  $("#resultScreen").classList.add("hidden");
- if(G.week>=leagueSeasonWeeks()){prepareSeasonReview();return}
+ if(G.week>=leagueSeasonWeeks()){
+   requestAnimationFrame(prepareSeasonReview);
+   return;
+ }
  page="home";
- render();
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
+ renderSoon();
 });
 
 document.body.classList.add("career-hub-active");
