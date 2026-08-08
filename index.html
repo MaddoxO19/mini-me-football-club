@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.7 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.8 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -843,13 +843,87 @@ main{
   .totsGrid{grid-template-columns:1fr}
 }
 
+
+/* v2.8 Player Editor */
+.editorPanel{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid #705d25;
+  background:linear-gradient(180deg,#17170f,#111923);
+  border-radius:16px;
+}
+.editorGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.editorField{
+  min-width:0;
+}
+.editorField.full{
+  grid-column:1/-1;
+}
+.editorField label{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:5px;
+}
+.editorField input,
+.editorField select{
+  width:100%;
+  border:1px solid var(--line);
+  background:#0b1218;
+  color:var(--text);
+  border-radius:11px;
+  padding:11px 10px;
+  font:inherit;
+  font-size:13px;
+  outline:none;
+}
+.editorField input:focus,
+.editorField select:focus{
+  border-color:var(--gold);
+}
+.editorActions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.editorHint{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.4;
+}
+.editBadge{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid #705d25;
+  background:#d9b54a12;
+  color:var(--gold);
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+@media(max-width:480px){
+  .editorGrid{grid-template-columns:1fr}
+  .editorField.full{grid-column:auto}
+}
+
 </style>
 </head>
 <body>
 <section id="start" class="start">
 <div id="launchStep" class="careerStep">
   <div id="startBuild" class="startBuild"></div><h1><span class="mini">MINI&ME</span><span class="club">FOOTBALL CLUB</span></h1><div class="brandRule"></div><div class="tagline">Build the Club. Shape the Legacy.</div>
-  <div class="intro">Build a football club across generations. Recruit players, manage contracts, shape the finances and create a legacy that lasts beyond one season.</div>
+  <div class="intro">Build a football club across generations. Recruit players, manage contracts, shape the finances, customise your squad and create a legacy that lasts beyond one season.</div>
   <div class="startActions">
     <button id="newBtn" class="btn primary full">START NEW CAREER</button>
     <button id="loadBtn" class="btn full">LOAD CAREER</button>
@@ -904,7 +978,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.7 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.8 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
@@ -2101,6 +2175,67 @@ function toggleListed(id){
  showPlayer(id);
 }
 
+
+const EDIT_POSITIONS=["GK","LB","LWB","LCB","CB","RCB","RB","RWB","SW","DM","CDM","LDM","RDM","CM","LCM","RCM","AM","CAM","LAM","RAM","LM","RM","LW","RW","LF","CF","RF","SS","ST"];
+
+function playerEditorHtml(p){
+ let opts=EDIT_POSITIONS.map(pos=>'<option value="'+pos+'" '+(p.pos===pos?'selected':'')+'>'+pos+'</option>').join("");
+ return '<div class="editorPanel">'+
+   '<div class="actionHeading"><div><div class="label">CAREER CONTROL</div><div class="title" style="margin-top:5px">Edit Player</div></div><span class="editBadge">PLAYER EDITOR</span></div>'+
+   '<div class="editorGrid">'+
+     '<div class="editorField full"><label>Player Name</label><input id="editPlayerName" value="'+String(p.name).replace(/"/g,"&quot;")+'" maxlength="36"></div>'+
+     '<div class="editorField"><label>Age</label><input id="editPlayerAge" type="number" min="16" max="45" value="'+p.age+'"></div>'+
+     '<div class="editorField"><label>Position</label><select id="editPlayerPos">'+opts+'</select></div>'+
+     '<div class="editorField"><label>Overall</label><input id="editPlayerOvr" type="number" min="40" max="99" value="'+p.ovr+'"></div>'+
+     '<div class="editorField"><label>Potential</label><input id="editPlayerPot" type="number" min="40" max="99" value="'+p.pot+'"></div>'+
+     '<div class="editorField"><label>Contract Years</label><input id="editPlayerYears" type="number" min="0" max="10" value="'+p.years+'"></div>'+
+     '<div class="editorField"><label>Weekly Wage</label><input id="editPlayerWage" type="number" min="0" step="1000" value="'+p.wage+'"></div>'+
+     '<div class="editorField full"><label>Transfer Value</label><input id="editPlayerValue" type="number" min="0" step="100000" value="'+p.value+'"></div>'+
+   '</div>'+
+   '<div class="editorActions"><button class="btn primary" data-save-player-edit="'+p.id+'">SAVE CHANGES</button><button class="btn" data-cancel-player-edit="'+p.id+'">CANCEL</button></div>'+
+   '<div class="editorHint">Editing affects this career immediately. Overall and potential are capped at 99. Existing season statistics are preserved.</div>'+
+ '</div>';
+}
+
+function openPlayerEditor(id){
+ let p=G.players.find(x=>x.id===id);if(!p)return;
+ let host=document.querySelector("#playerEditorHost");
+ if(!host)return;
+ host.innerHTML=playerEditorHtml(p);
+ host.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function savePlayerEdit(id){
+ let p=G.players.find(x=>x.id===id);if(!p)return;
+ let name=($("#editPlayerName")||{}).value||p.name;
+ let age=Number(($("#editPlayerAge")||{}).value);
+ let pos=($("#editPlayerPos")||{}).value||p.pos;
+ let ovr=Number(($("#editPlayerOvr")||{}).value);
+ let pot=Number(($("#editPlayerPot")||{}).value);
+ let years=Number(($("#editPlayerYears")||{}).value);
+ let wage=Number(($("#editPlayerWage")||{}).value);
+ let value=Number(($("#editPlayerValue")||{}).value);
+
+ p.name=String(name).trim().slice(0,36)||p.name;
+ p.age=Math.max(16,Math.min(45,Number.isFinite(age)?Math.round(age):p.age));
+ p.pos=EDIT_POSITIONS.includes(pos)?pos:p.pos;
+ p.ovr=Math.max(40,Math.min(99,Number.isFinite(ovr)?Math.round(ovr):p.ovr));
+ p.pot=Math.max(p.ovr,Math.min(99,Number.isFinite(pot)?Math.round(pot):p.pot));
+ p.years=Math.max(0,Math.min(10,Number.isFinite(years)?Math.round(years):p.years));
+ p.wage=Math.max(0,Number.isFinite(wage)?Math.round(wage/1000)*1000:p.wage);
+ p.value=Math.max(0,Number.isFinite(value)?Math.round(value/100000)*100000:p.value);
+
+ if(p.years===0&&p.team>=0)p.years=1;
+ G.feed.unshift({t:"PLAYER EDITED",m:p.name+" updated via Career Control."});
+ save();
+ showPlayer(p.id);
+ render();
+}
+
+function cancelPlayerEdit(id){
+ showPlayer(id);
+}
+
 function showPlayer(id){
  ensureTransferState();ensureLifecycleState();
  let p=G.players.find(x=>x.id===id);if(!p)return;
@@ -2145,6 +2280,7 @@ function showPlayer(id){
  }
 
  let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},avgRating=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
+ let editorAction=(G.playerEditingEnabled!==false&&p.team!==-2)?'<div class="actionGroup"><div class="actionLabel">CAREER CONTROL</div><button class="btn full" data-edit-player="'+p.id+'">EDIT PLAYER</button></div><div id="playerEditorHost"></div>':'';
  $("#sheetbox").innerHTML='<div class="label">'+p.pos+' · AGE '+p.age+'</div><h2>'+p.name+'</h2>'+
  '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
  '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+avgRating+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
@@ -2153,12 +2289,14 @@ function showPlayer(id){
  (positionGroup(p.pos)==="DEF"?'<div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div><div class="financeRow"><span>Interceptions</span><b>'+ss.interceptions+'</b></div><div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div>':'')+
  (positionGroup(p.pos)==="MID"?'<div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div><div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div>':'')+
  (positionGroup(p.pos)==="FWD"?'<div class="financeRow"><span>Shots on target</span><b>'+ss.shotsOnTarget+'</b></div><div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div>':'')+
- '</div></div>'+body;
+ '</div></div>'+editorAction+body;
  $("#sheet").classList.remove("hidden");
 }
 function buy(id){let p=G.players.find(x=>x.id===id),c=G.clubs[G.club],ask=Math.round(p.value*1.12);if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;if(c.budget<ask){alert("Insufficient transfer budget.");return}let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};p.team=G.club;p.years=4;p.wage=Math.round(p.wage*1.2);G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render()}
 function ensureRecordState(){
  if(!G.records)G.records={biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null};
+ if(!G.careerMode)G.careerMode="GM";
+ if(typeof G.playerEditingEnabled==="undefined")G.playerEditingEnabled=true;
 }
 function render(){if(!G)return;ensureRecordState();ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
 renderBuildVersion();
@@ -2196,6 +2334,9 @@ let submitContractBtn=e.target.closest("[data-submit-contract]");if(submitContra
 
 let rejectBtn=e.target.closest("[data-reject-sale]");if(rejectBtn){let o=G.transferOffers.find(x=>x.id===rejectBtn.dataset.rejectSale);let pid=o?o.playerId:null;rejectSale(rejectBtn.dataset.rejectSale);if(pid)showPlayer(pid);return}
 let facilityBtn=e.target.closest("[data-upgrade-facility]");if(facilityBtn){upgradeFacility(facilityBtn.dataset.upgradeFacility);return}
+let editPlayerBtn=e.target.closest("[data-edit-player]");if(editPlayerBtn){openPlayerEditor(editPlayerBtn.dataset.editPlayer);return}
+let savePlayerBtn=e.target.closest("[data-save-player-edit]");if(savePlayerBtn){savePlayerEdit(savePlayerBtn.dataset.savePlayerEdit);return}
+let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlayerBtn){cancelPlayerEdit(cancelPlayerBtn.dataset.cancelPlayerEdit);return}
 if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
 $("#newBtn").addEventListener("click",function(){
  $("#launchStep").classList.add("hidden");
