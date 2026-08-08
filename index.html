@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.5 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.6 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -522,6 +522,250 @@ main{
 .recordHighlight{color:var(--gold)}
 .recordNote{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
 
+
+/* v2.6 Tactical Pitch & UI Polish */
+:root{
+  --pitch-line:rgba(235,247,239,.48);
+  --pitch-line-soft:rgba(235,247,239,.28);
+}
+.recordRow{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:18px!important;
+  align-items:center!important;
+}
+.recordRow>div{min-width:0}
+.recordRow>div>b{
+  display:block!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.recordRow>div>span{
+  display:block!important;
+  margin-top:4px!important;
+  font-size:10px!important;
+  line-height:1.3!important;
+}
+.recordRow>b{
+  text-align:right!important;
+  white-space:nowrap!important;
+  font-size:13px!important;
+}
+.historySeason{
+  grid-template-columns:62px minmax(0,1fr) auto!important;
+  column-gap:14px!important;
+}
+.historySeason b{display:block;line-height:1.25}
+.historySeason .seasonMeta{
+  display:block!important;
+  margin-top:4px!important;
+  font-size:10px!important;
+  line-height:1.35!important;
+}
+.recordNote{margin-top:6px!important}
+.recordTile{min-width:0}
+.recordTile .recordValue{line-height:1.05}
+.recordTile .recordNote{overflow-wrap:anywhere}
+
+.devCardRow{
+  padding:14px 0!important;
+  gap:18px!important;
+}
+.devPlayerMain b{
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.devPlayerMeta{
+  margin-top:5px!important;
+  font-size:10px!important;
+  line-height:1.3!important;
+}
+.devMetric{
+  font-size:13px!important;
+  min-width:78px;
+}
+.devIntroGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.devMini{
+  border:1px solid var(--line);
+  background:var(--card2);
+  border-radius:13px;
+  padding:12px;
+}
+.devMini b{display:block;font-size:17px;margin-top:4px}
+.devMini span{font-size:10px;color:var(--muted);line-height:1.35}
+.devSectionHint{margin:-2px 0 6px;font-size:10px;color:var(--muted)}
+
+/* Accurate half-pitch tactical board */
+.tacticalPitch{
+  position:relative;
+  width:100%;
+  aspect-ratio:0.72;
+  min-height:560px;
+  max-height:760px;
+  margin-top:12px;
+  overflow:hidden;
+  border-radius:20px;
+  border:1px solid rgba(174,222,194,.25);
+  background:
+    linear-gradient(rgba(13,66,43,.86),rgba(7,44,29,.96)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.025) 0 12.5%,
+      rgba(0,0,0,.018) 12.5% 25%
+    );
+}
+.pitchBoundary{
+  position:absolute;
+  inset:18px;
+  border:2px solid var(--pitch-line);
+  border-radius:3px;
+  pointer-events:none;
+}
+.pitchHalfway{
+  position:absolute;
+  left:18px;right:18px;top:18px;
+  border-top:2px solid var(--pitch-line);
+  pointer-events:none;
+}
+.pitchCentreArc{
+  position:absolute;
+  left:50%;top:18px;
+  width:128px;height:64px;
+  transform:translateX(-50%);
+  border:2px solid var(--pitch-line);
+  border-top:0;
+  border-radius:0 0 80px 80px;
+  pointer-events:none;
+}
+.pitchCentreSpot{
+  position:absolute;
+  left:50%;top:18px;
+  width:6px;height:6px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:var(--pitch-line);
+  pointer-events:none;
+}
+.pitchPenaltyBox{
+  position:absolute;
+  left:50%;bottom:18px;
+  width:58%;height:21%;
+  transform:translateX(-50%);
+  border:2px solid var(--pitch-line);
+  border-bottom:0;
+  pointer-events:none;
+}
+.pitchSixBox{
+  position:absolute;
+  left:50%;bottom:18px;
+  width:30%;height:9%;
+  transform:translateX(-50%);
+  border:2px solid var(--pitch-line);
+  border-bottom:0;
+  pointer-events:none;
+}
+.pitchGoal{
+  position:absolute;
+  left:50%;bottom:18px;
+  width:20%;height:14px;
+  transform:translateX(-50%);
+  border:2px solid var(--pitch-line);
+  border-bottom:0;
+  pointer-events:none;
+}
+.pitchPenaltySpot{
+  position:absolute;
+  left:50%;bottom:15.7%;
+  width:6px;height:6px;border-radius:50%;
+  transform:translate(-50%,50%);
+  background:var(--pitch-line);
+  pointer-events:none;
+}
+.pitchPenaltyArc{
+  position:absolute;
+  left:50%;bottom:18.2%;
+  width:104px;height:42px;
+  transform:translateX(-50%);
+  border:2px solid var(--pitch-line);
+  border-top:0;
+  border-radius:0 0 70px 70px;
+  pointer-events:none;
+}
+.pitchCorner{
+  position:absolute;width:22px;height:22px;
+  border:2px solid var(--pitch-line-soft);
+  pointer-events:none;
+}
+.pitchCorner.bl{left:18px;bottom:18px;border-right:0;border-top:0;border-radius:0 0 0 22px}
+.pitchCorner.br{right:18px;bottom:18px;border-left:0;border-top:0;border-radius:0 0 22px 0}
+
+.tacticalPlayer{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:74px;
+  text-align:center;
+  z-index:4;
+  cursor:pointer;
+}
+.tacticalPlayer .pitchBadge{
+  width:50px!important;
+  height:50px!important;
+  margin:auto;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#0b141b;
+  border:2px solid var(--gold);
+  font-size:16px!important;
+  font-weight:900;
+  box-shadow:0 3px 12px #0008,0 0 0 3px rgba(217,181,74,.10)!important;
+}
+.tacticalPlayer .pitchName{
+  max-width:74px;
+  margin:5px auto 0!important;
+  font-size:10px!important;
+  font-weight:800;
+  line-height:1.1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.tacticalPlayer .pitchPos{
+  margin-top:2px;
+  font-size:8px!important;
+  color:#c0cbd1;
+}
+.tacticalPlayer.outOfRole .pitchBadge{
+  border-color:#9ca7af;
+}
+.pitchLegend{
+  margin-top:10px;
+  font-size:10px;
+  color:var(--muted);
+  text-align:center;
+  line-height:1.4;
+}
+
+/* More room on iPhone */
+@media(max-width:600px){
+  .tacticalPitch{
+    min-height:520px;
+    aspect-ratio:.70;
+  }
+  .tacticalPlayer{width:62px}
+  .tacticalPlayer .pitchBadge{
+    width:46px!important;
+    height:46px!important;
+    font-size:15px!important;
+  }
+  .tacticalPlayer .pitchName{max-width:62px;font-size:9px!important}
+  .recordRow{gap:12px!important}
+}
+
 </style>
 </head>
 <body>
@@ -583,11 +827,11 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.5.1 Stability";
+const BUILD_VERSION="Mini&Me Football Club v2.6 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
 const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
-const POS=["GK","LB","CB","CB","RB","DM","CM","CM","AM","LW","RW","ST","ST"];
+const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 let G=null, selected=0, page="home";
 let clubTab="overview",leagueTab="table",squadTab="team";
 const $=s=>document.querySelector(s), rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
@@ -1132,21 +1376,77 @@ function coachProfile(){
  if(!c.style)c.style=["Possession","Balanced","High Press","Direct"][c.id%4];
  return c;
 }
-function positionGroup(pos){if(pos==="GK")return"GK";if(["LB","CB","RB"].includes(pos))return"DEF";if(["DM","CM","AM"].includes(pos))return"MID";return"FWD"}
+function positionGroup(pos){
+ if(pos==="GK")return"GK";
+ if(["LB","LWB","LCB","CB","RCB","RB","RWB","SW","WB"].includes(pos))return"DEF";
+ if(["DM","CDM","LDM","RDM","CM","LCM","RCM","AM","CAM","LAM","RAM","LM","RM"].includes(pos))return"MID";
+ return"FWD";
+}
 function formationSlots(){
  let f=coachProfile().formation;
- if(f==="4-2-3-1")return[["ST"],["LW","AM","RW"],["CM","CM"],["LB","CB","CB","RB"],["GK"]];
- if(f==="4-4-2")return[["ST","ST"],["LW","CM","CM","RW"],["LB","CB","CB","RB"],["GK"]];
- if(f==="3-4-3")return[["LW","ST","RW"],["LB","CM","CM","RB"],["CB","CB","CB"],["GK"]];
- return[["LW","ST","RW"],["CM","CM","CM"],["LB","CB","CB","RB"],["GK"]];
+ if(f==="4-2-3-1")return[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
+ if(f==="4-4-2")return[["ST","ST"],["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
+ if(f==="3-4-3")return[["LW","ST","RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
+ return[["LW","ST","RW"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]];
+}
+function slotFamily(slot){
+ const families={
+  GK:["GK"],
+  LB:["LB","LWB","WB"],LWB:["LWB","LB","WB","LM"],
+  RB:["RB","RWB","WB"],RWB:["RWB","RB","WB","RM"],
+  LCB:["CB","LCB","SW"],CB:["CB","LCB","RCB","SW"],RCB:["CB","RCB","SW"],
+  DM:["DM","CDM","LDM","RDM","CM"],CDM:["CDM","DM","LDM","RDM","CM"],
+  LDM:["LDM","DM","CDM","LCM","CM"],RDM:["RDM","DM","CDM","RCM","CM"],
+  CM:["CM","LCM","RCM","DM","AM"],LCM:["LCM","CM","LDM","LM","AM"],RCM:["RCM","CM","RDM","RM","AM"],
+  AM:["AM","CAM","LAM","RAM","CM","CF"],CAM:["CAM","AM","LAM","RAM","CM","CF"],
+  LAM:["LAM","AM","CAM","LW","LM"],RAM:["RAM","AM","CAM","RW","RM"],
+  LM:["LM","LW","LWB","LCM"],RM:["RM","RW","RWB","RCM"],
+  LW:["LW","LM","LAM","LF"],RW:["RW","RM","RAM","RF"],
+  LF:["LF","LW","CF","ST"],RF:["RF","RW","CF","ST"],
+  CF:["CF","SS","ST","AM","CAM"],SS:["SS","CF","ST","AM","CAM"],ST:["ST","CF","SS","LF","RF"]
+ };
+ return families[slot]||[slot];
 }
 function bestForSlot(slot,used){
  let candidates=roster().filter(p=>!used.has(p.id));
+ let family=slotFamily(slot);
  let exact=candidates.filter(p=>p.pos===slot).sort((a,b)=>b.ovr-a.ovr);
- let group=positionGroup(slot),near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
- let p=exact[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
- if(p)used.add(p.id);return p;
+ let compatible=candidates.filter(p=>family.includes(p.pos)).sort((a,b)=>{
+   let ap=family.indexOf(a.pos),bp=family.indexOf(b.pos);
+   return ap-bp||b.ovr-a.ovr;
+ });
+ let group=positionGroup(slot);
+ let near=candidates.filter(p=>positionGroup(p.pos)===group).sort((a,b)=>b.ovr-a.ovr);
+ let p=exact[0]||compatible[0]||near[0]||candidates.sort((a,b)=>b.ovr-a.ovr)[0];
+ if(p)used.add(p.id);
+ return p;
 }
+const POSITION_COORDS={
+ GK:[50,91],
+ LB:[13,76],LWB:[9,60],WB:[10,61],
+ LCB:[36,78],CB:[50,80],RCB:[64,78],RB:[87,76],RWB:[91,60],SW:[50,85],
+ DM:[50,66],CDM:[50,66],LDM:[38,65],RDM:[62,65],
+ CM:[50,55],LCM:[34,54],RCM:[66,54],
+ AM:[50,39],CAM:[50,39],LAM:[34,38],RAM:[66,38],
+ LM:[14,47],RM:[86,47],
+ LW:[15,25],RW:[85,25],
+ LF:[34,22],RF:[66,22],
+ CF:[50,24],SS:[50,30],ST:[50,16]
+};
+function pitchCoordinate(slot,index,total){
+ let key=slot;
+ let base=POSITION_COORDS[key]||POSITION_COORDS[positionGroup(slot)==="DEF"?"CB":positionGroup(slot)==="MID"?"CM":"ST"]||[50,50];
+ let x=base[0],y=base[1];
+ // When formations contain repeated generic roles, spread them logically.
+ if(total>1){
+   if(["CB","CM","DM","CDM","AM","CAM","ST","CF","SS"].includes(slot)){
+     let spread=Math.min(34,14*(total-1));
+     x=50-spread/2+(spread*(index/(total-1||1)));
+   }
+ }
+ return{x,y};
+}
+
 function startingXI(){
  let used=new Set(),lines=[];
  formationSlots().forEach(slots=>lines.push(slots.map(s=>bestForSlot(s,used))));
@@ -1335,15 +1635,51 @@ function tabsHtml(scope,active,items){
  return '<div class="sectionTabs">'+items.map(function(x){return '<button data-section-tab="'+scope+'" data-tab="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>';}).join("")+'</div>';
 }
 function developmentView(){
- return '<div class="card"><div class="title">Development Centre</div><div class="sub">Development view temporarily restored during stability update.</div></div>';
+ ensureFacilityState();
+ let c=G.clubs[G.club];
+ let dev=G.lastDevelopment&&Array.isArray(G.lastDevelopment.changes)?G.lastDevelopment.changes:[];
+ let youth=roster().filter(p=>p.age<=23).sort((a,b)=>(b.pot-b.ovr)-(a.pot-a.ovr)||b.pot-a.pot).slice(0,8);
+ let veterans=roster().filter(p=>p.age>=30).sort((a,b)=>b.age-a.age||a.ovr-b.ovr).slice(0,8);
+ let recent=dev.length?dev.slice(0,12).map(x=>
+   '<div class="devCardRow"><div class="devPlayerMain"><b>'+x.name+'</b><span class="devPlayerMeta">Last offseason</span></div><div class="devMetric '+(x.delta>0?'up':x.delta<0?'down':'')+'">'+x.from+' → '+x.to+' ('+(x.delta>0?'+':'')+x.delta+')</div></div>'
+ ).join(""):'<div class="sub">Development changes will appear after the next offseason.</div>';
+ return '<div class="card"><div class="title">Development Centre</div><div class="sub">Player progression, potential and age profile. Infrastructure upgrades remain under Club → Facilities.</div>'+
+ '<div class="devIntroGrid"><div class="devMini"><span>TRAINING CENTRE</span><b>LV '+c.facilities.training+'/5</b></div><div class="devMini"><span>YOUTH ACADEMY</span><b>LV '+c.facilities.youth+'/5</b></div></div></div>'+
+ '<div class="card"><div class="title">Recent Development</div><div class="devSectionHint">Changes recorded at the most recent offseason.</div>'+recent+'</div>'+
+ '<div class="card"><div class="title">High Potential</div><div class="devSectionHint">Young first-team players ranked by remaining development ceiling.</div>'+
+ youth.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+' · Current '+p.ovr+'</span></div><div class="devMetric">'+p.ovr+' → '+p.pot+'</div></div>').join("")+'</div>'+
+ '<div class="card"><div class="title">Veteran Watch</div><div class="devSectionHint">Senior players who may be approaching decline or retirement decisions.</div>'+
+ (veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric">'+p.ovr+' OVR</div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
 }
 function squadTeamView(){
- let c=coachProfile(),xi=startingXI(),lineClasses=["attack","mid","mid","def","gk"];
- let pitchLines=xi.lines.map((line,i)=>'<div class="pitchLine '+(lineClasses[Math.min(i,lineClasses.length-1)])+'">'+line.map(p=>p?'<div class="pitchPlayer" data-player="'+p.id+'"><div class="pitchBadge">'+p.ovr+'</div><div class="pitchName">'+p.name.split(" ").slice(-1)[0]+'</div><div class="pitchPos">'+p.pos+'</div></div>':'').join("")+'</div>').join("");
+ let c=coachProfile(),xi=startingXI(),slots=formationSlots(),placed=[];
+ xi.lines.forEach((line,lineIndex)=>{
+   let lineSlots=slots[lineIndex]||[];
+   line.forEach((p,index)=>{
+     if(!p)return;
+     let slot=lineSlots[index]||p.pos;
+     let count=lineSlots.filter(s=>s===slot).length||1;
+     let sameIndex=lineSlots.slice(0,index+1).filter(s=>s===slot).length-1;
+     let pt=pitchCoordinate(slot,sameIndex,count);
+     placed.push({p,slot,x:pt.x,y:pt.y});
+   });
+ });
+ let playerHtml=placed.map(x=>{
+   let compatible=x.p.pos===x.slot||slotFamily(x.slot).includes(x.p.pos);
+   return '<div class="tacticalPlayer '+(compatible?'':'outOfRole')+'" data-player="'+x.p.id+'" style="left:'+x.x+'%;top:'+x.y+'%">'+
+    '<div class="pitchBadge">'+x.p.ovr+'</div>'+
+    '<div class="pitchName">'+x.p.name.split(" ").slice(-1)[0]+'</div>'+
+    '<div class="pitchPos">'+x.slot+(x.p.pos!==x.slot?' · '+x.p.pos:'')+'</div></div>';
+ }).join("");
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
- let depth=groups.map(g=>{let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>'}).join("");
- return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div><div class="pitch"><div class="pitchGoal"></div><div class="pitchPenalty"></div><div class="pitchSix"></div><div class="pitchArc"></div>'+pitchLines+'</div></div>'+
- '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>'
+ let depth=groups.map(g=>{
+   let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);
+   return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';
+ }).join("");
+ return'<div class="card"><div class="title">Starting XI</div><div class="coachStrip"><div><div class="label">HEAD COACH</div><b>Coach Rating '+c.coach+'</b><div class="sub">'+c.style+' approach</div></div><div><div class="label">FORMATION</div><div class="formation">'+c.formation+'</div></div></div>'+
+ '<div class="tacticalPitch"><div class="pitchBoundary"></div><div class="pitchHalfway"></div><div class="pitchCentreArc"></div><div class="pitchCentreSpot"></div><div class="pitchPenaltyBox"></div><div class="pitchSixBox"></div><div class="pitchGoal"></div><div class="pitchPenaltySpot"></div><div class="pitchPenaltyArc"></div><div class="pitchCorner bl"></div><div class="pitchCorner br"></div>'+playerHtml+'</div>'+
+ '<div class="pitchLegend">Players are placed by tactical role. Where a natural position differs from the coach’s slot, both roles are shown.</div></div>'+
+ '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural role. Tap any player for details.</div>'+depth+'</div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"]]);
@@ -1385,7 +1721,7 @@ function leagueTableView(){
    '<div class="leagueCell">'+(gd>0?'+':'')+gd+'</div>'+
    '<div class="leagueCell"><b>'+c.pts+'</b></div></div>';
  }).join('');
- return '<div class="card"><div class="title">Premier Division · '+G.season+'</div><div class="sub">Swipe across the table to view all statistics.</div><div class="legend"><span><i class="top"></i>Top four</span><span><i class="drop"></i>Relegation places</span></div><div class="leagueWrap"><div class="leagueTable"><div class="leagueRow head"><div class="leagueCell stickyPos">#</div><div class="leagueCell club stickyClub">CLUB</div><div class="leagueCell">P</div><div class="leagueCell">W</div><div class="leagueCell">D</div><div class="leagueCell">L</div><div class="leagueCell">GF</div><div class="leagueCell">GA</div><div class="leagueCell">GD</div><div class="leagueCell">PTS</div></div>'+rows+'</div></div></div>'+leagueLeadersHtml()
+ return '<div class="card"><div class="title">Premier Division · '+G.season+'</div><div class="sub">Swipe across the table to view all statistics.</div><div class="legend"><span><i class="top"></i>Top four</span><span><i class="drop"></i>Relegation places</span></div><div class="leagueWrap"><div class="leagueTable"><div class="leagueRow head"><div class="leagueCell stickyPos">#</div><div class="leagueCell club stickyClub">CLUB</div><div class="leagueCell">P</div><div class="leagueCell">W</div><div class="leagueCell">D</div><div class="leagueCell">L</div><div class="leagueCell">GF</div><div class="leagueCell">GA</div><div class="leagueCell">GD</div><div class="leagueCell">PTS</div></div>'+rows+'</div></div></div>'
 }
 function leagueRecordsView(){
  let hs=Array.isArray(G.history)?G.history:[];
