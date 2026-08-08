@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.7.3 Save Integrity Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.7.2 Career Save Foundation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1727,49 +1727,6 @@ nav button:active{
   }
 }
 
-
-/* v2.9.7.2 Durable Save Persistence */
-.saveHealth{
-  margin-top:10px;
-  padding:9px 10px;
-  border-radius:11px;
-  border:1px solid var(--line);
-  background:var(--card2);
-}
-.saveHealth b{
-  display:block;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.07em;
-}
-.saveHealth span{
-  display:block;
-  margin-top:3px;
-  font-size:9px;
-  color:var(--muted);
-  line-height:1.35;
-}
-.saveHealth.ok{border-color:#285c43}
-.saveHealth.ok b{color:#58d68d}
-.saveHealth.bad{border-color:#71303a}
-.saveHealth.bad b{color:#ff8090}
-
-
-/* v2.9.7.3 Save Integrity */
-.careerSlotFoot{
-  font-variant-numeric:tabular-nums;
-}
-.careerSlotMeta{
-  font-variant-numeric:tabular-nums;
-}
-.recoveryCandidate .source{
-  line-height:1.3;
-}
-button:disabled{
-  opacity:.72;
-  cursor:default;
-}
-
 </style>
 </head>
 <body>
@@ -1785,7 +1742,6 @@ button:disabled{
   <div class="startActions">
     <button id="newBtn" class="btn primary full">NEW CAREER</button>
     <button id="loadBtn" class="btn full">LOAD CAREER</button>
-    <button id="recoverBtn" class="btn full">RECOVER LEGACY CAREER</button>
     <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking career slots…</div>
     <div id="startBuild" class="launchBuild"></div>
   </div>
@@ -1795,18 +1751,6 @@ button:disabled{
   <h2 id="saveSlotHeading">Choose a Career</h2>
   <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
   <div id="careerSlots" class="careerSlots"></div>
-</div>
-<div id="recoveryStep" class="careerStep hidden">
-  <div class="careerTop"><button id="backToLaunchFromRecovery" class="backBtn">‹ BACK</button><div class="label">SAVE RECOVERY</div><span style="width:44px"></span></div>
-  <h2>Career Recovery</h2>
-  <div class="sub">Legacy careers are kept separate from live saves. Recover one into Career 1, 2 or 3 to continue playing it.</div>
-  <div id="recoverySummary" class="recoverySummary"></div>
-  <div id="recoveryCandidates" class="recoveryCandidates"></div>
-  <div class="recoveryTools">
-    <button id="rescanRecoveryBtn" class="btn full">SCAN AGAIN</button>
-    <label class="btn full recoveryImportLabel">IMPORT CAREER JSON<input id="recoveryFileInput" type="file" accept=".json,application/json" hidden></label>
-  </div>
-  <div id="recoveryMessage" class="sub" style="margin-top:12px"></div>
 </div>
 <div id="clubStep" class="careerStep hidden">
   <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
@@ -1859,7 +1803,7 @@ button:disabled{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.7.3 Save Integrity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.7.2 Career Save Foundation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1867,19 +1811,13 @@ const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wil
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 let G=null, selected=0, page="home", selectedLeagueSize=20;
 let clubTab="overview",leagueTab="table",squadTab="team";
-const CAREER_SLOT_PREFIX="miniMeFootballCareerSlot";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
-const LEGACY_SAVE_KEY="soccerGMAlpha";
-const CAREER_DB_NAME="MiniMeFootballClubDB";
+const CAREER_DB_NAME="MiniMeFootballCareers";
 const CAREER_DB_VERSION=1;
 const CAREER_STORE="careers";
-let activeSaveSlot=1,careerSlotMode="load",activeStorageMode="slot";
-let careerSlotCache={1:null,2:null,3:null};
-let legacyRecoveryCache=null;
-let careerStorageReady=false;
-let saveQueue=Promise.resolve();
-let actionBusy=false;
-let lastSaveHealth={ok:true,message:"Not yet saved",season:null,week:null,revision:0,at:null};
+let activeSaveSlot=1,careerSlotMode="load";
+let careerCache={1:null,2:null,3:null};
+let careerDBPromise=null;
 const $=s=>document.querySelector(s), rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
 function renderBuildVersion(){
@@ -2103,7 +2041,62 @@ function rivalryProfileHtml(id){
  '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
 }
 
-function careerSlotKey(slot){return CAREER_SLOT_PREFIX+String(slot)}
+function openCareerDB(){
+ if(careerDBPromise)return careerDBPromise;
+ careerDBPromise=new Promise((resolve,reject)=>{
+  const req=indexedDB.open(CAREER_DB_NAME,CAREER_DB_VERSION);
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(CAREER_STORE))db.createObjectStore(CAREER_STORE,{keyPath:"slot"})};
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error||new Error("IndexedDB unavailable"));
+ });
+ return careerDBPromise;
+}
+function idbGetSlot(slot){return openCareerDB().then(db=>new Promise((resolve,reject)=>{const tx=db.transaction(CAREER_STORE,"readonly"),r=tx.objectStore(CAREER_STORE).get(Number(slot));r.onsuccess=()=>resolve(r.result?r.result.game:null);r.onerror=()=>reject(r.error)}))}
+function idbPutSlot(slot,game){return openCareerDB().then(db=>new Promise((resolve,reject)=>{const tx=db.transaction(CAREER_STORE,"readwrite");tx.objectStore(CAREER_STORE).put({slot:Number(slot),game,updatedAt:Date.now()});tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error)}))}
+async function initialiseCareerStorage(){
+ try{
+  const rows=await Promise.all([1,2,3].map(idbGetSlot));
+  rows.forEach((g,i)=>careerCache[i+1]=looksLikeCareerObject(g)?g:null);
+  const preferred=Number(localStorage.getItem(ACTIVE_SLOT_KEY));
+  if([1,2,3].includes(preferred))activeSaveSlot=preferred;
+  updateStartStatus();
+ }catch(e){
+  console.error("Career storage initialisation failed",e);
+  $("#startStatus").textContent="Career storage is unavailable in this browsing mode.";
+ }
+}
+function careerSlotData(slot){return careerCache[Number(slot)]||null}
+function careerSlotSummary(slot){
+ let g=careerSlotData(slot);
+ if(!g)return null;
+ let club=g.clubs&&g.clubs.find?g.clubs.find(c=>c.id===g.club):g.clubs&&g.clubs[g.club];
+ let division="League";
+ if(g.leagues){
+  if(g.leagues.lower&&Array.isArray(g.leagues.lower.clubIds)&&g.leagues.lower.clubIds.includes(g.club))division=g.leagues.lower.name||"Championship";
+  else if(g.leagues.top)division=g.leagues.top.name||"Premier Division";
+ }
+ return{club:club?club.name:"Unknown Club",season:g.season||2026,week:Number(g.week)||0,division,seasons:Math.max(1,(Number(g.season)||2026)-2025),lastPlayed:g._lastPlayedAt||null};
+}
+function save(){
+ try{
+  if(!G)return false;
+  if(![1,2,3].includes(Number(activeSaveSlot)))activeSaveSlot=1;
+  G._lastPlayedAt=Date.now();G._careerSlot=activeSaveSlot;G._storageMode="slot";
+  const snapshot=JSON.parse(JSON.stringify(G));
+  careerCache[activeSaveSlot]=snapshot;
+  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot))}catch(e){}
+  idbPutSlot(activeSaveSlot,snapshot).catch(e=>console.error("Career autosave failed",e));
+  return true;
+ }catch(e){console.error("Career save failed",e);return false}
+}
+function updateStartStatus(){
+ const total=[1,2,3].map(careerSlotSummary).filter(Boolean).length;
+ $("#startStatus").textContent=total?total+" saved career"+(total===1?"":"s")+" available on this device.":"No saved careers detected.";
+}
+function formatSlotDate(ts){
+ if(!ts)return"Earlier save";
+ try{return new Date(ts).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return"Saved career"}
+}
 
 function looksLikeCareerObject(g){
  return !!(g&&typeof g==="object"&&Array.isArray(g.clubs)&&Array.isArray(g.players)&&Number.isFinite(Number(g.season))&&Number.isFinite(Number(g.club)));
@@ -2115,396 +2108,37 @@ function safeParseCareer(raw){
    return looksLikeCareerObject(g)?g:null;
  }catch(e){return null}
 }
-function describeRecoveredCareer(g){
- let club=(g.clubs||[]).find(c=>Number(c.id)===Number(g.club))||(g.clubs||[])[Number(g.club)];
- let clubName=club&&club.name?club.name:"Unknown Club";
- let division="League";
- if(g.leagues){
-   if(g.leagues.lower&&Array.isArray(g.leagues.lower.clubIds)&&g.leagues.lower.clubIds.includes(g.club))division=g.leagues.lower.name||"Championship";
-   else if(g.leagues.top)division=g.leagues.top.name||"Premier Division";
- }
- return{
-   club:clubName,
-   season:Number(g.season)||2026,
-   week:Number(g.week)||0,
-   division,
-   players:Array.isArray(g.players)?g.players.length:0,
-   history:Array.isArray(g.history)?g.history.length:0,
-   lastPlayed:g._lastPlayedAt||null
- };
-}
-function formatSlotDate(ts){
- if(!ts)return"Earlier save";
- try{return new Date(ts).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return"Saved career"}
-}
-function formatSlotTime(ts){
- if(!ts)return"Unknown time";
- try{return new Date(ts).toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"})}catch(e){return"Saved"}
-}
-function cloneCareer(g){
- if(typeof structuredClone==="function"){
-   try{return structuredClone(g)}catch(e){}
- }
- return JSON.parse(JSON.stringify(g));
-}
 
-/* IndexedDB is the canonical career store from v2.9.7.2 onward.
-   localStorage legacy data remains untouched and recovery-only. */
-function openCareerDB(){
- return new Promise((resolve,reject)=>{
-   let req=indexedDB.open(CAREER_DB_NAME,CAREER_DB_VERSION);
-   req.onupgradeneeded=function(){
-     let db=req.result;
-     if(!db.objectStoreNames.contains(CAREER_STORE))db.createObjectStore(CAREER_STORE,{keyPath:"id"});
-   };
-   req.onsuccess=()=>resolve(req.result);
-   req.onerror=()=>reject(req.error||new Error("Unable to open career database"));
- });
-}
-async function dbGetCareer(id){
- let db=await openCareerDB();
- return new Promise((resolve,reject)=>{
-   let tx=db.transaction(CAREER_STORE,"readonly"),req=tx.objectStore(CAREER_STORE).get(id);
-   req.onsuccess=()=>resolve(req.result?req.result.data:null);
-   req.onerror=()=>reject(req.error||new Error("Career read failed"));
-   tx.oncomplete=()=>db.close();
- });
-}
-async function dbPutCareer(id,g){
- let db=await openCareerDB();
- return new Promise((resolve,reject)=>{
-   let tx=db.transaction(CAREER_STORE,"readwrite");
-   tx.objectStore(CAREER_STORE).put({id,data:g,updatedAt:Date.now()});
-   tx.oncomplete=()=>{db.close();resolve(true)};
-   tx.onerror=()=>{let err=tx.error||new Error("Career write failed");db.close();reject(err)};
-   tx.onabort=()=>{let err=tx.error||new Error("Career write aborted");db.close();reject(err)};
- });
-}
-async function dbDeleteCareer(id){
- let db=await openCareerDB();
- return new Promise((resolve,reject)=>{
-   let tx=db.transaction(CAREER_STORE,"readwrite");
-   tx.objectStore(CAREER_STORE).delete(id);
-   tx.oncomplete=()=>{db.close();resolve(true)};
-   tx.onerror=()=>{let err=tx.error||new Error("Career delete failed");db.close();reject(err)};
- });
-}
-async function verifyStoredCareer(id,expected){
- let saved=await dbGetCareer(id);
- if(!looksLikeCareerObject(saved))throw new Error("Saved career could not be read back");
- if(Number(saved.season)!==Number(expected.season)||Number(saved.week)!==Number(expected.week)){
-   throw new Error("Save verification mismatch");
- }
- if(Number(saved._saveRevision||0)!==Number(expected._saveRevision||0)){
-   throw new Error("Save revision mismatch");
- }
- return saved;
-}
-async function persistSlotSnapshot(slot,snapshot){
- let id="slot"+Number(slot);
- let incomingRevision=Number(snapshot._saveRevision)||0;
- let current=await dbGetCareer(id);
 
- // A stale queued snapshot must never replace a newer stored career.
- if(looksLikeCareerObject(current)&&Number(current._saveRevision||0)>incomingRevision){
-   careerSlotCache[Number(slot)]=current;
-   return current;
- }
 
- await dbPutCareer(id,snapshot);
- let verified=await verifyStoredCareer(id,snapshot);
- careerSlotCache[Number(slot)]=verified;
- lastSaveHealth={
-   ok:true,
-   message:"Verified",
-   season:Number(verified.season)||2026,
-   week:Number(verified.week)||0,
-   revision:Number(verified._saveRevision)||0,
-   at:Number(verified._lastPlayedAt)||Date.now()
- };
- return verified;
-}
-function reportSaveFailure(err){
- console.error("Career save failed",err);
- lastSaveHealth={
-   ok:false,
-   message:(err&&err.message)||"Save failed",
-   season:G?G.season:null,
-   week:G?G.week:null,
-   revision:G?Number(G._saveRevision||0):0,
-   at:Date.now()
- };
- let msg="CAREER SAVE FAILED. Your latest progress has not been verified. Keep this page open and try another action before closing Safari.";
- if(G&&Array.isArray(G.feed)&&!G.feed.some(x=>x&&x.t==="SAVE WARNING"&&x.m===msg)){
-   G.feed.unshift({t:"SAVE WARNING",m:msg});
- }
-}
-function prepareSaveSnapshot(){
- if(!G||![1,2,3].includes(Number(activeSaveSlot)))throw new Error("No active career slot");
- G._saveRevision=Math.max(Number(G._saveRevision)||0,Number(careerSlotCache[activeSaveSlot]?._saveRevision)||0)+1;
- G._lastPlayedAt=Date.now();
- G._careerSlot=Number(activeSaveSlot);
- G._storageMode="indexeddb";
- return{slot:Number(activeSaveSlot),snapshot:cloneCareer(G),revision:Number(G._saveRevision)};
-}
-function queueVerifiedSave(){
- let prepared;
- try{prepared=prepareSaveSnapshot()}catch(err){reportSaveFailure(err);return Promise.resolve(false)}
- let {slot,snapshot}=prepared;
+let recoveryScanCache=[];
 
- // All writes, including "save now", use this one ordered queue.
- saveQueue=saveQueue
-   .catch(()=>{})
-   .then(()=>persistSlotSnapshot(slot,snapshot))
-   .then(()=>true)
-   .catch(err=>{reportSaveFailure(err);return false});
 
- return saveQueue;
-}
-function save(){
- if(!G)return false;
- queueVerifiedSave();
- return true;
-}
-async function saveAndVerifyNow(){
- if(!G)return false;
- return await queueVerifiedSave();
-}
-async function waitForSaveQueue(){
- try{await saveQueue}catch(e){}
-}
-async function migrateExistingBrowserSaves(){
- /* Migrate old numbered localStorage slots into IndexedDB if the DB slot is empty.
-    Preserve the old localStorage values; never delete them automatically. */
- for(let slot=1;slot<=3;slot++){
-   let existing=await dbGetCareer("slot"+slot);
-   if(looksLikeCareerObject(existing)){
-     careerSlotCache[slot]=existing;
-     continue;
-   }
-   let local=null;
-   try{local=safeParseCareer(localStorage.getItem(careerSlotKey(slot)))}catch(e){}
-   if(local){
-     try{
-       if(!Number.isFinite(Number(local._saveRevision)))local._saveRevision=1;
-       if(!local._lastPlayedAt)local._lastPlayedAt=Date.now();
-       await persistSlotSnapshot(slot,cloneCareer(local));
-       careerSlotCache[slot]=await dbGetCareer("slot"+slot);
-     }catch(e){console.warn("Could not migrate old Career "+slot,e)}
-   }
- }
- /* Legacy is recovery-only. Preserve a durable IndexedDB recovery copy,
-    but do not make it a fourth live career and do not remove localStorage. */
- let recovery=await dbGetCareer("legacyRecovery");
- if(!looksLikeCareerObject(recovery)){
-   let legacy=null;
-   try{legacy=safeParseCareer(localStorage.getItem(LEGACY_SAVE_KEY))}catch(e){}
-   if(legacy){
-     try{
-       if(!Number.isFinite(Number(legacy._saveRevision)))legacy._saveRevision=0;
-       await dbPutCareer("legacyRecovery",cloneCareer(legacy));
-       recovery=await dbGetCareer("legacyRecovery");
-     }catch(e){console.warn("Legacy recovery migration failed",e)}
-   }
- }
- legacyRecoveryCache=looksLikeCareerObject(recovery)?recovery:null;
-}
-async function refreshCareerCache(){
- await waitForSaveQueue();
- for(let slot=1;slot<=3;slot++){
-   try{
-     let g=await dbGetCareer("slot"+slot);
-     careerSlotCache[slot]=looksLikeCareerObject(g)?g:null;
-   }catch(e){careerSlotCache[slot]=null}
- }
- try{
-   let legacy=await dbGetCareer("legacyRecovery");
-   legacyRecoveryCache=looksLikeCareerObject(legacy)?legacy:null;
- }catch(e){legacyRecoveryCache=null}
-}
-async function initialiseCareerStorage(){
- try{
-   await migrateExistingBrowserSaves();
-   await refreshCareerCache();
-   careerStorageReady=true;
-   let slots=[1,2,3].filter(i=>careerSlotCache[i]).length;
-   $("#startStatus").textContent=slots?
-     slots+" saved career"+(slots===1?"":"s")+" available on this device.":
-     (legacyRecoveryCache?"No live career slots. A legacy recovery is available under Recover Career.":"No saved careers detected.");
- }catch(e){
-   console.error(e);
-   careerStorageReady=false;
-   $("#startStatus").textContent="Career storage could not initialise. Use Recover Career before starting anything new.";
- }
-}
-function careerSlotData(slot){return careerSlotCache[Number(slot)]||null}
-function careerSlotSummary(slot){
- let g=careerSlotData(slot);
- if(!g)return null;
- let d=describeRecoveredCareer(g);
- return{
-   club:d.club,
-   season:d.season,
-   week:d.week,
-   division:d.division,
-   seasons:Math.max(1,d.season-2025),
-   lastPlayed:d.lastPlayed,
-   revision:Number(g._saveRevision)||0
- };
-}
+
+
+
 function renderCareerSlots(mode=careerSlotMode){
- careerSlotMode=mode;
- let host=$("#careerSlots");if(!host)return;
+ careerSlotMode=mode;let host=$("#careerSlots");if(!host)return;
  $("#saveSlotTitle").textContent=mode==="new"?"NEW CAREER":"LOAD CAREER";
- $("#saveSlotHeading").textContent=mode==="new"?"Choose a Save Slot":"Choose a Career";
- $("#saveSlotHint").textContent=mode==="new"?
-   "Choose one of three persistent career slots.":
-   "Select one of the careers saved on this device.";
- host.innerHTML=[1,2,3].map(slot=>{
-   let s=careerSlotSummary(slot);
-   if(!s){
-     return '<button class="careerSlot empty" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">Empty Career Slot</div><div class="careerSlotMeta">'+(mode==="new"?"Start a new football legacy here.":"No career has been created in this slot.")+'</div></div><div class="careerSlotSeason">EMPTY</div></div></button>';
-   }
-   return '<button class="careerSlot" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">'+s.club+'</div><div class="careerSlotMeta">'+s.division+' · '+s.season+' Season · Week '+s.week+'</div></div><div class="careerSlotSeason">'+s.season+'</div></div><div class="careerSlotFoot"><span>REV '+s.revision+' · '+formatSlotDate(s.lastPlayed)+'</span><span>'+formatSlotTime(s.lastPlayed)+'</span></div></button>';
- }).join("");
+ $("#saveSlotHeading").textContent=mode==="new"?"Choose a Career Slot":"Choose a Career";
+ $("#saveSlotHint").textContent=mode==="new"?"Choose Career 1, 2 or 3. Existing careers can be replaced after confirmation.":"Select a saved career to resume exactly where you left it.";
+ host.innerHTML=[1,2,3].map(slot=>{let s=careerSlotSummary(slot);if(!s)return '<button class="careerSlot empty" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">Empty Career Slot</div><div class="careerSlotMeta">'+(mode==="new"?"Start a new football legacy here.":"No career has been created in this slot.")+'</div></div><div class="careerSlotSeason">EMPTY</div></div></button>';return '<button class="careerSlot" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">'+s.club+'</div><div class="careerSlotMeta">'+s.division+' · Week '+s.week+'</div></div><div class="careerSlotSeason">'+s.season+'</div></div><div class="careerSlotFoot"><span>Season '+s.seasons+'</span><span>Last played '+formatSlotDate(s.lastPlayed)+'</span></div></button>'}).join("");
 }
-async function showCareerSlots(mode){
+function showCareerSlots(mode){
  careerSlotMode=mode;
  $("#launchStep").classList.add("hidden");
  $("#clubStep").classList.add("hidden");
- $("#recoveryStep").classList.add("hidden");
  $("#saveSlotStep").classList.remove("hidden");
- if(!careerStorageReady){
-   $("#careerSlots").innerHTML='<div class="sub">Checking persistent career storage…</div>';
-   await initialiseCareerStorage();
- }else{
-   await refreshCareerCache();
- }
  renderCareerSlots(mode);
 }
-async function loadCareerSlot(slot){
- let status=$("#startStatus");
- try{
-   await waitForSaveQueue();
-   let g=await dbGetCareer("slot"+Number(slot));
-   if(!looksLikeCareerObject(g)){
-     careerSlotCache[Number(slot)]=null;
-     status.textContent="That career slot is empty.";
-     return false;
-   }
-   careerSlotCache[Number(slot)]=g;
-   activeSaveSlot=Number(slot)||1;
-   activeStorageMode="slot";
-   G=g;
-   G._careerSlot=activeSaveSlot;
-   G._storageMode="indexeddb";
-   lastSaveHealth={
-     ok:true,
-     message:"Loaded latest verified save",
-     season:Number(g.season)||2026,
-     week:Number(g.week)||0,
-     revision:Number(g._saveRevision)||0,
-     at:Number(g._lastPlayedAt)||Date.now()
-   };
-   $("#start").classList.add("hidden");
-   document.body.classList.remove("career-hub-active");
-   page="home";
-   render();
-   return true;
- }catch(e){
-   status.textContent="Safari could not load that career: "+(e&&e.message?e.message:String(e));
-   return false;
- }
-}
 
-/* Recovery is deliberately separate from live career loading. */
-async function renderRecoveryScan(){
- let summary=$("#recoverySummary"),host=$("#recoveryCandidates"),message=$("#recoveryMessage");
- if(!careerStorageReady)await initialiseCareerStorage();
- else await refreshCareerCache();
- let candidates=[];
- if(legacyRecoveryCache)candidates.push({type:"legacy",g:legacyRecoveryCache,desc:describeRecoveredCareer(legacyRecoveryCache)});
- try{
-   let raw=localStorage.getItem(LEGACY_SAVE_KEY),legacy=safeParseCareer(raw);
-   if(legacy&&!candidates.some(x=>x.desc.season===Number(legacy.season)&&x.desc.week===Number(legacy.week))){
-     candidates.push({type:"legacyLocal",g:legacy,desc:describeRecoveredCareer(legacy)});
-   }
- }catch(e){}
- summary.innerHTML='<b>Recovery storage scan complete</b><span>'+candidates.length+' legacy recovery '+(candidates.length===1?'career':'careers')+' found. Live Career 1–3 saves are managed separately.</span>';
- if(candidates.length){
-   recoveryScanCache=candidates;
-   host.innerHTML=candidates.map((c,index)=>{
-     let d=c.desc;
-     return '<div class="recoveryCandidate legacy"><div class="recoveryCandidateTop"><div><div class="source">RECOVERY SNAPSHOT · FROZEN</div><b>'+d.club+'</b><span>'+d.division+' · '+d.season+' Season · Week '+d.week+'</span><span>'+d.players+' players · '+d.history+' archived seasons</span></div><div class="careerSlotSeason">'+d.season+'</div></div><button class="btn primary full" data-recover-to-slot="'+index+'">RECOVER INTO A CAREER SLOT</button></div>';
-   }).join("");
-   message.textContent="This is a frozen fallback snapshot. It will not advance unless recovered into Career 1, 2 or 3.";
- }else{
-   recoveryScanCache=[];
-   host.innerHTML='<div class="recoveryDanger">No legacy recovery career is currently available.</div>';
-   message.textContent="Your live Career 1–3 saves are shown under Load Career.";
- }
-}
-async function showRecovery(){
- $("#launchStep").classList.add("hidden");
- $("#saveSlotStep").classList.add("hidden");
- $("#clubStep").classList.add("hidden");
- $("#recoveryStep").classList.remove("hidden");
- await renderRecoveryScan();
-}
-async function recoverCandidateToSlot(index){
- let c=recoveryScanCache[Number(index)];
- if(!c||!looksLikeCareerObject(c.g))return alert("That recovery career is no longer available.");
- await refreshCareerCache();
- let empty=[1,2,3].find(i=>!careerSlotCache[i]);
- let target=empty||1;
- if(careerSlotCache[target]){
-   let current=careerSlotSummary(target);
-   if(!confirm("Career "+target+" currently contains "+current.club+" · "+current.season+". Replace it with the recovered career?"))return;
- }
- let d=c.desc;
- if(!confirm("Recover "+d.club+" · "+d.season+" Season · Week "+d.week+" into Career "+target+"?"))return;
- try{
-   let snapshot=cloneCareer(c.g);
-   snapshot._careerSlot=target;
-   snapshot._storageMode="indexeddb";
-   snapshot._saveRevision=Math.max(Number(snapshot._saveRevision)||0,Number(careerSlotCache[target]?._saveRevision)||0)+1;
-   snapshot._lastPlayedAt=Date.now();
-   await persistSlotSnapshot(target,snapshot);
-   activeSaveSlot=target;
-   $("#recoveryMessage").textContent="Recovered successfully into Career "+target+". It is now a normal persistent career save.";
-   await refreshCareerCache();
- }catch(e){
-   $("#recoveryMessage").textContent="Recovery failed: "+(e&&e.message?e.message:String(e));
- }
-}
-async function importRecoveryFile(file){
- if(!file)return;
- let reader=new FileReader();
- reader.onload=async function(){
-   let raw=String(reader.result||""),g=safeParseCareer(raw);
-   if(!g){$("#recoveryMessage").textContent="That file does not contain a valid Mini&Me Football Club career.";return}
-   await refreshCareerCache();
-   let target=[1,2,3].find(i=>!careerSlotCache[i])||1;
-   if(careerSlotCache[target]){
-     let current=careerSlotSummary(target);
-     if(!confirm("Career "+target+" currently contains "+current.club+" · "+current.season+". Replace it?"))return;
-   }
-   let d=describeRecoveredCareer(g);
-   if(!confirm("Import "+d.club+" · "+d.season+" Season into Career "+target+"?"))return;
-   try{
-     g._careerSlot=target;
-     g._storageMode="indexeddb";
-     g._saveRevision=Math.max(Number(g._saveRevision)||0,Number(careerSlotCache[target]?._saveRevision)||0)+1;
-     g._lastPlayedAt=Date.now();
-     await persistSlotSnapshot(target,cloneCareer(g));
-     activeSaveSlot=target;
-     $("#recoveryMessage").textContent="Imported successfully into Career "+target+".";
-     await refreshCareerCache();
-   }catch(e){
-     $("#recoveryMessage").textContent="Import failed: "+(e&&e.message?e.message:String(e));
-   }
- };
- reader.readAsText(file);
+
+function loadCareerSlot(slot){
+ let status=$("#startStatus"),g=careerSlotData(slot);
+ if(!g){status.textContent="That career slot is empty.";return false}
+ activeSaveSlot=Number(slot)||1;G=JSON.parse(JSON.stringify(g));G._careerSlot=activeSaveSlot;G._storageMode="slot";
+ try{localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot))}catch(e){}
+ $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();return true;
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
 function strength(id){let ps=[...roster(id)].sort((a,b)=>b.ovr-a.ovr).slice(0,11);return ps.reduce((s,p)=>s+p.ovr,0)/11+G.clubs[id].coach*.07}
@@ -2984,30 +2618,13 @@ function simulateDivisionWeek(key){
  });
  return userResult;
 }
-async function advance(){
- if(actionBusy)return;
- actionBusy=true;
- let homeBtn=$("#homeContinueBtn");
- if(homeBtn){homeBtn.disabled=true;homeBtn.textContent="SAVING…"}
- try{
-   ensureLeagueWorld();let weeks=leagueSeasonWeeks();
-   if(G.week>=weeks){endSeason();return}
-   let userResult=null,playedWeek=G.week+1;
-   ["top","lower"].forEach(k=>{let r=simulateDivisionWeek(k);if(r)userResult=r});
-   roster().forEach(p=>{if(p.age<25&&Math.random()<.11)p.ovr=Math.min(p.pot,p.ovr+1);p.morale=Math.max(45,Math.min(100,p.morale+rnd(-3,4)))});
-   G.week++;
-   refreshMarketActivity();
-
-   let verified=await saveAndVerifyNow();
-   if(!verified){
-     alert("Week "+G.week+" was played but the save could not be verified. Keep this page open and do not reload yet.");
-   }
-
-   render();
-   if(userResult)showMatchResult(userResult,playedWeek);
- }finally{
-   actionBusy=false;
- }
+function advance(){
+ ensureLeagueWorld();let weeks=leagueSeasonWeeks();
+ if(G.week>=weeks){endSeason();return}
+ let userResult=null,playedWeek=G.week+1;
+ ["top","lower"].forEach(k=>{let r=simulateDivisionWeek(k);if(r)userResult=r});
+ roster().forEach(p=>{if(p.age<25&&Math.random()<.11)p.ovr=Math.min(p.pot,p.ovr+1);p.morale=Math.max(45,Math.min(100,p.morale+rnd(-3,4)))});
+ G.week++;refreshMarketActivity();save();render();if(userResult)showMatchResult(userResult,playedWeek);
 }
 function showMatchResult(r,playedWeek){
  let userHome=r.a===G.club;
@@ -3448,7 +3065,7 @@ function clubProfileOverview(id){
  '<div class="financeRow"><span>Goal difference</span><b>'+((c.gf-c.ga)>0?"+":"")+(c.gf-c.ga)+'</b></div>'+
  '<div class="financeRow"><span>Points</span><b>'+c.pts+'</b></div></div></div>'+
  (id!==G.club?'<div class="clubH2HCard"><div class="label">RECORD VS YOUR CLUB</div><div class="recordBig">'+headToHeadLabel(G.club,id)+'</div><div class="sub">'+(headToHead(G.club,id).played?'Goals '+headToHead(G.club,id).gf+'–'+headToHead(G.club,id).ga+' from your club’s perspective.':'The rivalry record will begin after the first archived meeting.')+'</div></div>':'')+
- (id===G.club?'<div class="card gameInfoCard"><div class="label">GAME INFO</div><div class="gameInfoBuild">'+BUILD_VERSION+'</div><div class="sub">Career data is stored in persistent browser storage on this device.</div><div class="saveHealth '+(lastSaveHealth.ok?'ok':'bad')+'"><b>Save '+(lastSaveHealth.ok?'verified':'warning')+'</b><span>'+(lastSaveHealth.season?'Season '+lastSaveHealth.season+' · Week '+lastSaveHealth.week+' · Rev '+(lastSaveHealth.revision||0)+' · ':'')+lastSaveHealth.message+(lastSaveHealth.at?' · '+formatSlotTime(lastSaveHealth.at):'')+'</span></div></div>':'');
+ (id===G.club?'<div class="card gameInfoCard"><div class="label">GAME INFO</div><div class="gameInfoBuild">'+BUILD_VERSION+'</div><div class="sub">Career data is stored locally on this device.</div></div>':'');
 }
 function clubProfileSquad(id){
  let ps=[...roster(id)].sort((a,b)=>positionGroup(a.pos).localeCompare(positionGroup(b.pos))||b.ovr-a.ovr);
@@ -3501,9 +3118,7 @@ function applyPromotionRelegation(){
  G.lastMovement={season:G.season,relegated,promoted};
 }
 
-async function beginNewSeason(){
- if(actionBusy)return;
- actionBusy=true;
+function beginNewSeason(){
  try{
   let r=G.pendingSeasonReview;
   if(!r){
@@ -3567,13 +3182,13 @@ async function beginNewSeason(){
 
   G.feed.unshift({t:"NEW SEASON",m:"Board expectation: "+boardExpectationText(G.boardTarget)+"."});
 
+  // Commit the core season rollover before optional AI-world churn.
   G.pendingSeasonReview=null;
+  save();
 
   runSafeWorldEvolution();
   considerRetirements();
-
-  let verified=await saveAndVerifyNow();
-  if(!verified)throw new Error("The new season was created but the save could not be verified.");
+  save();
 
   $("#seasonReview").classList.add("hidden");
   document.body.classList.remove("season-review-active");
@@ -3581,9 +3196,7 @@ async function beginNewSeason(){
   render();
  }catch(err){
   console.error("New season rollover failed",err);
-  alert("The new season could not start: "+(err&&err.message?err.message:String(err))+". Keep this page open if a save warning is shown.");
- }finally{
-  actionBusy=false;
+  alert("The new season could not start: "+(err&&err.message?err.message:String(err))+". Your current save has been preserved.");
  }
 }
 function endSeason(){
@@ -4326,30 +3939,19 @@ function renderClubChoices(){
  }).join("");
 }
 renderClubChoices();
-async function startSelectedCareer(){
+function startSelectedCareer(){
  var status=$("#startStatus");
  try{
   G=world();
-  activeStorageMode="slot";
   G._careerSlot=activeSaveSlot;
-  G._storageMode="indexeddb";
-  G._saveRevision=Number(careerSlotCache[activeSaveSlot]?._saveRevision)||0;
-  status.textContent="Creating and verifying Career "+activeSaveSlot+"…";
-  let saved=await saveAndVerifyNow();
-  if(!saved){
-    G=null;
-    $("#clubStep").classList.add("hidden");
-    $("#launchStep").classList.remove("hidden");
-    status.textContent="Career could not be safely created. No unverified career was started.";
-    return;
-  }
-  await refreshCareerCache();
+  G._storageMode="slot";
+  var saved=save();
   $("#start").classList.add("hidden");
   document.body.classList.remove("career-hub-active");
   page="home";
   render();
+  if(!saved)G.feed.unshift({t:"SAVE WARNING",m:"Safari is running the game but local saving is unavailable in this browsing mode."});
  }catch(e){
-  G=null;
   $("#clubStep").classList.add("hidden");
   $("#launchStep").classList.remove("hidden");
   status.textContent="Game startup failed: "+(e&&e.message?e.message:String(e));
@@ -4357,7 +3959,6 @@ async function startSelectedCareer(){
 }
 document.addEventListener("click",function(e){
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
-let recoverSlot=e.target.closest("[data-recover-to-slot]");if(recoverSlot){recoverCandidateToSlot(recoverSlot.dataset.recoverToSlot);return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
@@ -4367,7 +3968,7 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  }
  if(existing&&!confirm("Career "+slot+" already contains "+(careerSlotSummary(slot)?.club||"a saved career")+". Replace it with a new career?"))return;
  activeSaveSlot=slot;
- activeStorageMode="slot";
+ try{localStorage.setItem(ACTIVE_SLOT_KEY,String(slot))}catch(e){}
  $("#saveSlotStep").classList.add("hidden");
  $("#clubStep").classList.remove("hidden");
  selected=0;
@@ -4399,13 +4000,6 @@ let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlaye
 if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
 $("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
 $("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
-$("#recoverBtn").addEventListener("click",showRecovery);
-$("#backToLaunchFromRecovery").addEventListener("click",function(){
- $("#recoveryStep").classList.add("hidden");
- $("#launchStep").classList.remove("hidden");
-});
-$("#rescanRecoveryBtn").addEventListener("click",renderRecoveryScan);
-$("#recoveryFileInput").addEventListener("change",function(){importRecoveryFile(this.files&&this.files[0]);this.value=""});
 $("#backToLaunchFromSlots").addEventListener("click",function(){
  $("#saveSlotStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
@@ -4418,9 +4012,9 @@ $("#backToLaunch").addEventListener("click",function(){
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",beginNewSeason);
-$("#resultContinueBtn").addEventListener("click",async function(){
+$("#resultContinueBtn").addEventListener("click",function(){
+ // Close the match report immediately so the tap feels responsive.
  $("#resultScreen").classList.add("hidden");
- await waitForSaveQueue();
  if(G.week>=leagueSeasonWeeks()){
    requestAnimationFrame(prepareSeasonReview);
    return;
@@ -4431,7 +4025,6 @@ $("#resultContinueBtn").addEventListener("click",async function(){
 });
 
 document.body.classList.add("career-hub-active");
-$("#startStatus").textContent="Checking persistent career storage…";
 initialiseCareerStorage();
 
 
