@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.1 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -931,6 +931,12 @@ main{
 .worldNote{border:1px solid #5e5229;background:#d9b54a0b;border-radius:14px;padding:12px;font-size:11px;line-height:1.45;color:var(--muted);margin-bottom:12px}
 @media(max-width:430px){.leaguePresetRow{grid-template-columns:1fr}}
 
+
+/* v2.9.1 Match Complete compact refinement */
+#resultPerformers{margin-bottom:10px!important}
+#resultRatings{margin-bottom:10px!important}
+#resultContinueBtn{margin-top:14px!important}
+
 </style>
 </head>
 <body>
@@ -992,12 +998,12 @@ main{
  </div>
 </div>
 
-<div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="resultBadge">MATCH COMPLETE</div><div id="resultState" class="resultState"></div><div class="card"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div id="resultScore" class="resultScore"></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><div class="resultMeta"><div class="card"><div class="label">LEAGUE POSITION</div><div id="resultPos" class="value"></div><div id="resultPosSub" class="sub"></div></div><div class="card"><div class="label">NEXT FIXTURE</div><div id="resultNext" style="font-weight:800;margin-top:8px"></div><div id="resultNextSub" class="sub" style="margin-top:6px"></div></div></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
+<div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="resultBadge">MATCH COMPLETE</div><div id="resultState" class="resultState"></div><div class="card"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div id="resultScore" class="resultScore"></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
 <div id="sheet" class="sheet hidden"><div id="sheetbox" class="sheetbox"></div></div>
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.1 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1328,10 +1334,6 @@ function showMatchResult(r,playedWeek){
  let userPerf=userHome?(r.perfA||[]):(r.perfB||[]),top=userPerf.slice(0,3);
  $("#resultPerformers").innerHTML='<div class="title">Key Performers</div>'+(r.potm?'<div class="sub">Player of the Match · '+r.potm.name+' · '+r.potm.rating.toFixed(1)+'</div>':'')+top.map(x=>'<div class="performer"><div><b>'+x.name+' · '+x.pos+'</b><span>'+(x.goals?x.goals+' goal'+(x.goals>1?'s':''):'')+(x.goals&&x.assists?' · ':'')+(x.assists?x.assists+' assist'+(x.assists>1?'s':''):'')+(!x.goals&&!x.assists?'Match performance':'')+'</span></div><div class="rating">'+x.rating.toFixed(1)+'</div></div>').join("");
  $("#resultRatings").innerHTML='<div class="title">Player Ratings</div><details class="matchDetails"><summary>VIEW FULL STARTING XI</summary>'+userPerf.map(x=>'<div class="ratingRow"><span>'+x.pos+' · '+x.name+(x.goals?' · '+x.goals+'G':'')+(x.assists?' · '+x.assists+'A':'')+'</span><b>'+x.rating.toFixed(1)+'</b></div>').join("")+'</details>';
- $("#resultPos").textContent=pos+" / "+leagueInfo().clubIds.length;
- $("#resultPosSub").textContent="After "+G.week+" matches";
- $("#resultNext").textContent=G.clubs[G.club].name+" vs "+opp.name;
- $("#resultNextSub").textContent="League · Week "+(G.week+1);
  $("#resultScreen").classList.remove("hidden");
 }
 
