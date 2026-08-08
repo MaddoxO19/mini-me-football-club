@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.1 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.2 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -937,6 +937,22 @@ main{
 #resultRatings{margin-bottom:10px!important}
 #resultContinueBtn{margin-top:14px!important}
 
+
+/* v2.9.2 Club Profiles & Historical Identity */
+.clubProfileHero{border:1px solid #5f5126;background:linear-gradient(180deg,#171a16,#101821);border-radius:18px;padding:15px;margin-bottom:12px}
+.clubProfileHero .clubProfileName{font-size:24px;font-weight:950;margin-top:5px;line-height:1.08}
+.clubProfileHero .clubProfileMeta{margin-top:5px;color:var(--muted);font-size:11px}
+.clubProfileTabs{display:flex;gap:7px;overflow-x:auto;padding:0 0 12px;scrollbar-width:none}
+.clubProfileTabs::-webkit-scrollbar{display:none}
+.clubProfileTabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--card2);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:10px;font-weight:900}
+.clubProfileTabs button.active{border-color:var(--gold);color:var(--gold);background:#d9b54a10}
+.clubProfileStatGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.clubProfileStat{border:1px solid var(--line);background:var(--card2);border-radius:13px;padding:12px}
+.clubProfileStat .v{font-size:19px;font-weight:900;margin-top:4px}
+.honourRow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.honourRow:last-child{border-bottom:0}.honourRow b{font-size:12px}.honourRow span{font-size:10px;color:var(--muted)}
+.aiClubLink{cursor:pointer;text-decoration:none}.aiClubLink:hover{color:var(--gold)}
+
 </style>
 </head>
 <body>
@@ -1003,7 +1019,7 @@ main{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.1 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.2 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1624,7 +1640,7 @@ function prepareSeasonReview(){
  let promoted=key==="lower"?table.slice(0,3).map((x,i)=>({pos:i+1,name:x.name,pts:x.pts})):[];
  let awards=seasonAwards();
  G.pendingSeasonReview={
-   season:G.season,pos,champion:champion.name,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
+   season:G.season,pos,champion:champion.name,championClubId:champion.id,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
    target,met,expiring,finalYear,topFour,relegated,promoted,division:key,divisionName:leagueInfo(key).name,awards
  };
  save();
@@ -1676,11 +1692,98 @@ function runSafeWorldEvolution(){
  }
 }
 
+
+function ensureClubHistoryState(){
+ G.clubs.forEach(c=>{
+  if(!c.history)c.history=[];
+  if(!c.records)c.records={bestFinish:null,bestPoints:null,mostGoals:null,titles:0,promotions:0,relegations:0};
+ });
+}
+function snapshotAllClubHistories(){
+ ensureClubHistoryState();
+ ["top","lower"].forEach(key=>{
+  let table=standings(key),info=leagueInfo(key);
+  table.forEach((c,index)=>{
+   let snap={season:G.season,division:key,divisionName:info.name,position:index+1,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,pts:c.pts,champion:index===0};
+   c.history.unshift(snap);
+   if(index===0)c.records.titles++;
+   if(!c.records.bestFinish || (key==="top"&&c.records.bestFinish.division==="lower") || (key===c.records.bestFinish.division&&index+1<c.records.bestFinish.position))
+    c.records.bestFinish={division:key,divisionName:info.name,position:index+1,season:G.season};
+   if(!c.records.bestPoints||c.pts>c.records.bestPoints.points)c.records.bestPoints={points:c.pts,season:G.season,divisionName:info.name};
+   if(!c.records.mostGoals||c.gf>c.records.mostGoals.goals)c.records.mostGoals={goals:c.gf,season:G.season,divisionName:info.name};
+  });
+ });
+}
+function recordClubMovement(relegated,promoted){
+ ensureClubHistoryState();
+ relegated.forEach(id=>{let c=G.clubs[id];if(c)c.records.relegations++});
+ promoted.forEach(id=>{let c=G.clubs[id];if(c)c.records.promotions++});
+}
+function clubCurrentDivisionKey(id){ensureLeagueWorld();return G.leagues.lower.clubIds.includes(id)?"lower":"top"}
+function clubCurrentPosition(id){let t=standings(clubCurrentDivisionKey(id)),i=t.findIndex(c=>c.id===id);return i>=0?i+1:null}
+function clubSquadAverage(id){let ps=roster(id);return ps.length?(ps.reduce((s,p)=>s+(Number(p.ovr)||0),0)/ps.length).toFixed(1):"—"}
+function clubHistoricName(id){let c=G.clubs[id];return c?c.name:"Unknown Club"}
+function clubProfileOverview(id){
+ let c=G.clubs[id],key=clubCurrentDivisionKey(id),info=leagueInfo(key),pos=clubCurrentPosition(id),avg=clubSquadAverage(id);
+ return '<div class="clubProfileStatGrid">'+
+ '<div class="clubProfileStat"><div class="label">DIVISION</div><div class="v">'+info.name+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">POSITION</div><div class="v">'+(pos?ordinal(pos):"—")+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">SQUAD AVG</div><div class="v">'+avg+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">REPUTATION</div><div class="v">'+c.rep+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">COACH</div><div class="v">'+c.coach+'</div></div>'+
+ '<div class="clubProfileStat"><div class="label">BUDGET</div><div class="v">'+money(c.budget)+'</div></div></div>'+
+ '<div class="card" style="margin-top:12px"><div class="title">Current Season</div><div class="financeRows">'+
+ '<div class="financeRow"><span>Record</span><b>'+c.w+'W · '+c.d+'D · '+c.l+'L</b></div>'+
+ '<div class="financeRow"><span>Goals</span><b>'+c.gf+' for · '+c.ga+' against</b></div>'+
+ '<div class="financeRow"><span>Goal difference</span><b>'+((c.gf-c.ga)>0?"+":"")+(c.gf-c.ga)+'</b></div>'+
+ '<div class="financeRow"><span>Points</span><b>'+c.pts+'</b></div></div></div>';
+}
+function clubProfileSquad(id){
+ let ps=[...roster(id)].sort((a,b)=>positionGroup(a.pos).localeCompare(positionGroup(b.pos))||b.ovr-a.ovr);
+ return '<div class="card"><div class="title">Squad</div><div class="sub">'+ps.length+' registered players · tap any player for details.</div>'+
+ (ps.length?ps.map(p=>playerRow(p,false)).join(""):'<div class="sub" style="margin-top:10px">No active players.</div>')+'</div>';
+}
+function clubProfileHistory(id){
+ let c=G.clubs[id];ensureClubHistoryState();let hs=c.history||[];
+ let rows=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+h.divisionName+'</b><div class="seasonMeta">'+ordinal(h.position)+' place · '+h.w+'-'+h.d+'-'+h.l+(h.champion?' · Champions':'')+'</div></div><div>'+h.pts+' pts</div></div>').join("");
+ return '<div class="card"><div class="title">Season History</div><div class="sub">History remains attached to this club even if its name changes.</div>'+
+ (rows||'<div class="sub" style="margin-top:10px">Complete a season to begin this club’s archive.</div>')+'</div>';
+}
+function clubProfileRecords(id){
+ let c=G.clubs[id];ensureClubHistoryState();let r=c.records||{};
+ return '<div class="recordHero">'+
+ '<div class="recordTile"><div class="label">TITLES</div><div class="recordValue">'+(r.titles||0)+'</div></div>'+
+ '<div class="recordTile"><div class="label">PROMOTIONS</div><div class="recordValue">'+(r.promotions||0)+'</div></div>'+
+ '<div class="recordTile"><div class="label">BEST FINISH</div><div class="recordValue">'+(r.bestFinish?ordinal(r.bestFinish.position):"—")+'</div><div class="recordNote">'+(r.bestFinish?r.bestFinish.divisionName+' · '+r.bestFinish.season:'No archived season')+'</div></div>'+
+ '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(r.bestPoints?r.bestPoints.points:"—")+'</div><div class="recordNote">'+(r.bestPoints?r.bestPoints.season:'No archived season')+'</div></div>'+
+ '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(r.mostGoals?r.mostGoals.goals:"—")+'</div><div class="recordNote">'+(r.mostGoals?r.mostGoals.season:'No archived season')+'</div></div>'+
+ '<div class="recordTile"><div class="label">RELEGATIONS</div><div class="recordValue">'+(r.relegations||0)+'</div></div></div>';
+}
+function clubProfileHonours(id){
+ let c=G.clubs[id];ensureClubHistoryState();let r=c.records||{},years=(c.history||[]).filter(h=>h.champion).map(h=>h.season);
+ return '<div class="card"><div class="title">Honours</div>'+
+ '<div class="honourRow"><div><b>League Titles</b><span>Career era</span></div><b>'+(r.titles||0)+'</b></div>'+
+ '<div class="honourRow"><div><b>Promotions</b><span>Career era</span></div><b>'+(r.promotions||0)+'</b></div>'+
+ '<div class="honourRow"><div><b>Relegations</b><span>Career era</span></div><b>'+(r.relegations||0)+'</b></div>'+
+ (years.length?'<div class="sub" style="margin-top:12px">Title seasons · '+years.join(", ")+'</div>':'')+'</div>';
+}
+function showClubProfile(id,tab="overview"){
+ let c=G.clubs[Number(id)];if(!c)return;ensureClubHistoryState();
+ let info=leagueInfo(clubCurrentDivisionKey(c.id));
+ let tabs=[["overview","Overview"],["squad","Squad"],["history","History"],["records","Records"],["honours","Honours"]];
+ let body=tab==="squad"?clubProfileSquad(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
+ $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileName">'+c.name+'</div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
+ '<div class="clubProfileTabs">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
+ body+'<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
+ $("#sheet").classList.remove("hidden");
+}
+
 function applyPromotionRelegation(){
  ensureLeagueWorld();let top=standings("top"),lower=standings("lower");if(top.length<3||lower.length<3)return;
  let relegated=top.slice(-3).map(c=>c.id),promoted=lower.slice(0,3).map(c=>c.id);
  G.leagues.top.clubIds=G.leagues.top.clubIds.filter(id=>!relegated.includes(id)).concat(promoted);
  G.leagues.lower.clubIds=G.leagues.lower.clubIds.filter(id=>!promoted.includes(id)).concat(relegated);
+ recordClubMovement(relegated,promoted);
  if(relegated.includes(G.club))G.feed.unshift({t:"RELEGATED",m:G.clubs[G.club].name+" will play in the Championship next season."});
  if(promoted.includes(G.club))G.feed.unshift({t:"PROMOTED",m:G.clubs[G.club].name+" have been promoted to the Premier Division."});
  G.lastMovement={season:G.season,relegated,promoted};
@@ -1716,8 +1819,9 @@ function beginNewSeason(){
   if(freeDepartures.length)G.feed.unshift({t:"FREE AGENCY",m:freeDepartures.map(p=>p.name).join(", ")+" entered free agency."});
 
   if(!Array.isArray(G.history))G.history=[];
-  G.history.unshift({season:r.season,champ:r.champion,pos:r.pos,p:r.p,w:r.w,d:r.d,l:r.l,gf:r.gf,ga:r.ga,gd:r.gd,topFour:r.topFour,relegated:r.relegated,promoted:r.promoted,division:r.division,divisionName:r.divisionName,awards:r.awards});
+  G.history.unshift({season:r.season,champ:r.champion,champClubId:r.championClubId,pos:r.pos,clubId:G.club,p:r.p,w:r.w,d:r.d,l:r.l,gf:r.gf,ga:r.ga,gd:r.gd,topFour:r.topFour,relegated:r.relegated,promoted:r.promoted,division:r.division,divisionName:r.divisionName,awards:r.awards});
 
+  snapshotAllClubHistories();
   applyPromotionRelegation();
   G.season=(Number(G.season)||2026)+1;
   G.week=0;
@@ -2106,14 +2210,14 @@ function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
  let rows=table.map((c,i)=>{
   let gd=c.gf-c.ga,mark=key==="top"?(i<4?'<i class="leagueMark top"></i>':i>=dropStart?'<i class="leagueMark drop"></i>':''):(i<3?'<i class="leagueMark top"></i>':'');
-  return '<div class="leagueRow '+(c.id===G.club?'me':'')+'"><div class="leagueCell stickyPos">'+(i+1)+'</div><div class="leagueCell club stickyClub">'+mark+c.name+'</div><div class="leagueCell">'+c.p+'</div><div class="leagueCell">'+c.w+'</div><div class="leagueCell">'+c.d+'</div><div class="leagueCell">'+c.l+'</div><div class="leagueCell">'+c.gf+'</div><div class="leagueCell">'+c.ga+'</div><div class="leagueCell">'+(gd>0?'+':'')+gd+'</div><div class="leagueCell"><b>'+c.pts+'</b></div></div>';
+  return '<div class="leagueRow '+(c.id===G.club?'me':'')+'"><div class="leagueCell stickyPos">'+(i+1)+'</div><div class="leagueCell club stickyClub">'+mark+'<span class="aiClubLink" data-club-profile="'+c.id+'">'+c.name+'</span></div><div class="leagueCell">'+c.p+'</div><div class="leagueCell">'+c.w+'</div><div class="leagueCell">'+c.d+'</div><div class="leagueCell">'+c.l+'</div><div class="leagueCell">'+c.gf+'</div><div class="leagueCell">'+c.ga+'</div><div class="leagueCell">'+(gd>0?'+':'')+gd+'</div><div class="leagueCell"><b>'+c.pts+'</b></div></div>';
  }).join("");
  let legend=key==="top"?'<span><i class="top"></i>Top four</span><span><i class="drop"></i>Relegation places</span>':'<span><i class="top"></i>Promotion places</span>';
  return '<div class="card"><div class="title">'+info.name+' · '+G.season+'</div><div class="sub">Swipe across the table to view all statistics.</div><div class="legend">'+legend+'</div><div class="leagueWrap"><div class="leagueTable"><div class="leagueRow head"><div class="leagueCell stickyPos">#</div><div class="leagueCell club stickyClub">CLUB</div><div class="leagueCell">P</div><div class="leagueCell">W</div><div class="leagueCell">D</div><div class="leagueCell">L</div><div class="leagueCell">GF</div><div class="leagueCell">GA</div><div class="leagueCell">GD</div><div class="leagueCell">PTS</div></div>'+rows+'</div></div></div>';
 }
 function leagueClubsView(){
  return '<div class="worldNote">Rename clubs and adjust their basic football profile. Promotion and relegation remain automatic between the two divisions.</div>'+
- ["top","lower"].map(key=>{let info=leagueInfo(key),rows=info.clubIds.map(id=>{let c=G.clubs[id];return '<div class="clubEditRow"><div><b>'+c.name+'</b><span>'+info.name+' · REP '+c.rep+' · Coach '+c.coach+'</span></div><button class="btn" data-edit-club="'+c.id+'">EDIT</button></div>'}).join("");return '<div class="card clubEditList"><div class="title">'+info.name+'</div>'+rows+'</div>'}).join("");
+ ["top","lower"].map(key=>{let info=leagueInfo(key),rows=info.clubIds.map(id=>{let c=G.clubs[id];return '<div class="clubEditRow"><div data-club-profile="'+c.id+'" class="aiClubLink"><b>'+c.name+'</b><span>'+info.name+' · REP '+c.rep+' · Coach '+c.coach+'</span></div><button class="btn" data-edit-club="'+c.id+'">EDIT</button></div>'}).join("");return '<div class="card clubEditList"><div class="title">'+info.name+'</div>'+rows+'</div>'}).join("");
 }
 function leagueRecordsView(){
  let hs=Array.isArray(G.history)?G.history:[];
@@ -2142,7 +2246,7 @@ function league(){
 }
 function clubOverviewView(){
  ensureFacilityState();ensureFinanceState();
- let c=G.clubs[G.club],hs=Array.isArray(G.history)?G.history:[],titles=hs.filter(h=>h.champ===c.name).length;
+ let c=G.clubs[G.club],hs=Array.isArray(G.history)?G.history:[],titles=hs.filter(h=>(h.champClubId===G.club)||(!Number.isFinite(h.champClubId)&&h.champ===c.name)).length;
  let finishes=hs.map(h=>Number(h.pos)).filter(Boolean),best=finishes.length?Math.min(...finishes):null;
  return '<div class="grid2">'+stat("REPUTATION",c.rep,"Club standing")+stat("COACH",c.coach,"Head Coach")+stat("TITLES",titles,"Career era")+stat("BEST FINISH",best?ordinal(best):"—","Premier Division")+'</div>'+
  '<div class="card"><div class="title">'+c.name+'</div><div class="sub">Build the Club. Shape the Legacy.</div><div class="financeRows" style="margin-top:12px"><div class="financeRow"><span>Current season</span><b>'+G.season+'</b></div><div class="financeRow"><span>League record</span><b>'+c.w+'W · '+c.d+'D · '+c.l+'L</b></div><div class="financeRow"><span>Goals</span><b>'+c.gf+' for · '+c.ga+' against</b></div><div class="financeRow"><span>Transfer budget</span><b>'+money(c.budget)+'</b></div></div></div>';
@@ -2154,7 +2258,7 @@ function clubFacilitiesView(){
 function clubHistoryView(){
  ensureRecordState();
  let c=G.clubs[G.club],hs=Array.isArray(G.history)?G.history:[],tracked=hs.filter(h=>Number.isFinite(h.p));
- let titles=hs.filter(h=>h.champ===c.name).length;
+ let titles=hs.filter(h=>(h.champClubId===G.club)||(!Number.isFinite(h.champClubId)&&h.champ===c.name)).length;
  let best=tracked.length?[...tracked].sort((a,b)=>a.pos-b.pos)[0]:null;
  let pts=tracked.length?[...tracked].sort((a,b)=>(b.w*3+b.d)-(a.w*3+a.d))[0]:null;
  let gf=tracked.length?[...tracked].sort((a,b)=>(b.gf||0)-(a.gf||0))[0]:null;
@@ -2391,7 +2495,7 @@ function ensureRecordState(){
  if(!G.careerMode)G.careerMode="GM";
  if(typeof G.playerEditingEnabled==="undefined")G.playerEditingEnabled=true;
 }
-function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
+function render(){if(!G)return;ensureLeagueWorld();ensureRecordState();ensureClubHistoryState();ensureFacilityState();ensurePlayerStats();$("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";$("#app").innerHTML=({home,squad,market,league,club})[page]();$("#continueDock").classList.add("hidden");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));let hc=$("#homeContinueBtn");if(hc)hc.addEventListener("click",advance)}
 renderBuildVersion();
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
@@ -2432,6 +2536,8 @@ let submitContractBtn=e.target.closest("[data-submit-contract]");if(submitContra
 
 let rejectBtn=e.target.closest("[data-reject-sale]");if(rejectBtn){let o=G.transferOffers.find(x=>x.id===rejectBtn.dataset.rejectSale);let pid=o?o.playerId:null;rejectSale(rejectBtn.dataset.rejectSale);if(pid)showPlayer(pid);return}
 let facilityBtn=e.target.closest("[data-upgrade-facility]");if(facilityBtn){upgradeFacility(facilityBtn.dataset.upgradeFacility);return}
+let clubProfileTab=e.target.closest("[data-club-profile-tab]");if(clubProfileTab){showClubProfile(clubProfileTab.dataset.clubProfileTab,clubProfileTab.dataset.tab);return}
+let clubProfileBtn=e.target.closest("[data-club-profile]");if(clubProfileBtn){showClubProfile(clubProfileBtn.dataset.clubProfile);return}
 let editClubBtn=e.target.closest("[data-edit-club]");if(editClubBtn){openClubEditor(editClubBtn.dataset.editClub);return}
 let saveClubBtn=e.target.closest("[data-save-club-edit]");if(saveClubBtn){saveClubEdit(saveClubBtn.dataset.saveClubEdit);return}
 let cancelClubBtn=e.target.closest("[data-cancel-club-edit]");if(cancelClubBtn){$("#sheet").classList.add("hidden");return}
