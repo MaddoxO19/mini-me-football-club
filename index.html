@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.5 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.6 Rivalries Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1325,6 +1325,24 @@ body.career-hub-active .continueDock{
   font-size:11px;
 }
 
+
+/* v2.9.6 Rivalries */
+.rivalryBanner{border:1px solid #7a6526;background:linear-gradient(135deg,#d9b54a16,#111923);border-radius:14px;padding:11px 12px;margin:10px 0}
+.rivalryBanner.primary{box-shadow:0 0 0 1px #d9b54a12 inset}
+.rivalryBanner b{display:block;color:var(--gold);font-size:12px;letter-spacing:.05em}
+.rivalryBanner span{display:block;color:var(--muted);font-size:10px;margin-top:3px;line-height:1.4}
+.rivalryGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rivalryCard{border:1px solid var(--line);background:var(--card2);border-radius:13px;padding:11px}
+.rivalryCard.primary{border-color:#705d25;background:#d9b54a0d}
+.rivalryCard .rank{font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:900}
+.rivalryCard b{display:block;font-size:12px;margin-top:4px}
+.rivalryCard .score{font-size:18px;font-weight:900;color:var(--gold);margin-top:6px}
+.rivalryCard span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.rivalryHistoryRow{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.rivalryHistoryRow:last-child{border:0}
+.rivalryHistoryRow b{font-size:12px}.rivalryHistoryRow span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.rivalryTag{display:inline-flex;align-items:center;border:1px solid #705d25;background:#d9b54a12;color:var(--gold);border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}
+
 </style>
 </head>
 <body>
@@ -1397,7 +1415,7 @@ body.career-hub-active .continueDock{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.5 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.6 Rivalries Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1438,7 +1456,7 @@ function world(){
  topNames.forEach((name,i)=>clubs.push(buildClubRecord(name,i,"top")));
  lowerNames.forEach((name,i)=>clubs.push(buildClubRecord(name,size+i,"lower")));
  clubs.forEach((c,i)=>{for(let j=0;j<28;j++)players.push(player(i,j))});
- let g={season:2026,week:0,club:selected,clubs,players,history:[],matchHistory:[],leagueSize:size,
+ let g={season:2026,week:0,club:selected,clubs,players,history:[],matchHistory:[],rivalries:{},rivalryHistory:[],leagueSize:size,
   leagues:{top:{name:"Premier Division",clubIds:Array.from({length:size},(_,i)=>i)},lower:{name:"Championship",clubIds:Array.from({length:size},(_,i)=>size+i)}},
   records:{biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null},
   feed:[{t:"WELCOME TO THE CLUB",m:"The board has handed you control of football operations."}]};
@@ -1446,6 +1464,8 @@ function world(){
 }
 function ensureLeagueWorld(){
  if(!Array.isArray(G.matchHistory))G.matchHistory=[];
+ if(!G.rivalries||typeof G.rivalries!=="object")G.rivalries={};
+ if(!Array.isArray(G.rivalryHistory))G.rivalryHistory=[];
  if(!G.leagueSize)G.leagueSize=Math.min(20,G.clubs.length);
  if(!G.leagues)G.leagues={top:{name:"Premier Division",clubIds:G.clubs.slice(0,G.leagueSize).map(c=>c.id)},lower:{name:"Championship",clubIds:[]}};
  if(!G.leagues.top.name)G.leagues.top.name="Premier Division";
@@ -1501,6 +1521,7 @@ function archiveMatchResult(divisionKey,week,homeClubId,awayClubId,homeGoals,awa
    awayGoals,
    played:true
  });
+ updateRivalryFromMatch(homeClubId,awayClubId,homeGoals,awayGoals);
 }
 function matchHistoryForSeason(season=G.season,divisionKey=currentLeagueKey()){
  ensureLeagueWorld();
@@ -1525,6 +1546,88 @@ function headToHead(clubId,opponentId){
 function headToHeadLabel(clubId,opponentId){
  let h=headToHead(clubId,opponentId);
  return h.played?(h.w+"W · "+h.d+"D · "+h.l+"L"):"No archived meetings";
+}
+
+function rivalryKey(a,b){return [Number(a),Number(b)].sort((x,y)=>x-y).join(":")}
+function ensureRivalryState(){
+ ensureLeagueWorld();
+ if(!G.rivalries||typeof G.rivalries!=="object")G.rivalries={};
+ if(!Array.isArray(G.rivalryHistory))G.rivalryHistory=[];
+}
+function rivalryRecord(a,b){
+ ensureRivalryState();
+ let key=rivalryKey(a,b);
+ if(!G.rivalries[key])G.rivalries[key]={clubs:key.split(":").map(Number),score:0,meetings:0,close:0,draws:0,bigWins:0,titleBattles:0,relegationBattles:0,lastSeason:null,peak:0};
+ return G.rivalries[key];
+}
+function rivalryScore(a,b){
+ ensureRivalryState();
+ let r=G.rivalries[rivalryKey(a,b)];
+ return r?Math.round(Number(r.score)||0):0;
+}
+function rivalryLevel(score){
+ score=Number(score)||0;
+ return score>=55?"Fierce Rivalry":score>=35?"Established Rivalry":score>=20?"Emerging Rivalry":"Developing";
+}
+function rivalryThreshold(){return 20}
+function activeRivalsForClub(id){
+ ensureRivalryState();
+ return Object.values(G.rivalries).filter(r=>r&&r.clubs&&r.clubs.includes(Number(id))&&(Number(r.score)||0)>=rivalryThreshold())
+  .map(r=>({record:r,opponentId:r.clubs[0]===Number(id)?r.clubs[1]:r.clubs[0],score:Math.round(r.score||0)}))
+  .sort((a,b)=>b.score-a.score).slice(0,2);
+}
+function rivalryStatus(a,b){
+ let active=activeRivalsForClub(a),idx=active.findIndex(x=>x.opponentId===Number(b));
+ return idx===0?"primary":idx===1?"secondary":null;
+}
+function updateRivalryFromMatch(a,b,ga,gb){
+ ensureRivalryState();
+ let r=rivalryRecord(a,b),margin=Math.abs(ga-gb),add=2;
+ r.meetings=(r.meetings||0)+1;
+ if(margin===0){add+=4;r.draws=(r.draws||0)+1}
+ else if(margin===1){add+=3;r.close=(r.close||0)+1}
+ if(margin>=4){add+=2;r.bigWins=(r.bigWins||0)+1}
+ let key=clubCurrentDivisionKey(a);
+ if(key===clubCurrentDivisionKey(b)){
+   let t=standings(key),pa=t.findIndex(c=>c.id===a)+1,pb=t.findIndex(c=>c.id===b)+1;
+   if(pa&&pb&&Math.abs(pa-pb)<=2){add+=3}
+   if(G.week>=Math.max(0,leagueSeasonWeeks(key)-8)&&pa<=4&&pb<=4){add+=4;r.titleBattles=(r.titleBattles||0)+1}
+   if(G.week>=Math.max(0,leagueSeasonWeeks(key)-8)&&pa>=t.length-4&&pb>=t.length-4){add+=4;r.relegationBattles=(r.relegationBattles||0)+1}
+ }
+ r.score=Math.min(100,(Number(r.score)||0)+add);
+ r.peak=Math.max(Number(r.peak)||0,r.score);
+ r.lastSeason=G.season;
+}
+function archiveRivalrySeason(){
+ ensureRivalryState();
+ Object.values(G.rivalries).forEach(r=>{
+   if(!r||!r.clubs)return;
+   let score=Number(r.score)||0;
+   if(score>=rivalryThreshold()){
+     let exists=G.rivalryHistory.some(x=>x.season===G.season&&rivalryKey(x.clubs[0],x.clubs[1])===rivalryKey(r.clubs[0],r.clubs[1]));
+     if(!exists)G.rivalryHistory.push({season:G.season,clubs:[...r.clubs],score:Math.round(score),level:rivalryLevel(score)});
+   }
+   r.score=Math.max(0,score*.88);
+ }
+}
+function historicRivalsForClub(id){
+ ensureRivalryState();
+ let map={};
+ G.rivalryHistory.filter(x=>x.clubs&&x.clubs.includes(Number(id))).forEach(x=>{
+   let opp=x.clubs[0]===Number(id)?x.clubs[1]:x.clubs[0],k=String(opp);
+   if(!map[k]||x.score>map[k].score)map[k]={opponentId:opp,score:x.score,season:x.season,level:x.level};
+ });
+ return Object.values(map).sort((a,b)=>b.score-a.score).slice(0,6);
+}
+function rivalryProfileHtml(id){
+ let active=activeRivalsForClub(id),historic=historicRivalsForClub(id);
+ let cards=active.length?active.map((x,i)=>{
+   let c=G.clubs[x.opponentId],h=headToHead(id,x.opponentId);
+   return '<div class="rivalryCard '+(i===0?'primary':'')+'"><div class="rank">'+(i===0?'PRIMARY RIVAL':'SECONDARY RIVAL')+'</div><b>'+(c?c.name:'Unknown Club')+'</b><div class="score">'+x.score+'</div><span>'+rivalryLevel(x.score)+' · '+h.played+' meetings · '+h.w+'W '+h.d+'D '+h.l+'L</span></div>';
+ }).join(""):'<div class="sub">No rivalry has crossed the active threshold yet. Rivalries build naturally through repeated competitive meetings.</div>';
+ let hist=historic.length?historic.map(x=>'<div class="rivalryHistoryRow"><div><b>'+(G.clubs[x.opponentId]?.name||"Unknown Club")+'</b><span>Peak '+x.score+' · '+x.level+' · '+x.season+'</span></div><div>'+headToHeadLabel(id,x.opponentId)+'</div></div>').join(""):'<div class="sub">Historic rivalries will be preserved here as seasons pass.</div>';
+ return '<div class="card"><div class="title">Rivalries</div><div class="sub">Relationships emerge from competitive history. They do not change match simulation odds.</div><div class="rivalryGrid">'+cards+'</div></div>'+
+ '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
 }
 
 function careerSlotKey(slot){return CAREER_SLOT_PREFIX+String(slot)}
@@ -2120,7 +2223,8 @@ function showMatchResult(r,playedWeek){
  let opp=G.clubs[nextOpp()];
  $("#resultState").textContent=state;
  $("#resultState").className="resultState "+state.toLowerCase();
- $("#resultWeek").textContent="LEAGUE · WEEK "+playedWeek;
+ let playedOpp=userHome?r.b:r.a,playedRival=rivalryStatus(G.club,playedOpp);
+ $("#resultWeek").textContent=(playedRival?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
  $("#resultHome").textContent=G.clubs[r.a].name;
  $("#resultAway").textContent=G.clubs[r.b].name;
  $("#resultScore").textContent=r.ga+" – "+r.gb;
@@ -2581,8 +2685,8 @@ function clubProfileHonours(id){
 function showClubProfile(id,tab="overview"){
  let c=G.clubs[Number(id)];if(!c)return;ensureClubHistoryState();
  let info=leagueInfo(clubCurrentDivisionKey(c.id));
- let tabs=[["overview","Overview"],["squad","Squad"],["history","History"],["records","Records"],["honours","Honours"]];
- let body=tab==="squad"?clubProfileSquad(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
+ let tabs=[["overview","Overview"],["squad","Squad"],["rivalries","Rivalries"],["history","History"],["records","Records"],["honours","Honours"]];
+ let body=tab==="squad"?clubProfileSquad(c.id):tab==="rivalries"?rivalryProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
  $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileName">'+c.name+'</div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
  '<div class="clubProfileTabs">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+'<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
@@ -2635,6 +2739,7 @@ function beginNewSeason(){
   snapshotPlayerSeasonHistory();
   archiveSeasonAwardsToPlayers(r);
   snapshotAllClubHistories();
+  archiveRivalrySeason();
   applyPromotionRelegation();
   G.season=(Number(G.season)||2026)+1;
   G.week=0;
@@ -2936,13 +3041,14 @@ function financeView(){
 }
 
 function home(){
- ensureLeagueWorld();
+ ensureLeagueWorld();ensureRivalryState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
+ let rivalStatus=rivalryStatus(G.club,opp.id),rScore=rivalryScore(G.club,opp.id),rivalBanner=rivalStatus?'<div class="rivalryBanner '+rivalStatus+'"><b>RIVALRY MATCH · '+(rivalStatus==="primary"?"PRIMARY RIVAL":"SECONDARY RIVAL")+'</b><span>'+rivalryLevel(rScore)+' · Rivalry score '+rScore+' · '+headToHeadLabel(G.club,opp.id)+'</span></div>':'';
  return'<div class="divisionBanner"><div><b>'+info.name+'</b><span>'+info.clubIds.length+' clubs · '+weeks+' league matches</span></div><div class="divisionBadge">'+(currentLeagueKey()==="top"?"TOP FLIGHT":"SECOND TIER")+'</div></div>'+
  '<div class="grid2">'+stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+stat("SQUAD",avg,"Club squad average")+stat("BUDGET",money(c.budget),"Transfers")+stat("BOARD","74","Stable")+'</div>'+
  '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div><div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>'+
- '<div class="card"><div class="title">Next Fixture</div><div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div><div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(headToHead(G.club,opp.id).played?'Career record · Goals '+headToHead(G.club,opp.id).gf+'–'+headToHead(G.club,opp.id).ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div><div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>'+
+ '<div class="card"><div class="title">Next Fixture</div>'+rivalBanner+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div><div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(headToHead(G.club,opp.id).played?'Career record · Goals '+headToHead(G.club,opp.id).gf+'–'+headToHead(G.club,opp.id).ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div><div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>'+
  '<div class="card"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
 }
 
