@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.4 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.5 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1225,6 +1225,106 @@ body.season-review-active .sheetbox{
 .clubH2HCard .recordBig{font-size:20px;font-weight:900;color:var(--gold);margin-top:5px}
 .clubH2HCard .sub{margin-top:4px}
 
+
+/* v2.9.5 Career Hub */
+.start{
+  z-index:6000!important;
+}
+body.career-hub-active header,
+body.career-hub-active nav,
+body.career-hub-active main,
+body.career-hub-active .continueDock{
+  display:none!important;
+}
+.careerSlots{
+  display:grid;
+  gap:10px;
+  margin-top:16px;
+  text-align:left;
+}
+.careerSlot{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:linear-gradient(180deg,var(--card),#0e151d);
+  color:var(--text);
+  padding:14px;
+  text-align:left;
+}
+.careerSlot:active{transform:scale(.99)}
+.careerSlot.empty{border-style:dashed}
+.careerSlotTop{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+.careerSlotNo{
+  font-size:9px;
+  letter-spacing:.12em;
+  color:var(--gold);
+  font-weight:900;
+}
+.careerSlotName{
+  font-size:16px;
+  font-weight:900;
+  margin-top:4px;
+}
+.careerSlotMeta{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+  line-height:1.4;
+}
+.careerSlotSeason{
+  color:var(--gold);
+  font-size:13px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.careerSlotFoot{
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:var(--muted);
+  font-size:9px;
+}
+.careerSlot.empty .careerSlotName{color:var(--muted)}
+.careerSlot.empty .careerSlotSeason{color:var(--muted)}
+
+/* Season Review: final CTA must never float over content */
+#newSeasonBtn{
+  position:static!important;
+  bottom:auto!important;
+  z-index:auto!important;
+  margin:22px 0 calc(36px + env(safe-area-inset-bottom))!important;
+  box-shadow:none!important;
+}
+.seasonReview{
+  padding-bottom:calc(34px + env(safe-area-inset-bottom))!important;
+}
+.reviewRetirementRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;
+}
+.reviewRetirementRow:last-child{border-bottom:0}
+.reviewRetirementRow b{display:block;font-size:13px}
+.reviewRetirementRow span{display:block;font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}
+.reviewRetirementRow .retireAge{
+  text-align:right;
+  color:var(--gold);
+  font-weight:900;
+  font-size:11px;
+}
+
 </style>
 </head>
 <body>
@@ -1233,10 +1333,16 @@ body.season-review-active .sheetbox{
   <div id="startBuild" class="startBuild"></div><h1><span class="mini">MINI&ME</span><span class="club">FOOTBALL CLUB</span></h1><div class="brandRule"></div><div class="tagline">Build the Club. Shape the Legacy.</div>
   <div class="intro">Build a football club across generations. Recruit players, manage contracts, shape the finances, customise your squad and create a legacy that lasts beyond one season.</div>
   <div class="startActions">
-    <button id="newBtn" class="btn primary full">START NEW CAREER</button>
+    <button id="newBtn" class="btn primary full">NEW CAREER</button>
     <button id="loadBtn" class="btn full">LOAD CAREER</button>
-    <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking for saved career…</div>
+    <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking career slots…</div>
   </div>
+</div>
+<div id="saveSlotStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToLaunchFromSlots" class="backBtn">‹ BACK</button><div id="saveSlotTitle" class="label">CAREER SLOTS</div><span style="width:44px"></span></div>
+  <h2 id="saveSlotHeading">Choose a Career</h2>
+  <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
+  <div id="careerSlots" class="careerSlots"></div>
 </div>
 <div id="clubStep" class="careerStep hidden">
   <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
@@ -1291,7 +1397,7 @@ body.season-review-active .sheetbox{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.4 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.5 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1299,6 +1405,9 @@ const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wil
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 let G=null, selected=0, page="home", selectedLeagueSize=20;
 let clubTab="overview",leagueTab="table",squadTab="team";
+const CAREER_SLOT_PREFIX="miniMeFootballCareerSlot";
+const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
+let activeSaveSlot=1,careerSlotMode="load";
 const $=s=>document.querySelector(s), rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
 function renderBuildVersion(){
@@ -1418,13 +1527,102 @@ function headToHeadLabel(clubId,opponentId){
  return h.played?(h.w+"W · "+h.d+"D · "+h.l+"L"):"No archived meetings";
 }
 
+function careerSlotKey(slot){return CAREER_SLOT_PREFIX+String(slot)}
+function migrateLegacyCareerSave(){
+ try{
+   let anySlot=[1,2,3].some(i=>!!localStorage.getItem(careerSlotKey(i)));
+   let legacy=localStorage.getItem("soccerGMAlpha");
+   if(legacy&&!anySlot){
+     localStorage.setItem(careerSlotKey(1),legacy);
+     localStorage.setItem(ACTIVE_SLOT_KEY,"1");
+   }
+ }catch(e){}
+}
+function careerSlotData(slot){
+ try{
+   let raw=localStorage.getItem(careerSlotKey(slot));
+   return raw?JSON.parse(raw):null;
+ }catch(e){return null}
+}
+function careerSlotSummary(slot){
+ let g=careerSlotData(slot);
+ if(!g)return null;
+ let club=g.clubs&&g.clubs.find?g.clubs.find(c=>c.id===g.club):g.clubs&&g.clubs[g.club];
+ let division="League";
+ if(g.leagues){
+   if(g.leagues.lower&&Array.isArray(g.leagues.lower.clubIds)&&g.leagues.lower.clubIds.includes(g.club))division=g.leagues.lower.name||"Championship";
+   else if(g.leagues.top)division=g.leagues.top.name||"Premier Division";
+ }
+ return{
+   club:club?club.name:"Unknown Club",
+   season:g.season||2026,
+   week:Number(g.week)||0,
+   division,
+   seasons:Math.max(1,(Number(g.season)||2026)-2025),
+   lastPlayed:g._lastPlayedAt||null
+ };
+}
 function save(){
  try{
+  if(!G)return false;
+  if(![1,2,3].includes(Number(activeSaveSlot)))activeSaveSlot=1;
+  G._careerSlot=activeSaveSlot;
+  G._lastPlayedAt=Date.now();
+  localStorage.setItem(careerSlotKey(activeSaveSlot),JSON.stringify(G));
+  localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot));
+  // Keep legacy key as a safety mirror for current users and old builds.
   localStorage.setItem("soccerGMAlpha",JSON.stringify(G));
   localStorage.setItem("soccerGMSaveCheck","ok");
   return true;
  }catch(e){
   return false;
+ }
+}
+function formatSlotDate(ts){
+ if(!ts)return"Earlier save";
+ try{return new Date(ts).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})}catch(e){return"Saved career"}
+}
+function renderCareerSlots(mode=careerSlotMode){
+ careerSlotMode=mode;
+ let host=$("#careerSlots");if(!host)return;
+ $("#saveSlotTitle").textContent=mode==="new"?"NEW CAREER":"LOAD CAREER";
+ $("#saveSlotHeading").textContent=mode==="new"?"Choose a Save Slot":"Choose a Career";
+ $("#saveSlotHint").textContent=mode==="new"?"Choose an empty slot, or replace an existing career.":"Select one of the careers saved on this device.";
+ host.innerHTML=[1,2,3].map(slot=>{
+   let s=careerSlotSummary(slot);
+   if(!s){
+     return '<button class="careerSlot empty" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">Empty Career Slot</div><div class="careerSlotMeta">'+(mode==="new"?"Start a new football legacy here.":"No career has been created in this slot.")+'</div></div><div class="careerSlotSeason">EMPTY</div></div></button>';
+   }
+   return '<button class="careerSlot" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">'+s.club+'</div><div class="careerSlotMeta">'+s.division+' · Week '+s.week+'</div></div><div class="careerSlotSeason">'+s.season+'</div></div><div class="careerSlotFoot"><span>Season '+s.seasons+'</span><span>Last played '+formatSlotDate(s.lastPlayed)+'</span></div></button>';
+ }).join("");
+}
+function showCareerSlots(mode){
+ careerSlotMode=mode;
+ $("#launchStep").classList.add("hidden");
+ $("#clubStep").classList.add("hidden");
+ $("#saveSlotStep").classList.remove("hidden");
+ renderCareerSlots(mode);
+}
+function loadCareerSlot(slot){
+ let status=$("#startStatus");
+ try{
+   let g=careerSlotData(slot);
+   if(!g){
+     status.textContent="That career slot is empty.";
+     return false;
+   }
+   activeSaveSlot=Number(slot)||1;
+   G=g;
+   G._careerSlot=activeSaveSlot;
+   localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot));
+   $("#start").classList.add("hidden");
+   document.body.classList.remove("career-hub-active");
+   page="home";
+   render();
+   return true;
+ }catch(e){
+   status.textContent="Safari could not load that career: "+(e&&e.message?e.message:String(e));
+   return false;
  }
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
@@ -2222,9 +2420,22 @@ function prepareSeasonReview(){
  let relegated=key==="top"?table.slice(-3).map((x,i)=>({pos:table.length-2+i,name:x.name,pts:x.pts})):[];
  let promoted=key==="lower"?table.slice(0,3).map((x,i)=>({pos:i+1,name:x.name,pts:x.pts})):[];
  let awards=seasonAwards();
+ let retirementSnapshot=G.players.filter(p=>p.retiring&&p.team>=0).map(p=>({
+   id:p.id,name:p.name,pos:p.pos,age:p.age,ovr:p.ovr,clubId:p.team,
+   clubName:G.clubs[p.team]?G.clubs[p.team].name:"Unknown Club",
+   apps:p.career&&Number.isFinite(p.career.apps)?p.career.apps:0,
+   goals:p.career&&Number.isFinite(p.career.goals)?p.career.goals:0,
+   assists:p.career&&Number.isFinite(p.career.assists)?p.career.assists:0,
+   awards:Array.isArray(p.awards)?p.awards.length:0
+ }));
+ let clubRetirements=retirementSnapshot.filter(p=>p.clubId===G.club);
+ let leagueRetirements=retirementSnapshot.filter(p=>p.clubId!==G.club)
+   .sort((a,b)=>(b.awards-a.awards)||(b.ovr-a.ovr)||(b.apps-a.apps)||(b.age-a.age))
+   .slice(0,8);
  G.pendingSeasonReview={
    season:G.season,pos,champion:champion.name,championClubId:champion.id,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
-   target,met,expiring,finalYear,topFour,relegated,promoted,division:key,divisionName:leagueInfo(key).name,awards
+   target,met,expiring,finalYear,topFour,relegated,promoted,division:key,divisionName:leagueInfo(key).name,awards,
+   clubRetirements,leagueRetirements
  };
  save();
  showSeasonReview();
@@ -2246,6 +2457,10 @@ function showSeasonReview(){
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
  let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>'+label+'</span></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
  let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="contractRow reviewPlayerRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+'</b><span>'+p.pos+' · '+p.ovr+' OVR</span></div><span>1 year remaining</span></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ let clubRetirements=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
+ let leagueRetirements=Array.isArray(r.leagueRetirements)?r.leagueRetirements:[];
+ let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
+ let leagueRetireHtml=leagueRetirements.length?leagueRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.clubName+' · Age '+p.age+' · '+p.ovr+' OVR · '+p.apps+' career apps</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No notable league retirements to report.</div>';
  $("#reviewContent").innerHTML=
  '<div class="reviewGrid">'+
  stat("RECORD",r.w+"-"+r.d+"-"+r.l,r.p+" matches")+
@@ -2269,7 +2484,9 @@ function showSeasonReview(){
  (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer"><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
 '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
- '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>';
+ '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>'+
+ '<div class="card reviewSection"><div class="title">Club Retirements</div><div class="sub" style="margin-bottom:6px">Players from your squad retiring at the end of this season.</div>'+clubRetireHtml+'</div>'+
+ '<div class="card reviewSection"><div class="title">Notable League Retirements</div><div class="sub" style="margin-bottom:6px">Notable retirements from clubs across the football world.</div>'+leagueRetireHtml+'</div>';
  $("#seasonReview").classList.remove("hidden");
  document.body.classList.add("season-review-active");
 }
@@ -3147,8 +3364,10 @@ function startSelectedCareer(){
  var status=$("#startStatus");
  try{
   G=world();
+  G._careerSlot=activeSaveSlot;
   var saved=save();
   $("#start").classList.add("hidden");
+  document.body.classList.remove("career-hub-active");
   page="home";
   render();
   if(!saved)G.feed.unshift({t:"SAVE WARNING",m:"Safari is running the game but local saving is unavailable in this browsing mode."});
@@ -3161,6 +3380,21 @@ function startSelectedCareer(){
 document.addEventListener("click",function(e){
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;render();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
+let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
+ let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
+ if(mode==="load"){
+   if(existing)loadCareerSlot(slot);
+   return;
+ }
+ if(existing&&!confirm("Career "+slot+" already contains "+(careerSlotSummary(slot)?.club||"a saved career")+". Replace it with a new career?"))return;
+ activeSaveSlot=slot;
+ try{localStorage.setItem(ACTIVE_SLOT_KEY,String(slot))}catch(e){}
+ $("#saveSlotStep").classList.add("hidden");
+ $("#clubStep").classList.remove("hidden");
+ selected=0;
+ renderClubChoices();
+ return;
+}
 let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){page=nav.dataset.page;render();return}let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
 let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
 let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
@@ -3184,31 +3418,18 @@ let editPlayerBtn=e.target.closest("[data-edit-player]");if(editPlayerBtn){openP
 let savePlayerBtn=e.target.closest("[data-save-player-edit]");if(savePlayerBtn){savePlayerEdit(savePlayerBtn.dataset.savePlayerEdit);return}
 let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlayerBtn){cancelPlayerEdit(cancelPlayerBtn.dataset.cancelPlayerEdit);return}
 if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
-$("#newBtn").addEventListener("click",function(){
- $("#launchStep").classList.add("hidden");
- $("#clubStep").classList.remove("hidden");
+$("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
+$("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
+$("#backToLaunchFromSlots").addEventListener("click",function(){
+ $("#saveSlotStep").classList.add("hidden");
+ $("#launchStep").classList.remove("hidden");
 });
 $("#backToLaunch").addEventListener("click",function(){
  $("#clubStep").classList.add("hidden");
- $("#launchStep").classList.remove("hidden");
+ $("#saveSlotStep").classList.remove("hidden");
+ renderCareerSlots("new");
 });
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
-$("#loadBtn").addEventListener("click",function(){
- var status=$("#startStatus");
- try{
-  let s=localStorage.getItem("soccerGMAlpha");
-  if(!s){
-   status.textContent="No saved career exists on this iPhone yet. Start a new career first.";
-   return;
-  }
-  G=JSON.parse(s);
-  $("#start").classList.add("hidden");
-  page="home";
-  render();
- }catch(e){
-  status.textContent="Safari could not access the saved career: "+(e && e.message ? e.message : String(e));
- }
-});
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",beginNewSeason);
 $("#resultContinueBtn").addEventListener("click",function(){
@@ -3218,9 +3439,13 @@ $("#resultContinueBtn").addEventListener("click",function(){
  render();
 });
 
+document.body.classList.add("career-hub-active");
+migrateLegacyCareerSave();
 try{
- var existing=localStorage.getItem("soccerGMAlpha");
- $("#startStatus").textContent=existing ? "Saved career found on this iPhone." : "No saved career yet. Start a new career to create one.";
+ let slots=[1,2,3].map(careerSlotSummary).filter(Boolean);
+ let preferred=Number(localStorage.getItem(ACTIVE_SLOT_KEY))||1;
+ if([1,2,3].includes(preferred))activeSaveSlot=preferred;
+ $("#startStatus").textContent=slots.length ? slots.length+" saved career"+(slots.length===1?"":"s")+" available on this device." : "No saved careers yet. Start a new career to create one.";
 }catch(e){
  $("#startStatus").textContent="Safari storage is unavailable in this browsing mode.";
 }
