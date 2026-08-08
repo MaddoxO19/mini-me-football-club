@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.6.3 Storage Recovery Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.6.4 Rivalries UI Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1385,18 +1385,127 @@ body.career-hub-active .continueDock{
 
 
 /* v2.9.6.3 Storage Recovery: single-copy save architecture */
+
+/* v2.9.6.4 Rivalries UI */
+.start{
+  background:
+    radial-gradient(circle at 50% 12%,rgba(36,52,70,.92),rgba(8,13,18,.96) 50%),
+    #080d12!important;
+}
+.launchMark{
+  padding:22px 4px 24px;
+  text-align:center;
+}
+.launchMini{
+  color:var(--gold);
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:.24em;
+}
+.launchTitle{
+  color:var(--text);
+  font-size:36px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.015em;
+  margin-top:8px;
+}
+.launchRule{
+  width:50px;
+  height:2px;
+  border-radius:99px;
+  background:var(--gold);
+  margin:16px auto 14px;
+}
+.launchTagline{
+  color:var(--gold-soft);
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:.03em;
+}
+.launchMessage{
+  max-width:360px;
+  margin:10px auto 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+.launchBuild{
+  margin-top:7px;
+  color:#6f7d89;
+  font-size:9px;
+  letter-spacing:.055em;
+  text-align:center;
+}
+
+/* Compact active-game identity */
+header{
+  padding:calc(10px + env(safe-area-inset-top)) 16px 9px!important;
+}
+.gameHeaderIdentity{
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+  line-height:1;
+}
+.gameHeaderMini{
+  color:var(--gold);
+  font-size:9px;
+  letter-spacing:.15em;
+  font-weight:950;
+}
+.gameHeaderTitle{
+  color:var(--text);
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:.035em;
+}
+#clubline{
+  margin-top:5px!important;
+  font-size:11px!important;
+  line-height:1.25;
+}
+.gameInfoCard{
+  margin-top:12px;
+}
+.gameInfoBuild{
+  font-size:12px;
+  font-weight:800;
+  margin-top:6px;
+  line-height:1.35;
+}
+.rivalryStatusLine{
+  margin-top:10px;
+  padding:9px 10px;
+  border-radius:11px;
+  border:1px solid #5f5126;
+  background:#d9b54a0a;
+  color:var(--gold);
+  font-size:10px;
+  font-weight:850;
+}
+@media(max-width:430px){
+  .launchTitle{font-size:32px}
+}
+
 </style>
 </head>
 <body>
 <section id="start" class="start">
 <div id="launchStep" class="careerStep">
-  <div id="startBuild" class="startBuild"></div><h1><span class="mini">MINI&ME</span><span class="club">FOOTBALL CLUB</span></h1><div class="brandRule"></div><div class="tagline">Build the Club. Shape the Legacy.</div>
-  <div class="intro">Build a football club across generations. Recruit players, manage contracts, shape the finances, customise your squad and create a legacy that lasts beyond one season.</div>
+  <div class="launchMark">
+    <div class="launchMini">MINI&ME</div>
+    <div class="launchTitle">FOOTBALL CLUB</div>
+    <div class="launchRule"></div>
+    <div class="launchTagline">Build the Club. Shape the Legacy.</div>
+    <div class="launchMessage">A football world that grows with every season.</div>
+  </div>
   <div class="startActions">
     <button id="newBtn" class="btn primary full">NEW CAREER</button>
     <button id="loadBtn" class="btn full">LOAD CAREER</button>
     <button id="recoverBtn" class="btn full">RECOVER CAREER</button>
     <div id="startStatus" class="sub" style="padding:10px 4px 0">Checking career slots…</div>
+    <div id="startBuild" class="launchBuild"></div>
   </div>
 </div>
 <div id="saveSlotStep" class="careerStep hidden">
@@ -1432,13 +1541,11 @@ body.career-hub-active .continueDock{
 </section>
 
 <header>
-<div class="brand">
-  <div class="brandMini">MINI&ME</div>
-  <div class="brandTitle">FOOTBALL CLUB</div>
-  <div class="brandTag">Build the Club. Shape the Legacy.</div>
-</div>
-<div id="clubline"></div>
-<div id="gameBuild" class="versionWordmark"></div>
+  <div class="gameHeaderIdentity">
+    <span class="gameHeaderMini">MINI&ME</span>
+    <span class="gameHeaderTitle">FOOTBALL CLUB</span>
+  </div>
+  <div id="clubline"></div>
 </header>
 <nav id="nav">
 <button data-page="home" class="active"><b>⌂</b>HOME</button>
@@ -1470,7 +1577,7 @@ body.career-hub-active .continueDock{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.6.3 Storage Recovery Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.6.4 Rivalries UI Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -1485,9 +1592,8 @@ let activeSaveSlot=1,careerSlotMode="load",activeStorageMode="slot";
 const $=s=>document.querySelector(s), rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
 function renderBuildVersion(){
- let a=$("#startBuild"),b=$("#gameBuild");
+ let a=$("#startBuild");
  if(a)a.textContent=BUILD_VERSION;
- if(b)b.textContent=BUILD_VERSION;
 }
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -1682,7 +1788,8 @@ function rivalryProfileHtml(id){
    return '<div class="rivalryCard '+(i===0?'primary':'')+'"><div class="rank">'+(i===0?'PRIMARY RIVAL':'SECONDARY RIVAL')+'</div><b>'+(c?c.name:'Unknown Club')+'</b><div class="score">'+x.score+'</div><span>'+rivalryLevel(x.score)+' · '+h.played+' meetings · '+h.w+'W '+h.d+'D '+h.l+'L</span></div>';
  }).join(""):'<div class="sub">No rivalry has crossed the active threshold yet. Rivalries build naturally through repeated competitive meetings.</div>';
  let hist=historic.length?historic.map(x=>'<div class="rivalryHistoryRow"><div><b>'+((G.clubs[x.opponentId]&&G.clubs[x.opponentId].name)||"Unknown Club")+'</b><span>Peak '+x.score+' · '+x.level+' · '+x.season+'</span></div><div>'+headToHeadLabel(id,x.opponentId)+'</div></div>').join(""):'<div class="sub">Historic rivalries will be preserved here as seasons pass.</div>';
- return '<div class="card"><div class="title">Rivalries</div><div class="sub">Relationships emerge from competitive history. They do not change match simulation odds.</div><div class="rivalryGrid">'+cards+'</div></div>'+
+ let statusLine=active.length?active.length+' active rival'+(active.length===1?'':'s')+' · strongest score '+active[0].score:'No active rivalry yet';
+ return '<div class="card"><div class="title">Rivalries</div><div class="sub">Rivalries emerge naturally from repeated competitive meetings, title races and close results.</div><div class="rivalryStatusLine">'+statusLine+'</div><div class="rivalryGrid">'+cards+'</div></div>'+
  '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
 }
 
@@ -2879,7 +2986,8 @@ function clubProfileOverview(id){
  '<div class="financeRow"><span>Goals</span><b>'+c.gf+' for · '+c.ga+' against</b></div>'+
  '<div class="financeRow"><span>Goal difference</span><b>'+((c.gf-c.ga)>0?"+":"")+(c.gf-c.ga)+'</b></div>'+
  '<div class="financeRow"><span>Points</span><b>'+c.pts+'</b></div></div></div>'+
- (id!==G.club?'<div class="clubH2HCard"><div class="label">RECORD VS YOUR CLUB</div><div class="recordBig">'+headToHeadLabel(G.club,id)+'</div><div class="sub">'+(headToHead(G.club,id).played?'Goals '+headToHead(G.club,id).gf+'–'+headToHead(G.club,id).ga+' from your club’s perspective.':'The rivalry record will begin after the first archived meeting.')+'</div></div>':'');
+ (id!==G.club?'<div class="clubH2HCard"><div class="label">RECORD VS YOUR CLUB</div><div class="recordBig">'+headToHeadLabel(G.club,id)+'</div><div class="sub">'+(headToHead(G.club,id).played?'Goals '+headToHead(G.club,id).gf+'–'+headToHead(G.club,id).ga+' from your club’s perspective.':'The rivalry record will begin after the first archived meeting.')+'</div></div>':'')+
+ (id===G.club?'<div class="card gameInfoCard"><div class="label">GAME INFO</div><div class="gameInfoBuild">'+BUILD_VERSION+'</div><div class="sub">Career data is stored locally on this device.</div></div>':'');
 }
 function clubProfileSquad(id){
  let ps=[...roster(id)].sort((a,b)=>positionGroup(a.pos).localeCompare(positionGroup(b.pos))||b.ovr-a.ovr);
