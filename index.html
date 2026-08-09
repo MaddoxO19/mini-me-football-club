@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.16.1 Contract Rollover Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.16.2 XI Role Coverage Engine Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3701,7 +3701,7 @@ body.gm-profile-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.16.1 Contract Rollover Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.16.2 XI Role Coverage Engine Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4331,21 +4331,25 @@ function formationSlotsForClub(teamId){return formationSlotsForCoach(teamId)}
 function startingXISlotScore(p,slot,teamId=G.club){
  if(!p||!playerEligibleForSlot(p,slot))return -10000;
  let pe=positionalEffectiveness(p,slot,teamId),fit=coachFitAssessment(p,slot,teamId),score=Number(pe.effectiveOvr)||0;
- // Selection hierarchy: positional suitability first, then Coach Fit, then effective ability.
- // Natural tactical roles receive a meaningful advantage, but elite players can still win a close contest.
- if(naturalForTacticalSlot(p,slot))score+=12;
- else if(p.secondaryPositions&&p.secondaryPositions.includes(slot))score+=6;
- else if(centralForwardCoverageEligible(p,slot))score+=4;
- else if(sideSwitchEligible(p,slot))score+=3;
- else if(midfieldCoverageEligible(p,slot))score+=1;
- else if(defensiveFamilyEligible(p,slot))score-=2;
 
- if(fit.label==="Perfect")score+=10;
+ // Canonical XI hierarchy:
+ // 1. The player must be positionally eligible.
+ // 2. Effective ability already includes any adaptation penalty.
+ // 3. Positional familiarity provides a modest advantage.
+ // 4. Coach Fit separates otherwise comparable eligible players.
+ // Perfect Fit is influential, but never overrides a large ability gap by itself.
+ if(naturalForTacticalSlot(p,slot))score+=8;
+ else if(p.secondaryPositions&&p.secondaryPositions.includes(slot))score+=5;
+ else if(centralForwardCoverageEligible(p,slot))score+=3;
+ else if(sideSwitchEligible(p,slot))score+=2;
+ else if(midfieldCoverageEligible(p,slot))score+=2;
+ else if(defensiveFamilyEligible(p,slot))score-=1;
+
+ if(fit.label==="Perfect")score+=11;
  else if(fit.label==="Good")score+=5;
  else if(fit.label==="Fair")score+=0;
  else score-=12;
 
- // Discourage using a player in an avoidable cover role when a natural solution exists.
  score-=Math.max(0,Number(pe.penalty)||0)*0.75;
  return score;
 }
@@ -6073,13 +6077,34 @@ function defensiveFamilyEligible(p,slot){
  let defs=["LB","LWB","LCB","CB","RCB","RB","RWB"];
  return defs.includes(p.pos)&&defs.includes(slot);
 }
-function midfieldCoverageEligible(p,slot){
- if(!p)return false;
- // Wide midfielders can tuck inside; central midfielders can cover wide midfield roles.
- if(["LM","RM"].includes(p.pos)&&["LCM","CM","RCM"].includes(slot))return true;
- if(["CM","LCM","RCM"].includes(p.pos)&&["LM","RM"].includes(slot))return true;
- return false;
+function midfieldCoverageType(p,slot){
+ if(!p)return null;
+ let pos=String(p.pos||"").toUpperCase(),target=String(slot||"").toUpperCase();
+ let central=["LCM","CM","RCM"],deep=["LDM","DM","CDM","RDM"],advanced=["LAM","AM","CAM","RAM"],wide=["LM","RM"];
+
+ // The three central midfield lanes are the bridge between deeper and more
+ // advanced midfield roles. DM/CDM and AM/CAM can therefore play LCM/CM/RCM,
+ // but they remain adaptation roles rather than natural positions.
+ if(central.includes(target)){
+   if(deep.includes(pos))return"Deep-to-central";
+   if(advanced.includes(pos))return"Advanced-to-central";
+   if(wide.includes(pos))return"Wide-to-central";
+ }
+
+ // A natural central midfielder may drop into a double pivot / defensive
+ // midfield role, but an AM/CAM is not automatically eligible there.
+ if(deep.includes(target)&&central.includes(pos))return"Central-to-deep";
+
+ // A natural central midfielder may step into an attacking midfield role,
+ // but a DM/CDM is not automatically eligible there.
+ if(advanced.includes(target)&&central.includes(pos))return"Central-to-advanced";
+
+ // Existing wide-midfield interchange remains valid.
+ if(wide.includes(target)&&central.includes(pos))return"Central-to-wide";
+
+ return null;
 }
+function midfieldCoverageEligible(p,slot){return!!midfieldCoverageType(p,slot)}
 function playerEligibleForSlot(p,slot){
  if(!p)return false;
  seedSecondaryPositions(p);
@@ -6123,15 +6148,20 @@ function baseSecondaryPenalty(p,slot){
    return 5;
  }
 
- // Wide midfielders can play centrally, and CMs can cover LM/RM.
- if(midfieldCoverageEligible(p,slot))return 3;
+ // Canonical midfield adjacency. Central lanes bridge deeper and advanced
+ // midfielders. Moving between central and wide midfield remains slightly
+ // more demanding.
+ let midfieldType=midfieldCoverageType(p,slot);
+ if(midfieldType){
+   if(midfieldType==="Deep-to-central"||midfieldType==="Advanced-to-central")return 3;
+   if(midfieldType==="Central-to-deep"||midfieldType==="Central-to-advanced")return 3;
+   return 4;
+ }
 
  if(!playerEligibleForSlot(p,slot))return null;
 
  let close=[
    ["LB","LWB"],["RB","RWB"],
-   ["DM","CM"],["CDM","CM"],
-   ["AM","CM"],["CAM","CM"],
    ["LM","LW"],["RM","RW"],
    ["CF","ST"]
  ];
@@ -6142,10 +6172,15 @@ function positionalEffectiveness(p,slot,teamId=G.club){
  if(naturalForTacticalSlot(p,slot))return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
  let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
  let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
+ let midfieldType=midfieldCoverageType(p,slot);
  let roleType=centralForwardCoverageEligible(p,slot)?"Forward cover":
               sideSwitchEligible(p,slot)?"Side switch":
               defensiveFamilyEligible(p,slot)?"Defensive cover":
-              midfieldCoverageEligible(p,slot)?"Midfield cover":"Secondary";
+              midfieldType?(midfieldType==="Deep-to-central"?"Deep midfield cover":
+                            midfieldType==="Advanced-to-central"?"Advanced midfield cover":
+                            midfieldType==="Central-to-deep"?"Deeper midfield cover":
+                            midfieldType==="Central-to-advanced"?"Advanced role cover":
+                            "Midfield cover"):"Secondary";
  return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:roleType,coachBand:band.label};
 }
 function coachFitAssessment(p,slot=null,teamId=G.club){
