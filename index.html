@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.17.0 Coach Development Edit Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.17.1 GM Career History Integrity Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3739,7 +3739,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.17.0 Coach Development Edit Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.17.1 GM Career History Integrity Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5491,13 +5491,83 @@ function coachEmploymentView(){
 }
 
 
+
+function gmSpellPoint(season,week=0){
+ return (Number(season)||0)*1000+(Number(week)||0);
+}
+function gmSpellLabel(spell,isCurrent=false){
+ let from=Number(spell.from)||G.season,to=spell.to==null?null:Number(spell.to);
+ let fromWeek=Number(spell.fromWeek)||0,toWeek=Number(spell.toWeek)||0;
+ let start=String(from)+(fromWeek>0?" · W"+fromWeek:"");
+ let end=isCurrent?"Present":String(to==null?G.season:to)+(toWeek>0?" · W"+toWeek:"");
+ return start+"–"+end;
+}
+function gmSpellSeasonEquivalent(spell){
+ let start=gmSpellPoint(spell.from,spell.fromWeek||0);
+ let end=spell.to==null?gmSpellPoint(G.season,G.week||0):gmSpellPoint(spell.to,spell.toWeek||0);
+ return Math.max(.1,(end-start)/1000);
+}
+function repairUserGMCareerHistory(){
+ if(!G.userGM||typeof G.userGM!=="object")return false;
+ if(!Array.isArray(G.userGM.clubs))G.userGM.clubs=[];
+ let current=G.userGM.status==="Unemployed"?null:Number(G.userGM.currentClubId),changed=false;
+ let spells=G.userGM.clubs;
+
+ // Normalise identifiers and timestamps.
+ spells.forEach(s=>{
+  s.clubId=Number(s.clubId);
+  if(!Number.isFinite(Number(s.from)))s.from=Number(G.userGM.createdSeason)||G.season;
+  if(!Number.isFinite(Number(s.fromWeek)))s.fromWeek=0;
+  if(s.to!=null&&!Number.isFinite(Number(s.to)))s.to=null;
+  if(s.toWeek!=null&&!Number.isFinite(Number(s.toWeek)))s.toWeek=0;
+ });
+
+ // Only the current club may have an open spell.
+ spells.forEach(s=>{
+  if(s.to==null&&(current==null||s.clubId!==current)){
+   s.to=G.season;s.toWeek=Number(G.week)||0;changed=true;
+  }
+ });
+
+ // If legacy data contains multiple open spells for the current club, keep only
+ // the most recent and close older duplicates at the newer spell's start.
+ if(current!=null){
+  let open=spells.map((s,i)=>({s,i})).filter(x=>x.s.clubId===current&&x.s.to==null)
+   .sort((a,b)=>gmSpellPoint(a.s.from,a.s.fromWeek)-gmSpellPoint(b.s.from,b.s.fromWeek));
+  if(open.length>1){
+   let keep=open[open.length-1].s;
+   open.slice(0,-1).forEach(x=>{
+    x.s.to=Number(keep.from)||G.season;
+    x.s.toWeek=Number(keep.fromWeek)||0;
+    changed=true;
+   });
+  }
+  if(!spells.some(s=>s.clubId===current&&s.to==null)){
+   spells.push({clubId:current,from:G.season,fromWeek:Number(G.week)||0,to:null,toWeek:null});
+   changed=true;
+  }
+ }
+
+ // Remove exact duplicate spells created by legacy hydration.
+ let seen=new Set();
+ G.userGM.clubs=spells.filter(s=>{
+  let key=[s.clubId,s.from,s.fromWeek||0,s.to==null?"P":s.to,s.toWeek||0].join("|");
+  if(seen.has(key)){changed=true;return false}
+  seen.add(key);return true;
+ });
+
+ let rec=G.staffHistory&&G.staffHistory.gms&&G.staffHistory.gms[G.userGM.id];
+ if(rec){rec.clubs=G.userGM.clubs;rec.currentClubId=current}
+ return changed;
+}
+
 function ensureUserGMIdentity(){
  ensureStaffHistoryState();
  if(!G.userGM||typeof G.userGM!=="object"){
   G.userGM={
    id:"USER-GM",name:"General Manager",createdSeason:G.season,currentClubId:G.club,status:"Employed",
    reputation:Math.max(60,Math.min(95,Math.round((G.clubs[G.club].rep||72)*.85))),
-   clubs:[{clubId:G.club,from:G.season,to:null}]
+   clubs:[{clubId:G.club,from:G.season,fromWeek:Number(G.week)||0,to:null,toWeek:null}]
   };
  }
  if(!G.userGM.id)G.userGM.id="USER-GM";
@@ -5508,7 +5578,8 @@ function ensureUserGMIdentity(){
  if(G.userGM.status!=="Unemployed"){
   if(!Number.isFinite(Number(G.userGM.currentClubId)))G.userGM.currentClubId=G.club;
   G.club=Number(G.userGM.currentClubId);
-  if(!G.userGM.clubs.some(x=>x.clubId===G.club&&x.to==null))G.userGM.clubs.push({clubId:G.club,from:G.season,to:null});
+  repairUserGMCareerHistory();
+  if(!G.userGM.clubs.some(x=>x.clubId===G.club&&x.to==null))G.userGM.clubs.push({clubId:G.club,from:G.season,fromWeek:Number(G.week)||0,to:null,toWeek:null});
   let c=G.clubs[G.club];
   if(c){
    if(!c.gm||typeof c.gm!=="object")c.gm={};
@@ -5527,13 +5598,14 @@ function ensureUserGMIdentity(){
  }
  gm.name=G.userGM.name;gm.ovr=Number(G.userGM.reputation)||gm.ovr;gm.currentClubId=G.userGM.status==="Unemployed"?null:G.userGM.currentClubId;gm.clubs=G.userGM.clubs;
  if(!Number.isFinite(gm.gf))gm.gf=0;if(!Number.isFinite(gm.ga))gm.ga=0;
+ repairUserGMCareerHistory();
 }
 function userGMRecord(){
  ensureUserGMIdentity();
  return G.staffHistory.gms[G.userGM.id]||null;
 }
 function gmCareerTotals(){
- let gm=userGMRecord(),clubs=G.userGM&&Array.isArray(G.userGM.clubs)?G.userGM.clubs:[];
+ let gm=userGMRecord();repairUserGMCareerHistory();let clubs=G.userGM&&Array.isArray(G.userGM.clubs)?G.userGM.clubs:[];
  return{
   gm,
   name:G.userGM.name,
@@ -5603,10 +5675,11 @@ function ensureAIGMForClub(clubId){
  G.staffHistory.gms[gm.id]={id:gm.id,name:gm.name,ovr:gm.ovr,currentClubId:clubId,appointedSeason:G.season,clubs:[{clubId,from:G.season,to:null}],matches:0,w:0,d:0,l:0,seasons:0,titles:0,bestFinish:null,bestPoints:null,awards:0,gf:0,ga:0};
  return gm;
 }
-function closeUserGMClubSpell(clubId,toSeason=G.season){
- let spell=[...(G.userGM.clubs||[])].reverse().find(x=>x.clubId===clubId&&x.to==null);
- if(spell)spell.to=toSeason;
+function closeUserGMClubSpell(clubId,toSeason=G.season,toWeek=G.week){
+ let open=(G.userGM.clubs||[]).filter(x=>Number(x.clubId)===Number(clubId)&&x.to==null);
+ open.forEach(spell=>{spell.to=Number(toSeason)||G.season;spell.toWeek=Number(toWeek)||0});
  let rec=userGMRecord();if(rec)rec.currentClubId=null;
+ repairUserGMCareerHistory();
 }
 function ensureGMCareerMarket(){
  ensureUserGMIdentity();
@@ -5653,14 +5726,16 @@ function moveUserGMToClub(newClubId,reason="Accepted role"){
  ensureGMCareerMarket();newClubId=Number(newClubId);let next=G.clubs[newClubId];if(!next||newClubId===G.userGM.currentClubId)return false;
  let oldId=G.userGM.currentClubId,old=Number.isFinite(Number(oldId))?G.clubs[oldId]:null;
  if(old){
-  closeUserGMClubSpell(oldId,G.season);
+  closeUserGMClubSpell(oldId,G.season,G.week);
   ensureAIGMForClub(oldId);
  }
  if(next.gm&&next.gm.id&&next.gm.id!==G.userGM.id){
   let prev=G.staffHistory.gms[next.gm.id];if(prev){let sp=[...(prev.clubs||[])].reverse().find(s=>s.clubId===newClubId&&s.to==null);if(sp)sp.to=G.season;prev.currentClubId=null}
  }
  G.club=newClubId;G.userGM.currentClubId=newClubId;G.userGM.status="Employed";
- G.userGM.clubs.push({clubId:newClubId,from:G.season,to:null});
+ repairUserGMCareerHistory();
+ G.userGM.clubs.push({clubId:newClubId,from:G.season,fromWeek:Number(G.week)||0,to:null,toWeek:null});
+ repairUserGMCareerHistory();
  next.gm={id:G.userGM.id,name:G.userGM.name,ovr:Number(G.userGM.reputation)||70,appointedSeason:G.season};
  let rec=userGMRecord();rec.currentClubId=newClubId;rec.clubs=G.userGM.clubs;
  G.boardTarget=clubBoardTargetFor(newClubId);
@@ -5679,7 +5754,7 @@ function acceptGMOpportunity(clubId){
 function dismissUserGM(reason="Board dismissal"){
  ensureGMCareerMarket();if(G.userGM.status==="Unemployed")return;
  let oldId=G.userGM.currentClubId,old=G.clubs[oldId];
- closeUserGMClubSpell(oldId,G.season);ensureAIGMForClub(oldId);
+ closeUserGMClubSpell(oldId,G.season,G.week);ensureAIGMForClub(oldId);
  G.userGM.status="Unemployed";G.userGM.currentClubId=null;
  let rec=userGMRecord();if(rec)rec.currentClubId=null;
  G.gmCareer.vacancies=G.gmCareer.vacancies.filter(v=>v.clubId!==oldId);
@@ -5716,10 +5791,15 @@ function updateGMReputationForSeason(review){
 
 function gmClubHistoryRows(){
  let t=gmCareerTotals();
- return t.clubs.map(h=>{
+ repairUserGMCareerHistory();
+ return (G.userGM.clubs||[]).map(h=>{
   let c=G.clubs[h.clubId],name=c?c.name:"Club";
-  let to=h.to||"Present";
-  return '<div class="gmClubHistoryRow"><div><b>'+name+'</b><span>'+h.from+'–'+to+'</span></div><div><b>'+((h.to?Math.max(1,h.to-h.from+1):Math.max(1,G.season-h.from+1)))+' seasons</b><span>'+((t.currentClubId===h.clubId&&!h.to)?"Current club":"Career history")+'</span></div></div>';
+  let current=t.currentClubId===h.clubId&&h.to==null;
+  let eq=gmSpellSeasonEquivalent(h);
+  let tenure=current
+   ?(eq<1?Math.max(1,Math.round(eq*leagueSeasonWeeks()))+" weeks":Math.max(1,Math.round(eq))+" seasons")
+   :(eq<1?Math.max(1,Math.round(eq*leagueSeasonWeeks()))+" weeks":Math.max(1,Math.round(eq))+" seasons");
+  return '<div class="gmClubHistoryRow"><div><b>'+name+'</b><span>'+gmSpellLabel(h,current)+'</span></div><div><b>'+tenure+'</b><span>'+(current?"Current club":"Career history")+'</span></div></div>';
  }).join("");
 }
 function gmProfileHtml(){
