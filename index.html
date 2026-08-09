@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.2 Player Identity & Coach Fit Standardisation Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9.3 Starting XI Optimisation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1844,6 +1844,11 @@ nav button:active{
 /* v2.9.9.2 Player Identity & Coach Fit Standardisation */
 .playerStyleTag{display:inline-flex;margin-top:5px;margin-right:5px;border:1px solid #4a5968;background:#ffffff04;color:#d7dfe6;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:850;letter-spacing:.035em}
 .teamCoachSummary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 12px;margin-bottom:10px;border:1px solid #705d25;border-radius:13px;background:#d9b54a08}.teamCoachSummary b{display:block;font-size:13px;margin-top:3px}.teamCoachSummary span{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.35}.teamCoachLink{flex:0 0 auto;border:1px solid #705d25;background:#d9b54a10;color:var(--gold);border-radius:999px;padding:8px 10px;font-size:8px;font-weight:950;letter-spacing:.06em}
+
+/* v2.9.9.3 Starting XI Optimisation
+   Starting XIs are now solved as a whole-formation assignment rather than sequential slot filling.
+   Natural position, Coach Fit and effective OVR are considered together, followed by a pair-swap validation pass. */
+
 </style>
 </head>
 <body>
@@ -1920,7 +1925,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.9.2 Player Identity & Coach Fit Standardisation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.9.3 Starting XI Optimisation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2502,19 +2507,117 @@ function playerAwardsView(p){
 }
 
 
-function teamBestForSlot(teamId,slot,used){
- let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring&&playerEligibleForSlot(p,slot));
- let rank=p=>{let pe=positionalEffectiveness(p,slot,teamId);return pe.effectiveOvr+fitSelectionModifier(systemFitScore(p,slot,teamId))};
- candidates.sort((a,b)=>rank(b)-rank(a)||b.ovr-a.ovr);let p=candidates[0]||null;if(p)used.add(p.id);return p;
-}
 function formationSlotsForClub(teamId){return formationSlotsForCoach(teamId)}
-function formationCoverage(teamId=G.club){
- let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>!p.retiring),missing=[],used=new Set();
- slots.forEach(slot=>{let eligible=pool.filter(p=>!used.has(p.id)&&playerEligibleForSlot(p,slot)).sort((a,b)=>positionalEffectiveness(b,slot,teamId).effectiveOvr-positionalEffectiveness(a,slot,teamId).effectiveOvr);if(eligible[0])used.add(eligible[0].id);else missing.push(slot)});
- return{ok:missing.length===0,missing,slots,selected:used.size};
+
+function startingXISlotScore(p,slot,teamId=G.club){
+ if(!p||!playerEligibleForSlot(p,slot))return -10000;
+ let pe=positionalEffectiveness(p,slot,teamId),fit=coachFitAssessment(p,slot,teamId),score=Number(pe.effectiveOvr)||0;
+ // Selection hierarchy: positional suitability first, then Coach Fit, then effective ability.
+ // Natural tactical roles receive a meaningful advantage, but elite players can still win a close contest.
+ if(naturalForTacticalSlot(p,slot))score+=12;
+ else if(p.secondaryPositions&&p.secondaryPositions.includes(slot))score+=6;
+ else if(sideSwitchEligible(p,slot))score+=3;
+ else if(midfieldCoverageEligible(p,slot))score+=1;
+ else if(defensiveFamilyEligible(p,slot))score-=2;
+
+ if(fit.label==="Perfect")score+=10;
+ else if(fit.label==="Good")score+=5;
+ else if(fit.label==="Fair")score+=0;
+ else score-=12;
+
+ // Discourage using a player in an avoidable cover role when a natural solution exists.
+ score-=Math.max(0,Number(pe.penalty)||0)*0.75;
+ return score;
 }
-function startingXIIntegrity(teamId=G.club){let coverage=formationCoverage(teamId),xi=selectStartingXI(teamId);return{ok:coverage.ok&&xi.length===11,count:xi.length,missing:coverage.missing,formation:coachProfile(teamId).formation}}
-function selectStartingXI(teamId){let used=new Set(),xi=[];formationSlotsForClub(teamId).forEach(line=>line.forEach(slot=>{let p=teamBestForSlot(teamId,slot,used);if(p)xi.push(p)}));return xi.slice(0,11)}
+
+function hungarianMaxAssignment(scoreMatrix){
+ // Rectangular Hungarian algorithm. Rows are tactical slots; columns are players.
+ // Returns the player-column selected for every row, or -1 where no valid assignment exists.
+ let n=scoreMatrix.length,m=scoreMatrix[0]?scoreMatrix[0].length:0;
+ if(!n||!m)return Array(n).fill(-1);
+ let cols=Math.max(m,n),maxScore=-Infinity;
+ scoreMatrix.forEach(r=>r.forEach(v=>{if(Number.isFinite(v)&&v>maxScore)maxScore=v}));
+ if(!Number.isFinite(maxScore))maxScore=0;
+ let a=Array.from({length:n},(_,i)=>Array.from({length:cols},(_,j)=>{
+   let s=j<m?scoreMatrix[i][j]:-10000;
+   return maxScore-s;
+ }));
+ let u=Array(n+1).fill(0),v=Array(cols+1).fill(0),p=Array(cols+1).fill(0),way=Array(cols+1).fill(0);
+ for(let i=1;i<=n;i++){
+   p[0]=i;
+   let j0=0,minv=Array(cols+1).fill(Infinity),used=Array(cols+1).fill(false);
+   do{
+     used[j0]=true;
+     let i0=p[j0],delta=Infinity,j1=0;
+     for(let j=1;j<=cols;j++)if(!used[j]){
+       let cur=a[i0-1][j-1]-u[i0]-v[j];
+       if(cur<minv[j]){minv[j]=cur;way[j]=j0}
+       if(minv[j]<delta){delta=minv[j];j1=j}
+     }
+     for(let j=0;j<=cols;j++){
+       if(used[j]){u[p[j]]+=delta;v[j]-=delta}
+       else minv[j]-=delta;
+     }
+     j0=j1;
+   }while(p[j0]!==0);
+   do{
+     let j1=way[j0];p[j0]=p[j1];j0=j1;
+   }while(j0!==0);
+ }
+ let assignment=Array(n).fill(-1);
+ for(let j=1;j<=cols;j++)if(p[j]>0&&p[j]<=n)assignment[p[j]-1]=(j-1<m?j-1:-1);
+ return assignment;
+}
+
+function optimiseStartingXI(teamId=G.club){
+ let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>p.team===teamId&&!p.retiring);
+ let matrix=slots.map(slot=>pool.map(p=>startingXISlotScore(p,slot,teamId)));
+ let assignment=hungarianMaxAssignment(matrix),rows=slots.map((slot,i)=>{
+   let idx=assignment[i],p=idx>=0?pool[idx]:null,score=p?matrix[i][idx]:-10000;
+   if(!p||score<=-9000)return{slot,player:null,score:-10000,fit:null,position:null};
+   return{slot,player:p,score,fit:coachFitAssessment(p,slot,teamId),position:positionalEffectiveness(p,slot,teamId)};
+ });
+
+ // Final local-improvement pass: test every pair swap and keep it whenever the whole XI improves.
+ // This catches edge cases where two individually sensible assignments are collectively inferior.
+ let improved=true,guard=0;
+ while(improved&&guard<8){
+   improved=false;guard++;
+   for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){
+     let a=rows[i],b=rows[j];if(!a.player||!b.player)continue;
+     let current=startingXISlotScore(a.player,a.slot,teamId)+startingXISlotScore(b.player,b.slot,teamId);
+     let swapped=startingXISlotScore(b.player,a.slot,teamId)+startingXISlotScore(a.player,b.slot,teamId);
+     if(swapped>current+0.01){
+       let pa=a.player,pb=b.player;
+       a.player=pb;b.player=pa;
+       a.score=startingXISlotScore(pb,a.slot,teamId);b.score=startingXISlotScore(pa,b.slot,teamId);
+       a.fit=coachFitAssessment(pb,a.slot,teamId);b.fit=coachFitAssessment(pa,b.slot,teamId);
+       a.position=positionalEffectiveness(pb,a.slot,teamId);b.position=positionalEffectiveness(pa,b.slot,teamId);
+       improved=true;
+     }
+   }
+ }
+ return{slots,pool,rows,totalScore:rows.reduce((s,r)=>s+(r.player?r.score:0),0)};
+}
+
+function teamBestForSlot(teamId,slot,used){
+ // Retained for compatibility with any older UI helper, but uses the same canonical scoring model.
+ let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring&&playerEligibleForSlot(p,slot));
+ candidates.sort((a,b)=>startingXISlotScore(b,slot,teamId)-startingXISlotScore(a,slot,teamId)||b.ovr-a.ovr);
+ let p=candidates[0]||null;if(p)used.add(p.id);return p;
+}
+function formationCoverage(teamId=G.club){
+ let opt=optimiseStartingXI(teamId),missing=opt.rows.filter(r=>!r.player).map(r=>r.slot);
+ return{ok:missing.length===0,missing,slots:opt.slots,selected:opt.rows.filter(r=>r.player).length};
+}
+function startingXIIntegrity(teamId=G.club){
+ let opt=optimiseStartingXI(teamId),missing=opt.rows.filter(r=>!r.player).map(r=>r.slot),count=opt.rows.filter(r=>r.player).length;
+ return{ok:missing.length===0&&count===11,count,missing,formation:coachProfile(teamId).formation};
+}
+function selectStartingXI(teamId){
+ // One authoritative XI for UI, match simulation and AI strength calculations.
+ return optimiseStartingXI(teamId).rows.filter(r=>r.player).map(r=>r.player).slice(0,11);
+}
 function weightedPick(a,f){if(!a.length)return null;let w=a.map(x=>Math.max(.1,f(x))),t=w.reduce((x,y)=>x+y,0),r=Math.random()*t;for(let i=0;i<a.length;i++){r-=w[i];if(r<=0)return a[i]}return a[a.length-1]}
 function recordMatchStats(team,goals){
  ensurePlayerStats();
