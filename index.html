@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.6 Retirement Availability Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.10.0 UI UX Consistency Pass 1 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1920,6 +1920,159 @@ body.match-result-active .sheetbox{
  font-size:8px;font-weight:900;letter-spacing:.045em
 }
 
+
+/* ==========================================================
+   v2.9.10.0 UI / UX CONSISTENCY PASS 1
+   Visual system only. No gameplay or save-schema changes.
+   ========================================================== */
+:root{
+ --ui-radius:16px;
+ --ui-radius-sm:12px;
+ --ui-gap:12px;
+ --ui-control-h:44px;
+ --ui-shadow:0 10px 28px rgba(0,0,0,.18);
+ --ui-focus:rgba(217,181,74,.16);
+}
+
+/* Global rhythm and hierarchy */
+main{padding:16px 14px 26px!important}
+.card{
+ border-radius:var(--ui-radius)!important;
+ padding:15px!important;
+ margin-bottom:var(--ui-gap)!important;
+ box-shadow:var(--ui-shadow)!important;
+}
+.title{font-size:16px!important;font-weight:850!important;letter-spacing:-.01em!important;margin-bottom:10px!important}
+.label{font-size:9px!important;font-weight:850!important;letter-spacing:.12em!important}
+.sub{font-size:11px!important;line-height:1.45!important}
+
+/* One button language everywhere */
+.btn{
+ min-height:var(--ui-control-h);
+ border-radius:var(--ui-radius-sm)!important;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ line-height:1.15;
+ transition:transform .12s ease,background .12s ease,border-color .12s ease,opacity .12s ease;
+}
+.btn.primary{font-weight:850!important}
+.btn:disabled{opacity:.42!important;cursor:not-allowed!important}
+.btn:active{transform:scale(.985)!important}
+
+/* Header and top navigation use the same width/rhythm as content */
+header{padding-left:16px!important;padding-right:16px!important}
+.gameHeaderIdentity{min-width:0}
+#clubline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav{padding-left:8px!important;padding-right:8px!important}
+nav button{font-weight:750!important;letter-spacing:.025em!important}
+
+/* Tabs and filter chips share one interaction standard */
+.sectionTabs,.marketFilter{gap:7px!important;padding-bottom:12px!important;scroll-snap-type:x proximity}
+.sectionTabs button,.marketFilter button{
+ min-height:36px;
+ border-radius:999px!important;
+ padding:8px 12px!important;
+ font-size:10px!important;
+ font-weight:850!important;
+ letter-spacing:.04em!important;
+ scroll-snap-align:start;
+}
+.sectionTabs button.active,.marketFilter button.active{box-shadow:0 0 0 1px rgba(217,181,74,.12) inset}
+
+/* Lists: consistent spacing, tap affordance and text protection */
+.player,.leaderRow,.podiumRow,.awardRow,.contractRow,.feed,.ratingRow,.performer{
+ min-width:0;
+}
+.player{padding:12px 0!important;grid-template-columns:42px minmax(0,1fr) auto!important}
+.player>div:nth-child(2){min-width:0}
+.pname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{line-height:1.35!important}
+.player[data-player],.leaderRow[data-player],.awardRow[data-player],.ratingRow[data-result-player],.performer[data-result-player],.resultPlayerLink{
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.player[data-player]:active,.leaderRow[data-player]:active,.awardRow[data-player]:active,.resultPlayerLink:active{background:var(--ui-focus)!important}
+
+/* Status badges: prevent collisions and use consistent capsule geometry */
+.playerStyleTag,.secondaryRoleTag,.miniFit,.retiringSquadTag,.statusPill,.contractStatus,.transferTag,.mmBadge{
+ line-height:1.15!important;
+ vertical-align:middle;
+}
+.playerStyleTag,.secondaryRoleTag,.miniFit,.retiringSquadTag{margin-top:5px!important;margin-right:4px!important}
+
+/* Tables: consistent sticky treatment and readable rows */
+.leagueWrap{border-radius:12px}
+.leagueRow{min-height:42px!important}
+.leagueRow.head{font-weight:850!important;letter-spacing:.04em}
+.leagueCell{font-variant-numeric:tabular-nums}
+.leagueCell.club{font-weight:700}
+.leagueRow.me{box-shadow:inset 3px 0 0 var(--gold)}
+
+/* Modal / player / club card standard */
+.sheet{background:rgba(0,0,0,.68)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.sheetbox{
+ border-radius:22px 22px 0 0!important;
+ padding:18px 16px calc(22px + env(safe-area-inset-bottom))!important;
+ box-shadow:0 -18px 50px rgba(0,0,0,.48)!important;
+ overscroll-behavior:contain;
+}
+.sheetbox>.label:first-child{display:block;margin-right:46px}
+.sheetClose,.closeSheet,.playerSheetClose{min-width:38px!important;min-height:38px!important}
+
+/* Match complete follows the same card language as the rest of the game */
+.resultCard{max-width:540px!important}
+.resultBadge{font-size:9px!important;font-weight:850!important;letter-spacing:.13em!important;margin-bottom:12px!important}
+.resultState{margin-bottom:10px!important}
+.resultScreen .card{text-align:left!important}
+.resultTeams{text-align:center!important}
+.resultTeam{font-size:15px!important}
+.resultScore{font-size:38px!important}
+.matchPotm{border-radius:12px;padding:12px 10px!important;margin:0 -2px;background:rgba(217,181,74,.035)}
+.resultKeyHeading{margin-top:3px}
+#resultContinueBtn{min-height:50px!important}
+
+/* Season review uses the same spacing and card hierarchy */
+.reviewWrap{max-width:620px!important}
+.reviewHero{padding:10px 0 18px!important}
+.reviewHero h1{letter-spacing:-.02em}
+.reviewSection{margin-top:14px!important}
+.reviewGrid{gap:10px!important}
+.reviewGrid .card{height:100%}
+#newSeasonBtn{min-height:50px!important;margin-top:16px!important}
+
+/* Forms and selectors */
+select,input,textarea{
+ min-height:42px;
+ border-radius:11px!important;
+ font:inherit;
+}
+
+/* Small-screen safeguards for long names, contracts and actions */
+@media(max-width:430px){
+ main{padding-left:12px!important;padding-right:12px!important}
+ .card{padding:13px!important}
+ .grid2,.reviewGrid{gap:8px!important}
+ .player{grid-template-columns:38px minmax(0,1fr) auto!important;gap:8px!important}
+ .pos{width:38px!important;height:38px!important}
+ .pname{font-size:13px!important}
+ .meta{font-size:10px!important}
+ .resultTeams{gap:8px!important}
+ .resultTeam{font-size:13px!important}
+ .resultScore{font-size:34px!important}
+ .contractRow{grid-template-columns:minmax(0,1fr) auto!important}
+ .contractRow>div,.contractRow>b,.contractRow>span{min-width:0}
+ .offerActions,.transferActions,.contractActions{gap:7px!important}
+}
+
+@media(max-width:360px){
+ .grid2,.reviewGrid{grid-template-columns:1fr!important}
+ .resultTeam{font-size:12px!important}
+ .resultScore{font-size:30px!important}
+ .btn{padding-left:10px!important;padding-right:10px!important}
+}
+
 </style>
 </head>
 <body>
@@ -1996,7 +2149,8 @@ body.match-result-active .sheetbox{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.9.5 Match Complete UX Alpha Mobile";
+// v2.9.10.0: UI/UX consistency pass only. Gameplay and save schema unchanged.
+const BUILD_VERSION="Mini&Me Football Club v2.9.10.0 UI UX Consistency Pass 1 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
