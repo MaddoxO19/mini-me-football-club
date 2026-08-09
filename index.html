@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.13 UI Scale Consistency Stable Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.14 Mobile Readability Density Stable Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2849,6 +2849,372 @@ nav{grid-template-columns:repeat(5,1fr)!important}
   }
 }
 
+
+/* ==========================================================
+   v2.9.11.14 MOBILE READABILITY + DENSITY
+   Presentation only. No gameplay or save-schema changes.
+   ========================================================== */
+
+/* ----------------------------------------------------------
+   1. MOBILE READABILITY FLOOR
+   Supporting information should never feel miniature.
+   ---------------------------------------------------------- */
+.sub,
+.meta,
+.newsItem span,
+.feed p,
+.staffMeta,
+.playerProfileMeta,
+.clubProfileMeta,
+.reviewWorldRow span,
+.reviewRetirementRow span,
+.contractRow span,
+.leaderName span,
+.performer span,
+.matchPotm span,
+.playerSeasonRow span,
+.playerClubRow span,
+.playerAwardRow span,
+.recordTile .recordNote,
+.clubStat .sub,
+.financeTile .sub,
+.briefStat .sub,
+.stat .sub,
+.h2hStrip span,
+.screenSubtitle,
+.playerMeta,
+.clubMeta,
+.financeMeta,
+.historyMeta{
+  font-size:11px!important;
+  line-height:1.42!important;
+}
+
+.label,
+.screenEyebrow,
+.resultSectionEyebrow,
+.actionLabel,
+.careerSlotNo,
+.recordTile .label,
+.clubStat .label,
+.financeTile .label,
+.briefStat .label,
+.stat .label{
+  font-size:10px!important;
+  line-height:1.2!important;
+  letter-spacing:.10em!important;
+}
+
+.pname,
+.playerProfileRow b,
+.clubEditRow b,
+.reviewWorldRow b,
+.reviewRetirementRow b,
+.contractRow b,
+.honourRow b,
+.leaderName b,
+.performer b,
+.matchPotm b,
+.recordRow>div>b,
+.playerSeasonRow b,
+.playerClubRow b,
+.playerAwardRow b{
+  font-size:13px!important;
+}
+
+/* Tabs and navigation should not feel smaller than body UI */
+.sectionTabs button,
+.marketFilter button,
+.clubProfileTabs button,
+.playerProfileTabs button,
+.teamCoachLink,
+.btn{
+  font-size:11px!important;
+}
+
+#nav .navAction span{
+  font-size:11px!important;
+}
+
+/* ----------------------------------------------------------
+   2. COMPACT METRIC CARDS
+   Large values stay large; containers become more efficient.
+   ---------------------------------------------------------- */
+.recordHero,
+.clubStatGrid,
+.historyStatGrid,
+.clubRecordHero,
+.homeMetricGrid,
+.homeSummaryGrid{
+  gap:8px!important;
+}
+
+.recordTile,
+.clubStat,
+.financeTile,
+.stat,
+.briefStat{
+  min-height:0!important;
+  height:auto!important;
+  padding:11px 12px!important;
+}
+
+.recordTile .recordValue,
+.clubStat .value,
+.financeTile .value,
+.stat .value,
+.briefStat .value{
+  margin-top:5px!important;
+  margin-bottom:0!important;
+}
+
+.recordTile .recordNote,
+.clubStat .sub,
+.financeTile .sub,
+.stat .sub,
+.briefStat .sub{
+  margin-top:5px!important;
+}
+
+/* Two-column stat grids should be noticeably shallower */
+.recordHero .recordTile,
+.clubStatGrid .clubStat,
+.historyStatGrid .recordTile,
+.clubRecordHero .recordTile{
+  min-height:82px!important;
+}
+
+.homeMetricGrid .stat,
+.homeSummaryGrid .stat{
+  min-height:80px!important;
+}
+
+/* Finance tiles had too much empty vertical space */
+.financeTile{
+  min-height:86px!important;
+}
+.financeHero{
+  padding:13px!important;
+}
+.financeStatus{
+  margin-top:5px!important;
+}
+.wageBudgetCard{
+  padding:12px!important;
+}
+
+/* ----------------------------------------------------------
+   3. DENSE RECORD / HISTORY ROWS
+   ---------------------------------------------------------- */
+.recordRow,
+.playerRecordRow,
+.clubRecordRow{
+  min-height:0!important;
+  padding:10px 0!important;
+}
+
+.recordRow>div>span,
+.playerRecordRow span,
+.clubRecordRow span{
+  font-size:11px!important;
+}
+
+.recordRow>b,
+.playerRecordRow>b,
+.clubRecordRow>b{
+  font-size:13px!important;
+}
+
+/* ----------------------------------------------------------
+   4. HOME FIXTURE READABILITY
+   ---------------------------------------------------------- */
+.homePrimaryFixture{
+  padding:14px!important;
+}
+
+.homePrimaryFixture>.title{
+  font-size:18px!important;
+}
+
+.homePrimaryFixture .fixture .label{
+  font-size:10px!important;
+}
+
+.homeMatchup{
+  margin:14px 0 10px!important;
+}
+
+.homeMatchupClub .fixtureClubLink{
+  font-size:18px!important;
+}
+
+.homeFixtureRank{
+  font-size:11px!important;
+}
+
+.homeMatchupVs{
+  font-size:11px!important;
+}
+
+.homePrimaryFixture .h2hStrip{
+  min-height:0!important;
+  padding:10px 12px!important;
+}
+
+.homePrimaryFixture .h2hStrip b{
+  font-size:12px!important;
+}
+
+.homePrimaryFixture .h2hStrip span{
+  font-size:11px!important;
+}
+
+.homePrimaryFixture .h2hRecord{
+  font-size:14px!important;
+}
+
+/* ----------------------------------------------------------
+   5. CLUB OVERVIEW / HISTORY / FINANCE DENSITY
+   ---------------------------------------------------------- */
+.clubOverviewSummary,
+.clubHistorySummary,
+.financeSummary{
+  gap:8px!important;
+}
+
+.clubProfileHeader,
+.leagueHero,
+.screenHero{
+  padding-top:13px!important;
+  padding-bottom:13px!important;
+}
+
+.clubStatGrid + .card,
+.recordHero + .card,
+.historyStatGrid + .card,
+.financeTileGrid + .card{
+  margin-top:10px!important;
+}
+
+/* ----------------------------------------------------------
+   6. KEEP TRUE HEADLINE VALUES PROMINENT
+   ---------------------------------------------------------- */
+.resultScore{
+  font-size:40px!important;
+}
+
+.ovr{
+  font-size:26px!important;
+}
+
+.awardValue{
+  font-size:18px!important;
+}
+
+.recordTile .recordValue,
+.clubStat .value{
+  font-size:25px!important;
+}
+
+.financeTile .value{
+  font-size:24px!important;
+}
+
+.stat .value,
+.briefStat .value{
+  font-size:24px!important;
+}
+
+/* ----------------------------------------------------------
+   7. iPHONE PORTRAIT
+   ---------------------------------------------------------- */
+@media(max-width:430px){
+  .sub,
+  .meta,
+  .newsItem span,
+  .feed p,
+  .staffMeta,
+  .playerProfileMeta,
+  .clubProfileMeta,
+  .reviewWorldRow span,
+  .reviewRetirementRow span,
+  .contractRow span,
+  .leaderName span,
+  .performer span,
+  .matchPotm span,
+  .playerSeasonRow span,
+  .playerClubRow span,
+  .playerAwardRow span,
+  .recordTile .recordNote,
+  .clubStat .sub,
+  .financeTile .sub,
+  .briefStat .sub,
+  .stat .sub,
+  .h2hStrip span,
+  .screenSubtitle,
+  .playerMeta,
+  .clubMeta,
+  .financeMeta,
+  .historyMeta{
+    font-size:11px!important;
+  }
+
+  .label,
+  .screenEyebrow,
+  .resultSectionEyebrow,
+  .actionLabel,
+  .careerSlotNo,
+  .recordTile .label,
+  .clubStat .label,
+  .financeTile .label,
+  .briefStat .label,
+  .stat .label{
+    font-size:9.5px!important;
+  }
+
+  .recordHero .recordTile,
+  .clubStatGrid .clubStat,
+  .historyStatGrid .recordTile,
+  .clubRecordHero .recordTile{
+    min-height:78px!important;
+  }
+
+  .financeTile{
+    min-height:82px!important;
+  }
+
+  .homeMetricGrid .stat,
+  .homeSummaryGrid .stat{
+    min-height:76px!important;
+  }
+
+  .homeMatchupClub .fixtureClubLink{
+    font-size:17px!important;
+  }
+
+  .homeFixtureRank{
+    font-size:10px!important;
+  }
+
+  .homeMatchupVs{
+    font-size:10px!important;
+  }
+}
+
+@media(max-width:360px){
+  .homeMatchupClub .fixtureClubLink{
+    font-size:15px!important;
+  }
+
+  .recordHero .recordTile,
+  .clubStatGrid .clubStat,
+  .historyStatGrid .recordTile,
+  .clubRecordHero .recordTile,
+  .financeTile{
+    min-height:74px!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2925,8 +3291,8 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 <script>
 (function(){
 "use strict";
-// v2.9.11.13: UI scale consistency pass. Presentation only.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.13 UI Scale Consistency Stable Alpha Mobile";
+// v2.9.11.14: mobile readability and information-density pass. Presentation only.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.14 Mobile Readability Density Stable Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
