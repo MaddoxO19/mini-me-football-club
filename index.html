@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.10.2 UI UX Consistency Pass 3 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.0 Mobile Performance Interaction Polish Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2097,6 +2097,175 @@ select,input,textarea{
 @media(max-width:430px){.resultCard{padding-left:11px!important;padding-right:11px!important}.resultState{font-size:27px!important}.resultTeams{gap:6px!important}.resultTeam{font-size:12px!important}.reviewWrap{padding-left:11px!important;padding-right:11px!important}.reviewHero h1{font-size:24px!important}.reviewFinish{font-size:42px!important}.awardCard{min-height:118px}.totsGrid{grid-template-columns:1fr 1fr!important}}
 @media(max-width:360px){.awardsGrid{grid-template-columns:1fr!important}.awardCard.major{grid-column:auto}.totsGrid{grid-template-columns:1fr!important}.reviewGrid{grid-template-columns:1fr 1fr!important}.archiveSeason{grid-template-columns:46px minmax(0,1fr)!important}.archiveSeason>div:last-child{grid-column:2;text-align:left!important;margin-top:4px}}
 
+
+/* ==========================================================
+   v2.9.11.0 MOBILE PERFORMANCE + INTERACTION POLISH
+   ========================================================== */
+
+/* Reduce accidental double taps and browser gesture delays on controls */
+button,[data-player],[data-club-profile],[data-review-player],
+.player,.leaderRow,.awardCard,.totsPlayer,.fixtureClubLink,.recordPlayerLink,
+.teamCoachLink,.aiClubLink,.archiveClub,.archivePerson{
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+}
+
+/* Keep interactive feedback immediate without expensive transitions */
+button,.btn,.player,.leaderRow,.awardCard,.totsPlayer,.fixtureClubLink,
+.recordPlayerLink,.teamCoachLink,.aiClubLink{
+ transition:background-color .10s ease,border-color .10s ease,opacity .10s ease,transform .10s ease!important;
+}
+body.uiRendering main{pointer-events:none}
+body.navBusy nav button{pointer-events:none}
+
+/* Main view rendering isolation reduces unnecessary repainting */
+main{
+ contain:layout style;
+ overflow-anchor:none;
+}
+.card,.screenHero,.fixture,.sheetbox,.resultCard{
+ contain:layout paint;
+}
+
+/* Navigation remains stable and scrollable on compact screens */
+nav{
+ overscroll-behavior-x:contain;
+ scrollbar-width:none;
+ -webkit-overflow-scrolling:touch;
+ scroll-behavior:smooth;
+}
+nav::-webkit-scrollbar,.sectionTabs::-webkit-scrollbar,.marketFilter::-webkit-scrollbar{display:none}
+.sectionTabs,.marketFilter{
+ scrollbar-width:none;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior-x:contain;
+}
+
+/* Better safe-area behaviour on modern iPhone displays */
+header{
+ padding-top:max(10px,env(safe-area-inset-top))!important;
+}
+nav{
+ padding-left:max(8px,env(safe-area-inset-left))!important;
+ padding-right:max(8px,env(safe-area-inset-right))!important;
+}
+main{
+ padding-bottom:calc(28px + env(safe-area-inset-bottom))!important;
+}
+
+/* Prevent horizontal page drift caused by long content */
+html,body{max-width:100%;overflow-x:hidden}
+main,.card,.screenHero,.leagueWrap,.reviewWrap,.resultCard{max-width:100%;min-width:0}
+img,svg{max-width:100%}
+.pname,.leaderName,.seasonMeta,.awardName,.awardMeta,.screenTitle,.screenSubtitle{
+ overflow-wrap:anywhere;
+}
+
+/* Sheets feel like mobile-native bottom sheets */
+.sheet{
+ overscroll-behavior:contain;
+}
+.sheetbox{
+ max-height:min(88dvh,820px)!important;
+ overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch;
+ scroll-padding-bottom:28px;
+}
+.sheetbox::before{
+ content:"";
+ display:block;
+ width:36px;
+ height:4px;
+ margin:-7px auto 10px;
+ border-radius:999px;
+ background:#ffffff24;
+}
+body:has(.sheet.show){overflow:hidden}
+
+/* Tables retain horizontal usability without shifting whole page */
+.leagueWrap{
+ overflow-x:auto!important;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior-x:contain;
+}
+.leagueRow{
+ min-width:520px;
+}
+
+/* Forms: stop iOS auto zoom and improve touch accuracy */
+input,select,textarea{
+ font-size:16px!important;
+ touch-action:manipulation;
+}
+button,.btn{
+ -webkit-user-select:none;
+ user-select:none;
+}
+
+/* Content visibility allows off-screen long sections to skip work */
+@supports(content-visibility:auto){
+ .card:not(.fixture),
+ .historySeason,
+ .player,
+ .leaderRow{
+   content-visibility:auto;
+   contain-intrinsic-size:auto 74px;
+ }
+}
+
+/* Accessibility and interaction clarity */
+button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-profile]:focus-visible{
+ outline:2px solid var(--gold);
+ outline-offset:2px;
+}
+@media(hover:hover){
+ .player[data-player]:hover,.leaderRow[data-player]:hover,.awardCard:hover,.totsPlayer:hover{
+   background:#ffffff04;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{
+   scroll-behavior:auto!important;
+   transition-duration:.01ms!important;
+   animation-duration:.01ms!important;
+   animation-iteration-count:1!important;
+ }
+}
+
+/* iPhone portrait refinement */
+@media(max-width:430px){
+ header{padding-left:13px!important;padding-right:13px!important}
+ nav{gap:4px!important}
+ nav button{
+   flex:0 0 auto!important;
+   min-width:58px;
+   padding-left:10px!important;
+   padding-right:10px!important;
+ }
+ main{padding-top:12px!important}
+ .screenHero{margin-bottom:9px!important}
+ .sectionTabs{margin-bottom:2px!important}
+ .card{margin-bottom:9px!important}
+ .leagueRow{min-width:500px}
+ .sheetbox{max-height:90dvh!important}
+}
+
+/* Very compact phones */
+@media(max-width:360px){
+ nav button{min-width:54px;padding-left:8px!important;padding-right:8px!important}
+ .screenSubtitle{line-height:1.35!important}
+ .leagueRow{min-width:480px}
+}
+
+/* Landscape phone: reclaim vertical space */
+@media(max-height:500px) and (orientation:landscape){
+ header{padding-top:7px!important;padding-bottom:7px!important}
+ nav{padding-top:5px!important;padding-bottom:5px!important}
+ main{padding-top:8px!important}
+ .sheetbox{max-height:94dvh!important}
+ .screenHero{padding-top:10px!important;padding-bottom:10px!important}
+}
+
 </style>
 </head>
 <body>
@@ -2173,8 +2342,8 @@ select,input,textarea{
 <script>
 (function(){
 "use strict";
-// v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.10.2 UI UX Consistency Pass 3 Alpha Mobile";
+// v2.9.11.0: mobile responsiveness, navigation performance and interaction polish. Gameplay and save schema unchanged.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.0 Mobile Performance Interaction Polish Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4788,6 +4957,8 @@ function ensureRuntimeState(){
  }
 }
 function render(){
+ document.body.classList.add("uiRendering");
+ requestAnimationFrame(()=>document.body.classList.remove("uiRendering"));
  if(!G)return;
  ensureRuntimeState();
  $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
@@ -4839,6 +5010,12 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let navTarget=e.target.closest("nav button[data-page]");
+ if(navTarget){
+   if(document.body.classList.contains("navBusy")){e.preventDefault();e.stopPropagation();return}
+   document.body.classList.add("navBusy");
+   window.setTimeout(()=>document.body.classList.remove("navBusy"),180);
+ }
  let marketFilterBtn=e.target.closest("[data-market-position]");
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
  let resultPlayer=e.target.closest("[data-result-player]");
