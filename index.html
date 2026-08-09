@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.9 Direct Render Recovery Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.10 Squad Market Recovery Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2216,7 +2216,7 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 (function(){
 "use strict";
 // v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.9 Direct Render Recovery Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.10 Squad Market Recovery Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2326,7 +2326,11 @@ function validateCoreRuntime(){
  if(typeof world!=="function")missing.push("world");
  if(typeof ensureLeagueWorld!=="function")missing.push("ensureLeagueWorld");
  if(typeof render!=="function")missing.push("render");
+ if(typeof centralForwardCoverageEligible!=="function")missing.push("centralForwardCoverageEligible");
  if(missing.length)throw new Error("Missing core runtime: "+missing.join(", "));
+ // Verify the close-forward helper itself without changing career state.
+ if(!centralForwardCoverageEligible({pos:"ST"},"CF")||!centralForwardCoverageEligible({pos:"CF"},"ST"))
+   throw new Error("ST/CF coverage runtime validation failed");
  return true;
 }
 
@@ -4044,8 +4048,9 @@ const SIDE_SWITCH_MAP={
 };
 function centralForwardCoverageEligible(p,slot){
  if(!p)return false;
- let natural=normalizePosition(p.pos);
- return (natural==="ST"&&slot==="CF")||(natural==="CF"&&slot==="ST");
+ let natural=String(p.pos||"").toUpperCase();
+ let tactical=String(slot||"").toUpperCase();
+ return (natural==="ST"&&tactical==="CF")||(natural==="CF"&&tactical==="ST");
 }
 function sideSwitchEligible(p,slot){
  if(!p)return false;
