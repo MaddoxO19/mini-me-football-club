@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.10 Squad Market Recovery Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.11 UI Polish Stable Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2139,6 +2139,111 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 /* v2.9.11.9 Direct Render Recovery */
 .runtimeErrorCard{border-color:#7f3440!important;background:#ff6b7d08!important}.runtimeErrorCard .title{color:#ff8795!important}
 
+
+/* ==========================================================
+   v2.9.11.11 UI POLISH STABLE
+   Presentation only. No gameplay or save-schema changes.
+   ========================================================== */
+
+/* Home: fixture information now focuses only on the fixture itself. */
+.homePrimaryFixture .fixture{
+  padding:5px 0 2px!important;
+}
+.homePrimaryFixture .fixture .teams{
+  margin:11px 0 4px!important;
+  line-height:1.22!important;
+}
+.homePrimaryFixture .fixture .teams .fixtureClubLink{
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:-.015em;
+}
+.homePrimaryFixture .fixture .teams .sub{
+  display:inline-block;
+  margin:5px 0;
+  font-size:10px!important;
+}
+.homePrimaryFixture .h2hStrip{
+  margin-top:10px!important;
+}
+.homePrimaryFixture .homeContinue{
+  margin-top:10px!important;
+}
+
+/* Match Complete: outcome belongs to the score, not as a second header. */
+.resultScoreStack{
+  min-width:92px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.resultScoreStack .resultScore{
+  line-height:.95!important;
+}
+.resultScoreStack .resultState{
+  margin:6px 0 0!important;
+  font-size:12px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:.11em!important;
+}
+.resultPanel{
+  padding-top:13px!important;
+}
+.resultTeams{
+  min-height:68px!important;
+  margin:12px 0 9px!important;
+}
+#resultSummary{
+  margin-top:6px!important;
+}
+#resultPerformers{
+  margin-top:0!important;
+}
+#resultRatings{
+  margin-bottom:9px!important;
+}
+#resultContinueBtn{
+  min-height:48px!important;
+}
+
+/* Season Review: retain featured status without oversized dead space. */
+.awardCard.major{
+  min-height:112px!important;
+  justify-content:flex-start!important;
+  padding:13px 14px!important;
+}
+.awardCard.major .awardName{
+  margin-top:7px!important;
+}
+.awardCard.major .awardMeta{
+  margin-top:4px!important;
+}
+.awardCard.major .awardValue{
+  margin-top:9px!important;
+  padding-top:0!important;
+}
+.awardsGrid{
+  align-items:stretch;
+}
+
+/* Small consistency refinements on the same three screens. */
+@media(max-width:430px){
+  .homePrimaryFixture .fixture .teams .fixtureClubLink{
+    font-size:18px;
+  }
+  .resultScoreStack{
+    min-width:82px;
+  }
+  .resultScoreStack .resultState{
+    font-size:11px!important;
+  }
+  .awardCard.major{
+    min-height:106px!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2210,13 +2315,13 @@ nav{grid-template-columns:repeat(5,1fr)!important}
  </div>
 </div>
 
-<div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="resultBadge">MATCH COMPLETE</div><div id="resultState" class="resultState"></div><div class="card"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div id="resultScore" class="resultScore"></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
+<div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="card resultPanel"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div class="resultScoreStack"><div id="resultScore" class="resultScore"></div><div id="resultState" class="resultState"></div></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
 <div id="sheet" class="sheet hidden"><div id="sheetbox" class="sheetbox"></div></div>
 <script>
 (function(){
 "use strict";
-// v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.10 Squad Market Recovery Alpha Mobile";
+// v2.9.11.11: stable UI polish pass. Home fixture, Match Complete and Season Review presentation only.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.11 UI Polish Stable Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4402,14 +4507,13 @@ function financeView(){
 
 function home(){
  ensureLeagueWorld();ensureRivalryState();
- let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
+ let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()];
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
  let h2h=headToHead(G.club,opp.id);
  let fixture=
  '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+
  '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
- '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span> <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span> <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
- '<div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div>'+
+ '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span></div></div>'+
  '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
  '<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
 
