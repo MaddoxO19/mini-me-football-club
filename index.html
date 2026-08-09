@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.3 Starting XI Optimisation Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9.4 Unified XI Selection Hotfix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1849,6 +1849,11 @@ nav button:active{
    Starting XIs are now solved as a whole-formation assignment rather than sequential slot filling.
    Natural position, Coach Fit and effective OVR are considered together, followed by a pair-swap validation pass. */
 
+
+/* v2.9.9.4 Unified XI Selection Hotfix
+   The Squad pitch, squad-needs logic, formation integrity, match strength and AI all share optimiseStartingXI().
+   The legacy greedy startingXI() builder has been removed as an independent selection path. */
+
 </style>
 </head>
 <body>
@@ -1925,7 +1930,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.9.3 Starting XI Optimisation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.9.4 Unified XI Selection Hotfix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2340,7 +2345,7 @@ function loadCareerSlot(slot){
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
 function strength(id){
- let xi=selectStartingXI(id),slots=formationSlotsForCoach(id).flat(),fitTotal=0,effectiveTotal=0;
+ let xiOpt=optimiseStartingXI(id),xi=xiOpt.rows.filter(r=>r.player).map(r=>r.player),slots=xiOpt.rows.filter(r=>r.player).map(r=>r.slot),fitTotal=0,effectiveTotal=0;
  xi.forEach((p,i)=>{let slot=slots[i],pe=positionalEffectiveness(p,slot,id);effectiveTotal+=pe.effectiveOvr;fitTotal+=systemFitScore(p,slot,id)});
  let coverage=formationCoverage(id),avg=xi.length?effectiveTotal/xi.length:52,fitAvg=xi.length?fitTotal/xi.length:55,fitEffect=Math.max(-1.8,Math.min(1.8,(fitAvg-65)*.055)),coveragePenalty=coverage.ok?0:Math.min(12,coverage.missing.length*4);
  return avg+fitEffect+coachProfile(id).ovr*.07-coveragePenalty;
@@ -3817,15 +3822,31 @@ function pitchCoordinate(slot,index,total){
  return{x,y};
 }
 
-function startingXI(){
- let used=new Set(),lines=[];
- formationSlots().forEach(slots=>lines.push(slots.map(s=>bestForSlot(s,used))));
- return{lines,used};
+function startingXI(teamId=G.club){
+ // Canonical XI adapter for legacy UI code.
+ // Every screen now consumes optimiseStartingXI() rather than rebuilding the XI greedily.
+ let opt=optimiseStartingXI(teamId),formation=formationSlotsForCoach(teamId),cursor=0,lines=[],used=new Set(),assignments=[];
+ formation.forEach(lineSlots=>{
+   let line=[];
+   lineSlots.forEach(slot=>{
+     let row=opt.rows[cursor++]||null,p=row&&row.player?row.player:null;
+     line.push(p);
+     if(p)used.add(p.id);
+     assignments.push({slot,player:p,fit:row?row.fit:null,position:row?row.position:null,score:row?row.score:-10000});
+   });
+   lines.push(line);
+ });
+ return{lines,used,assignments,totalScore:opt.totalScore};
 }
 function squadNeeds(){
- let xi=startingXI(),flat=xi.lines.flat().filter(Boolean),needs=[];
- flat.forEach(p=>{if(p.ovr<74)needs.push({pos:p.pos,rating:p.ovr,level:p.ovr<69?"High":"Medium"})});
- if(!needs.length)flat.sort((a,b)=>a.ovr-b.ovr).slice(0,3).forEach(p=>needs.push({pos:p.pos,rating:p.ovr,level:"Upgrade"}));
+ let xi=startingXI(G.club),needs=[];
+ xi.assignments.filter(a=>a.player).forEach(a=>{
+   let p=a.player,fit=a.fit||coachFitAssessment(p,a.slot,G.club),effective=a.position?Number(a.position.effectiveOvr)||p.ovr:p.ovr;
+   if(effective<74||fit.label==="Poor")needs.push({pos:a.slot,rating:effective,level:fit.label==="Poor"?"High":effective<69?"High":"Medium"});
+ });
+ if(!needs.length){
+   xi.assignments.filter(a=>a.player).sort((a,b)=>a.score-b.score).slice(0,3).forEach(a=>needs.push({pos:a.slot,rating:Math.round(a.position?a.position.effectiveOvr:a.player.ovr),level:"Upgrade"}));
+ }
  return needs.sort((a,b)=>a.rating-b.rating).slice(0,4);
 }
 function ordinal(n){let s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
@@ -4045,12 +4066,14 @@ function developmentView(){
 }
 function teamCoachSummaryHtml(teamId=G.club){let h=coachProfile(teamId),p=coachStyleProfile(teamId);return '<div class="teamCoachSummary"><div><div class="label">HEAD COACH FOOTBALL IDENTITY</div><b>'+h.name+' · '+h.ovr+' OVR</b><span>'+h.style+' · '+p.tag+' · '+h.formation+'</span></div><button class="teamCoachLink" data-open-staff="1">VIEW COACH</button></div>'}
 function squadTeamView(){
- let c=coachProfile(),xi=startingXI(),slots=formationSlots(),placed=[];
+ let c=coachProfile(),xi=startingXI(G.club),slots=formationSlotsForCoach(G.club),placed=[],cursor=0;
  xi.lines.forEach((line,lineIndex)=>{
    let lineSlots=slots[lineIndex]||[];
    line.forEach((p,index)=>{
+     let assignment=xi.assignments[cursor++]||null;
      if(!p)return;
-     let slot=lineSlots[index]||p.pos,count=lineSlots.filter(s=>s===slot).length||1;
+     let slot=assignment&&assignment.slot?assignment.slot:(lineSlots[index]||p.pos);
+     let count=lineSlots.filter(s=>s===slot).length||1;
      let sameIndex=lineSlots.slice(0,index+1).filter(s=>s===slot).length-1,pt=pitchCoordinate(slot,sameIndex,count);
      placed.push({p,slot,x:pt.x,y:pt.y});
    });
