@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.15.0 Coach Employment Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.15.1 Coach Replacement Board Status Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3594,7 +3594,6 @@ body.gm-profile-open{overflow:hidden}
 .coachEmploymentRecord b{font-size:12px}
 .coachEmploymentRecord span{font-size:10px!important;color:var(--muted)!important}
 .coachIdentityText{padding:10px 0 13px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.45}
-.coachDismissBtn{margin-top:2px;border-color:#7c3942!important;color:#ff909b!important;background:#ff6b7b0a!important}
 .coachMarketRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .coachMarketRow:last-child{border-bottom:0}
 .coachHireBtn{min-width:68px!important}
@@ -3681,7 +3680,7 @@ body.gm-profile-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.15.0 Coach Employment Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.15.1 Coach Replacement Board Status Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5125,10 +5124,15 @@ function prepareSeasonReview(){
    .sort((a,b)=>(b.awards-a.awards)||(b.ovr-a.ovr)||(b.apps-a.apps)||(b.age-a.age))
    .slice(0,8);
  G.pendingSeasonReview={
-   season:G.season,pos,champion:champion.name,championClubId:champion.id,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
+   season:G.season,pos,position:pos,champion:champion.name,championClubId:champion.id,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
    target,met,expiring,finalYear,topFour,relegated,promoted,division:key,divisionName:leagueInfo(key).name,awards,
    clubRetirements,leagueRetirements
  };
+ updateGMReputationForSeason({
+   season:G.season,position:pos,target,
+   champion:key==="top"&&champion.id===G.club,
+   relegated:key==="top"&&relegated.some(x=>x.name===c.name)
+ });
  save();
  showSeasonReview();
 }
@@ -5322,8 +5326,12 @@ function dismissUserCoach(){
 }
 function hireUserCoach(coachId){
  let cand=ensureCoachMarket().find(x=>x.id===coachId);if(!cand)return;
- if(!confirm("Appoint "+cand.name+" as Head Coach?"))return;
+ let c=G.clubs[G.club],current=ensureClubStaff(c);
+ let msg="Appoint "+cand.name+" as Head Coach?\n\nThis will dismiss current Head Coach "+current.name+" and replace them immediately.";
+ if(!confirm(msg))return;
+ let oldName=current.name;
  appointCoachToClub(G.club,coachId,gmNewsName());
+ G.feed.unshift({t:"HEAD COACH",m:gmNewsName()+" dismisses "+oldName+" and appoints "+cand.name+" as Head Coach of "+c.name+"."});
  save();clubTab="staff";render();
 }
 function aiCoachExpectation(c,divisionKey){
@@ -5361,13 +5369,12 @@ function coachEmploymentView(){
  let status=rec&&rec.matches?rec.w+"W · "+rec.d+"D · "+rec.l+"L · "+staffWinPct(rec).toFixed(1)+"%":"No tracked matches yet";
  let current='<div class="card coachCurrentCard"><div class="sectionHead"><div><div class="title">Current Head Coach</div><div class="sub">The GM controls the Head Coach appointment for your club.</div></div></div>'+
   '<div class="coachEmploymentHero"><div><b>'+h.name+'</b><span>'+h.ovr+' OVR · '+h.style+' · '+h.formation+'</span><small>'+profile.tag+'</small></div><div class="coachEmploymentRecord"><b>'+status+'</b><span>Appointed '+h.appointedSeason+'</span></div></div>'+
-  '<div class="coachIdentityText">'+profile.desc+'</div>'+
-  '<button class="btn danger full coachDismissBtn" data-dismiss-coach="1">DISMISS HEAD COACH</button></div>';
+  '<div class="coachIdentityText">'+profile.desc+'</div></div>';
  let pool=G.coachMarket.available.slice().sort((a,b)=>b.ovr-a.ovr).map(x=>{
    let hist=G.staffHistory.coaches[x.id],wp=staffWinPct(hist),exp=hist&&hist.matches?hist.matches+' matches · '+wp.toFixed(1)+'% wins':'No prior tracked matches';
    return '<div class="coachMarketRow"><div class="coachMarketMain"><b>'+x.name+'</b><span>'+x.ovr+' OVR · '+x.style+' · '+x.formation+'</span><small>'+exp+(x.source?' · '+x.source:'')+'</small></div><button class="btn coachHireBtn" data-hire-coach="'+x.id+'">HIRE</button></div>';
  }).join("");
- return current+'<div class="card"><div class="sectionHead"><div><div class="title">Available Coaches</div><div class="sub">Dismissed coaches retain their career history and can be hired again.</div></div><div class="sectionCount">'+G.coachMarket.available.length+'</div></div>'+pool+'</div>';
+ return current+'<div class="card"><div class="sectionHead"><div><div class="title">Available Coaches</div><div class="sub">Hiring a new coach replaces the current Head Coach. The outgoing coach enters the market with their career history intact.</div></div><div class="sectionCount">'+G.coachMarket.available.length+'</div></div>'+pool+'</div>';
 }
 
 
@@ -5427,6 +5434,8 @@ function gmCareerTotals(){
   currentClubId:G.userGM.currentClubId,
   status:G.userGM.status||"Employed",
   reputation:Number(G.userGM.reputation)||0,
+  reputationLabel:gmReputationLabel(Number(G.userGM.reputation)||0),
+  board:currentBoardStatus(),
   clubs,
   matches:gm?gm.matches||0:0,
   w:gm?gm.w||0:0,
@@ -5441,6 +5450,52 @@ function gmCareerTotals(){
   winPct:gm&&gm.matches?gm.w/gm.matches*100:0
  };
 }
+
+function clampCareerValue(v,min=0,max=100){return Math.max(min,Math.min(max,Math.round(v)))}
+function boardStatusLabel(score){
+ score=Number(score)||0;
+ return score>=88?"Excellent":score>=72?"Secure":score>=55?"Stable":score>=38?"Under Pressure":"At Risk";
+}
+function gmReputationLabel(score){
+ score=Number(score)||0;
+ return score>=92?"Elite":score>=84?"Established":score>=74?"Respected":score>=64?"Emerging":"Developing";
+}
+function ensureGMPerformanceState(){
+ ensureUserGMIdentity();
+ if(!G.gmPerformance||typeof G.gmPerformance!=="object")G.gmPerformance={};
+ let p=G.gmPerformance;
+ if(!Number.isFinite(Number(p.board)))p.board=70;
+ if(!Number.isFinite(Number(G.userGM.reputation)))G.userGM.reputation=Math.max(60,Math.min(95,Math.round((G.clubs[G.club].rep||72)*.85)));
+ if(!Number.isFinite(Number(p.lastSeasonReviewed)))p.lastSeasonReviewed=0;
+ return p;
+}
+function currentBoardStatus(){
+ let p=ensureGMPerformanceState(),c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,target=Number(G.boardTarget)||4;
+ if(!pos)pos=tab.length;
+ let gap=target-pos,played=Number(c.p)||0,total=Math.max(1,leagueSeasonWeeks());
+ let progress=Math.min(1,played/Math.max(6,total*.55));
+ let expectationEffect=gap>=5?16:gap>=3?11:gap>=1?6:gap===0?2:gap===-1?-4:gap===-2?-8:gap<=-5?-18:-12;
+ let formTotal=(Number(c.w)||0)+(Number(c.d)||0)+(Number(c.l)||0),formEffect=0;
+ if(formTotal){
+  let ppg=((Number(c.w)||0)*3+(Number(c.d)||0)/1)/formTotal;
+  formEffect=ppg>=2.25?7:ppg>=1.75?4:ppg>=1.25?0:ppg>=.9?-4:-8;
+ }
+ let live=70+(expectationEffect*progress)+formEffect;
+ p.board=clampCareerValue(live,20,98);
+ return{score:p.board,label:boardStatusLabel(p.board),position:pos,target,gap};
+}
+function updateGMReputationForSeason(review){
+ let p=ensureGMPerformanceState();if(!review||p.lastSeasonReviewed===review.season)return;
+ let rep=Number(G.userGM.reputation)||65,target=Number(review.target)||Number(G.boardTarget)||4,pos=Number(review.position)||target;
+ let delta=0,gap=target-pos;
+ if(review.champion)delta+=8;
+ if(gap>=5)delta+=7;else if(gap>=3)delta+=5;else if(gap>=1)delta+=3;else if(gap===0)delta+=1;
+ else if(gap<=-6)delta-=7;else if(gap<=-4)delta-=5;else if(gap<=-2)delta-=3;else delta-=1;
+ if(review.relegated)delta-=8;
+ G.userGM.reputation=clampCareerValue(rep+delta,45,99);
+ p.lastSeasonReviewed=review.season;
+}
+
 function gmClubHistoryRows(){
  let t=gmCareerTotals();
  return t.clubs.map(h=>{
@@ -5470,7 +5525,10 @@ function gmProfileHtml(){
  '<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you across clubs.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+
   (gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+
  '</div>'+
- '<div class="card gmFutureCard"><div class="title">Career Status</div><div class="sub">Future staff-market updates will use this profile for job offers, dismissal, club movement and eventual GM retirement.</div><div class="gmStatusLine"><b>'+t.status+'</b><span>Reputation '+t.reputation+'</span></div></div>';
+ '<div class="card gmFutureCard"><div class="title">Career Status</div><div class="sub">Board Status reflects your standing at the current club. GM Reputation reflects your longer-term standing across football.</div>'+
+  richRecordRow('Board Status',t.board.label,t.board.score)+
+  richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+
+  '<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';
 }
 function showGMProfile(){
  ensureUserGMIdentity();
@@ -6207,7 +6265,7 @@ function financeView(){
 function home(){
  ensureLeagueWorld();ensureRivalryState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
- let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
+ let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo(),board=currentBoardStatus();
  let h2h=headToHead(G.club,opp.id);
  let fixture=
  '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+
@@ -6228,7 +6286,7 @@ function home(){
  stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+
  stat("SQUAD",avg,"Club squad average")+
  stat("BUDGET",money(c.budget),"Transfers")+
- stat("BOARD","74","Stable")+
+ stat("BOARD",board.score,board.label)+
  '</div>'+
  '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div>'+
  '<div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>';
@@ -6877,6 +6935,7 @@ function ensureRuntimeState(){
  ensureStaffState();
  ensureStaffHistoryState();
  ensureUserGMIdentity();
+ ensureGMPerformanceState();
  ensureCoachMarket();
  ensurePlayerPositionState();
  ensurePlayerStyleState();
@@ -6967,8 +7026,6 @@ document.addEventListener("click",function(e){
  let gmBackdrop=e.target&&e.target.id==="gmProfileModal";
  if(gmBackdrop){e.preventDefault();hideGMProfile();return}
 
- let dismissCoach=e.target.closest&&e.target.closest("[data-dismiss-coach]");
- if(dismissCoach){e.preventDefault();dismissUserCoach();return}
  let hireCoach=e.target.closest&&e.target.closest("[data-hire-coach]");
  if(hireCoach){e.preventDefault();hireUserCoach(hireCoach.dataset.hireCoach);return}
 
