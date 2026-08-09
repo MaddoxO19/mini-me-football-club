@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.11 UI Polish Stable Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.12 Typography Fixture Polish Stable Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2244,6 +2244,317 @@ nav{grid-template-columns:repeat(5,1fr)!important}
   }
 }
 
+
+/* ==========================================================
+   v2.9.11.12 TYPOGRAPHY + FIXTURE POLISH
+   Presentation only. No gameplay or save-schema changes.
+   ========================================================== */
+
+:root{
+  --type-screen:20px;
+  --type-section:16px;
+  --type-primary:13px;
+  --type-body:11px;
+  --type-meta:10px;
+  --type-label:9px;
+  --type-micro:8px;
+}
+
+/* Core hierarchy */
+.screenTitle,
+.clubProfileName,
+.playerProfileName,
+.staffName{
+  font-size:var(--type-screen)!important;
+  line-height:1.08!important;
+  font-weight:950!important;
+  letter-spacing:-.02em!important;
+}
+
+.title{
+  font-size:var(--type-section)!important;
+  line-height:1.2!important;
+  font-weight:850!important;
+}
+
+.pname,
+.playerProfileRow b,
+.clubEditRow b,
+.reviewWorldRow b,
+.reviewRetirementRow b,
+.contractRow b,
+.honourRow b,
+.leaderName b,
+.performer b,
+.matchPotm b,
+.recordRow>div>b,
+.playerSeasonRow b,
+.playerClubRow b,
+.playerAwardRow b{
+  font-size:var(--type-primary)!important;
+  line-height:1.25!important;
+}
+
+.sub,
+.meta,
+.newsItem span,
+.feed p,
+.staffMeta,
+.playerProfileMeta,
+.clubProfileMeta,
+.reviewWorldRow span,
+.reviewRetirementRow span,
+.contractRow span,
+.leaderName span,
+.performer span,
+.matchPotm span,
+.playerSeasonRow span,
+.playerClubRow span,
+.playerAwardRow span{
+  font-size:var(--type-body)!important;
+  line-height:1.4!important;
+}
+
+.label,
+.screenEyebrow,
+.resultSectionEyebrow,
+.actionLabel,
+.careerSlotNo{
+  font-size:var(--type-label)!important;
+  line-height:1.15!important;
+  font-weight:900!important;
+  letter-spacing:.11em!important;
+}
+
+.miniFit,
+.pitchFit,
+.playerStyleTag,
+.secondaryRoleTag,
+.retiringSquadTag,
+.roleArchetype,
+.identityTag,
+.editBadge,
+.divisionBadge,
+.fixtureResultTag,
+.reviewContractMeta,
+.reviewWorldStatus,
+.reviewRetirementRow .retireAge,
+.playerSeasonRow .yr,
+.archiveAwards{
+  font-size:var(--type-micro)!important;
+}
+
+/* Preserve intentional headline emphasis */
+.value,
+.recordValue,
+.financeStatus,
+.reviewFinish,
+.resultScore,
+.matchPotmRating,
+.ovr,
+.awardValue,
+.staffIdentityGrid b,
+.briefValue,
+.leaderValue{
+  font-variant-numeric:tabular-nums;
+}
+
+/* Home fixture: horizontal matchup with rank immediately beside club name */
+.homePrimaryFixture .fixture{
+  padding:5px 0 3px!important;
+}
+
+.homeMatchup{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  margin:14px 0 7px;
+}
+
+.homeMatchupClub{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.homeMatchupClubLeft{
+  justify-content:flex-end;
+  text-align:right;
+}
+
+.homeMatchupClubRight{
+  justify-content:flex-start;
+  text-align:left;
+}
+
+.homeMatchupClub .fixtureClubLink{
+  min-width:0;
+  font-size:17px!important;
+  font-weight:900!important;
+  line-height:1.16!important;
+  letter-spacing:-.015em!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere;
+}
+
+.homeFixtureRank{
+  flex:0 0 auto;
+  color:var(--gold);
+  font-size:10px;
+  font-weight:950;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.homeMatchupVs{
+  text-align:center;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.10em;
+}
+
+.homePrimaryFixture .h2hStrip b{
+  font-size:11px!important;
+}
+.homePrimaryFixture .h2hStrip span{
+  font-size:10px!important;
+}
+.homePrimaryFixture .h2hRecord{
+  font-size:13px!important;
+}
+
+/* Normalise buttons and chips */
+.btn,
+.sectionTabs button,
+.marketFilter button,
+.clubProfileTabs button,
+.playerProfileTabs button,
+.teamCoachLink{
+  font-size:10px!important;
+  font-weight:850!important;
+  line-height:1.15!important;
+}
+
+.homeContinueAction,
+#resultContinueBtn,
+#newSeasonBtn{
+  font-size:12px!important;
+  font-weight:900!important;
+}
+
+/* Navigation remains compact but consistent */
+#nav .navAction span{
+  font-size:10px!important;
+  font-weight:800!important;
+}
+#nav .navAction b{
+  font-size:17px!important;
+}
+
+/* Tables and structured metadata */
+.leagueRow{
+  font-size:11px!important;
+}
+.leagueRow.head{
+  font-size:9px!important;
+}
+.leagueCell.club{
+  font-size:11px!important;
+}
+.profileTableHead{
+  font-size:9px!important;
+}
+.profileTableRow b{
+  font-size:12px!important;
+}
+.profileTableRow span{
+  font-size:10px!important;
+}
+
+/* Match Complete consistency */
+.resultTeam{
+  font-size:15px!important;
+}
+.resultScoreStack .resultState{
+  font-size:11px!important;
+}
+.matchStatSide{
+  font-size:14px!important;
+}
+.matchStatLabel{
+  font-size:9px!important;
+}
+
+/* Season Review consistency */
+.awardCard .awardName{
+  font-size:13px!important;
+}
+.awardCard .awardMeta{
+  font-size:10px!important;
+}
+.awardCard .awardValue{
+  font-size:18px!important;
+}
+.totsPlayer b{
+  font-size:11px!important;
+}
+.totsPlayer span{
+  font-size:9px!important;
+}
+
+@media(max-width:430px){
+  :root{
+    --type-screen:18px;
+    --type-section:15px;
+    --type-primary:12px;
+    --type-body:10px;
+    --type-meta:9px;
+  }
+
+  .homeMatchup{
+    grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);
+    gap:6px;
+  }
+
+  .homeMatchupClub{
+    gap:4px;
+  }
+
+  .homeMatchupClub .fixtureClubLink{
+    font-size:15px!important;
+  }
+
+  .homeFixtureRank{
+    font-size:9px;
+  }
+
+  .homeMatchupVs{
+    font-size:9px;
+  }
+
+  .resultTeam{
+    font-size:14px!important;
+  }
+}
+
+@media(max-width:360px){
+  .homeMatchup{
+    grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr);
+    gap:4px;
+  }
+
+  .homeMatchupClub .fixtureClubLink{
+    font-size:13px!important;
+  }
+
+  .homeFixtureRank{
+    font-size:8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2320,8 +2631,8 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 <script>
 (function(){
 "use strict";
-// v2.9.11.11: stable UI polish pass. Home fixture, Match Complete and Season Review presentation only.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.11 UI Polish Stable Alpha Mobile";
+// v2.9.11.12: typography hierarchy and horizontal Home fixture polish. Presentation only.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.12 Typography Fixture Polish Stable Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4507,13 +4818,17 @@ function financeView(){
 
 function home(){
  ensureLeagueWorld();ensureRivalryState();
- let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()];
+ let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
  let h2h=headToHead(G.club,opp.id);
  let fixture=
  '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+
  '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
- '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span></div></div>'+
+ '<div class="homeMatchup">'+
+   '<div class="homeMatchupClub homeMatchupClubLeft"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span><span class="homeFixtureRank">'+ordinal(pos)+'</span></div>'+
+   '<div class="homeMatchupVs">VS</div>'+
+   '<div class="homeMatchupClub homeMatchupClubRight"><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span><span class="homeFixtureRank">'+ordinal(oppPos)+'</span></div>'+
+ '</div></div>'+
  '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
  '<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
 
