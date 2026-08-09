@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.3 Navigation Recovery Hotfix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.5 Stable Recovery Baseline Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2115,7 +2115,8 @@ button,.btn,.player,.leaderRow,.awardCard,.totsPlayer,.fixtureClubLink,
 .recordPlayerLink,.teamCoachLink,.aiClubLink{
  transition:background-color .10s ease,border-color .10s ease,opacity .10s ease,transform .10s ease!important;
 }
-body.uiRendering main{pointer-events:auto}
+body.uiRendering main{pointer-events:none}
+body.navBusy nav button{pointer-events:none}
 
 /* Main view rendering isolation reduces unnecessary repainting */
 main{
@@ -2466,57 +2467,22 @@ button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-p
 }
 
 
-/* ==========================================================
-   v2.9.11.2 STABILITY TEST BASELINE
-   ST/CF coverage + Head-to-Head simplification
-   ========================================================== */
-.h2hProfileRow{
+/* v2.9.11.5 Stable Recovery Baseline */
+.h2hSimpleRow{
  display:grid;
  grid-template-columns:minmax(0,1fr) auto;
  gap:10px;
  align-items:center;
- padding:12px 3px;
- border-top:1px solid var(--line);
+ padding:11px 0;
+ border-bottom:1px solid var(--line);
  cursor:pointer;
  touch-action:manipulation;
 }
-.h2hProfileRow:first-of-type{border-top:0}
-.h2hProfileRow>div:first-child{min-width:0}
-.h2hProfileRow b{
- display:block;
- font-size:12px;
- white-space:nowrap;
- overflow:hidden;
- text-overflow:ellipsis;
-}
-.h2hProfileRow span{
- display:block;
- margin-top:3px;
- color:var(--muted);
- font-size:9px;
-}
-.h2hProfileRecord{
- color:var(--gold);
- font-size:10px;
- font-weight:900;
- white-space:nowrap;
-}
-.h2hProfileRow:active{background:var(--ui-focus)}
+.h2hSimpleRow:last-child{border-bottom:0}
+.h2hSimpleRow b{display:block;font-size:12px}
+.h2hSimpleRow span{display:block;margin-top:3px;color:var(--muted);font-size:9px}
+.h2hSimpleRow>div:last-child{color:var(--gold);font-size:10px;font-weight:900;white-space:nowrap}
 .rivalryBanner,.resultRivalryRecap{display:none!important}
-
-
-/* v2.9.11.3 Navigation Recovery Hotfix */
-nav button{
- pointer-events:auto!important;
-}
-nav button.tapActive{
- background:#d9b54a0d!important;
-}
-body.uiRendering nav,
-body.uiRendering .sectionTabs,
-body.uiRendering .marketFilter{
- pointer-events:auto!important;
-}
 
 </style>
 </head>
@@ -2594,8 +2560,8 @@ body.uiRendering .marketFilter{
 <script>
 (function(){
 "use strict";
-// v2.9.11.3: navigation recovery hotfix. Removes aggressive nav lock; gameplay unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.3 Navigation Recovery Hotfix Alpha Mobile";
+// v2.9.11.5: rebuilt from known-good v2.9.11.1. Navigation untouched; ST/CF and H2H presentation only.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.5 Stable Recovery Baseline Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2880,7 +2846,6 @@ function historicRivalsForClub(id){
  return Object.values(map).sort((a,b)=>b.score-a.score).slice(0,6);
 }
 
-/* Legacy rivalry scoring retained only for backward save compatibility. UI uses Head to Head only. */
 function rivalryNarrative(a,b){
  let status=rivalryStatus(a,b),score=rivalryScore(a,b),h=headToHead(a,b);
  if(!status)return null;
@@ -2900,29 +2865,14 @@ function rivalryNarrative(a,b){
 }
 
 function rivalryProfileHtml(id){
- let active=activeRivalsForClub(id),historic=historicRivalsForClub(id);
- let cards=active.length?active.map((x,i)=>{
-   let c=G.clubs[x.opponentId],h=headToHead(id,x.opponentId);
-   return '<div class="rivalryCard '+(i===0?'primary':'')+'"><div class="rank">'+(i===0?'PRIMARY RIVAL':'SECONDARY RIVAL')+'</div><b>'+(c?c.name:'Unknown Club')+'</b><div class="score">'+x.score+'</div><span>'+rivalryLevel(x.score)+' · '+h.played+' meetings · '+h.w+'W '+h.d+'D '+h.l+'L</span></div>';
- }).join(""):'<div class="sub">No rivalry has crossed the active threshold yet. Rivalries build naturally through repeated competitive meetings.</div>';
- let hist=historic.length?historic.map(x=>'<div class="rivalryHistoryRow"><div><b>'+((G.clubs[x.opponentId]&&G.clubs[x.opponentId].name)||"Unknown Club")+'</b><span>Peak '+x.score+' · '+x.level+' · '+x.season+'</span></div><div>'+headToHeadLabel(id,x.opponentId)+'</div></div>').join(""):'<div class="sub">Historic rivalries will be preserved here as seasons pass.</div>';
- let statusLine=active.length?active.length+' active rival'+(active.length===1?'':'s')+' · strongest score '+active[0].score:'No active rivalry yet';
- return '<div class="card"><div class="title">Rivalries</div><div class="sub">Rivalries emerge naturally from repeated competitive meetings, title races and close results.</div><div class="rivalryStatusLine">'+statusLine+'</div><div class="rivalryGrid">'+cards+'</div></div>'+
- '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
-}
-function headToHeadProfileHtml(id){
- let opponents=G.clubs.filter(c=>c&&c.id!==id).map(c=>{
-   let h=headToHead(id,c.id);
-   return{club:c,h};
- }).filter(x=>x.h.played>0).sort((a,b)=>b.h.played-a.h.played||Math.abs(a.h.w-a.h.l)-Math.abs(b.h.w-b.h.l)||a.club.name.localeCompare(b.club.name));
-
- if(!opponents.length)return '<div class="card"><div class="title">Head to Head</div><div class="sub">Opponent records will build as league fixtures are completed.</div></div>';
-
- return '<div class="card"><div class="sectionHead"><div><div class="title">Head to Head</div><div class="sub">Career results against clubs across completed league fixtures.</div></div><div class="sectionCount">'+opponents.length+'</div></div>'+
- opponents.map(x=>'<div class="h2hProfileRow aiClubLink" data-ai-club="'+x.club.id+'"><div><b>'+x.club.name+'</b><span>'+x.h.played+' meetings · Goals '+x.h.gf+'–'+x.h.ga+'</span></div><div class="h2hProfileRecord">'+x.h.w+'W · '+x.h.d+'D · '+x.h.l+'L</div></div>').join("")+
+ let rows=G.clubs.filter(c=>c&&c.id!==id).map(c=>({club:c,h:headToHead(id,c.id)}))
+  .filter(x=>x.h.played>0)
+  .sort((a,b)=>b.h.played-a.h.played||b.h.w-a.h.w||a.club.name.localeCompare(b.club.name));
+ if(!rows.length)return '<div class="card"><div class="title">Head to Head</div><div class="sub">Opponent records will build as league fixtures are completed.</div></div>';
+ return '<div class="card"><div class="title">Head to Head</div><div class="sub">Career records from completed league meetings.</div>'+
+  rows.map(x=>'<div class="h2hSimpleRow aiClubLink" data-ai-club="'+x.club.id+'"><div><b>'+x.club.name+'</b><span>'+x.h.played+' meetings · Goals '+x.h.gf+'–'+x.h.ga+'</span></div><div>'+x.h.w+'W · '+x.h.d+'D · '+x.h.l+'L</div></div>').join("")+
  '</div>';
 }
-
 
 function openCareerDB(){
  if(careerDBPromise)return careerDBPromise;
@@ -4162,8 +4112,8 @@ function clubProfileHonours(id){
 function showClubProfile(id,tab="overview"){
  let c=G.clubs[Number(id)];if(!c)return;ensureClubHistoryState();
  let info=leagueInfo(clubCurrentDivisionKey(c.id));
- let tabs=[["overview","Overview"],["squad","Squad"],["headtohead","Head to Head"],["history","History"],["records","Records"],["honours","Honours"]];
- let body=tab==="squad"?clubProfileSquad(c.id):tab==="headtohead"?headToHeadProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
+ let tabs=[["overview","Overview"],["squad","Squad"],["rivalries","Head to Head"],["history","History"],["records","Records"],["honours","Honours"]];
+ let body=tab==="squad"?clubProfileSquad(c.id):tab==="rivalries"?rivalryProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
  $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileName">'+c.name+'</div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
  '<div class="clubProfileTabs">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+'<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
@@ -4442,8 +4392,7 @@ function baseSecondaryPenalty(p,slot){
  if(!p)return null;
  if(naturalForTacticalSlot(p,slot))return 0;
 
- // ST and CF are adjacent central-forward roles. Crossing them is valid,
- // but carries a modest role-familiarity penalty.
+ // ST and CF are adjacent central-forward roles.
  if(centralForwardCoverageEligible(p,slot))return 3;
 
  // Opposite-side wide role adaptation.
@@ -5285,8 +5234,9 @@ function startSelectedCareer(){
 document.addEventListener("click",function(e){
  let navTarget=e.target.closest("nav button[data-page]");
  if(navTarget){
-   navTarget.classList.add("tapActive");
-   window.setTimeout(()=>navTarget.classList.remove("tapActive"),120);
+   if(document.body.classList.contains("navBusy")){e.preventDefault();e.stopPropagation();return}
+   document.body.classList.add("navBusy");
+   window.setTimeout(()=>document.body.classList.remove("navBusy"),180);
  }
  let marketFilterBtn=e.target.closest("[data-market-position]");
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
