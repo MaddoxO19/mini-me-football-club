@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.4 Unified XI Selection Hotfix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9.5 Match Complete UX Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1854,6 +1854,64 @@ nav button:active{
    The Squad pitch, squad-needs logic, formation integrity, match strength and AI all share optimiseStartingXI().
    The legacy greedy startingXI() builder has been removed as an independent selection path. */
 
+
+/* v2.9.9.5 Match Complete UX */
+.matchPotm{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:13px 0 14px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+}
+.matchPotm b{
+  display:block;
+  margin-top:4px;
+  font-size:14px;
+  line-height:1.25;
+}
+.matchPotm span{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.35;
+}
+.matchPotmRating{
+  color:var(--gold);
+  font-size:22px;
+  font-weight:950;
+}
+.resultKeyHeading{
+  padding:12px 0 2px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-align:left;
+}
+.resultPlayerLink{
+  cursor:pointer;
+  touch-action:manipulation;
+  border-radius:8px;
+}
+.resultPlayerLink:active{
+  background:#d9b54a0b;
+}
+.resultRatingsHint{
+  margin-top:-4px;
+  margin-bottom:4px;
+  text-align:center;
+}
+body.match-result-active .sheet{
+  z-index:5600!important;
+}
+body.match-result-active .sheetbox{
+  z-index:5601!important;
+}
+
 </style>
 </head>
 <body>
@@ -1930,7 +1988,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.9.4 Unified XI Selection Hotfix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.9.5 Match Complete UX Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2977,6 +3035,7 @@ function showMatchResult(r,playedWeek){
  let opp=G.clubs[nextOpp()];
  $("#resultState").textContent=state;
  $("#resultState").className="resultState "+state.toLowerCase();
+
  let playedOpp=userHome?r.b:r.a,playedRivalInfo=rivalryNarrative(G.club,playedOpp);
  $("#resultWeek").textContent=(playedRivalInfo?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
  $("#resultHome").textContent=G.clubs[r.a].name;
@@ -2984,11 +3043,53 @@ function showMatchResult(r,playedWeek){
  $("#resultScore").textContent=r.ga+" – "+r.gb;
  $("#resultSummary").innerHTML=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.")+
  (playedRivalInfo?'<div class="resultRivalryRecap"><b>'+playedRivalInfo.title+'</b><span>'+playedRivalInfo.level+' · Rivalry score '+playedRivalInfo.score+' · Career H2H '+headToHeadLabel(G.club,playedOpp)+'</span></div>':'');
+
  let sa=r.statsA||{},sb=r.statsB||{};
- $("#resultTeamStats").innerHTML='<div class="matchStats"><div class="matchStatSide">'+(sa.possession||50)+'%</div><div class="matchStatLabel">POSSESSION</div><div class="matchStatSide right">'+(sb.possession||50)+'%</div></div><div class="matchStats"><div class="matchStatSide">'+(sa.shots||0)+'</div><div class="matchStatLabel">SHOTS</div><div class="matchStatSide right">'+(sb.shots||0)+'</div></div><div class="matchStats"><div class="matchStatSide">'+(sa.onTarget||0)+'</div><div class="matchStatLabel">ON TARGET</div><div class="matchStatSide right">'+(sb.onTarget||0)+'</div></div>';
- let userPerf=userHome?(r.perfA||[]):(r.perfB||[]),top=userPerf.slice(0,3);
- $("#resultPerformers").innerHTML='<div class="title">Key Performers</div>'+(r.potm?'<div class="sub">Player of the Match · '+r.potm.name+' · '+r.potm.rating.toFixed(1)+'</div>':'')+top.map(x=>'<div class="performer"><div><b>'+x.name+' · '+x.pos+'</b><span>'+(x.goals?x.goals+' goal'+(x.goals>1?'s':''):'')+(x.goals&&x.assists?' · ':'')+(x.assists?x.assists+' assist'+(x.assists>1?'s':''):'')+(!x.goals&&!x.assists?'Match performance':'')+'</span></div><div class="rating">'+x.rating.toFixed(1)+'</div></div>').join("");
- $("#resultRatings").innerHTML='<div class="title">Player Ratings</div><details class="matchDetails"><summary>VIEW FULL STARTING XI</summary>'+userPerf.map(x=>'<div class="ratingRow"><span>'+x.pos+' · '+x.name+(x.goals?' · '+x.goals+'G':'')+(x.assists?' · '+x.assists+'A':'')+'</span><b>'+x.rating.toFixed(1)+'</b></div>').join("")+'</details>';
+ $("#resultTeamStats").innerHTML=
+  '<div class="matchStats"><div class="matchStatSide">'+(sa.possession||50)+'%</div><div class="matchStatLabel">POSSESSION</div><div class="matchStatSide right">'+(sb.possession||50)+'%</div></div>'+
+  '<div class="matchStats"><div class="matchStatSide">'+(sa.shots||0)+'</div><div class="matchStatLabel">SHOTS</div><div class="matchStatSide right">'+(sb.shots||0)+'</div></div>'+
+  '<div class="matchStats"><div class="matchStatSide">'+(sa.onTarget||0)+'</div><div class="matchStatLabel">ON TARGET</div><div class="matchStatSide right">'+(sb.onTarget||0)+'</div></div>';
+
+ let perfA=r.perfA||[],perfB=r.perfB||[];
+ let userPerf=userHome?perfA:perfB;
+ let allPerf=[...perfA.map(x=>({...x,clubId:r.a})),...perfB.map(x=>({...x,clubId:r.b}))].sort((a,b)=>b.rating-a.rating);
+ let potm=r.potm?allPerf.find(x=>x.id===r.potm.id)||{...r.potm,clubId:(perfA.some(x=>x.id===r.potm.id)?r.a:r.b)}:allPerf[0]||null;
+ let keyPerformers=allPerf.filter(x=>!potm||x.id!==potm.id).slice(0,3);
+
+ let contribution=x=>{
+   let parts=[];
+   if(x.goals)parts.push(x.goals+' goal'+(x.goals>1?'s':''));
+   if(x.assists)parts.push(x.assists+' assist'+(x.assists>1?'s':''));
+   return parts.length?parts.join(' · '):'Match performance';
+ };
+ let clubName=id=>(G.clubs[id]&&G.clubs[id].name)||"Unknown Club";
+
+ let potmHtml=potm?
+   '<div class="matchPotm resultPlayerLink" data-result-player="'+potm.id+'">'+
+     '<div><div class="label">PLAYER OF THE MATCH</div><b>'+potm.name+' · '+potm.pos+'</b>'+
+     '<span>'+clubName(potm.clubId)+' · '+contribution(potm)+'</span></div>'+
+     '<div class="matchPotmRating">'+potm.rating.toFixed(1)+'</div>'+
+   '</div>':'';
+
+ let keyHtml=keyPerformers.length?
+   '<div class="resultKeyHeading">Other Key Performers</div>'+
+   keyPerformers.map(x=>
+     '<div class="performer resultPlayerLink" data-result-player="'+x.id+'">'+
+       '<div><b>'+x.name+' · '+x.pos+'</b><span>'+clubName(x.clubId)+' · '+contribution(x)+'</span></div>'+
+       '<div class="rating">'+x.rating.toFixed(1)+'</div>'+
+     '</div>'
+   ).join(""):'';
+
+ $("#resultPerformers").innerHTML='<div class="title">Key Performers</div>'+potmHtml+keyHtml;
+
+ $("#resultRatings").innerHTML=
+   '<div class="title">Player Ratings</div>'+
+   '<div class="sub resultRatingsHint">Your starting XI</div>'+
+   '<details class="matchDetails"><summary>VIEW FULL STARTING XI</summary>'+
+   userPerf.map(x=>'<div class="ratingRow resultPlayerLink" data-result-player="'+x.id+'"><span>'+x.pos+' · '+x.name+(x.goals?' · '+x.goals+'G':'')+(x.assists?' · '+x.assists+'A':'')+'</span><b>'+x.rating.toFixed(1)+'</b></div>').join("")+
+   '</details>';
+
+ document.body.classList.add("match-result-active");
  $("#resultScreen").classList.remove("hidden");
 }
 
@@ -4545,6 +4646,12 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let resultPlayer=e.target.closest("[data-result-player]");
+ if(resultPlayer){
+   let id=resultPlayer.getAttribute("data-result-player");
+   if(id){showPlayer(id);return}
+ }
+
 if(e.target.closest("[data-open-staff]")){squadTab="staff";page="squad";renderSoon();return}
 
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
@@ -4606,6 +4713,7 @@ $("#newSeasonBtn").addEventListener("click",beginNewSeason);
 $("#resultContinueBtn").addEventListener("click",function(){
  // Close the match report immediately so the tap feels responsive.
  $("#resultScreen").classList.add("hidden");
+ document.body.classList.remove("match-result-active");
  if(G.week>=leagueSeasonWeeks()){
    requestAnimationFrame(prepareSeasonReview);
    return;
