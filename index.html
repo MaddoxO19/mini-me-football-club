@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.5 Match Complete UX Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9.6 Retirement Availability Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1912,6 +1912,14 @@ body.match-result-active .sheetbox{
   z-index:5601!important;
 }
 
+
+/* v2.9.9.6 Retirement Availability Fix */
+.retiringSquadTag{
+ display:inline-flex;margin-top:5px;margin-right:5px;padding:3px 6px;
+ border:1px solid #73303a;border-radius:999px;background:#fb71850d;color:#ff8d9e;
+ font-size:8px;font-weight:900;letter-spacing:.045em
+}
+
 </style>
 </head>
 <body>
@@ -2633,7 +2641,8 @@ function hungarianMaxAssignment(scoreMatrix){
 }
 
 function optimiseStartingXI(teamId=G.club){
- let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>p.team===teamId&&!p.retiring);
+ let slots=formationSlotsForCoach(teamId).flat(),pool=roster(teamId).filter(p=>p.team===teamId);
+ // retirement is effective at season rollover, not at announcement.
  let matrix=slots.map(slot=>pool.map(p=>startingXISlotScore(p,slot,teamId)));
  let assignment=hungarianMaxAssignment(matrix),rows=slots.map((slot,i)=>{
    let idx=assignment[i],p=idx>=0?pool[idx]:null,score=p?matrix[i][idx]:-10000;
@@ -2665,7 +2674,7 @@ function optimiseStartingXI(teamId=G.club){
 
 function teamBestForSlot(teamId,slot,used){
  // Retained for compatibility with any older UI helper, but uses the same canonical scoring model.
- let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&!p.retiring&&playerEligibleForSlot(p,slot));
+ let candidates=roster(teamId).filter(p=>!used.has(p.id)&&p.team===teamId&&playerEligibleForSlot(p,slot));
  candidates.sort((a,b)=>startingXISlotScore(b,slot,teamId)-startingXISlotScore(a,slot,teamId)||b.ovr-a.ovr);
  let p=candidates[0]||null;if(p)used.add(p.id);return p;
 }
@@ -3170,6 +3179,7 @@ function negotiateExtension(id,mode){
 }
 function considerRetirements(){
  ensureLifecycleState();
+ // Announces retirement for the end of the current season only.
  G.players.forEach(p=>{
    if(p.retiring||p.freeAgent)return;
    let chance=0;
@@ -3638,8 +3648,14 @@ function endSeason(){
 }
 function stat(k,v,s){return'<div class="card stat"><div class="label">'+k+'</div><div class="value">'+v+'</div><div class="sub">'+s+'</div></div>'}
 function playerRow(p,market){
- seedSecondaryPositions(p);seedPlayerStyle(p,p.team>=0?p.team:null);let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null,fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'',style='<span class="playerStyleTag">'+p.primaryStyle+(p.secondaryStyle?' · '+p.secondaryStyle:'')+'</span>';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
+ seedSecondaryPositions(p);seedPlayerStyle(p,p.team>=0?p.team:null);
+ let showFit=p.team===G.club||market,
+     fit=showFit?bestFitForPlayer(p,G.club):null,
+     fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',
+     roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'',
+     style='<span class="playerStyleTag">'+p.primaryStyle+(p.secondaryStyle?' · '+p.secondaryStyle:'')+'</span>',
+     retireTag=p.retiring?'<span class="retiringSquadTag">RETIRES END OF SEASON</span>':'';
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+retireTag+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
@@ -4514,7 +4530,7 @@ function playerOverviewContent(p){
      '<span class="statusPill">'+p.years+' YEARS</span>';
    let contract="";
    if(p.retiring){
-     contract='<div class="retireNote">Retirement has been announced for the end of the season. Contract negotiations are closed.</div>';
+     contract='<div class="retireNote">Retiring at the end of this season. The player remains available for selection until season rollover. Contract negotiations are closed.</div>';
    }else if(p.years<=1&&!p.renewedThisSeason){
      let demand=contractDemand(p),draft=contractDraft(p);
      contract='<div class="contractBox"><div class="actionLabel">CONTRACT NEGOTIATION</div>'+
