@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.17.2 Generational Talent Pathway Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.17.3 Condensed Player Honours Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3662,6 +3662,16 @@ body.coach-edit-open{overflow:hidden}
  .coachDevelopmentLine span{text-align:left}
 }
 
+
+/* v2.9.17.3 Condensed Player Honours */
+.honoursSummary{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:7px;align-items:baseline;margin:12px 0 4px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#ffffff02}
+.honoursSummary b{font-size:17px;color:var(--gold)}.honoursSummary span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.honoursList{margin-top:8px}.honoursRow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:11px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}.honoursRow:last-child{border-bottom:0}
+.honoursIcon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(217,181,74,.45);border-radius:10px;background:rgba(217,181,74,.08);color:var(--gold);font-size:17px;font-weight:900}
+.honoursTitle{font-size:13px;font-weight:900;line-height:1.2}.honoursClub{margin-top:4px;color:var(--muted);font-size:10px;line-height:1.4}.honoursYears{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.4}
+.honoursCount{color:var(--gold);font-size:24px;font-weight:950;line-height:1;min-width:42px;text-align:right}
+@media(max-width:430px){.honoursRow{grid-template-columns:34px minmax(0,1fr) auto;gap:9px;padding:13px 0}.honoursIcon{width:31px;height:31px;font-size:15px}.honoursCount{font-size:21px}.honoursTitle{font-size:12px}}
+
 </style>
 </head>
 <body>
@@ -3739,7 +3749,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.17.2 Generational Talent Pathway Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.17.3 Condensed Player Honours Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4378,11 +4388,41 @@ function playerClubsView(p){
  return '<div class="card profileTableCard"><div class="title">Club History</div><div class="profileTableHead"><div>Club / Seasons</div><div>Stats</div><div>Tenure</div></div>'+
  (rows||'<div class="profileEmpty">No club history recorded yet.</div>')+'</div>';
 }
+function playerAwardIcon(name){
+ let icons={
+  "Player of the Year":"★","Golden Boot":"◆","Playmaker Award":"✦","Golden Glove":"●",
+  "Defender of the Year":"⬟","Midfielder of the Year":"✧","Forward of the Year":"▲",
+  "Young Player of the Year":"◇","Team of the Season":"✪"
+ };
+ return icons[name]||"★";
+}
 function playerAwardsView(p){
  let awards=Array.isArray(p.awards)?p.awards:[];
- let rows=awards.map(a=>'<div class="profileTableRow"><div><b>'+a.name+'</b><span>'+playerClubNameNow(a.clubId,a.clubNameAtTime)+'</span></div><div class="right">'+a.season+'</div><div class="right">★</div></div>').join("");
- return '<div class="card profileTableCard"><div class="title">Awards</div><div class="profileTableHead"><div>Award / Club</div><div>Season</div><div></div></div>'+
- (rows||'<div class="profileEmpty">No career awards yet.</div>')+'</div>';
+ if(!awards.length)return '<div class="card honoursCard"><div class="title">Career Honours</div><div class="profileEmpty">No career awards yet.</div></div>';
+
+ let grouped={};
+ awards.forEach(a=>{if(!grouped[a.name])grouped[a.name]=[];grouped[a.name].push(a)});
+ let priority={"Player of the Year":1,"Golden Boot":2,"Forward of the Year":3,"Midfielder of the Year":4,"Defender of the Year":5,"Playmaker Award":6,"Golden Glove":7,"Young Player of the Year":8,"Team of the Season":9};
+
+ let groups=Object.keys(grouped).sort((x,y)=>(priority[x]||99)-(priority[y]||99)||x.localeCompare(y)).map(name=>{
+  let items=grouped[name].slice().sort((x,y)=>Number(y.season)-Number(x.season));
+  let seasons=[...new Set(items.map(x=>Number(x.season)).filter(Number.isFinite))].sort((x,y)=>x-y);
+  let clubGroups={};
+  items.forEach(a=>{
+   let club=playerClubNameNow(a.clubId,a.clubNameAtTime)||"Unknown Club";
+   if(!clubGroups[club])clubGroups[club]=[];
+   clubGroups[club].push(Number(a.season));
+  });
+  let clubs=Object.keys(clubGroups);
+  let context=clubs.length<=1
+   ?'<div class="honoursClub">'+(clubs[0]||"")+'</div><div class="honoursYears">'+seasons.join(" · ")+'</div>'
+   :'<div class="honoursClub">'+clubs.map(club=>club+' · '+[...new Set(clubGroups[club])].sort((x,y)=>x-y).join(", ")).join("<br>")+'</div>';
+  return '<div class="honoursRow"><div class="honoursIcon">'+playerAwardIcon(name)+'</div><div class="honoursMain"><div class="honoursTitle">'+name+'</div>'+context+'</div><div class="honoursCount">'+items.length+'×</div></div>';
+ }).join("");
+
+ let total=awards.length,types=Object.keys(grouped).length;
+ return '<div class="card honoursCard"><div class="sectionHead"><div><div class="title">Career Honours</div><div class="sub">Awards grouped across the player career.</div></div><div class="sectionCount">'+total+' honours</div></div>'+
+ '<div class="honoursSummary"><b>'+types+'</b><span>award types</span><b>'+total+'</b><span>total honours</span></div><div class="honoursList">'+groups+'</div></div>';
 }
 
 
