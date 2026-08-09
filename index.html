@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8.5 Season Awards Integrity Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9 Competitive World & Club Intelligence Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1833,6 +1833,11 @@ nav button:active{
 /* v2.9.8.5 Season Awards Integrity */
 .awardsHero .sub{max-width:520px}
 
+
+/* v2.9.9 Competitive World & Club Intelligence
+   AI tactical recruitment, match balance and diversified player naming.
+   No artificial user difficulty modifier is applied. */
+
 </style>
 </head>
 <body>
@@ -1909,11 +1914,68 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8.5 Season Awards Integrity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.9 Competitive World & Club Intelligence Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
-const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
-const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
+const NAME_POOLS=[
+ {region:"British & Irish",
+  first:["James","Oliver","Harry","George","Jack","Charlie","Thomas","Oscar","William","Henry","Alfie","Archie","Theo","Leo","Finn","Callum","Lewis","Jamie","Ewan","Rory","Declan","Conor","Cian","Liam","Ryan","Kieran","Nathan","Daniel","Adam","Sam"],
+  last:["Smith","Jones","Williams","Taylor","Brown","Davies","Wilson","Evans","Thomas","Roberts","Johnson","Walker","Wright","Thompson","White","Hughes","Edwards","Green","Hall","Lewis","Clarke","Morgan","Murphy","Kelly","O'Brien","Doyle","Campbell","Stewart","Murray","Reid"]},
+ {region:"Spanish & Portuguese",
+  first:["Mateo","Hugo","Lucas","Martin","Daniel","Pablo","Alejandro","Diego","Adrian","Sergio","Nico","Rafael","Tiago","Joao","Goncalo","Andre","Bruno","Miguel","Diogo","Pedro","Rui","Tomas","Enzo","Iker","Marco","Javier","Carlos","Luis","Rodrigo","Antonio"],
+  last:["Garcia","Rodriguez","Gonzalez","Fernandez","Lopez","Martinez","Sanchez","Perez","Gomez","Martin","Silva","Santos","Costa","Oliveira","Pereira","Ferreira","Almeida","Carvalho","Sousa","Ribeiro","Mendes","Rocha","Nunes","Correia","Teixeira","Moreno","Navarro","Vega","Castro","Ramos"]},
+ {region:"Italian",
+  first:["Luca","Marco","Matteo","Alessandro","Lorenzo","Davide","Federico","Nicolo","Andrea","Simone","Francesco","Riccardo","Gabriele","Tommaso","Leonardo","Giovanni","Filippo","Stefano","Daniele","Salvatore","Elia","Pietro","Edoardo","Mattia","Fabio"],
+  last:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","De Luca","Mancini","Lombardi","Moretti","Barbieri","Fontana","Santoro","Mariani","Rinaldi","Caruso","Ferrara","Martino"]},
+ {region:"French & Belgian",
+  first:["Lucas","Hugo","Louis","Theo","Jules","Arthur","Nathan","Maxime","Alexandre","Antoine","Mathis","Raphael","Baptiste","Clement","Benjamin","Victor","Noah","Eliott","Enzo","Romain","Loic","Yann","Amine","Mehdi","Sacha"],
+  last:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefevre","Michel","Garcia","David","Bertrand","Roux","Vincent","Fournier","Lambert","Leclerc","Dupont","Renard","Mercier"]},
+ {region:"Germanic & Central European",
+  first:["Leon","Lukas","Finn","Jonas","Felix","Paul","Maximilian","Julian","Niklas","David","Florian","Timo","Moritz","Johannes","Mats","Kai","Jan","Nico","Lars","Emil","Jakub","Mateusz","Tomasz","Dominik","Marek","Pavel","Janek","Luka","Ivan","Marko"],
+  last:["Muller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Hoffmann","Schulz","Kovac","Horvat","Novak","Kral","Svoboda","Nowak","Kowalski","Wozniak","Mazur","Dvorak","Jensen","Nielsen","Larsen","Andersen","Berg","Lindberg","Eriksen","Petrovic","Jovic","Markovic"]},
+ {region:"African",
+  first:["Samuel","Daniel","Victor","Emmanuel","David","Isaac","Joseph","Michael","Ibrahim","Musa","Sadio","Amadou","Mamadou","Ousmane","Ismaila","Abdoulaye","Kofi","Kwame","Kojo","Yaw","Chinedu","Tunde","Femi","Ayoub","Youssef","Hakim","Rayan","Bilal","Achraf","Karim"],
+  last:["Mensah","Boateng","Owusu","Agyemang","Asante","Kamara","Conteh","Koroma","Sesay","Diallo","Traore","Keita","Camara","Toure","Kone","Diop","Ndiaye","Sarr","Ba","Fall","Okafor","Eze","Nwosu","Adebayo","Balogun","Bennacer","Amrabat","El Idrissi","Bamba","Mendy"]},
+ {region:"South American",
+  first:["Gabriel","Matias","Thiago","Nicolas","Santiago","Joaquin","Franco","Valentin","Lautaro","Facundo","Bruno","Enzo","Lucas","Juan","Tomas","Sebastian","Emiliano","Cristian","Diego","Andres","Caio","Vinicius","Guilherme","Murilo","Renan","Ruan","Pedro","Joao","Rafael","Felipe"],
+  last:["Alvarez","Fernandez","Romero","Gimenez","Suarez","Pereira","Acosta","Benitez","Cabrera","Medina","Torres","Vargas","Rojas","Mendoza","Cardozo","Barrios","Souza","Oliveira","Lima","Costa","Alves","Nascimento","Barbosa","Rocha","Moura","Teixeira","Araujo","Correia","Monteiro","Freitas"]},
+ {region:"North American & Australasian",
+  first:["Ethan","Noah","Liam","Mason","Logan","Owen","Caleb","Cameron","Jordan","Tyler","Connor","Dylan","Austin","Cole","Blake","Cooper","Hunter","Mitchell","Jackson","Joshua","Benjamin","Isaac","Levi","Max","Flynn","Lachlan","Bailey","Riley","Harrison","Angus"],
+  last:["Anderson","Miller","Davis","Moore","Jackson","Martin","Lee","Harris","Clark","Robinson","Young","Allen","King","Wright","Scott","Baker","Adams","Nelson","Carter","Mitchell","Cooper","Parker","Collins","Morris","Ward","Sullivan","Fletcher","McKenzie","Fraser","Kennedy"]},
+ {region:"East Asian",
+  first:["Minjun","Jiho","Hyunwoo","Seojun","Taeyang","Junho","Yuto","Haruto","Ren","Kaito","Sota","Riku","Daichi","Takumi","Hiroto","Wei","Jun","Hao","Chen","Tao","Jian","Bo","Ming","Zhen","Kai"],
+  last:["Kim","Lee","Park","Choi","Jung","Kang","Cho","Yoon","Jang","Lim","Sato","Suzuki","Takahashi","Tanaka","Watanabe","Ito","Yamamoto","Nakamura","Kobayashi","Kato","Wang","Li","Zhang","Liu","Chen"]},
+ {region:"West Asian & Middle Eastern",
+  first:["Omar","Ali","Youssef","Ahmed","Mohamed","Karim","Amir","Sami","Rami","Tariq","Nabil","Adel","Hassan","Hamza","Bilal","Mehdi","Farid","Reza","Arman","Kian","Navid","Emre","Kerem","Can","Mert"],
+  last:["Haddad","Khalil","Mansour","Nasser","Saleh","Rahman","Farah","Hamdan","Aziz","Darwish","Hussein","Mahmoud","Saeed","Karimi","Hosseini","Rahimi","Jafari","Demir","Yilmaz","Kaya","Aydin","Arslan","Celik","Koc","Erdogan"]}
+];
+const FIRST=[...new Set(NAME_POOLS.flatMap(x=>x.first))];
+const LAST=[...new Set(NAME_POOLS.flatMap(x=>x.last))];
+let generatedNameRegistry=new Set();
+
+function resetGeneratedNameRegistry(){
+ generatedNameRegistry=new Set();
+ if(G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+}
+function generateFootballName(){
+ if(!generatedNameRegistry.size&&G&&Array.isArray(G.players)){
+   G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+ }
+ for(let attempt=0;attempt<24;attempt++){
+   let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)];
+   let first=pool.first[rnd(0,pool.first.length-1)];
+   let last=pool.last[rnd(0,pool.last.length-1)];
+   let name=first+" "+last;
+   if(!generatedNameRegistry.has(name)){
+     generatedNameRegistry.add(name);
+     return name;
+   }
+ }
+ let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)];
+ let name=pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)]+" "+String(rnd(2,99));
+ generatedNameRegistry.add(name);
+ return name;
+}
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 const COACH_STYLES=["Possession","Balanced","High Press","Direct","Counter Attack"];
 const COACH_STYLE_PROFILES={
@@ -1966,7 +2028,7 @@ function renderBuildVersion(){
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
-function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);let p={id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[]};seedSecondaryPositions(p);return p}
+function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[]};seedSecondaryPositions(p);return p}
 function buildClubRecord(name,i,tier){
  let baseRep=tier==="top"?90-(i%24):72-Math.floor((i%24)/2);
  return{id:i,name,shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
@@ -1979,6 +2041,7 @@ function buildClubRecord(name,i,tier){
   p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
 }
 function world(){
+ generatedNameRegistry=new Set();
  let size=selectedLeagueSize||20,clubs=[],players=[];
  let topNames=CLUBS.slice(0,size),lowerNames=LOWER_CLUBS.slice(0,size);
  while(topNames.length<size)topNames.push("Premier Club "+(topNames.length+1));
@@ -2598,9 +2661,10 @@ function buildMatchPerformance(team,goalsFor,goalsAgainst,matchData,opponentShot
  return rows;
 }
 function teamMatchStats(gf,ga,home){
- let edge=(gf-ga)*4+rnd(-7,7),poss=Math.max(34,Math.min(66,50+edge+(home?2:0)));
- let shots=Math.max(gf+2,rnd(7,14)+gf*2),sot=Math.min(shots,Math.max(gf,rnd(Math.max(gf,2),Math.max(gf+2,6))));
- return{possession:poss,shots,onTarget:sot};
+ let edge=(gf-ga)*2.4+rnd(-6,6),poss=Math.max(36,Math.min(64,50+edge+(home?1.5:0)));
+ let shots=Math.max(gf+2,rnd(7,13)+Math.round(gf*1.4));
+ let sot=Math.min(shots,Math.max(gf,rnd(Math.max(gf,2),Math.max(gf+2,6))));
+ return{possession:Math.round(poss),shots,onTarget:sot};
 }
 function leagueStatPlayers(){ensurePlayerStats();return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&p.team>=0)}
 function premierStatPlayers(){
@@ -2771,7 +2835,22 @@ function leagueLeadersHtml(){
         leaderCard("Highest Average Rating","Minimum 10 appearances",ratings,p=>avgRating(p).toFixed(2))+
         leaderCard("Goalkeeper Leaders","Clean sheets · saves",keepers,p=>p.stats.cleanSheets+" CS");
 }
-function sim(a,b){let sa=strength(a)+2.5,sb=strength(b),ga=0,gb=0;for(let i=0;i<6;i++){if(Math.random()<Math.max(.08,.19+(sa-sb)*.011))ga++;if(Math.random()<Math.max(.08,.18+(sb-sa)*.011))gb++}return[Math.min(ga,6),Math.min(gb,6)]}
+function poissonGoals(lambda){
+ let L=Math.exp(-Math.max(.05,lambda)),k=0,p=1;
+ do{k++;p*=Math.random()}while(p>L&&k<10);
+ return Math.max(0,k-1);
+}
+function sim(a,b){
+ let sa=strength(a),sb=strength(b),diff=Math.max(-18,Math.min(18,sa-sb));
+ let xgHome=Math.max(.48,Math.min(2.75,1.50+diff*.052));
+ let xgAway=Math.max(.42,Math.min(2.55,1.20-diff*.047));
+
+ // Match variance remains, but no human-only modifier is applied.
+ xgHome*=.90+Math.random()*.20;
+ xgAway*=.90+Math.random()*.20;
+
+ return[Math.min(6,poissonGoals(xgHome)),Math.min(6,poissonGoals(xgAway))];
+}
 function apply(a,b,ga,gb){let A=G.clubs[a],B=G.clubs[b];A.p++;B.p++;A.gf+=ga;A.ga+=gb;B.gf+=gb;B.ga+=ga;if(ga>gb){A.w++;B.l++;A.pts+=3}else if(gb>ga){B.w++;A.l++;B.pts+=3}else{A.d++;B.d++;A.pts++;B.pts++}}
 function simulateDivisionWeek(key){
  let round=G.schedule[key]?.[G.week];if(!round)return null;
@@ -2997,10 +3076,58 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null)
  base=Math.max(50,Math.min(86,base));
  let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)];
  let pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- let np={id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};
+ let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};
  seedSecondaryPositions(np);return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
+function aiRoleNeeds(teamId){
+ let slots=formationSlotsForCoach(teamId).flat(),squad=aiSquad(teamId).filter(p=>!p.retiring),needs=[];
+ slots.forEach(slot=>{
+   let options=squad.filter(p=>playerEligibleForSlot(p,slot)).map(p=>{
+     let pe=positionalEffectiveness(p,slot,teamId);
+     return{p,score:pe.effectiveOvr+fitSelectionModifier(systemFitScore(p,slot,teamId))};
+   }).sort((a,b)=>b.score-a.score);
+   let starter=options[0]?options[0].score:45;
+   let depth=options.length;
+   let urgency=(depth===0?35:depth===1?18:0)+Math.max(0,76-starter);
+   needs.push({slot,starter,depth,urgency});
+ });
+ return needs.sort((a,b)=>b.urgency-a.urgency);
+}
+function aiCandidateScore(player,teamId,need){
+ if(!player||!need||!playerEligibleForSlot(player,need.slot))return -999;
+ let pe=positionalEffectiveness(player,need.slot,teamId);
+ let fit=systemFitScore(player,need.slot,teamId);
+ let ageValue=player.age<=23?3:player.age>=32?-3:0;
+ let contractValue=player.years<=1?4:0;
+ return pe.effectiveOvr+fit*.035+ageValue+contractValue+need.urgency*.12;
+}
+function aiBestRecruitmentTarget(teamId,candidates){
+ let needs=aiRoleNeeds(teamId).filter(n=>n.urgency>4),best=null;
+ needs.slice(0,5).forEach(need=>{
+   candidates.forEach(p=>{
+     let score=aiCandidateScore(p,teamId,need);
+     if(!best||score>best.score)best={player:p,need,score};
+   });
+ });
+ return best;
+}
+function aiEnsureFormationCoverage(teamId){
+ let guard=0;
+ while(!formationCoverage(teamId).ok&&guard<8){
+   guard++;
+   let need=aiRoleNeeds(teamId).find(n=>n.depth===0);
+   if(!need)break;
+   let free=activeFreeAgents().filter(p=>!p.retiring&&playerEligibleForSlot(p,need.slot))
+     .sort((a,b)=>aiCandidateScore(b,teamId,need)-aiCandidateScore(a,teamId,need))[0];
+   if(free){
+     free.team=teamId;openPlayerClubSpell(free,teamId,null);free.freeAgent=false;free.years=rnd(1,3);
+     G.freeAgents=G.freeAgents.filter(x=>x!==free.id);
+   }else{
+     G.players.push(generateWorldPlayer(teamId,rnd(-3,1),true,positionGroup(need.slot)));
+   }
+ }
+}
 function aiWorldEvolution(){
  ensureLifecycleState();
  if(!Array.isArray(G.players))G.players=[];
@@ -3067,47 +3194,59 @@ function aiWorldEvolution(){
  }
  ensureFreeAgentMarketHealth();
 
- // AI squad balancing: release surplus fringe players and fill shortages.
+ // AI squad balancing: protect formation coverage first, then maintain sensible depth.
  G.clubs.forEach(c=>{
    if(c.id===G.club)return;
    let squad=aiSquad(c.id).filter(p=>p.team>=0);
    if(squad.length>30){
-     squad.sort((a,b)=>a.ovr-b.ovr||b.age-a.age).slice(0,squad.length-28).forEach(p=>{
-       moveToFreeAgency(p);
-     });
+     let slots=formationSlotsForCoach(c.id).flat();
+     let utility=p=>{
+       let eligible=slots.filter(s=>playerEligibleForSlot(p,s));
+       if(!eligible.length)return(Number(p.ovr)||0)-12;
+       return Math.max(...eligible.map(s=>positionalEffectiveness(p,s,c.id).effectiveOvr+fitSelectionModifier(systemFitScore(p,s,c.id))));
+     };
+     squad.sort((a,b)=>utility(a)-utility(b)||b.age-a.age).slice(0,squad.length-28).forEach(p=>moveToFreeAgency(p));
    }
+
+   aiEnsureFormationCoverage(c.id);
    squad=aiSquad(c.id);
    let refillGuard=0;
-   while(squad.length<24&&refillGuard<40){
+   while(squad.length<24&&refillGuard<30){
      refillGuard++;
-     let free=activeFreeAgents().filter(p=>p.ovr<=82).sort((a,b)=>b.ovr-a.ovr)[0];
+     let need=aiRoleNeeds(c.id)[0];
+     let freePool=activeFreeAgents().filter(p=>!p.retiring&&p.ovr<=84);
+     let target=need?aiBestRecruitmentTarget(c.id,freePool):null;
+     let free=target&&target.score>55?target.player:freePool.sort((a,b)=>b.ovr-a.ovr)[0];
      if(free){
        free.team=c.id;openPlayerClubSpell(free,c.id,null);free.freeAgent=false;free.years=rnd(1,3);
        G.freeAgents=G.freeAgents.filter(x=>x!==free.id);
      }else{
-       G.players.push(generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.55));
+       let group=need?positionGroup(need.slot):["DEF","MID","FWD"][rnd(0,2)];
+       G.players.push(generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.60,group));
      }
      squad=aiSquad(c.id);
    }
  });
 
- // AI transfer activity driven by weak positional groups.
- let moves=0,moveCap=rnd(10,18);
+ // AI transfer activity now targets the Head Coach's actual tactical needs.
+ let moves=0,moveCap=rnd(12,20);
  let clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
  clubs.forEach(buyer=>{
    if(!buyer||buyer.id===G.club||moves>=moveCap)return;
-   let squad=aiSquad(buyer.id);
-   let groups=["GK","DEF","MID","FWD"];
-   let weakest=groups.map(g=>{
-     let ps=squad.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr);
-     return{g,score:ps.length?ps.slice(0,Math.min(3,ps.length)).reduce((s,p)=>s+p.ovr,0)/Math.min(3,ps.length):50};
-   }).sort((a,b)=>a.score-b.score)[0];
-   let targets=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&positionGroup(p.pos)===weakest.g&&p.ovr>weakest.score+2);
-   targets.sort((a,b)=>(a.years-b.years)||(b.ovr-a.ovr));
-   let p=targets[0];
-   if(p&&buyer.balance>p.value*.75&&Math.random()<.58){
-     let seller=G.clubs[p.team];
-     let fee=Math.round(p.value*(.82+Math.random()*.28)/100000)*100000;
+   let need=aiRoleNeeds(buyer.id).find(n=>n.urgency>5);
+   if(!need)return;
+
+   let candidates=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&playerEligibleForSlot(p,need.slot));
+   let choice=aiBestRecruitmentTarget(buyer.id,candidates),p=choice&&choice.player;
+   if(!p)return;
+
+   let candidateScore=aiCandidateScore(p,buyer.id,need);
+   if(candidateScore<need.starter+1.5&&need.depth>1)return;
+
+   let affordability=(Number(buyer.balance)||0)>p.value*.72;
+   let ambition=(Number(buyer.rep)||70)>=84?.68:(Number(buyer.rep)||70)>=74?.56:.45;
+   if(affordability&&Math.random()<ambition){
+     let seller=G.clubs[p.team],fee=Math.round(p.value*(.80+Math.random()*.25)/100000)*100000;
      if(buyer.balance>=fee){
        buyer.balance-=fee;if(seller)seller.balance+=fee;
        closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.years=rnd(2,4);p.listed=false;p.freeAgent=false;
@@ -3116,14 +3255,19 @@ function aiWorldEvolution(){
    }
  });
 
- // Mid/low-level free-agent churn: AI signs some, leaving a changing pool.
+ // Free-agent churn: clubs sign players who solve actual tactical needs.
  let fas=activeFreeAgents().filter(p=>!p.retiring).sort(()=>Math.random()-.5);
  fas.forEach(p=>{
-   if(Math.random()<.34){
-     let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30);
-     if(possible.length){
-       let c=possible[rnd(0,possible.length-1)];
-       p.team=c.id;openPlayerClubSpell(p,c.id,null);p.freeAgent=false;p.years=rnd(1,3);
+   if(Math.random()<.30){
+     let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30).map(c=>{
+       let needs=aiRoleNeeds(c.id).filter(n=>playerEligibleForSlot(p,n.slot));
+       if(!needs.length)return null;
+       let best=needs.sort((a,b)=>aiCandidateScore(p,c.id,b)-aiCandidateScore(p,c.id,a))[0];
+       return{club:c,need:best,score:aiCandidateScore(p,c.id,best)};
+     }).filter(Boolean).sort((a,b)=>b.score-a.score);
+     let pick=possible[0];
+     if(pick&&pick.score>54){
+       p.team=pick.club.id;openPlayerClubSpell(p,pick.club.id,null);p.freeAgent=false;p.years=rnd(1,3);
        G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
      }
    }
@@ -3981,7 +4125,7 @@ function staffView(){
  '<div class="identityRoles"><span>Preferred tactical roles</span><b>'+roleText+'</b></div></div>'+
  '<div class="card"><div class="title">Squad System Fit</div><div class="sub">Fit measures suitability to this coach. It does not change a player’s OVR.</div>'+
  '<div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div>'+
- '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR helps players execute valid secondary roles, opposite-side wide roles, defensive cover and limited midfield cover. It never makes an unrelated player eligible for a position.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of an eligible role penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
+ '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR helps players execute valid secondary roles, opposite-side wide roles, defensive cover and limited midfield cover. It never makes an unrelated player eligible for a position.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of an eligible role penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit shape who is best suited to the Starting XI. AI clubs now use the same tactical role logic when selecting and recruiting players.</div></div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
@@ -4363,6 +4507,7 @@ function ensureRecordState(){
 let renderQueued=false;
 function ensureRuntimeState(){
  if(!G)return;
+ if(!G._nameRegistryHydrated){resetGeneratedNameRegistry();G._nameRegistryHydrated=true}
  ensureLeagueWorld();
  ensureRecordState();
  ensureClubHistoryState();
