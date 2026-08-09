@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.6 Stable Interaction Recovery Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.7 Button Interaction Recovery Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2124,6 +2124,17 @@ select,input,textarea{
 .rivalryBanner,.resultRivalryRecap{display:none!important}
 @media(max-width:430px){.resultTeam{font-size:16px!important}.resultScore{font-size:38px!important}}
 
+
+/* v2.9.11.7 Button Interaction Recovery */
+#nav .navAction{background:none;border:0;color:var(--muted);font-size:10px;padding:5px 2px;min-height:50px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#nav .navAction b{display:block;font-size:17px;margin-bottom:2px;font-weight:600;line-height:1}
+#nav .navAction span{display:block;font-size:10px;line-height:1.1}
+#nav .navAction.active{color:var(--gold);background:#d9b54a12}
+#nav .navAction:active,.homeContinueAction:active{background:#d9b54a18!important;transform:scale(.99)}
+#nav .navAction:focus-visible,.homeContinueAction:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.homeContinueAction{display:flex!important;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+nav{grid-template-columns:repeat(5,1fr)!important}
+
 </style>
 </head>
 <body>
@@ -2171,11 +2182,11 @@ select,input,textarea{
   <div id="clubline"></div>
 </header>
 <nav id="nav">
-<button data-page="home" class="active"><b>⌂</b>HOME</button>
-<button data-page="squad"><b>◎</b>SQUAD</button>
-<button data-page="market"><b>⇄</b>MARKET</button>
-<button data-page="league"><b>≡</b>LEAGUE</button>
-<button data-page="club"><b>◇</b>CLUB</button>
+<div class="navAction active" data-page="home" role="button" tabindex="0"><b>⌂</b><span>HOME</span></div>
+<div class="navAction" data-page="squad" role="button" tabindex="0"><b>◎</b><span>SQUAD</span></div>
+<div class="navAction" data-page="market" role="button" tabindex="0"><b>⇄</b><span>MARKET</span></div>
+<div class="navAction" data-page="league" role="button" tabindex="0"><b>≡</b><span>LEAGUE</span></div>
+<div class="navAction" data-page="club" role="button" tabindex="0"><b>◇</b><span>CLUB</span></div>
 </nav>
 <main id="app"></main>
 <div id="continueDock" class="continueDock hidden"><button id="continueBtn" class="btn primary">CONTINUE</button></div>
@@ -2201,7 +2212,7 @@ select,input,textarea{
 (function(){
 "use strict";
 // v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.6 Stable Interaction Recovery Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.7 Button Interaction Recovery Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4360,7 +4371,7 @@ function home(){
  '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span> <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span> <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
  '<div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div>'+
  '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
- '<div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>';
+ '<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
 
  let news='<div class="card homeNewsCard"><div class="title">Club News</div>'+
  (recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
@@ -4824,9 +4835,7 @@ function render(){
  $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
  $("#app").innerHTML=({home,squad,market,league,club})[page]();
  $("#continueDock").classList.add("hidden");
- document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
- let hc=$("#homeContinueBtn");
- if(hc){hc.onclick=function(ev){ev.preventDefault();advance();}}
+ document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  renderQueued=false;
 }
 function renderSoon(){
@@ -4838,7 +4847,7 @@ function navigateTo(nextPage){
  if(!nextPage||nextPage===page)return;
  page=nextPage;
  // Give immediate visual feedback before rebuilding the view.
- document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  renderSoon();
 }
 renderBuildVersion();
@@ -4897,7 +4906,10 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  renderClubChoices();
  return;
 }
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}let nav=e.target.closest("nav button");if(nav){navigateTo(nav.dataset.page);return}let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
+let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}
+let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
+let nav=e.target.closest("#nav [data-page]");if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
+let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
 let worldClub=e.target.closest("[data-world-club]");if(worldClub){showClubProfile(Number(worldClub.dataset.worldClub));return}
 let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
 let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
@@ -4922,6 +4934,13 @@ let editPlayerBtn=e.target.closest("[data-edit-player]");if(editPlayerBtn){openP
 let savePlayerBtn=e.target.closest("[data-save-player-edit]");if(savePlayerBtn){savePlayerEdit(savePlayerBtn.dataset.savePlayerEdit);return}
 let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlayerBtn){cancelPlayerEdit(cancelPlayerBtn.dataset.cancelPlayerEdit);return}
 if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
+document.addEventListener("keydown",function(e){
+ if(e.key!=="Enter"&&e.key!==" ")return;
+ let homeContinue=e.target.closest&&e.target.closest("[data-home-continue]");
+ if(homeContinue){e.preventDefault();advance();return}
+ let nav=e.target.closest&&e.target.closest("#nav [data-page]");
+ if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
+});
 $("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
 $("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
 $("#backToLaunchFromSlots").addEventListener("click",function(){
@@ -4945,7 +4964,7 @@ $("#resultContinueBtn").addEventListener("click",function(){
    return;
  }
  page="home";
- document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
+ document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
  renderSoon();
 });
 
