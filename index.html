@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.17.1 GM Career History Integrity Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.17.2 Generational Talent Pathway Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3739,7 +3739,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.17.1 GM Career History Integrity Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.17.2 Generational Talent Pathway Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -3860,9 +3860,31 @@ function validateCoreRuntime(){
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
+
+function rollGenerationalPotential(age,currentPot,context="world"){
+ // 99 potential is intentionally exceptional. The general player pool is not
+ // inflated; only a tiny fraction of young players enter this pathway.
+ if(Number(age)>22)return Number(currentPot)||0;
+ let chance=context==="initial"?.0008:.0025; // ~0.25% of newly generated young players
+ if(Math.random()>=chance)return Number(currentPot)||0;
+ let r=Math.random(),ceiling=r<.15?99:r<.38?98:r<.68?97:96;
+ return Math.max(Number(currentPot)||0,ceiling);
+}
+function applyGenerationalTalent(p,context="world"){
+ if(!p)return p;
+ let before=Number(p.pot)||Number(p.ovr)||60;
+ p.pot=Math.min(99,rollGenerationalPotential(p.age,before,context));
+ if(p.pot>=96){
+   p.generationalPotential=true;
+   p.generationalTier=p.pot>=99?"GOAT ceiling":p.pot>=98?"Generational":p.pot>=97?"Era-defining":"World-class ceiling";
+ }
+ return p;
+}
+
 function player(team,i){
  let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);
  let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ applyGenerationalTalent(p,"initial");
  seedSecondaryPositions(p);p.primaryStyle=independentStyleForPosition(p.pos);let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);if(opts.length&&Math.random()<(age<=24?.38:.25))p.secondaryStyle=opts[rnd(0,opts.length-1)];return p;
 }
 function buildClubRecord(name,i,tier){
@@ -5007,7 +5029,7 @@ function freeAgentGroupCounts(){
 }
 function ensureFreeAgentMarketHealth(){
  ensureLifecycleState();if(!Array.isArray(G.freeAgents))G.freeAgents=[];let targets={GK:3,DEF:8,MID:9,FWD:8},counts=freeAgentGroupCounts(),created=0;
- Object.keys(targets).forEach(group=>{let shortage=Math.max(0,targets[group]-counts[group]);for(let i=0;i<shortage;i++){let roll=Math.random(),bias=roll<.65?rnd(-5,-1):roll<.93?rnd(-1,3):rnd(3,6),young=Math.random()<.58,np=generateWorldPlayer(-1,bias,young,group);if(young)np.age=rnd(18,22);np.ovr=Math.max(55,Math.min(80,np.ovr));np.pot=Math.max(np.ovr+2,Math.min(92,np.pot));np.wage=Math.round((8000+Math.max(0,np.ovr-55)*2600+rnd(0,9000))/1000)*1000;np.value=np.ovr*np.ovr*rnd(3000,5200);G.players.push(np);if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);created++}});
+ Object.keys(targets).forEach(group=>{let shortage=Math.max(0,targets[group]-counts[group]);for(let i=0;i<shortage;i++){let roll=Math.random(),bias=roll<.65?rnd(-5,-1):roll<.93?rnd(-1,3):rnd(3,6),young=Math.random()<.58,np=generateWorldPlayer(-1,bias,young,group);if(young)np.age=rnd(18,22);np.ovr=Math.max(55,Math.min(80,np.ovr));np.pot=np.generationalPotential?Math.min(99,Math.max(np.ovr+2,np.pot)):Math.max(np.ovr+2,Math.min(92,np.pot));np.wage=Math.round((8000+Math.max(0,np.ovr-55)*2600+rnd(0,9000))/1000)*1000;np.value=np.ovr*np.ovr*rnd(3000,5200);G.players.push(np);if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);created++}});
  ["GK","DEF","MID","FWD"].forEach(group=>{let gp=activeFreeAgents().filter(p=>positionGroup(p.pos)===group&&!p.retiring),styles=[...new Set(gp.flatMap(p=>stylePoolForPosition(p.pos)))];styles.forEach(style=>{if(gp.some(p=>p.primaryStyle===style||p.secondaryStyle===style))return;let np=generateWorldPlayer(-1,rnd(-5,0),true,group);np.primaryStyle=style;np.secondaryStyle=null;np.ovr=Math.max(55,Math.min(74,np.ovr));np.wage=Math.round((7000+Math.max(0,np.ovr-55)*2200)/1000)*1000;G.players.push(np);G.freeAgents.push(np.id);gp.push(np);created++})});
  if(created)G._runtimeHydrationStamp=null;return created;
 }
@@ -5047,6 +5069,7 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null)
  let age=young?rnd(17,22):rnd(18,31),base=rnd(58+qualityBias,74+qualityBias);if(young&&Math.random()<.18)base+=rnd(3,8);base=Math.max(50,Math.min(86,base));
  let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)],pot=Math.min(94,base+rnd(young?5:2,young?16:8));
  let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ if(young)applyGenerationalTalent(np,"world");
  seedSecondaryPositions(np);np.primaryStyle=independentStyleForPosition(np.pos);let opts=stylePoolForPosition(np.pos).filter(x=>x!==np.primaryStyle);if(opts.length&&Math.random()<(young?.42:.28))np.secondaryStyle=opts[rnd(0,opts.length-1)];return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
@@ -6547,11 +6570,11 @@ function playerDevelopmentOffseason(){
   let before=Number(p.ovr)||60,delta=0;
   if(p.age<=20){
    let room=Math.max(0,(Number(p.pot)||before)-before);
-   let chance=.35+training*.08+(coach-70)*.006;
+   let chance=.35+training*.08+(coach-70)*.006+(p.generationalPotential?.06:0);
    if(room>0&&Math.random()<chance)delta=rnd(1,Math.min(3,Math.max(1,room)));
   }else if(p.age<=24){
    let room=Math.max(0,(Number(p.pot)||before)-before);
-   let chance=.24+training*.065+(coach-70)*.005;
+   let chance=.24+training*.065+(coach-70)*.005+(p.generationalPotential?.04:0);
    if(room>0&&Math.random()<chance)delta=rnd(1,Math.min(2,Math.max(1,room)));
   }else if(p.age<=29){
    if(Math.random()<.08+training*.015&&before<(Number(p.pot)||before))delta=1;
@@ -6561,7 +6584,7 @@ function playerDevelopmentOffseason(){
    let declineChance=Math.max(.20,.62-training*.055);
    if(Math.random()<declineChance)delta=-(Math.random()<.22?2:1);
   }
-  p.ovr=Math.max(50,Math.min(Number(p.pot)||96,before+delta));
+  p.ovr=Math.max(50,Math.min(99,Math.min(Number(p.pot)||96,before+delta)));
   if(delta)changes.push({name:p.name,delta,from:before,to:p.ovr});
  });
  G.lastDevelopment={season:G.season,changes};
@@ -6579,16 +6602,27 @@ function youthAcademyIntake(){
   let bias=lvl-2,group=missingGroups[i]||cycle[(G.season+i)%cycle.length],np=generateWorldPlayer(G.club,bias,true,group);
   np.age=rnd(17,19);
   np.ovr=Math.max(55,Math.min(78,np.ovr+rnd(-2,lvl)));
-  np.pot=Math.min(95,Math.max(np.ovr+4,np.pot+lvl+rnd(0,3)));
+  let academyBasePot=Math.max(np.ovr+4,np.pot+lvl+rnd(0,3));
+  np.pot=np.generationalPotential?Math.min(99,Math.max(np.pot,academyBasePot)):Math.min(95,academyBasePot);
   np.years=3;np.wage=rnd(5,18)*1000;np.value=np.ovr*np.ovr*rnd(3500,6000);
   G.players.push(np);added.push(np);
  }
  if(added.length)G.feed.unshift({t:"YOUTH INTAKE",m:added.map(p=>p.name+" ("+p.pos+", "+p.ovr+" OVR)").join(" · ")+" joined from the academy."});
 }
+
+function playerLegacyTier(p){
+ let ovr=Number(p&&p.ovr)||0;
+ if(ovr>=99)return"GOAT";
+ if(ovr>=97)return"Generational";
+ if(ovr>=94)return"Era-defining";
+ if(ovr>=90)return"World Class";
+ return null;
+}
+
 function scoutPotentialRange(p){
  ensureFacilityState();let lvl=G.clubs[G.club].facilities.scouting;
  let lowSpread=[7,6,4,3,2][lvl-1],highSpread=[7,5,4,2,1][lvl-1];
- return[Math.max(p.ovr,(Number(p.pot)||p.ovr)-lowSpread),Math.min(96,(Number(p.pot)||p.ovr)+highSpread)];
+ return[Math.max(p.ovr,(Number(p.pot)||p.ovr)-lowSpread),Math.min(99,(Number(p.pot)||p.ovr)+highSpread)];
 }
 function facilityCard(key){
  ensureFacilityState();let c=G.clubs[G.club],info=FACILITY_INFO[key],lvl=c.facilities[key],cost=lvl<5?facilityCost(key):0;
