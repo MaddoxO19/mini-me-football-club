@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.15 Fixture Rank Readability Stable Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.12.0 Rich Career Records Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3304,6 +3304,47 @@ nav{grid-template-columns:repeat(5,1fr)!important}
   }
 }
 
+
+/* v2.9.12 fixture rank refinement: text only, no pill/bubble */
+.homeFixtureRank{
+  display:block!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:var(--gold)!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  line-height:1.1!important;
+  letter-spacing:.04em!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+@media(max-width:430px){.homeFixtureRank{font-size:10px!important}}
+
+
+/* ==========================================================
+   v2.9.12 RICH CAREER RECORDS
+   ========================================================== */
+.richRecordHero{margin-bottom:10px!important}
+.richRecordSection{margin-top:10px!important}
+.richRecordSection .sectionHead{margin-bottom:3px!important}
+.richRecordRow{grid-template-columns:minmax(0,1fr) minmax(90px,44%)!important;gap:12px!important;align-items:center!important}
+.richRecordRow>div{min-width:0}
+.richRecordRow>div>b{font-size:12px!important}
+.richRecordRow>div>span{display:block;margin-top:3px;font-size:10px!important;color:var(--muted)!important;line-height:1.3!important;white-space:normal!important}
+.richRecordRow>b{text-align:right!important;font-size:12px!important;line-height:1.25!important;white-space:normal!important}
+.richRecordLink{cursor:pointer;touch-action:manipulation;color:inherit;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
+.richRecordLink:active{color:var(--gold);text-decoration-color:#d9b54a66}
+.richTrackingNote{margin-top:10px;padding:9px 10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;line-height:1.4}
+@media(max-width:430px){
+ .richRecordRow{grid-template-columns:minmax(0,1fr) minmax(86px,42%)!important;gap:9px!important}
+ .richRecordRow>div>b,.richRecordRow>b{font-size:11px!important}
+ .richRecordRow>div>span{font-size:10px!important}
+ .richRecordSection{padding:12px!important}
+}
+
 </style>
 </head>
 <body>
@@ -3380,8 +3421,8 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 <script>
 (function(){
 "use strict";
-// v2.9.11.15: fixture ranking moved beneath team names for readability. Presentation only.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.15 Fixture Rank Readability Stable Alpha Mobile";
+// v2.9.12.0: Rich Career Records plus clean fixture-rank treatment.
+const BUILD_VERSION="Mini&Me Football Club v2.9.12.0 Rich Career Records Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -3839,14 +3880,18 @@ function strength(id){
 function ensurePlayerStats(){
  G.players.forEach(p=>{
   if(!p.career)p.career={apps:0,goals:0,assists:0,potm:0,cleanSheets:0,saves:0};
-  ["apps","goals","assists","potm","cleanSheets","saves"].forEach(k=>{if(!Number.isFinite(p.career[k]))p.career[k]=0});
+  ["apps","goals","assists","potm","cleanSheets","saves","wins","draws","losses"].forEach(k=>{if(!Number.isFinite(p.career[k]))p.career[k]=0});
+  if(!Number.isFinite(p.career.bestRating))p.career.bestRating=null;
+  if(!Number.isFinite(p.career.worstRating))p.career.worstRating=null;
   if(!Array.isArray(p.careerHistory))p.careerHistory=[];
   if(!Array.isArray(p.awards))p.awards=[];
   if(!Array.isArray(p.clubHistory))p.clubHistory=[];
   if(!p.stats||p.stats.season!==G.season){
-   p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0};
+   p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0,wins:0,draws:0,losses:0,bestRating:null,worstRating:null};
   }
-  ["apps","goals","assists","ratingTotal","ratedApps","potm","cleanSheets","saves","tackles","interceptions","keyPasses","shotsOnTarget"].forEach(k=>{if(!Number.isFinite(p.stats[k]))p.stats[k]=0});
+  ["apps","goals","assists","ratingTotal","ratedApps","potm","cleanSheets","saves","tackles","interceptions","keyPasses","shotsOnTarget","wins","draws","losses"].forEach(k=>{if(!Number.isFinite(p.stats[k]))p.stats[k]=0});
+  if(!Number.isFinite(p.stats.bestRating))p.stats.bestRating=null;
+  if(!Number.isFinite(p.stats.worstRating))p.stats.worstRating=null;
  });
 }
 
@@ -3919,6 +3964,11 @@ function snapshotPlayerSeasonHistory(){
      potm:s.potm||0,
      cleanSheets:s.cleanSheets||0,
      saves:s.saves||0,
+     wins:s.wins||0,
+     draws:s.draws||0,
+     losses:s.losses||0,
+     bestRating:Number.isFinite(s.bestRating)?s.bestRating:null,
+     worstRating:Number.isFinite(s.worstRating)?s.worstRating:null,
      tackles:s.tackles||0,
      interceptions:s.interceptions||0,
      keyPasses:s.keyPasses||0,
@@ -4240,6 +4290,11 @@ function buildMatchPerformance(team,goalsFor,goalsAgainst,matchData,opponentShot
   let rating=Math.max(4.8,Math.min(10,Math.round(base*10)/10));
   p.stats.ratingTotal+=rating;
   p.stats.ratedApps++;
+  if(won){p.stats.wins++;p.career.wins++}else if(draw){p.stats.draws++;p.career.draws++}else{p.stats.losses++;p.career.losses++}
+  if(!Number.isFinite(p.stats.bestRating)||rating>p.stats.bestRating)p.stats.bestRating=rating;
+  if(!Number.isFinite(p.stats.worstRating)||rating<p.stats.worstRating)p.stats.worstRating=rating;
+  if(!Number.isFinite(p.career.bestRating)||rating>p.career.bestRating){p.career.bestRating=rating;p.career.bestRatingSeason=G.season;p.career.bestRatingClubId=p.team}
+  if(!Number.isFinite(p.career.worstRating)||rating<p.career.worstRating){p.career.worstRating=rating;p.career.worstRatingSeason=G.season;p.career.worstRatingClubId=p.team}
 
   return{id:p.id,name:p.name,pos:p.pos,rating,goals:g,assists:a};
  }).sort((a,b)=>b.rating-a.rating);
@@ -5026,7 +5081,7 @@ function beginNewSeason(){
   G.season=(Number(G.season)||2026)+1;
   G.week=0;
   G._runtimeHydrationStamp=null;
-  G.players.forEach(p=>{p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0}});
+  G.players.forEach(p=>{p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0,wins:0,draws:0,losses:0,bestRating:null,worstRating:null}});
   G.clubs.forEach(c=>{if(c)Object.assign(c,{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})});
   G.schedule=buildWorldSchedule(G);
 
@@ -5726,28 +5781,159 @@ function leagueClubsView(){
  return '<div class="worldNote">Rename clubs and adjust their basic football profile. Promotion and relegation remain automatic between the two divisions.</div>'+
  ["top","lower"].map(key=>{let info=leagueInfo(key),rows=info.clubIds.map(id=>{let c=G.clubs[id];return '<div class="clubEditRow"><div data-club-profile="'+c.id+'" class="aiClubLink"><b>'+c.name+'</b><span>'+info.name+' · REP '+c.rep+' · Coach '+c.coach+'</span></div><button class="btn" data-edit-club="'+c.id+'">EDIT</button></div>'}).join("");return '<div class="card clubEditList"><div class="title">'+info.name+'</div>'+rows+'</div>'}).join("");
 }
-function leagueRecordsView(){
- let hs=Array.isArray(G.history)?G.history:[];
- let complete=hs.filter(h=>Number.isFinite(h.p));
- let bestPts=complete.length?[...complete].sort((a,b)=>(b.w*3+b.d)-(a.w*3+a.d))[0]:null;
- let bestGF=complete.length?[...complete].sort((a,b)=>(b.gf||0)-(a.gf||0))[0]:null;
- let champs={};hs.forEach(h=>{if(h.champ)champs[h.champ]=(champs[h.champ]||0)+1});
- let dynasty=Object.entries(champs).sort((a,b)=>b[1]-a[1])[0];
- let golden={};hs.forEach(h=>{let g=h.awards&&h.awards.goldenBoot;if(g)golden[g.name]=(golden[g.name]||0)+1});
- let gbLead=Object.entries(golden).sort((a,b)=>b[1]-a[1])[0];
- let seasons=hs.map(h=>{let gold=h.awards&&h.awards.goldenBoot,poty=h.awards&&h.awards.player,bits=[];if(gold)bits.push('<span class="archivePerson" '+worldPlayerAttrs(gold)+'>Golden Boot: '+gold.name+' · '+gold.pos+'</span>');if(poty)bits.push('<span class="archivePerson" '+worldPlayerAttrs(poty)+'>POTY: '+poty.name+' · '+poty.pos+'</span>');return '<div class="historySeason archiveSeason"><div class="seasonYear">'+h.season+'</div><div><b class="archiveClub" '+worldClubAttrs(h.champ)+'>'+h.champ+'</b><div class="seasonMeta">Champion</div>'+(bits.length?'<div class="archiveAwards">'+bits.join('<span class="archiveDot">·</span>')+'</div>':'')+'</div><div>'+(Number.isFinite(h.w)&&Number.isFinite(h.d)?((h.w*3+h.d)+' pts'):'—')+'</div></div>'}).join("");
- let dynastyAttrs=dynasty?worldClubAttrs(dynasty[0]):"",gbPlayer=gbLead?G.players.find(p=>p.name===gbLead[0]):null;
- return '<div class="recordHero">'+
-  '<div class="recordTile"><div class="label">SEASONS ARCHIVED</div><div class="recordValue">'+hs.length+'</div></div>'+
-  '<div class="recordTile interactiveRecordTile" '+dynastyAttrs+'><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?dynasty[0]:'No champion archived')+'</div></div>'+
-  '<div class="recordTile interactiveRecordTile" '+(gbPlayer?'data-player="'+gbPlayer.id+'"':'')+'><div class="label">MOST GOLDEN BOOTS</div><div class="recordValue">'+(gbLead?gbLead[1]:'—')+'</div><div class="recordNote">'+(gbLead?gbLead[0]:'—')+'</div></div>'+
-  '<div class="recordTile"><div class="label">YOUR BEST POINTS</div><div class="recordValue">'+(bestPts?bestPts.w*3+bestPts.d:'—')+'</div><div class="recordNote">'+(bestPts?bestPts.season:'—')+'</div></div></div>'+
-  '<div class="card"><div class="sectionHead"><div><div class="title">League Records</div><div class="sub">Career records from completed seasons.</div></div></div>'+
-  '<div class="recordRow"><div><b>Your highest scoring season</b><span>Club record</span></div><b>'+(bestGF?bestGF.gf:'—')+'</b></div>'+
-  '<div class="recordRow"><div><b>Historic title leader</b><span>Archived era</span></div><b '+dynastyAttrs+' class="archiveClub">'+(dynasty?dynasty[0]+' · '+dynasty[1]:'—')+'</b></div>'+
-  '<div class="recordRow"><div><b>Golden Boot leader</b><span>Archived era</span></div><b '+(gbPlayer?'data-player="'+gbPlayer.id+'"':'')+' class="archivePerson">'+(gbLead?gbLead[0]+' · '+gbLead[1]:'—')+'</b></div></div>'+
-  '<div class="card"><div class="sectionHead"><div><div class="title">League Archive</div><div class="sub">Champions and major awards preserved at the end of each campaign.</div></div><div class="sectionCount">'+hs.length+'</div></div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
+function richRecordClubLink(id,label){
+ let c=G.clubs.find(x=>x.id===id),name=label||(c?c.name:"Unknown Club");
+ return c?'<span class="richRecordLink aiClubLink" data-club-profile="'+c.id+'">'+name+'</span>':name;
 }
+function richRecordPlayerLink(p,label){
+ if(!p)return label||"—";
+ return '<span class="richRecordLink recordPlayerLink" data-player="'+p.id+'">'+(label||p.name)+'</span>';
+}
+function premierCareerMatches(){
+ ensureLeagueWorld();
+ return (Array.isArray(G.matchHistory)?G.matchHistory:[]).filter(m=>m&&m.played&&m.divisionKey==="top"&&Number.isFinite(m.homeGoals)&&Number.isFinite(m.awayGoals)).sort((a,b)=>(a.season-b.season)||(a.week-b.week));
+}
+function clubPerspectiveMatch(m,clubId){
+ if(m.homeClubId===clubId)return{gf:m.homeGoals,ga:m.awayGoals,opp:m.awayClubId,home:true};
+ if(m.awayClubId===clubId)return{gf:m.awayGoals,ga:m.homeGoals,opp:m.homeClubId,home:false};
+ return null;
+}
+function premierClubSeasonSnapshots(){
+ ensureClubHistoryState();
+ let rows=[];
+ G.clubs.forEach(c=>{
+  (c.history||[]).filter(h=>h.division==="top").forEach(h=>rows.push({clubId:c.id,club:c.name,season:h.season,p:h.p,w:h.w,d:h.d,l:h.l,gf:h.gf,ga:h.ga,pts:h.pts,position:h.position}));
+  if(G.leagues.top.clubIds.includes(c.id)&&Number(c.p)>0)rows.push({clubId:c.id,club:c.name,season:G.season,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,pts:c.pts,position:standings("top").findIndex(x=>x.id===c.id)+1,current:true});
+ });
+ return rows;
+}
+function bestRecord(arr,scoreFn,mode="max"){
+ if(!arr.length)return null;
+ return [...arr].sort((a,b)=>mode==="min"?scoreFn(a)-scoreFn(b):scoreFn(b)-scoreFn(a))[0];
+}
+function premierStreakRecord(kind){
+ let matches=premierCareerMatches(),best=null;
+ G.clubs.forEach(c=>{
+  let current=0,max=0,start=null,end=null,localStart=null;
+  matches.forEach(m=>{
+   let v=clubPerspectiveMatch(m,c.id);if(!v)return;
+   let ok=kind==="wins"?v.gf>v.ga:kind==="losses"?v.gf<v.ga:kind==="draws"?v.gf===v.ga:v.gf>=v.ga;
+   if(ok){if(current===0)localStart={season:m.season,week:m.week};current++;if(current>max){max=current;start=localStart;end={season:m.season,week:m.week}}}
+   else current=0;
+  });
+  if(max&&(!best||max>best.value))best={clubId:c.id,club:c.name,value:max,start,end};
+ });
+ return best;
+}
+function richPlayerTotals(p){
+ let hs=Array.isArray(p.careerHistory)?p.careerHistory:[],cur=p.stats&&p.stats.season===G.season?p.stats:null;
+ let sum=k=>hs.reduce((s,h)=>s+(Number(h[k])||0),0)+(cur?(Number(cur[k])||0):0);
+ let apps=sum("apps"),goals=sum("goals"),assists=sum("assists"),cleanSheets=sum("cleanSheets"),potm=sum("potm");
+ let wins=Math.max(sum("wins"),Number(p.career&&p.career.wins)||0),draws=Math.max(sum("draws"),Number(p.career&&p.career.draws)||0),losses=Math.max(sum("losses"),Number(p.career&&p.career.losses)||0);
+ let ratingRows=hs.filter(h=>Number(h.apps)>0&&Number.isFinite(h.avgRating)).map(h=>({apps:Number(h.apps),avg:Number(h.avgRating),season:h.season,clubId:h.clubId}));
+ if(cur&&cur.ratedApps)ratingRows.push({apps:cur.ratedApps,avg:cur.ratingTotal/cur.ratedApps,season:G.season,clubId:p.team,current:true});
+ let weighted=ratingRows.reduce((s,h)=>s+h.avg*h.apps,0),ratedApps=ratingRows.reduce((s,h)=>s+h.apps,0),careerAvg=ratedApps?weighted/ratedApps:null;
+ let bestSeason=ratingRows.filter(h=>h.apps>=Math.min(10,Math.max(5,leagueSeasonWeeks("top")*.25))).sort((a,b)=>b.avg-a.avg)[0]||null;
+ let maxSeason=(key)=>{let rows=hs.map(h=>({season:h.season,value:Number(h[key])||0,clubId:h.clubId}));if(cur)rows.push({season:G.season,value:Number(cur[key])||0,clubId:p.team});return rows.sort((a,b)=>b.value-a.value)[0]||null};
+ return{apps,goals,assists,cleanSheets,potm,wins,draws,losses,careerAvg,bestSeason,goalSeason:maxSeason("goals"),assistSeason:maxSeason("assists"),cleanSeason:maxSeason("cleanSheets"),bestRating:Number(p.career&&p.career.bestRating),worstRating:Number(p.career&&p.career.worstRating),bestRatingSeason:p.career&&p.career.bestRatingSeason,worstRatingSeason:p.career&&p.career.worstRatingSeason};
+}
+function richPlayerRecordPool(){
+ ensurePlayerStats();
+ return G.players.map(p=>({p,t:richPlayerTotals(p)})).filter(x=>x.t.apps>0);
+}
+function coachCareerRecord(c){
+ let h=coachProfile(c.id),start=Number(h.appointedSeason)||G.season,matches=premierCareerMatches().filter(m=>m.season>=start&&(m.homeClubId===c.id||m.awayClubId===c.id));
+ let w=0,d=0,l=0,seasons=new Set();
+ matches.forEach(m=>{let v=clubPerspectiveMatch(m,c.id);seasons.add(m.season);if(v.gf>v.ga)w++;else if(v.gf===v.ga)d++;else l++});
+ if(G.leagues.top.clubIds.includes(c.id))seasons.add(G.season);
+ let archived=Array.isArray(G.history)?G.history:[];
+ let titles=archived.filter(x=>x.season>=start&&((x.champClubId===c.id)||(!Number.isFinite(x.champClubId)&&x.champ===c.name))).length;
+ let moty=archived.filter(x=>x.season>=start&&x.awards&&x.awards.manager&&x.awards.manager.name===h.name&&(x.awards.manager.clubId===c.id||x.awards.manager.club===c.name)).length;
+ return{clubId:c.id,club:c.name,name:h.name,ovr:h.ovr,start,matches:matches.length,w,d,l,winPct:matches.length?w/matches.length*100:0,seasons:seasons.size,titles,moty};
+}
+function richRecordRow(label,meta,value,attrs=""){
+ return '<div class="recordRow richRecordRow"><div><b>'+label+'</b><span>'+meta+'</span></div><b '+attrs+'>'+value+'</b></div>';
+}
+function leagueRecordsView(){
+ let hs=Array.isArray(G.history)?G.history:[],matches=premierCareerMatches(),seasons=premierClubSeasonSnapshots(),players=richPlayerRecordPool();
+ let champs={};hs.forEach(h=>{if(h.champ)champs[h.champ]=(champs[h.champ]||0)+1});
+ let dynasty=Object.entries(champs).sort((a,b)=>b[1]-a[1])[0],dynastyClub=dynasty?G.clubs.find(c=>c.name===dynasty[0]):null;
+ let bestPts=bestRecord(seasons,x=>x.pts||0),mostGF=bestRecord(seasons,x=>x.gf||0),mostGA=bestRecord(seasons,x=>x.ga||0),fewestGA=bestRecord(seasons.filter(x=>x.p>=Math.max(10,Math.floor(leagueSeasonWeeks("top")*.5))),x=>x.ga||0,"min");
+ let mostWins=bestRecord(seasons,x=>x.w||0),mostLosses=bestRecord(seasons,x=>x.l||0),mostDraws=bestRecord(seasons,x=>x.d||0);
+ let biggestWin=null,biggestLoss=null,highestScore=null;
+ matches.forEach(m=>{
+  let margin=Math.abs(m.homeGoals-m.awayGoals),total=m.homeGoals+m.awayGoals;
+  if(!highestScore||total>highestScore.total)highestScore={...m,total};
+  if(m.homeGoals!==m.awayGoals){
+   let winner=m.homeGoals>m.awayGoals?m.homeClubId:m.awayClubId,loser=m.homeGoals>m.awayGoals?m.awayClubId:m.homeClubId;
+   if(!biggestWin||margin>biggestWin.margin)biggestWin={...m,margin,winner,loser};
+   if(!biggestLoss||margin>biggestLoss.margin)biggestLoss={...m,margin,winner,loser};
+  }
+ });
+ let winStreak=premierStreakRecord("wins"),lossStreak=premierStreakRecord("losses"),drawStreak=premierStreakRecord("draws"),unbeaten=premierStreakRecord("unbeaten");
+ let pApps=bestRecord(players,x=>x.t.apps),pGoals=bestRecord(players,x=>x.t.goals),pAssists=bestRecord(players,x=>x.t.assists),pCS=bestRecord(players.filter(x=>positionGroup(x.p.pos)==="GK"),x=>x.t.cleanSheets),pPotm=bestRecord(players,x=>x.t.potm),pWins=bestRecord(players,x=>x.t.wins),pLosses=bestRecord(players,x=>x.t.losses);
+ let pAvg=bestRecord(players.filter(x=>x.t.apps>=20&&Number.isFinite(x.t.careerAvg)),x=>x.t.careerAvg),pSeasonAvg=null,pGoalSeason=null,pAssistSeason=null,pCleanSeason=null,pBestGame=null,pWorstGame=null;
+ players.forEach(x=>{
+  if(x.t.bestSeason&&(!pSeasonAvg||x.t.bestSeason.avg>pSeasonAvg.value))pSeasonAvg={p:x.p,value:x.t.bestSeason.avg,season:x.t.bestSeason.season};
+  if(x.t.goalSeason&&(!pGoalSeason||x.t.goalSeason.value>pGoalSeason.value))pGoalSeason={p:x.p,...x.t.goalSeason};
+  if(x.t.assistSeason&&(!pAssistSeason||x.t.assistSeason.value>pAssistSeason.value))pAssistSeason={p:x.p,...x.t.assistSeason};
+  if(positionGroup(x.p.pos)==="GK"&&x.t.cleanSeason&&(!pCleanSeason||x.t.cleanSeason.value>pCleanSeason.value))pCleanSeason={p:x.p,...x.t.cleanSeason};
+  if(Number.isFinite(x.t.bestRating)&&(!pBestGame||x.t.bestRating>pBestGame.value))pBestGame={p:x.p,value:x.t.bestRating,season:x.t.bestRatingSeason};
+  if(Number.isFinite(x.t.worstRating)&&(!pWorstGame||x.t.worstRating<pWorstGame.value))pWorstGame={p:x.p,value:x.t.worstRating,season:x.t.worstRatingSeason};
+ });
+ let coaches=G.clubs.map(coachCareerRecord).filter(x=>x.matches>0),cMatches=bestRecord(coaches,x=>x.matches),cWins=bestRecord(coaches,x=>x.w),cPct=bestRecord(coaches.filter(x=>x.matches>=10),x=>x.winPct),cYears=bestRecord(coaches,x=>x.seasons),cTitles=bestRecord(coaches,x=>x.titles),cMoty=bestRecord(coaches,x=>x.moty);
+ let archive=hs.map(h=>{let gold=h.awards&&h.awards.goldenBoot,poty=h.awards&&h.awards.player,bits=[];if(gold)bits.push('<span class="archivePerson" '+worldPlayerAttrs(gold)+'>Golden Boot: '+gold.name+'</span>');if(poty)bits.push('<span class="archivePerson" '+worldPlayerAttrs(poty)+'>POTY: '+poty.name+'</span>');return '<div class="historySeason archiveSeason"><div class="seasonYear">'+h.season+'</div><div><b class="archiveClub" '+worldClubAttrs(h.champ)+'>'+h.champ+'</b><div class="seasonMeta">Premier Division Champion</div>'+(bits.length?'<div class="archiveAwards">'+bits.join('<span class="archiveDot">·</span>')+'</div>':'')+'</div><div>'+(Number.isFinite(h.w)&&Number.isFinite(h.d)?((h.w*3+h.d)+' pts'):'—')+'</div></div>'}).join("");
+ let matchLabel=m=>G.clubs[m.homeClubId].name+' '+m.homeGoals+'–'+m.awayGoals+' '+G.clubs[m.awayClubId].name;
+ let teamRows='';
+ teamRows+=richRecordRow('Biggest win',biggestWin?'Week '+biggestWin.week+' · '+biggestWin.season:'No result archived',biggestWin?matchLabel(biggestWin):'—');
+ teamRows+=richRecordRow('Biggest defeat',biggestLoss?'Week '+biggestLoss.week+' · '+biggestLoss.season:'No result archived',biggestLoss?matchLabel(biggestLoss):'—');
+ teamRows+=richRecordRow('Highest scoring match',highestScore?'Week '+highestScore.week+' · '+highestScore.season:'No result archived',highestScore?matchLabel(highestScore):'—');
+ teamRows+=richRecordRow('Longest winning run',winStreak?winStreak.club:'Premier Division',winStreak?winStreak.value+' matches':'—');
+ teamRows+=richRecordRow('Longest unbeaten run',unbeaten?unbeaten.club:'Premier Division',unbeaten?unbeaten.value+' matches':'—');
+ teamRows+=richRecordRow('Longest losing run',lossStreak?lossStreak.club:'Premier Division',lossStreak?lossStreak.value+' matches':'—');
+ teamRows+=richRecordRow('Longest draw run',drawStreak?drawStreak.club:'Premier Division',drawStreak?drawStreak.value+' matches':'—');
+ teamRows+=richRecordRow('Most wins in a season',mostWins?mostWins.club+' · '+mostWins.season:'Archived seasons',mostWins?mostWins.w:'—');
+ teamRows+=richRecordRow('Most losses in a season',mostLosses?mostLosses.club+' · '+mostLosses.season:'Archived seasons',mostLosses?mostLosses.l:'—');
+ teamRows+=richRecordRow('Most draws in a season',mostDraws?mostDraws.club+' · '+mostDraws.season:'Archived seasons',mostDraws?mostDraws.d:'—');
+ teamRows+=richRecordRow('Most goals in a season',mostGF?mostGF.club+' · '+mostGF.season:'Archived seasons',mostGF?mostGF.gf:'—');
+ teamRows+=richRecordRow('Most goals conceded',mostGA?mostGA.club+' · '+mostGA.season:'Archived seasons',mostGA?mostGA.ga:'—');
+ teamRows+=richRecordRow('Fewest goals conceded',fewestGA?fewestGA.club+' · '+fewestGA.season:'Minimum half season',fewestGA?fewestGA.ga:'—');
+ teamRows+=richRecordRow('Highest points total',bestPts?bestPts.club+' · '+bestPts.season:'Archived seasons',bestPts?bestPts.pts:'—');
+ let playerRow=(label,item,value,meta)=>richRecordRow(label,item?item.p.name+' · '+item.p.pos+(meta?' · '+meta:''):'No tracked record',item?richRecordPlayerLink(item.p,value):'—');
+ let playerRows='';
+ playerRows+=playerRow('Most appearances',pApps,pApps?pApps.t.apps:'—','Career');
+ playerRows+=playerRow('Most goals',pGoals,pGoals?pGoals.t.goals:'—','Career');
+ playerRows+=playerRow('Most assists',pAssists,pAssists?pAssists.t.assists:'—','Career');
+ playerRows+=playerRow('Most clean sheets',pCS,pCS?pCS.t.cleanSheets:'—','Goalkeepers');
+ playerRows+=playerRow('Most Player of the Match awards',pPotm,pPotm?pPotm.t.potm:'—','Career');
+ playerRows+=playerRow('Most player wins',pWins,pWins?pWins.t.wins:'—','Tracked match outcomes');
+ playerRows+=playerRow('Most player losses',pLosses,pLosses?pLosses.t.losses:'—','Tracked match outcomes');
+ playerRows+=playerRow('Highest career average',pAvg,pAvg?pAvg.t.careerAvg.toFixed(2):'—','Min 20 apps');
+ playerRows+=playerRow('Best season average',pSeasonAvg,pSeasonAvg?pSeasonAvg.value.toFixed(2):'—',pSeasonAvg?pSeasonAvg.season:'');
+ playerRows+=playerRow('Most goals in a season',pGoalSeason,pGoalSeason?pGoalSeason.value:'—',pGoalSeason?pGoalSeason.season:'');
+ playerRows+=playerRow('Most assists in a season',pAssistSeason,pAssistSeason?pAssistSeason.value:'—',pAssistSeason?pAssistSeason.season:'');
+ playerRows+=playerRow('Most clean sheets in a season',pCleanSeason,pCleanSeason?pCleanSeason.value:'—',pCleanSeason?pCleanSeason.season:'');
+ playerRows+=playerRow('Highest match rating',pBestGame,pBestGame?pBestGame.value.toFixed(1):'—',pBestGame?pBestGame.season:'Tracked from v2.9.12');
+ playerRows+=playerRow('Lowest match rating',pWorstGame,pWorstGame?pWorstGame.value.toFixed(1):'—',pWorstGame?pWorstGame.season:'Tracked from v2.9.12');
+ let coachRow=(label,item,value,meta)=>richRecordRow(label,item?item.name+' · '+item.club+(meta?' · '+meta:''):'No tracked record',item?richRecordClubLink(item.clubId,value):'—');
+ let coachRows='';
+ coachRows+=coachRow('Most matches managed',cMatches,cMatches?cMatches.matches:'—','Premier Division');
+ coachRows+=coachRow('Most wins',cWins,cWins?cWins.w:'—','Premier Division');
+ coachRows+=coachRow('Highest win percentage',cPct,cPct?cPct.winPct.toFixed(1)+'%':'—','Min 10 matches');
+ coachRows+=coachRow('Longest tenure',cYears,cYears?cYears.seasons+' seasons':'—','Current coaching era');
+ coachRows+=coachRow('Most league titles',cTitles,cTitles?cTitles.titles:'—','Current coaching era');
+ coachRows+=coachRow('Most Manager of the Year awards',cMoty,cMoty?cMoty.moty:'—','Archived awards');
+ return '<div class="recordHero richRecordHero">'+
+  '<div class="recordTile"><div class="label">SEASONS ARCHIVED</div><div class="recordValue">'+hs.length+'</div></div>'+
+  '<div class="recordTile"><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?richRecordClubLink(dynastyClub?dynastyClub.id:null,dynasty[0]):'No champion archived')+'</div></div>'+
+  '<div class="recordTile"><div class="label">POINTS RECORD</div><div class="recordValue">'+(bestPts?bestPts.pts:'—')+'</div><div class="recordNote">'+(bestPts?bestPts.club+' · '+bestPts.season:'No completed season')+'</div></div>'+
+  '<div class="recordTile"><div class="label">GOAL RECORD</div><div class="recordValue">'+(pGoals?pGoals.t.goals:'—')+'</div><div class="recordNote">'+(pGoals?richRecordPlayerLink(pGoals.p,pGoals.p.name):'No player record')+'</div></div></div>'+
+  '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Team Records</div><div class="sub">Premier Division records across the career world.</div></div><div class="sectionCount">'+matches.length+' matches</div></div>'+teamRows+'</div>'+
+  '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Player Records</div><div class="sub">Career and single-season leaders, including retired players.</div></div><div class="sectionCount">'+players.length+' players</div></div>'+playerRows+'<div class="richTrackingNote">Match-rating highs/lows and player W-D-L are tracked prospectively from v2.9.12 where older saves do not contain the underlying match detail.</div></div>'+
+  '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Head Coach Records</div><div class="sub">Premier Division records for the current coaching era.</div></div><div class="sectionCount">'+coaches.length+' coaches</div></div>'+coachRows+'</div>'+
+  '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">League Archive</div><div class="sub">Champions and major individual awards by season.</div></div><div class="sectionCount">'+hs.length+'</div></div>'+(archive||'<div class="sub">Complete a season to begin the archive.</div>')+'</div>';
+}
+
 function league(){
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
  let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · league table, fixtures, leaders and historical records.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
