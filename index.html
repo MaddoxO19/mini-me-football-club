@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.8 Startup State Repair Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.9 Direct Render Recovery Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2135,6 +2135,10 @@ select,input,textarea{
 .homeContinueAction{display:flex!important;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 nav{grid-template-columns:repeat(5,1fr)!important}
 
+
+/* v2.9.11.9 Direct Render Recovery */
+.runtimeErrorCard{border-color:#7f3440!important;background:#ff6b7d08!important}.runtimeErrorCard .title{color:#ff8795!important}
+
 </style>
 </head>
 <body>
@@ -2212,7 +2216,7 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 (function(){
 "use strict";
 // v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.8 Startup State Repair Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.9 Direct Render Recovery Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4861,25 +4865,43 @@ function ensureRuntimeState(){
  }
 }
 function render(){
- if(!G)return;
- ensureRuntimeState();
- $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
- $("#app").innerHTML=({home,squad,market,league,club})[page]();
- $("#continueDock").classList.add("hidden");
- document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ // Never allow a failed or interrupted render to leave the UI locked.
  renderQueued=false;
+ if(!G)return true;
+ try{
+  ensureRuntimeState();
+  $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
+  let viewFn=({home,squad,market,league,club})[page];
+  if(typeof viewFn!=="function")throw new Error("Unknown page: "+page);
+  $("#app").innerHTML=viewFn();
+  $("#continueDock").classList.add("hidden");
+  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  return true;
+ }catch(err){
+  renderQueued=false;
+  console.error("Mini&Me render failed on "+page,err);
+  let app=$("#app");
+  if(app)app.innerHTML='<div class="card runtimeErrorCard"><div class="title">Screen could not load</div><div class="sub">'+String(err&&err.message||err)+'</div></div>';
+  return false;
+ }
 }
 function renderSoon(){
- if(renderQueued)return;
- renderQueued=true;
- requestAnimationFrame(render);
+ // Direct render. Mobile Safari was intermittently leaving the RAF queue stalled,
+ // which blocked navigation and Continue while non-rendering card links still worked.
+ renderQueued=false;
+ return render();
 }
 function navigateTo(nextPage){
  if(!nextPage||nextPage===page)return;
+ let previous=page;
  page=nextPage;
- // Give immediate visual feedback before rebuilding the view.
  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
- renderSoon();
+ let ok=render();
+ if(!ok){
+  page=previous;
+  renderQueued=false;
+  render();
+ }
 }
 validateCoreRuntime();
 renderBuildVersion();
@@ -4992,12 +5014,12 @@ $("#resultContinueBtn").addEventListener("click",function(){
  $("#resultScreen").classList.add("hidden");
  document.body.classList.remove("match-result-active");
  if(G.week>=leagueSeasonWeeks()){
-   requestAnimationFrame(prepareSeasonReview);
+   prepareSeasonReview();
    return;
  }
  page="home";
  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
- renderSoon();
+ render();
 });
 
 document.body.classList.add("career-hub-active");
