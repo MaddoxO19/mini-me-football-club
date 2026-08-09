@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.10.1 UI UX Consistency Pass 2 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.10.2 UI UX Consistency Pass 3 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2088,6 +2088,15 @@ select,input,textarea{
 @media(max-width:430px){.screenHero{padding:12px 13px;gap:10px}.screenTitle{font-size:18px}.screenSubtitle{font-size:9px}.screenMeta{min-width:66px;padding-left:9px}.screenMeta b{font-size:14px}.needs{grid-template-columns:1fr 1fr!important}.marketFilter{top:calc(var(--nav-top,104px) + 56px)}.depthHead{top:calc(var(--nav-top,104px) + 56px)}}
 @media(max-width:360px){.screenHero{grid-template-columns:1fr}.screenMeta{display:flex;gap:7px;align-items:baseline;padding:8px 0 0;border-left:0;border-top:1px solid var(--line);text-align:left}.screenMeta b{font-size:13px}.needs{grid-template-columns:1fr!important}}
 
+
+/* v2.9.10.2 UI / UX CONSISTENCY PASS 3 */
+.resultCard{width:min(100%,560px)!important;padding:18px 14px calc(20px + env(safe-area-inset-bottom))!important}.resultBadge{display:inline-flex;padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:#ffffff04}.resultState{margin-top:8px!important;font-size:30px!important;font-weight:950!important;letter-spacing:-.03em!important}.resultTeams{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;align-items:center!important}.resultTeam{min-width:0;font-weight:850!important;line-height:1.2!important}.resultClubLink{cursor:pointer;touch-action:manipulation;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:4px}.resultClubLink:active{color:var(--gold);text-decoration-color:rgba(217,181,74,.55)}
+.resultSectionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:7px}.resultSectionHead .title{margin-bottom:0!important}.resultSectionEyebrow{color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.13em}.resultSectionMeta{flex:0 0 auto;padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:8px;font-weight:850}.matchStats{min-height:39px!important;border-top:1px solid var(--line)!important}.matchStats:first-child{margin-top:12px}.matchPotm{margin-top:4px!important;border:1px solid #6f5b24!important;background:linear-gradient(180deg,#d9b54a0d,#d9b54a04)!important}.performer{padding:11px 4px!important;border-bottom:1px solid var(--line)}.performer:last-child{border-bottom:0}.matchDetails{margin-top:9px;border:1px solid var(--line);border-radius:12px;overflow:hidden}.matchDetails summary{padding:11px 12px;background:#ffffff03;font-size:9px;font-weight:900;letter-spacing:.06em;cursor:pointer}.matchDetails[open] summary{border-bottom:1px solid var(--line)}.matchDetails .ratingRow{padding:10px 12px!important}
+.seasonReview{background:linear-gradient(180deg,#081019 0%,#0b1219 100%)!important}.reviewWrap{padding:22px 14px calc(28px + env(safe-area-inset-bottom))!important}.reviewHero{margin-bottom:8px;padding:14px 4px 18px!important;border-bottom:1px solid var(--line)}.reviewHero .label{color:var(--gold)}.reviewHero h1{margin:7px 0 0!important;font-size:27px!important;line-height:1.05!important;letter-spacing:-.03em!important}.reviewFinish{margin-top:7px!important;font-size:46px!important;line-height:1!important}.reviewPhase{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 2px 9px;padding-bottom:7px;border-bottom:1px solid var(--line)}.reviewPhase span{color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.14em}.reviewPhase b{color:var(--muted);font-size:9px;font-weight:800}.reviewGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-bottom:5px}.reviewGrid .stat{min-height:92px}.reviewSection{margin-top:10px!important}.awardsHero{margin:10px 0!important;padding:15px!important;border:1px solid #6f5b24!important;border-radius:16px!important;background:linear-gradient(145deg,#d9b54a12,#111923 62%)!important}.awardsGrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.awardCard{min-width:0;min-height:128px;display:flex!important;flex-direction:column;justify-content:flex-end;padding:13px!important;border-radius:14px!important;cursor:pointer;touch-action:manipulation}.awardCard.major{grid-column:1/-1;min-height:150px}.awardName{margin-top:8px!important;white-space:normal!important;line-height:1.22!important}.awardMeta{line-height:1.35!important}.awardValue{margin-top:auto!important;padding-top:10px}.worldAwardCard:active{transform:scale(.992);background:#d9b54a0c!important}.totsGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.totsPlayer{min-width:0;padding:10px!important;border-radius:11px!important;cursor:pointer;touch-action:manipulation}.totsPlayer b,.totsPlayer span{display:block;overflow:hidden;text-overflow:ellipsis}.reviewWorldRow,.reviewRetirementRow{min-height:58px;border-radius:10px;padding-left:7px!important;padding-right:7px!important}.reviewWorldRow[data-review-player],.reviewRetirementRow[data-review-player]{cursor:pointer;touch-action:manipulation}.reviewWorldRow[data-review-player]:active,.reviewRetirementRow[data-review-player]:active{background:var(--ui-focus)}#newSeasonBtn{position:static!important;width:100%!important;margin:18px 0 0!important;box-shadow:none!important}
+.archiveSeason{grid-template-columns:52px minmax(0,1fr) auto!important;align-items:start!important}.archiveAwards{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:5px;color:var(--muted);font-size:8px;line-height:1.35}.archiveDot{opacity:.5}.archiveClub,.archivePerson{cursor:pointer;touch-action:manipulation}.archiveClub:active,.archivePerson:active{color:var(--gold)}.interactiveRecordTile{cursor:pointer;touch-action:manipulation}.interactiveRecordTile:active{border-color:#705d25!important;background:#d9b54a08!important}.clubArchiveSeason .seasonMeta{line-height:1.45!important}.historySeason{min-width:0}.historySeason>div:nth-child(2){min-width:0}
+@media(max-width:430px){.resultCard{padding-left:11px!important;padding-right:11px!important}.resultState{font-size:27px!important}.resultTeams{gap:6px!important}.resultTeam{font-size:12px!important}.reviewWrap{padding-left:11px!important;padding-right:11px!important}.reviewHero h1{font-size:24px!important}.reviewFinish{font-size:42px!important}.awardCard{min-height:118px}.totsGrid{grid-template-columns:1fr 1fr!important}}
+@media(max-width:360px){.awardsGrid{grid-template-columns:1fr!important}.awardCard.major{grid-column:auto}.totsGrid{grid-template-columns:1fr!important}.reviewGrid{grid-template-columns:1fr 1fr!important}.archiveSeason{grid-template-columns:46px minmax(0,1fr)!important}.archiveSeason>div:last-child{grid-column:2;text-align:left!important;margin-top:4px}}
+
 </style>
 </head>
 <body>
@@ -2164,8 +2173,8 @@ select,input,textarea{
 <script>
 (function(){
 "use strict";
-// v2.9.10.0: UI/UX consistency pass only. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.10.1 UI UX Consistency Pass 2 Alpha Mobile";
+// v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
+const BUILD_VERSION="Mini&Me Football Club v2.9.10.2 UI UX Consistency Pass 3 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -3219,6 +3228,10 @@ function showMatchResult(r,playedWeek){
  $("#resultWeek").textContent=(playedRivalInfo?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
  $("#resultHome").textContent=G.clubs[r.a].name;
  $("#resultAway").textContent=G.clubs[r.b].name;
+ $("#resultHome").dataset.clubProfile=String(r.a);
+ $("#resultAway").dataset.clubProfile=String(r.b);
+ $("#resultHome").classList.add("resultClubLink");
+ $("#resultAway").classList.add("resultClubLink");
  $("#resultScore").textContent=r.ga+" – "+r.gb;
  $("#resultSummary").innerHTML=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.")+
  (playedRivalInfo?'<div class="resultRivalryRecap"><b>'+playedRivalInfo.title+'</b><span>'+playedRivalInfo.level+' · Rivalry score '+playedRivalInfo.score+' · Career H2H '+headToHeadLabel(G.club,playedOpp)+'</span></div>':'');
@@ -3259,11 +3272,11 @@ function showMatchResult(r,playedWeek){
      '</div>'
    ).join(""):'';
 
- $("#resultPerformers").innerHTML='<div class="title">Key Performers</div>'+potmHtml+keyHtml;
+ $("#resultPerformers").innerHTML='<div class="resultSectionHead"><div><div class="resultSectionEyebrow">MATCH IMPACT</div><div class="title">Key Performers</div></div><div class="resultSectionMeta">Both teams</div></div>'+potmHtml+keyHtml;
 
  $("#resultRatings").innerHTML=
-   '<div class="title">Player Ratings</div>'+
-   '<div class="sub resultRatingsHint">Your starting XI</div>'+
+   '<div class="resultSectionHead"><div><div class="resultSectionEyebrow">YOUR TEAM</div><div class="title">Player Ratings</div></div><div class="resultSectionMeta">'+userPerf.length+' starters</div></div>'+
+   '<div class="sub resultRatingsHint">Tap a player to open their profile.</div>'+
    '<details class="matchDetails"><summary>VIEW FULL STARTING XI</summary>'+
    userPerf.map(x=>'<div class="ratingRow resultPlayerLink" data-result-player="'+x.id+'"><span>'+x.pos+' · '+x.name+(x.goals?' · '+x.goals+'G':'')+(x.assists?' · '+x.assists+'A':'')+'</span><b>'+x.rating.toFixed(1)+'</b></div>').join("")+
    '</details>';
@@ -3592,6 +3605,7 @@ function showSeasonReview(){
  let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
  let leagueRetireHtml=leagueRetirements.length?leagueRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.clubName+' · Age '+p.age+' · '+p.ovr+' OVR · '+p.apps+' career apps</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No notable league retirements to report.</div>';
  $("#reviewContent").innerHTML=
+ '<div class="reviewPhase"><span>SEASON OUTCOME</span><b>'+r.divisionName+'</b></div>'+
  '<div class="reviewGrid">'+
  stat("RECORD",r.w+"-"+r.d+"-"+r.l,r.p+" matches")+
  stat("GOAL DIFF",(r.gd>=0?"+":"")+r.gd,r.gf+" GF · "+r.ga+" GA")+
@@ -3599,7 +3613,8 @@ function showSeasonReview(){
  stat("FINAL POSITION",ordinal(r.pos),r.divisionName||leagueInfo().name)+
  '</div>'+
  '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">'+(r.division==="lower"?"Promotion places":"Top four")+'</div>'+(((r.division==="lower"?r.promoted:r.topFour)||[]).map(x=>'<div class="podiumRow worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+(r.division==="top"?'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join("")):"")+'</div>'+
-  '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Premier Division Awards</div><div class="sub">Premier Division honours based exclusively on top-flight performance.</div></div>'+
+  '<div class="reviewPhase"><span>LEAGUE HONOURS</span><b>Premier Division</b></div>'+
+  '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Premier Division Awards</div><div class="sub">Premier Division honours based exclusively on top-flight performance. Tap players or clubs to inspect them.</div></div>'+
  '<div class="awardsGrid">'+
  (r.awards&&r.awards.player?'<div class="awardCard major worldAwardCard" '+worldPlayerAttrs(r.awards.player)+'><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.player.name+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
  (r.awards&&r.awards.goldenBoot?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenBoot)+'><div class="label">GOLDEN BOOT</div><div class="awardName">'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
@@ -3612,7 +3627,8 @@ function showSeasonReview(){
  (r.awards&&r.awards.manager?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.manager.club)+'><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.name+'</div><div class="awardMeta">'+r.awards.manager.club+' · Head Coach</div><div class="awardValue">'+ordinal(r.awards.manager.position)+' finish · '+r.awards.manager.coach+' OVR</div></div>':'')+
  (r.awards&&r.awards.gm?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.gm.club)+'><div class="label">GM OF THE YEAR</div><div class="awardName">'+r.awards.gm.club+'</div><div class="awardMeta">General Manager · Premier Division</div><div class="awardValue">'+(r.awards.gm.overperformance>0?("+"+r.awards.gm.overperformance+" vs expectation"):ordinal(r.awards.gm.position)+" finish")+'</div></div>':'')+
  '</div>'+
- (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer worldAwardCard" '+worldPlayerAttrs(p)+'><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
+ (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div></div><div class="sectionCount">XI</div></div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer worldAwardCard" '+worldPlayerAttrs(p)+'><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
+ '<div class="reviewPhase"><span>CLUB DECISIONS</span><b>Offseason</b></div>'+
 '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
  '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>'+
@@ -4469,17 +4485,18 @@ function leagueRecordsView(){
  let dynasty=Object.entries(champs).sort((a,b)=>b[1]-a[1])[0];
  let golden={};hs.forEach(h=>{let g=h.awards&&h.awards.goldenBoot;if(g)golden[g.name]=(golden[g.name]||0)+1});
  let gbLead=Object.entries(golden).sort((a,b)=>b[1]-a[1])[0];
- let seasons=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+h.champ+'</b><div class="seasonMeta">Champion'+(h.awards&&h.awards.goldenBoot?' · Golden Boot: '+h.awards.goldenBoot.name+' ('+h.awards.goldenBoot.pos+')':'')+(h.awards&&h.awards.player?' · POTY: '+h.awards.player.name:'')+'</div></div><div>'+(Number.isFinite(h.w)&&Number.isFinite(h.d)?((h.w*3+h.d)+' pts'):'—')+'</div></div>').join("");
+ let seasons=hs.map(h=>{let gold=h.awards&&h.awards.goldenBoot,poty=h.awards&&h.awards.player,bits=[];if(gold)bits.push('<span class="archivePerson" '+worldPlayerAttrs(gold)+'>Golden Boot: '+gold.name+' · '+gold.pos+'</span>');if(poty)bits.push('<span class="archivePerson" '+worldPlayerAttrs(poty)+'>POTY: '+poty.name+' · '+poty.pos+'</span>');return '<div class="historySeason archiveSeason"><div class="seasonYear">'+h.season+'</div><div><b class="archiveClub" '+worldClubAttrs(h.champ)+'>'+h.champ+'</b><div class="seasonMeta">Champion</div>'+(bits.length?'<div class="archiveAwards">'+bits.join('<span class="archiveDot">·</span>')+'</div>':'')+'</div><div>'+(Number.isFinite(h.w)&&Number.isFinite(h.d)?((h.w*3+h.d)+' pts'):'—')+'</div></div>'}).join("");
+ let dynastyAttrs=dynasty?worldClubAttrs(dynasty[0]):"",gbPlayer=gbLead?G.players.find(p=>p.name===gbLead[0]):null;
  return '<div class="recordHero">'+
   '<div class="recordTile"><div class="label">SEASONS ARCHIVED</div><div class="recordValue">'+hs.length+'</div></div>'+
-  '<div class="recordTile"><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?dynasty[0]:'No champion archived')+'</div></div>'+
-  '<div class="recordTile"><div class="label">MOST GOLDEN BOOTS</div><div class="recordValue">'+(gbLead?gbLead[1]:'—')+'</div><div class="recordNote">'+(gbLead?gbLead[0]:'—')+'</div></div>'+
+  '<div class="recordTile interactiveRecordTile" '+dynastyAttrs+'><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?dynasty[0]:'No champion archived')+'</div></div>'+
+  '<div class="recordTile interactiveRecordTile" '+(gbPlayer?'data-player="'+gbPlayer.id+'"':'')+'><div class="label">MOST GOLDEN BOOTS</div><div class="recordValue">'+(gbLead?gbLead[1]:'—')+'</div><div class="recordNote">'+(gbLead?gbLead[0]:'—')+'</div></div>'+
   '<div class="recordTile"><div class="label">YOUR BEST POINTS</div><div class="recordValue">'+(bestPts?bestPts.w*3+bestPts.d:'—')+'</div><div class="recordNote">'+(bestPts?bestPts.season:'—')+'</div></div></div>'+
-  '<div class="card"><div class="title">League Records</div>'+
+  '<div class="card"><div class="sectionHead"><div><div class="title">League Records</div><div class="sub">Career records from completed seasons.</div></div></div>'+
   '<div class="recordRow"><div><b>Your highest scoring season</b><span>Club record</span></div><b>'+(bestGF?bestGF.gf:'—')+'</b></div>'+
-  '<div class="recordRow"><div><b>Historic title leader</b><span>Archived era</span></div><b>'+(dynasty?dynasty[0]+' · '+dynasty[1]:'—')+'</b></div>'+
-  '<div class="recordRow"><div><b>Golden Boot leader</b><span>Archived era</span></div><b>'+(gbLead?gbLead[0]+' · '+gbLead[1]:'—')+'</b></div></div>'+
-  '<div class="card"><div class="title">League Archive</div><div class="sub">Champions and major awards are preserved as each campaign finishes.</div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
+  '<div class="recordRow"><div><b>Historic title leader</b><span>Archived era</span></div><b '+dynastyAttrs+' class="archiveClub">'+(dynasty?dynasty[0]+' · '+dynasty[1]:'—')+'</b></div>'+
+  '<div class="recordRow"><div><b>Golden Boot leader</b><span>Archived era</span></div><b '+(gbPlayer?'data-player="'+gbPlayer.id+'"':'')+' class="archivePerson">'+(gbLead?gbLead[0]+' · '+gbLead[1]:'—')+'</b></div></div>'+
+  '<div class="card"><div class="sectionHead"><div><div class="title">League Archive</div><div class="sub">Champions and major awards preserved at the end of each campaign.</div></div><div class="sectionCount">'+hs.length+'</div></div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
 }
 function league(){
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
@@ -4509,22 +4526,22 @@ function clubHistoryView(){
  let apps=[...own].sort((a,b)=>(b.career.apps||0)-(a.career.apps||0))[0];
  let goals=[...own].sort((a,b)=>(b.career.goals||0)-(a.career.goals||0))[0];
  let assists=[...own].sort((a,b)=>(b.career.assists||0)-(a.career.assists||0))[0];
- let seasons=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+ordinal(h.pos)+' place</b><div class="seasonMeta">'+h.champ+' champions'+(h.w!==undefined?' · '+h.w+'-'+h.d+'-'+h.l:'')+'</div></div><div>'+(h.w!==undefined?(h.w*3+h.d)+' pts':'')+'</div></div>').join("");
+ let seasons=hs.map(h=>'<div class="historySeason clubArchiveSeason"><div class="seasonYear">'+h.season+'</div><div><b>'+ordinal(h.pos)+' place</b><div class="seasonMeta"><span class="archiveClub" '+worldClubAttrs(h.champ)+'>'+h.champ+'</span> champions'+(h.w!==undefined?' · '+h.w+'-'+h.d+'-'+h.l:'')+'</div></div><div>'+(h.w!==undefined?(h.w*3+h.d)+' pts':'')+'</div></div>').join("");
  return '<div class="recordHero">'+
  '<div class="recordTile"><div class="label">LEAGUE TITLES</div><div class="recordValue">'+titles+'</div></div>'+
  '<div class="recordTile"><div class="label">BEST FINISH</div><div class="recordValue">'+(best?ordinal(best.pos):"—")+'</div></div>'+
  '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(pts?pts.w*3+pts.d:"—")+'</div><div class="recordNote">'+(pts?pts.season:"—")+'</div></div>'+
  '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(gf?gf.gf:"—")+'</div><div class="recordNote">'+(gf?gf.season:"—")+'</div></div></div>'+
- '<div class="card"><div class="title">Player Records</div>'+
+ '<div class="card"><div class="sectionHead"><div><div class="title">Player Records</div><div class="sub">Active club career leaders.</div></div></div>'+
  '<div class="recordRow"><div><b>Appearances</b><span>Club career</span></div><b>'+(apps?'<span class="recordPlayerLink" data-player="'+apps.id+'">'+apps.name+' · '+apps.pos+' · '+apps.career.apps+'</span>':"—")+'</b></div>'+
  '<div class="recordRow"><div><b>Goals</b><span>Club career</span></div><b>'+(goals?'<span class="recordPlayerLink" data-player="'+goals.id+'">'+goals.name+' · '+goals.pos+' · '+goals.career.goals+'</span>':"—")+'</b></div>'+
  '<div class="recordRow"><div><b>Assists</b><span>Club career</span></div><b>'+(assists?'<span class="recordPlayerLink" data-player="'+assists.id+'">'+assists.name+' · '+assists.pos+' · '+assists.career.assists+'</span>':"—")+'</b></div></div>'+
- '<div class="card"><div class="title">Club Records</div>'+
+ '<div class="card"><div class="sectionHead"><div><div class="title">Club Records</div><div class="sub">Best marks accumulated during your career.</div></div></div>'+
  '<div class="recordRow"><div><b>Longest unbeaten run</b><span>League matches</span></div><b>'+G.records.longestUnbeaten+'</b></div>'+
  '<div class="recordRow"><div><b>Biggest league win</b><span>'+(G.records.biggestWin?G.records.biggestWin.opponent+' · '+G.records.biggestWin.season:'—')+'</span></div><b>'+(G.records.biggestWin?G.records.biggestWin.score:'—')+'</b></div>'+
  '<div class="recordRow"><div><b>Record signing</b><span>'+(G.records.highestBuy?G.records.highestBuy.name+' · '+G.records.highestBuy.season:'—')+'</span></div><b>'+(G.records.highestBuy?money(G.records.highestBuy.fee):'—')+'</b></div>'+
  '<div class="recordRow"><div><b>Record sale</b><span>'+(G.records.highestSale?G.records.highestSale.name+' · '+G.records.highestSale.season:'—')+'</span></div><b>'+(G.records.highestSale?money(G.records.highestSale.fee):'—')+'</b></div></div>'+
- '<div class="card"><div class="title">Season History</div>'+(seasons||'<div class="sub">Complete a season to begin the club archive.</div>')+'</div>';
+ '<div class="card"><div class="sectionHead"><div><div class="title">Season History</div><div class="sub">Your club’s completed campaigns.</div></div><div class="sectionCount">'+hs.length+'</div></div>'+(seasons||'<div class="sub">Complete a season to begin the club archive.</div>')+'</div>';
 }
 function club(){
  let c=G.clubs[G.club],key=currentLeagueKey(),pos=clubCurrentPosition(G.club);
