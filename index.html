@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.18.1 Awards Profile Height Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.19.0 Economy Transfer Market Maturity Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3689,6 +3689,13 @@ body.coach-edit-open{overflow:hidden}
 .playerAwardsCard{min-height:560px}
 @media(max-width:430px){.playerAwardsCard{min-height:600px}}
 
+
+/* ==========================================================
+   v2.9.19 ECONOMY / TRANSFER MATURITY + PROFILE CONSISTENCY
+   ========================================================== */
+.playerCareerCard{min-height:560px}
+@media(max-width:430px){.playerCareerCard{min-height:600px}}
+
 </style>
 </head>
 <body>
@@ -3766,7 +3773,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.18.1 Awards Profile Height Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.19.0 Economy Transfer Market Maturity Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4387,7 +4394,7 @@ function playerCareerView(p){
    '<div class="recordTile"><div class="label">GOALS</div><div class="recordValue">'+t.goals+'</div></div>'+
    '<div class="recordTile"><div class="label">ASSISTS</div><div class="recordValue">'+t.assists+'</div></div>'+
    '<div class="recordTile"><div class="label">POTM</div><div class="recordValue">'+t.potm+'</div></div></div>'+
-   '<div class="card profileTableCard"><div class="title">Career History</div><div class="profileTableHead"><div>Season / Club</div><div>Stats</div><div>AVG</div></div>'+
+   '<div class="card profileTableCard playerCareerCard"><div class="title">Career History</div><div class="profileTableHead"><div>Season / Club</div><div>Stats</div><div>AVG</div></div>'+
    (rows||'<div class="profileEmpty">No archived career seasons yet. This season will be added when it is completed.</div>')+'</div>';
 }
 function playerClubsView(p){
@@ -5155,7 +5162,9 @@ function signFreeAgent(id){
  let p=G.players.find(x=>x.id===id);if(!p||!(p.freeAgent||p.team===-1))return;
  let d=contractDemand(p),fee=0;
  if(!confirm("Offer "+p.name+" "+d.years+" years at "+money(d.wage)+"/week?"))return;
- let accept=55+(G.clubs[G.club].rep-80)*1.2+rnd(-20,20);
+ let c=G.clubs[G.club],projected=annualWages()+d.wage*52;
+ if(Number(c.wageBudget)>0&&projected>c.wageBudget*1.05){alert("This contract would take the club beyond its wage budget.");return}
+ let accept=55+(c.rep-80)*1.2+rnd(-20,20);
  if(accept>=48){
    p.team=G.club;openPlayerClubSpell(p,G.club,null);p.freeAgent=false;p.years=d.years;p.wage=d.wage;p.renewedThisSeason=true;
    G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
@@ -5222,10 +5231,13 @@ function aiWorldEvolution(){
    if(p.years<=1){
      let club=G.clubs[p.team];
      if(!club){moveToFreeAgency(p);return}
-     let keepChance=.56+(p.ovr-70)*.018-(p.age>32?.12:0);
-     if(Math.random()<keepChance){
+     let fit=bestFitForPlayer(p,club.id),same=aiSquad(club.id).filter(x=>positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>b.ovr-a.ovr),rank=same.findIndex(x=>x.id===p.id)+1;
+     let keepChance=.48+(p.ovr-70)*.015+(rank&&rank<=2?.20:rank<=4?.06:-.08)+(fit.label==="Perfect"?.08:fit.label==="Poor"?-.12:0)-(p.age>32?.10:0);
+     let desired=balancedPlayerWage(p),clubAnnual=aiSquad(club.id).reduce((s,x)=>s+(Number(x.wage)||0)*52,0),room=(Number(club.wageBudget)||70000000)-clubAnnual;
+     if(room<desired*52*.65)keepChance-=.18;
+     if(Math.random()<Math.max(.08,Math.min(.92,keepChance))){
        p.years=p.age>=33?rnd(1,2):rnd(2,4);
-       p.wage=Math.round(Math.max(p.wage,p.wage*(1+rnd(3,18)/100))/1000)*1000;
+       if(!p.manualEconomy)p.wage=desired;
      }else{
        moveToFreeAgency(p);
        events.push(p.name+" entered free agency");
@@ -5268,13 +5280,48 @@ function aiWorldEvolution(){
   while(squad.length<24&&refillGuard<30){refillGuard++;let target=aiBestRecruitmentTarget(c.id,activeFreeAgents().filter(p=>!p.retiring&&p.ovr<=84)),free=target&&target.score>54?target.player:null;if(free){free.team=c.id;openPlayerClubSpell(free,c.id,null);free.freeAgent=false;free.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==free.id)}else{let need=aiRoleNeeds(c.id)[0],np=generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.60,need?positionGroup(need.slot):null);if(need&&Math.random()<.55)np.primaryStyle=need.requiredStyle;G.players.push(np)}squad=aiSquad(c.id)}
  });
 
- // AI transfer activity driven by tactical slot and player-style needs.
- let moves=0,moveCap=rnd(12,20),clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
- clubs.forEach(buyer=>{if(!buyer||buyer.id===G.club||moves>=moveCap)return;let need=aiRoleNeeds(buyer.id).find(n=>n.urgency>5);if(!need)return;let candidates=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&playerEligibleForSlot(p,need.slot)),choice=aiBestRecruitmentTarget(buyer.id,candidates),p=choice&&choice.player;if(!p)return;if(choice.score<need.starter+1.25&&need.depth>1&&need.perfectDepth>0)return;let affordability=(Number(buyer.balance)||0)>p.value*.72,ambition=(Number(buyer.rep)||70)>=84?.68:(Number(buyer.rep)||70)>=74?.56:.45;if(affordability&&Math.random()<ambition){let seller=G.clubs[p.team],fee=Math.round(p.value*(.80+Math.random()*.25)/100000)*100000;if(buyer.balance>=fee){buyer.balance-=fee;if(seller)seller.balance+=fee;closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.years=rnd(2,4);p.listed=false;p.freeAgent=false;moves++}}});
+ // AI transfer activity: clubs sell surplus / poor-fit players and recruit for genuine needs.
+ let moves=0,moveCap=rnd(10,16),clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
+
+ // First create realistic sellers.
+ let marketPlayers=G.players.filter(p=>p.team>=0&&p.team!==G.club&&!p.retiring&&aiShouldSellPlayer(p,p.team));
+ marketPlayers.forEach(p=>{if(Math.random()<.55)p.listed=true});
+
+ clubs.forEach(buyer=>{
+  if(!buyer||buyer.id===G.club||moves>=moveCap)return;
+  let needs=aiRoleNeeds(buyer.id).filter(n=>n.urgency>5).slice(0,4);
+  if(!needs.length)return;
+
+  let candidates=G.players.filter(p=>
+    p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&
+    (p.listed||aiShouldSellPlayer(p,p.team))&&
+    needs.some(n=>playerEligibleForSlot(p,n.slot))
+  );
+
+  let choice=aiBestRecruitmentTarget(buyer.id,candidates),p=choice&&choice.player;
+  if(!p)return;
+  let seller=G.clubs[p.team],fee=aiTransferFee(p,buyer,seller);
+  if(!clubCanAffordPlayer(buyer,p,fee))return;
+  if(choice.score<56)return;
+
+  let sellerWilling=p.listed||aiShouldSellPlayer(p,p.team);
+  if(!sellerWilling)return;
+
+  buyer.balance-=fee;
+  buyer.budget=Math.max(0,(Number(buyer.budget)||0)-Math.round(fee*.65));
+  if(seller){
+    seller.balance=(Number(seller.balance)||0)+fee;
+    seller.budget=(Number(seller.budget)||0)+Math.round(fee*.55);
+  }
+  closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);
+  p.years=p.age>=32?rnd(1,2):rnd(3,5);p.listed=false;p.freeAgent=false;
+  if(!p.manualEconomy)p.wage=balancedPlayerWage(p);
+  moves++;
+ });
 
  // Free-agent churn is tactical: clubs prefer players who solve coach-role needs.
  let fas=activeFreeAgents().filter(p=>!p.retiring).sort(()=>Math.random()-.5);
- fas.forEach(p=>{if(Math.random()<.30){let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30).map(c=>{let needs=aiRoleNeeds(c.id).filter(n=>playerEligibleForSlot(p,n.slot));if(!needs.length)return null;let best=needs.map(n=>({n,score:aiCandidateScore(p,c.id,n)})).sort((a,b)=>b.score-a.score)[0];return best?{club:c,need:best.n,score:best.score}:null}).filter(Boolean).sort((a,b)=>b.score-a.score),pick=possible[0];if(pick&&pick.score>54){p.team=pick.club.id;openPlayerClubSpell(p,pick.club.id,null);p.freeAgent=false;p.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==p.id)}}});
+ fas.forEach(p=>{if(Math.random()<.30){let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30).map(c=>{let needs=aiRoleNeeds(c.id).filter(n=>playerEligibleForSlot(p,n.slot));if(!needs.length)return null;let best=needs.map(n=>({n,score:aiCandidateScore(p,c.id,n)})).sort((a,b)=>b.score-a.score)[0];return best?{club:c,need:best.n,score:best.score}:null}).filter(Boolean).sort((a,b)=>b.score-a.score),pick=possible[0];if(pick&&pick.score>54&&clubCanAffordPlayer(pick.club,p,0)){p.team=pick.club.id;openPlayerClubSpell(p,pick.club.id,null);p.freeAgent=false;p.years=rnd(1,3);if(!p.manualEconomy)p.wage=balancedPlayerWage(p);G.freeAgents=G.freeAgents.filter(x=>x!==p.id)}}});
  G.worldLastRefresh=G.season;
  if(events.length)G.feed.unshift({t:"LEAGUE MOVEMENT",m:events.slice(0,4).join(" · ")+(events.length>4?" · and more":"")});
 }
@@ -6832,17 +6879,7 @@ function home(){
  let news='<div class="card homeNewsCard"><div class="title">Club News</div>'+
  (recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';
 
- let dashboard=
- '<div class="grid2 homeDashboardGrid">'+
- stat("LEAGUE",pos+" / "+info.clubIds.length,"Week "+G.week+" of "+weeks)+
- stat("SQUAD",avg,"Club squad average")+
- stat("BUDGET",money(c.budget),"Transfers")+
- stat("BOARD",board.score,board.label)+
- '</div>'+
- '<div class="homeBrief"><div class="briefCard"><div class="briefTitle">BOARD FOCUS</div><div class="briefValue">'+boardExpectationText(target)+'</div><div class="sub">Current position · '+ordinal(pos)+'</div></div>'+
- '<div class="briefCard"><div class="briefTitle">CLUB FORM</div><div class="briefValue">'+c.w+'W · '+c.d+'D · '+c.l+'L</div><div class="sub">'+(G.records&&G.records.currentUnbeaten?G.records.currentUnbeaten+' unbeaten':'No active unbeaten run')+'</div></div></div>';
-
- return fixture+news+dashboard;
+ return fixture+news;
 }
 
 function screenHeroHtml(eyebrow,title,subtitle,meta=""){
@@ -7261,33 +7298,83 @@ function ensureTransferState(){
  if(!G.transferOffers)G.transferOffers=[];
  G.players.forEach(p=>{if(typeof p.listed==="undefined")p.listed=false});
 }
+
+function playerTransferValue(p){
+ if(!p)return 0;
+ let v=p.manualEconomy?(Number(p.value)||0):balancedPlayerValue(p);
+ if(!p.manualEconomy)p.value=v;
+ return v;
+}
+function clubPositionDepthScore(clubId,p){
+ let group=positionGroup(p.pos),own=G.players.filter(x=>x.team===clubId&&!x.retiring&&positionGroup(x.pos)===group);
+ if(!own.length)return 14;
+ let sorted=own.sort((a,b)=>Number(b.ovr)-Number(a.ovr));
+ let best=Number(sorted[0].ovr)||0,depth=sorted.length;
+ let qualityNeed=Math.max(0,(Number(p.ovr)||0)-best);
+ let depthNeed=depth<=3?8:depth<=5?4:0;
+ return Math.min(18,qualityNeed*1.5+depthNeed);
+}
+function clubCanAffordPlayer(club,p,fee=null){
+ let value=fee==null?playerTransferValue(p):Number(fee)||0;
+ let weekly=balancedPlayerWage(p),annual=weekly*52;
+ let cash=Number(club.balance)||0,budget=Number(club.budget)||0;
+ let wageRoom=Math.max(0,(Number(club.wageBudget)||70000000)-aiSquad(club.id).reduce((s,x)=>s+(Number(x.wage)||0)*52,0));
+ return cash>=value&&budget>=value*.55&&wageRoom>=annual*.75;
+}
+function transferAmbitionScore(club,p){
+ let rep=Number(club.rep)||70,ovr=Number(p.ovr)||60,value=playerTransferValue(p);
+ let prestigeFit=(ovr-(rep>=88?82:rep>=82?78:rep>=75?73:68))*1.2;
+ let need=clubPositionDepthScore(club.id,p);
+ let age=p.age<=23?7:p.age<=28?4:p.age<=31?1:-5;
+ let contract=Number(p.years)<=1?5:Number(p.years)>=4?-2:0;
+ let affordability=clubCanAffordPlayer(club,p,value)?8:-16;
+ return prestigeFit+need+age+contract+affordability;
+}
+function aiShouldSellPlayer(p,clubId){
+ let squad=aiSquad(clubId).filter(x=>!x.retiring),slots=formationSlotsForCoach(clubId).flat();
+ let utility=slots.some(s=>playerEligibleForSlot(p,s));
+ let same=squad.filter(x=>positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>Number(b.ovr)-Number(a.ovr));
+ let rank=same.findIndex(x=>x.id===p.id)+1;
+ let surplus=same.length>=6&&rank>=4;
+ let aging=p.age>=32&&rank>=3;
+ let contractRisk=Number(p.years)<=1&&rank>=3;
+ let poorFit=bestFitForPlayer(p,clubId).label==="Poor"&&rank>=3;
+ return utility&&(surplus||aging||contractRisk||poorFit);
+}
+function aiTransferFee(p,buyer,seller=null){
+ let value=playerTransferValue(p);
+ let contract=Number(p.years)<=1?.82:Number(p.years)===2?.94:Number(p.years)>=4?1.05:1;
+ let age=p.age<=23?1.08:p.age>=32?.82:1;
+ let demand=Math.min(1.12,Math.max(.82,1+clubPositionDepthScore(buyer.id,p)*.008));
+ let listed=p.listed?.90:1;
+ let fee=value*contract*age*demand*listed*(.94+Math.random()*.10);
+ return Math.max(250000,Math.round(fee/100000)*100000);
+}
+
 function saleDemandScore(p,club){
- let ageScore=p.age<=24?14:p.age<=29?8:p.age<=32?2:-6;
- let quality=(p.ovr-65)*1.4;
- let value=p.manualEconomy?(Number(p.value)||0):balancedPlayerValue(p);
- let affordability=club.balance>value*1.35?8:club.balance>value?3:-14;
- let need=0;
- let own=G.players.filter(x=>x.team===club.id&&positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>b.ovr-a.ovr);
- if(!own.length||own[0].ovr<p.ovr-3)need=8;
- return quality+ageScore+affordability+need+(p.listed?4:0)+rnd(-12,10);
+ let quality=(Number(p.ovr)||0)-68;
+ let need=clubPositionDepthScore(club.id,p);
+ let ambition=transferAmbitionScore(club,p);
+ let fit=bestFitForPlayer(p,club.id);
+ let fitScore=fit.label==="Perfect"?7:fit.label==="Good"?4:fit.label==="Fair"?1:-5;
+ let listed=p.listed?2:0;
+ return quality*.8+need+ambition+fitScore+listed+rnd(-8,8);
 }
 function generateSaleOffers(p){
  ensureTransferState();
  G.transferOffers=G.transferOffers.filter(o=>o.playerId!==p.id);
- let liveValue=p.manualEconomy?(Number(p.value)||0):balancedPlayerValue(p);if(!p.manualEconomy)p.value=liveValue;
- let candidates=G.clubs.filter(c=>c.id!==G.club&&c.balance>liveValue*.75)
+ let liveValue=playerTransferValue(p);
+ let candidates=G.clubs.filter(c=>c.id!==G.club&&clubCanAffordPlayer(c,p,liveValue*.8))
    .map(c=>({club:c,score:saleDemandScore(p,c)}))
-   .filter(x=>x.score>28)
+   .filter(x=>x.score>30)
    .sort((a,b)=>b.score-a.score)
    .slice(0,2);
+
  candidates.forEach(x=>{
-   let listedAdj=p.listed?.84:1;
-   let ageAdj=p.age>31?.86:p.age<24?1.08:1;
-   let contractAdj=Number(p.years)<=1?.82:Number(p.years)===2?.94:1;
-   let mult=(.78+Math.random()*.27)*listedAdj*ageAdj*contractAdj;
-   let fee=Math.max(250000,Math.round((liveValue*mult)/100000)*100000);
-   fee=Math.min(fee,Math.round(x.club.balance*.65));
-   if(fee>0)G.transferOffers.push({id:uid(),playerId:p.id,clubId:x.club.id,fee});
+   let fee=aiTransferFee(p,x.club,G.clubs[G.club]);
+   if(p.listed)fee=Math.round(fee*.92/100000)*100000;
+   fee=Math.min(fee,Math.round((Number(x.club.balance)||0)*.45/100000)*100000);
+   if(fee>=250000)G.transferOffers.push({id:uid(),playerId:p.id,clubId:x.club.id,fee});
  });
  save();
 }
@@ -7475,15 +7562,24 @@ function showPlayer(id,tab="overview"){
  $("#sheet").classList.remove("hidden");
 }
 function buy(id){
- let p=G.players.find(x=>x.id===id),c=G.clubs[G.club];if(!p||!c)return;
- let value=p.manualEconomy?(Number(p.value)||0):balancedPlayerValue(p);if(!p.manualEconomy)p.value=value;
- let ask=Math.round(value*1.10/100000)*100000;
- if(!confirm(G.clubs[p.team].name+" want "+money(ask)+" for "+p.name+". Accept?"))return;
- if(c.budget<ask){alert("Insufficient transfer budget.");return}
- let old=G.clubs[p.team].name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;
+ let p=G.players.find(x=>x.id===id),c=G.clubs[G.club];if(!p||!c||p.team<0)return;
+ let seller=G.clubs[p.team],value=playerTransferValue(p);
+ let leverage=Number(p.years)<=1?.92:Number(p.years)>=4?1.12:1.04;
+ let importance=aiShouldSellPlayer(p,p.team)?.96:1.08;
+ let ask=Math.max(250000,Math.round(value*leverage*importance/100000)*100000);
+ if(!confirm(seller.name+" want "+money(ask)+" for "+p.name+". Accept?"))return;
+ if(c.budget<ask||c.balance<ask){alert("Insufficient club funds for this transfer.");return}
+ let wage=balancedPlayerWage(p);
+ let projected=annualWages()+wage*52;
+ if(Number(c.wageBudget)>0&&projected>c.wageBudget*1.05){
+   alert("This signing would take the club beyond its wage budget. Create wage room before completing the transfer.");return;
+ }
+ let old=seller.name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;
+ seller.balance=(Number(seller.balance)||0)+ask;
+ seller.budget=(Number(seller.budget)||0)+Math.round(ask*.60);
  if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};
  closePlayerClubSpell(p,ask);p.team=G.club;openPlayerClubSpell(p,G.club,ask);p.years=4;
- if(!p.manualEconomy)p.wage=balancedPlayerWage(p);
+ if(!p.manualEconomy)p.wage=wage;
  G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});
  save();$("#sheet").classList.add("hidden");render()
 }
