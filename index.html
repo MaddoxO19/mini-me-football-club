@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.12.0 Rich Career Records Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.12.1 Records Data Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3345,6 +3345,9 @@ nav{grid-template-columns:repeat(5,1fr)!important}
  .richRecordSection{padding:12px!important}
 }
 
+
+#launchStep .startActions .btn{font-size:20px!important;font-weight:850!important;letter-spacing:.01em!important}
+@media(max-width:600px){#launchStep .startActions .btn{font-size:19px!important}}
 </style>
 </head>
 <body>
@@ -3421,8 +3424,8 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 <script>
 (function(){
 "use strict";
-// v2.9.12.0: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.12.0 Rich Career Records Alpha Mobile";
+// v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
+const BUILD_VERSION="Mini&Me Football Club v2.9.12.1 Records Data Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5899,7 +5902,17 @@ function leagueRecordsView(){
  teamRows+=richRecordRow('Most goals conceded',mostGA?mostGA.club+' · '+mostGA.season:'Archived seasons',mostGA?mostGA.ga:'—');
  teamRows+=richRecordRow('Fewest goals conceded',fewestGA?fewestGA.club+' · '+fewestGA.season:'Minimum half season',fewestGA?fewestGA.ga:'—');
  teamRows+=richRecordRow('Highest points total',bestPts?bestPts.club+' · '+bestPts.season:'Archived seasons',bestPts?bestPts.pts:'—');
- let playerRow=(label,item,value,meta)=>richRecordRow(label,item?item.p.name+' · '+item.p.pos+(meta?' · '+meta:''):'No tracked record',item?richRecordPlayerLink(item.p,value):'—');
+ let allTimeTeamGoals={};
+ matches.forEach(m=>{
+   if(!m)return;
+   let hg=Number(m.homeGoals??m.hg??m.homeScore??0), ag=Number(m.awayGoals??m.ag??m.awayScore??0);
+   let hn=m.homeName||m.home||m.homeTeam||'', an=m.awayName||m.away||m.awayTeam||'';
+   if(typeof hn==='object')hn=hn.name||''; if(typeof an==='object')an=an.name||'';
+   if(hn)allTimeTeamGoals[hn]=(allTimeTeamGoals[hn]||0)+hg;
+   if(an)allTimeTeamGoals[an]=(allTimeTeamGoals[an]||0)+ag;
+ });
+ let teamGoalLeader=Object.entries(allTimeTeamGoals).sort((a,b)=>b[1]-a[1])[0]||null;
+ let playerRow=(label,item,value,meta)=>richRecordRow(label,item?item.p.name+' · '+item.p.pos+(meta?' · '+meta:''):'No tracked record',item?('<button class="recordLink" onclick="openPlayerCard(\''+item.p.id+'\')">'+value+'</button>'):'—');
  let playerRows='';
  playerRows+=playerRow('Most appearances',pApps,pApps?pApps.t.apps:'—','Career');
  playerRows+=playerRow('Most goals',pGoals,pGoals?pGoals.t.goals:'—','Career');
@@ -5913,8 +5926,8 @@ function leagueRecordsView(){
  playerRows+=playerRow('Most goals in a season',pGoalSeason,pGoalSeason?pGoalSeason.value:'—',pGoalSeason?pGoalSeason.season:'');
  playerRows+=playerRow('Most assists in a season',pAssistSeason,pAssistSeason?pAssistSeason.value:'—',pAssistSeason?pAssistSeason.season:'');
  playerRows+=playerRow('Most clean sheets in a season',pCleanSeason,pCleanSeason?pCleanSeason.value:'—',pCleanSeason?pCleanSeason.season:'');
- playerRows+=playerRow('Highest match rating',pBestGame,pBestGame?pBestGame.value.toFixed(1):'—',pBestGame?pBestGame.season:'Tracked from v2.9.12');
- playerRows+=playerRow('Lowest match rating',pWorstGame,pWorstGame?pWorstGame.value.toFixed(1):'—',pWorstGame?pWorstGame.season:'Tracked from v2.9.12');
+ playerRows+=playerRow('Highest match rating',(pBestGame&&pBestGame.value>0)?pBestGame:null,(pBestGame&&pBestGame.value>0)?pBestGame.value.toFixed(1):'—',(pBestGame&&pBestGame.value>0)?pBestGame.season:'Tracked from v2.9.12');
+ playerRows+=playerRow('Lowest match rating',(pWorstGame&&pWorstGame.value>0)?pWorstGame:null,(pWorstGame&&pWorstGame.value>0)?pWorstGame.value.toFixed(1):'—',(pWorstGame&&pWorstGame.value>0)?pWorstGame.season:'Tracked from v2.9.12');
  let coachRow=(label,item,value,meta)=>richRecordRow(label,item?item.name+' · '+item.club+(meta?' · '+meta:''):'No tracked record',item?richRecordClubLink(item.clubId,value):'—');
  let coachRows='';
  coachRows+=coachRow('Most matches managed',cMatches,cMatches?cMatches.matches:'—','Premier Division');
@@ -5927,7 +5940,7 @@ function leagueRecordsView(){
   '<div class="recordTile"><div class="label">SEASONS ARCHIVED</div><div class="recordValue">'+hs.length+'</div></div>'+
   '<div class="recordTile"><div class="label">MOST TITLES</div><div class="recordValue">'+(dynasty?dynasty[1]:'—')+'</div><div class="recordNote">'+(dynasty?richRecordClubLink(dynastyClub?dynastyClub.id:null,dynasty[0]):'No champion archived')+'</div></div>'+
   '<div class="recordTile"><div class="label">POINTS RECORD</div><div class="recordValue">'+(bestPts?bestPts.pts:'—')+'</div><div class="recordNote">'+(bestPts?bestPts.club+' · '+bestPts.season:'No completed season')+'</div></div>'+
-  '<div class="recordTile"><div class="label">GOAL RECORD</div><div class="recordValue">'+(pGoals?pGoals.t.goals:'—')+'</div><div class="recordNote">'+(pGoals?richRecordPlayerLink(pGoals.p,pGoals.p.name):'No player record')+'</div></div></div>'+
+  '<div class="recordTile"><div class="label">MOST TEAM GOALS</div><div class="recordValue">'+(teamGoalLeader?teamGoalLeader[1]:'—')+'</div><div class="recordNote">'+(teamGoalLeader?teamGoalLeader[0]:'No archived goals')+'</div></div></div>'+
   '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Team Records</div><div class="sub">Premier Division records across the career world.</div></div><div class="sectionCount">'+matches.length+' matches</div></div>'+teamRows+'</div>'+
   '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Player Records</div><div class="sub">Career and single-season leaders, including retired players.</div></div><div class="sectionCount">'+players.length+' players</div></div>'+playerRows+'<div class="richTrackingNote">Match-rating highs/lows and player W-D-L are tracked prospectively from v2.9.12 where older saves do not contain the underlying match detail.</div></div>'+
   '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">Head Coach Records</div><div class="sub">Premier Division records for the current coaching era.</div></div><div class="sectionCount">'+coaches.length+' coaches</div></div>'+coachRows+'</div>'+
