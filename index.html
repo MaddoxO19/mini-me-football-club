@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.15.1 Coach Replacement Board Status Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.16.0 GM Career Movement Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3603,6 +3603,18 @@ body.gm-profile-open{overflow:hidden}
  .coachMarketMain b{font-size:13px}
 }
 
+
+/* ==========================================================
+   v2.9.16 GM CAREER MOVEMENT
+   ========================================================== */
+.gmJobRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.gmJobRow:last-child{border-bottom:0}
+.gmJobRow b{display:block;font-size:13px;line-height:1.2}
+.gmJobRow span{display:block;margin-top:4px;color:var(--gold);font-size:10px;font-weight:800}
+.gmJobRow small{display:block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.35}
+.gmJobRow .btn{min-width:94px}
+@media(max-width:430px){.gmJobRow{grid-template-columns:minmax(0,1fr) 92px;gap:8px}.gmJobRow .btn{min-width:0;padding-left:7px!important;padding-right:7px!important;font-size:9px!important}}
+
 </style>
 </head>
 <body>
@@ -3680,7 +3692,7 @@ body.gm-profile-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.15.1 Coach Replacement Board Status Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.16.0 GM Career Movement Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4767,7 +4779,11 @@ function advance(){let integrity=startingXIIntegrity(G.club);if(!integrity.ok){a
  let userResult=null,playedWeek=G.week+1;
  ["top","lower"].forEach(k=>{let r=simulateDivisionWeek(k);if(r)userResult=r});
  roster().forEach(p=>{if(p.age<25&&Math.random()<.11)p.ovr=Math.min(p.pot,p.ovr+1);p.morale=Math.max(45,Math.min(100,p.morale+rnd(-3,4)))});
- G.week++;refreshMarketActivity();save();render();if(userResult)showMatchResult(userResult,playedWeek);
+ G.week++;
+ let gmDismissed=reviewGMJobSecurity();
+ refreshMarketActivity();save();render();
+ if(gmDismissed){showGMProfile();return}
+ if(userResult)showMatchResult(userResult,playedWeek);
 }
 function showMatchResult(r,playedWeek){
  let userHome=r.a===G.club;
@@ -5133,6 +5149,7 @@ function prepareSeasonReview(){
    champion:key==="top"&&champion.id===G.club,
    relegated:key==="top"&&relegated.some(x=>x.name===c.name)
  });
+ refreshGMVacancies(true);
  save();
  showSeasonReview();
 }
@@ -5382,11 +5399,7 @@ function ensureUserGMIdentity(){
  ensureStaffHistoryState();
  if(!G.userGM||typeof G.userGM!=="object"){
   G.userGM={
-   id:"USER-GM",
-   name:"General Manager",
-   createdSeason:G.season,
-   currentClubId:G.club,
-   status:"Employed",
+   id:"USER-GM",name:"General Manager",createdSeason:G.season,currentClubId:G.club,status:"Employed",
    reputation:Math.max(60,Math.min(95,Math.round((G.clubs[G.club].rep||72)*.85))),
    clubs:[{clubId:G.club,from:G.season,to:null}]
   };
@@ -5395,32 +5408,29 @@ function ensureUserGMIdentity(){
  if(!G.userGM.name)G.userGM.name="General Manager";
  if(!Number.isFinite(G.userGM.createdSeason))G.userGM.createdSeason=G.season;
  if(!Array.isArray(G.userGM.clubs))G.userGM.clubs=[];
- if(!G.userGM.clubs.some(x=>x.clubId===G.club&&x.to==null))G.userGM.clubs.push({clubId:G.club,from:G.season,to:null});
- G.userGM.currentClubId=G.club;
  if(!G.userGM.status)G.userGM.status="Employed";
-
- let c=G.clubs[G.club];
- if(c){
-  if(!c.gm||typeof c.gm!=="object")c.gm={};
-  c.gm.id=G.userGM.id;
-  c.gm.name=G.userGM.name;
-  c.gm.ovr=Number.isFinite(G.userGM.reputation)?G.userGM.reputation:(c.gm.ovr||75);
-  c.gm.appointedSeason=G.userGM.createdSeason;
-  let gm=G.staffHistory.gms[G.userGM.id];
-  if(!gm){
-   gm=G.staffHistory.gms[G.userGM.id]={
-    id:G.userGM.id,name:G.userGM.name,ovr:c.gm.ovr,currentClubId:G.club,
-    appointedSeason:G.userGM.createdSeason,clubs:G.userGM.clubs,
-    matches:0,w:0,d:0,l:0,seasons:0,titles:0,bestFinish:null,bestPoints:null,awards:0,
-    gf:0,ga:0
-   };
+ if(G.userGM.status!=="Unemployed"){
+  if(!Number.isFinite(Number(G.userGM.currentClubId)))G.userGM.currentClubId=G.club;
+  G.club=Number(G.userGM.currentClubId);
+  if(!G.userGM.clubs.some(x=>x.clubId===G.club&&x.to==null))G.userGM.clubs.push({clubId:G.club,from:G.season,to:null});
+  let c=G.clubs[G.club];
+  if(c){
+   if(!c.gm||typeof c.gm!=="object")c.gm={};
+   c.gm.id=G.userGM.id;c.gm.name=G.userGM.name;
+   c.gm.ovr=Number.isFinite(G.userGM.reputation)?G.userGM.reputation:(c.gm.ovr||75);
+   c.gm.appointedSeason=G.season;
   }
-  gm.name=G.userGM.name;
-  gm.currentClubId=G.club;
-  gm.clubs=G.userGM.clubs;
-  if(!Number.isFinite(gm.gf))gm.gf=0;
-  if(!Number.isFinite(gm.ga))gm.ga=0;
  }
+ let gm=G.staffHistory.gms[G.userGM.id];
+ if(!gm){
+  gm=G.staffHistory.gms[G.userGM.id]={
+   id:G.userGM.id,name:G.userGM.name,ovr:Number(G.userGM.reputation)||70,currentClubId:G.userGM.currentClubId,
+   appointedSeason:G.userGM.createdSeason,clubs:G.userGM.clubs,matches:0,w:0,d:0,l:0,seasons:0,titles:0,
+   bestFinish:null,bestPoints:null,awards:0,gf:0,ga:0
+  };
+ }
+ gm.name=G.userGM.name;gm.ovr=Number(G.userGM.reputation)||gm.ovr;gm.currentClubId=G.userGM.status==="Unemployed"?null:G.userGM.currentClubId;gm.clubs=G.userGM.clubs;
+ if(!Number.isFinite(gm.gf))gm.gf=0;if(!Number.isFinite(gm.ga))gm.ga=0;
 }
 function userGMRecord(){
  ensureUserGMIdentity();
@@ -5435,7 +5445,7 @@ function gmCareerTotals(){
   status:G.userGM.status||"Employed",
   reputation:Number(G.userGM.reputation)||0,
   reputationLabel:gmReputationLabel(Number(G.userGM.reputation)||0),
-  board:currentBoardStatus(),
+  board:G.userGM.status==="Unemployed"?{score:0,label:"Unemployed",position:null,target:null,gap:null}:currentBoardStatus(),
   clubs,
   matches:gm?gm.matches||0:0,
   w:gm?gm.w||0:0,
@@ -5484,6 +5494,118 @@ function currentBoardStatus(){
  p.board=clampCareerValue(live,20,98);
  return{score:p.board,label:boardStatusLabel(p.board),position:pos,target,gap};
 }
+
+function clubBoardTargetFor(clubId){
+ let c=G.clubs[clubId],rep=Number(c&&c.rep)||70;
+ return rep>=88?4:rep>=84?8:12;
+}
+function ensureAIGMForClub(clubId){
+ ensureStaffHistoryState();let c=G.clubs[clubId];if(!c)return null;
+ if(c.gm&&c.gm.id&&c.gm.id!==G.userGM.id)return c.gm;
+ let gm={id:"GM-AI-"+clubId+"-"+uid(),name:generateFootballName(),ovr:clampCareerValue((Number(c.rep)||70)+rnd(-8,5),55,92),appointedSeason:G.season};
+ c.gm=gm;
+ G.staffHistory.gms[gm.id]={id:gm.id,name:gm.name,ovr:gm.ovr,currentClubId:clubId,appointedSeason:G.season,clubs:[{clubId,from:G.season,to:null}],matches:0,w:0,d:0,l:0,seasons:0,titles:0,bestFinish:null,bestPoints:null,awards:0,gf:0,ga:0};
+ return gm;
+}
+function closeUserGMClubSpell(clubId,toSeason=G.season){
+ let spell=[...(G.userGM.clubs||[])].reverse().find(x=>x.clubId===clubId&&x.to==null);
+ if(spell)spell.to=toSeason;
+ let rec=userGMRecord();if(rec)rec.currentClubId=null;
+}
+function ensureGMCareerMarket(){
+ ensureUserGMIdentity();
+ if(!G.gmCareer||typeof G.gmCareer!=="object")G.gmCareer={vacancies:[],offers:[],lastReviewSeason:0,dismissalStrikes:0};
+ if(!Array.isArray(G.gmCareer.vacancies))G.gmCareer.vacancies=[];
+ if(!Array.isArray(G.gmCareer.offers))G.gmCareer.offers=[];
+ G.clubs.forEach(c=>{if(c&&c.id!==G.userGM.currentClubId)ensureAIGMForClub(c.id)});
+ return G.gmCareer;
+}
+function gmOpportunityScore(clubId){
+ let c=G.clubs[clubId],rep=Number(G.userGM.reputation)||65,clubRep=Number(c.rep)||65;
+ return rep-clubRep;
+}
+function refreshGMVacancies(force=false){
+ let m=ensureGMCareerMarket();
+ if(!force&&m.lastVacancyRefreshSeason===G.season&&m.vacancies.length)return m.vacancies;
+ let current=G.userGM.currentClubId,candidates=G.clubs.filter(c=>c.id!==current).map(c=>{
+  let key=G.leagues.top.clubIds.includes(c.id)?"top":"lower",tab=standings(key),pos=tab.findIndex(x=>x.id===c.id)+1,target=clubBoardTargetFor(c.id);
+  let under=pos?pos-target:0,pressure=Math.max(0,under)*5+(key==="top"&&pos>tab.length-3?22:0);
+  return{clubId:c.id,division:key,position:pos,target,pressure,rep:Number(c.rep)||65};
+ }).sort((a,b)=>b.pressure-a.pressure||b.rep-a.rep);
+ let vacancies=[];
+ candidates.forEach(x=>{
+  let c=G.clubs[x.clubId],chance=x.pressure>=22?.75:x.pressure>=12?.42:x.pressure>=6?.20:.04;
+  if(Math.random()<chance&&vacancies.length<5){
+   if(c.gm&&c.gm.id&&c.gm.id!==G.userGM.id){
+    let old=G.staffHistory.gms[c.gm.id];if(old){let sp=[...(old.clubs||[])].reverse().find(s=>s.clubId===c.id&&s.to==null);if(sp)sp.to=G.season;old.currentClubId=null}
+   }
+   c.gm=null;vacancies.push({...x,openedSeason:G.season});
+  }
+ });
+ if(!vacancies.length&&candidates.length)vacancies.push({...candidates[Math.min(candidates.length-1,rnd(0,Math.min(2,candidates.length-1)))],openedSeason:G.season});
+ m.vacancies=vacancies;m.lastVacancyRefreshSeason=G.season;
+ return vacancies;
+}
+function availableGMOpportunities(){
+ let m=ensureGMCareerMarket(),vac=refreshGMVacancies(),rep=Number(G.userGM.reputation)||65;
+ return vac.filter(v=>{
+  let c=G.clubs[v.clubId],gap=(Number(c.rep)||65)-rep;
+  return G.userGM.status==="Unemployed"?gap<=10:gap<=6;
+ }).sort((a,b)=>(G.clubs[b.clubId].rep||0)-(G.clubs[a.clubId].rep||0));
+}
+function moveUserGMToClub(newClubId,reason="Accepted role"){
+ ensureGMCareerMarket();newClubId=Number(newClubId);let next=G.clubs[newClubId];if(!next||newClubId===G.userGM.currentClubId)return false;
+ let oldId=G.userGM.currentClubId,old=Number.isFinite(Number(oldId))?G.clubs[oldId]:null;
+ if(old){
+  closeUserGMClubSpell(oldId,G.season);
+  ensureAIGMForClub(oldId);
+ }
+ if(next.gm&&next.gm.id&&next.gm.id!==G.userGM.id){
+  let prev=G.staffHistory.gms[next.gm.id];if(prev){let sp=[...(prev.clubs||[])].reverse().find(s=>s.clubId===newClubId&&s.to==null);if(sp)sp.to=G.season;prev.currentClubId=null}
+ }
+ G.club=newClubId;G.userGM.currentClubId=newClubId;G.userGM.status="Employed";
+ G.userGM.clubs.push({clubId:newClubId,from:G.season,to:null});
+ next.gm={id:G.userGM.id,name:G.userGM.name,ovr:Number(G.userGM.reputation)||70,appointedSeason:G.season};
+ let rec=userGMRecord();rec.currentClubId=newClubId;rec.clubs=G.userGM.clubs;
+ G.boardTarget=clubBoardTargetFor(newClubId);
+ G.gmPerformance={board:70,lastSeasonReviewed:G.gmPerformance&&G.gmPerformance.lastSeasonReviewed||0};
+ G.gmCareer.vacancies=G.gmCareer.vacancies.filter(v=>v.clubId!==newClubId);
+ G.feed.unshift({t:"GM APPOINTMENT",m:G.userGM.name+" appointed General Manager of "+next.name+"."});
+ G.schedule=G.schedule||buildWorldSchedule(G);G._runtimeHydrationStamp=null;
+ return true;
+}
+function acceptGMOpportunity(clubId){
+ let c=G.clubs[Number(clubId)];if(!c)return;
+ let current=G.userGM.status==="Unemployed"?"your current unemployed status":G.clubs[G.userGM.currentClubId].name;
+ if(!confirm("Accept the General Manager role at "+c.name+"?\n\nThis will leave "+current+" and your full GM career history will travel with you."))return;
+ if(moveUserGMToClub(Number(clubId),"Accepted role")){save();hideGMProfile();page="home";render()}
+}
+function dismissUserGM(reason="Board dismissal"){
+ ensureGMCareerMarket();if(G.userGM.status==="Unemployed")return;
+ let oldId=G.userGM.currentClubId,old=G.clubs[oldId];
+ closeUserGMClubSpell(oldId,G.season);ensureAIGMForClub(oldId);
+ G.userGM.status="Unemployed";G.userGM.currentClubId=null;
+ let rec=userGMRecord();if(rec)rec.currentClubId=null;
+ G.gmCareer.vacancies=G.gmCareer.vacancies.filter(v=>v.clubId!==oldId);
+ G.feed.unshift({t:"GM DEPARTURE",m:G.userGM.name+" leaves "+old.name+" following a board decision."});
+}
+function reviewGMJobSecurity(){
+ let m=ensureGMCareerMarket();if(G.userGM.status==="Unemployed")return false;
+ let board=currentBoardStatus(),played=Number(G.clubs[G.club].p)||0;
+ if(board.score<38&&played>=8)m.dismissalStrikes=(m.dismissalStrikes||0)+1;
+ else if(board.score>=48)m.dismissalStrikes=Math.max(0,(m.dismissalStrikes||0)-1);
+ if((m.dismissalStrikes||0)>=3){dismissUserGM("Sustained board pressure");m.dismissalStrikes=0;return true}
+ return false;
+}
+function gmOpportunitiesHtml(){
+ ensureGMCareerMarket();let opp=availableGMOpportunities();
+ if(!opp.length)return '<div class="card"><div class="title">Career Opportunities</div><div class="sub">No suitable vacancies are currently available. Opportunities depend on vacancies and your GM Reputation.</div></div>';
+ let rows=opp.map(v=>{let c=G.clubs[v.clubId],key=v.division|| (G.leagues.top.clubIds.includes(c.id)?"top":"lower");
+  return '<div class="gmJobRow"><div><b>'+c.name+'</b><span>'+leagueInfo(key).name+' · Club reputation '+c.rep+'</span><small>Board expectation: '+boardExpectationText(clubBoardTargetFor(c.id))+'</small></div><button class="btn" data-gm-accept-job="'+c.id+'">ACCEPT ROLE</button></div>';
+ }).join("");
+ return '<div class="card"><div class="sectionHead"><div><div class="title">Career Opportunities</div><div class="sub">Vacancies matched to your GM Reputation.</div></div><div class="sectionCount">'+opp.length+'</div></div>'+rows+'</div>';
+}
+
 function updateGMReputationForSeason(review){
  let p=ensureGMPerformanceState();if(!review||p.lastSeasonReviewed===review.season)return;
  let rep=Number(G.userGM.reputation)||65,target=Number(review.target)||Number(G.boardTarget)||4,pos=Number(review.position)||target;
@@ -5525,10 +5647,11 @@ function gmProfileHtml(){
  '<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you across clubs.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+
   (gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+
  '</div>'+
- '<div class="card gmFutureCard"><div class="title">Career Status</div><div class="sub">Board Status reflects your standing at the current club. GM Reputation reflects your longer-term standing across football.</div>'+
+ '<div class="card gmFutureCard"><div class="title">Career Status</div><div class="sub">Board Status reflects your standing at the current club. GM Reputation determines the level of career opportunities available across football.</div>'+
   richRecordRow('Board Status',t.board.label,t.board.score)+
   richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+
-  '<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';
+  '<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>'+
+  gmOpportunitiesHtml();
 }
 function showGMProfile(){
  ensureUserGMIdentity();
@@ -6936,6 +7059,7 @@ function ensureRuntimeState(){
  ensureStaffHistoryState();
  ensureUserGMIdentity();
  ensureGMPerformanceState();
+ ensureGMCareerMarket();
  ensureCoachMarket();
  ensurePlayerPositionState();
  ensurePlayerStyleState();
@@ -7021,6 +7145,8 @@ document.addEventListener("click",function(e){
  if(gmOpen){e.preventDefault();showGMProfile();return}
  let gmClose=e.target.closest&&e.target.closest("[data-gm-profile-close]");
  if(gmClose){e.preventDefault();hideGMProfile();return}
+ let gmJob=e.target.closest&&e.target.closest("[data-gm-accept-job]");
+ if(gmJob){e.preventDefault();acceptGMOpportunity(gmJob.dataset.gmAcceptJob);return}
  let gmEdit=e.target.closest&&e.target.closest("[data-gm-edit-name]");
  if(gmEdit){e.preventDefault();editGMName();return}
  let gmBackdrop=e.target&&e.target.id==="gmProfileModal";
