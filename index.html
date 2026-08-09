@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.13.0 Club GM Coach History Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.13.1 Player Records Visual Consistency Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3362,6 +3362,30 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 .staffHistoryRow>div:last-child{text-align:right}
 @media(max-width:430px){.staffHistoryRow{grid-template-columns:minmax(0,1fr) minmax(108px,40%);gap:8px}.staffHistoryRow b{font-size:11px}}
 
+
+/* v2.9.13.1 — Player Records visual consistency
+   Keep record values clickable but remove the pill/bubble treatment so they
+   match Team, GM and Head Coach record rows. */
+.richRecordSection .recordLink,
+.richRecordSection .recordPlayerLink{
+ background:transparent!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ padding:0!important;
+ min-height:0!important;
+ height:auto!important;
+ color:inherit!important;
+ font:inherit!important;
+ line-height:inherit!important;
+ text-decoration:none!important;
+}
+.richRecordSection button.recordLink{
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ cursor:pointer;
+}
+
 </style>
 </head>
 <body>
@@ -3439,7 +3463,7 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.13.0 Club GM Coach History Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.13.1 Player Records Visual Consistency Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
