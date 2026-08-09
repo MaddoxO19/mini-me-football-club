@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.16.0 GM Career Movement Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.16.1 Contract Rollover Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3615,6 +3615,15 @@ body.gm-profile-open{overflow:hidden}
 .gmJobRow .btn{min-width:94px}
 @media(max-width:430px){.gmJobRow{grid-template-columns:minmax(0,1fr) 92px;gap:8px}.gmJobRow .btn{min-width:0;padding-left:7px!important;padding-right:7px!important;font-size:9px!important}}
 
+
+/* ==========================================================
+   v2.9.16.1 CONTRACT ROLLOVER FIX
+   ========================================================== */
+.reviewWorldStatus.renewed{
+ color:var(--green)!important;
+ font-weight:900!important;
+}
+
 </style>
 </head>
 <body>
@@ -3692,7 +3701,7 @@ body.gm-profile-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.16.0 GM Career Movement Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.16.1 Contract Rollover Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4921,6 +4930,7 @@ function negotiateExtension(id,mode){
    p.wage=offerWage;p.years=offerYears;p.renewedThisSeason=true;
    G.feed.unshift({t:"CONTRACT RENEWED",m:p.name+" signs a "+offerYears+" year extension worth "+money(offerWage)+"/week."});
    save();
+   if(G.pendingSeasonReview)showSeasonReview();
    showPlayer(id);
  }else{
    G.feed.unshift({t:"CONTRACT TALKS",m:p.name+" rejected the latest contract proposal."});
@@ -5172,7 +5182,16 @@ function showSeasonReview(){
  $("#reviewSeason").textContent=r.season+" Season";
  $("#reviewFinish").textContent=ordinal(r.pos);
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
- let exp=r.expiring.length?r.expiring.map(p=>{let live=G.players.find(x=>x.id===p.id),label=live&&live.retiring?"Retiring":"Entering free agency",pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">'+label+'</div></div>'}).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
+ let exp=r.expiring.length?r.expiring.map(p=>{
+   let live=G.players.find(x=>x.id===p.id),label="Entering free agency";
+   if(live){
+    if(live.retiring)label="Retiring";
+    else if(live.team!==G.club)label=live.team===-1?"Free agent":"Departed";
+    else if(live.renewedThisSeason||Number(live.years)>1)label="Renewed · "+live.years+" year"+(Number(live.years)===1?"":"s");
+   }
+   let pid=resolveReviewPlayerId(p);
+   return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus '+(label.indexOf("Renewed")===0?"renewed":"")+'">'+label+'</div></div>';
+ }).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
  let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
  let clubRetirements=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
  let leagueRetirements=Array.isArray(r.leagueRetirements)?r.leagueRetirements:[];
@@ -5821,14 +5840,22 @@ function beginNewSeason(){
 
   let expiringList=Array.isArray(r.expiring)?r.expiring:[];
   let expiredIds=new Set(expiringList.map(x=>x.id));
-  let expired=G.players.filter(p=>expiredIds.has(p.id)&&p.team===G.club);
+  // Season Review is a snapshot. Contract decisions made during the review must
+  // be checked against the live player record before anyone leaves the club.
+  let expired=G.players.filter(p=>
+    expiredIds.has(p.id)&&
+    p.team===G.club&&
+    !p.retiring&&
+    !p.renewedThisSeason&&
+    Number(p.years)<=1
+  );
   let retirees=G.players.filter(p=>p.team===G.club&&p.retiring);
 
-  expired.forEach(p=>{if(!p.retiring)moveToFreeAgency(p)});
+  expired.forEach(p=>moveToFreeAgency(p));
   retirees.forEach(p=>{closePlayerClubSpell(p,null);p.team=-2;p.freeAgent=false});
 
   if(retirees.length)G.feed.unshift({t:"RETIREMENTS",m:retirees.map(p=>p.name).join(", ")+" retired from professional football."});
-  let freeDepartures=expired.filter(p=>!p.retiring);
+  let freeDepartures=expired;
   if(freeDepartures.length)G.feed.unshift({t:"FREE AGENCY",m:freeDepartures.map(p=>p.name).join(", ")+" entered free agency."});
 
   if(!Array.isArray(G.history))G.history=[];
