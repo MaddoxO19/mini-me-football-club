@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.1 Match Complete Compact UX Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.2 Stability Test Baseline Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2466,6 +2466,45 @@ button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-p
  }
 }
 
+
+/* ==========================================================
+   v2.9.11.2 STABILITY TEST BASELINE
+   ST/CF coverage + Head-to-Head simplification
+   ========================================================== */
+.h2hProfileRow{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ gap:10px;
+ align-items:center;
+ padding:12px 3px;
+ border-top:1px solid var(--line);
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.h2hProfileRow:first-of-type{border-top:0}
+.h2hProfileRow>div:first-child{min-width:0}
+.h2hProfileRow b{
+ display:block;
+ font-size:12px;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+.h2hProfileRow span{
+ display:block;
+ margin-top:3px;
+ color:var(--muted);
+ font-size:9px;
+}
+.h2hProfileRecord{
+ color:var(--gold);
+ font-size:10px;
+ font-weight:900;
+ white-space:nowrap;
+}
+.h2hProfileRow:active{background:var(--ui-focus)}
+.rivalryBanner,.resultRivalryRecap{display:none!important}
+
 </style>
 </head>
 <body>
@@ -2542,8 +2581,8 @@ button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-p
 <script>
 (function(){
 "use strict";
-// v2.9.11.1: compact Match Complete UX refinement. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.1 Match Complete Compact UX Alpha Mobile";
+// v2.9.11.2: stability-test baseline. ST/CF close-role coverage fixed; rivalry UI replaced by Head to Head.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.2 Stability Test Baseline Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2828,6 +2867,7 @@ function historicRivalsForClub(id){
  return Object.values(map).sort((a,b)=>b.score-a.score).slice(0,6);
 }
 
+/* Legacy rivalry scoring retained only for backward save compatibility. UI uses Head to Head only. */
 function rivalryNarrative(a,b){
  let status=rivalryStatus(a,b),score=rivalryScore(a,b),h=headToHead(a,b);
  if(!status)return null;
@@ -2857,6 +2897,19 @@ function rivalryProfileHtml(id){
  return '<div class="card"><div class="title">Rivalries</div><div class="sub">Rivalries emerge naturally from repeated competitive meetings, title races and close results.</div><div class="rivalryStatusLine">'+statusLine+'</div><div class="rivalryGrid">'+cards+'</div></div>'+
  '<div class="card"><div class="title">Rivalry History</div>'+hist+'</div>';
 }
+function headToHeadProfileHtml(id){
+ let opponents=G.clubs.filter(c=>c&&c.id!==id).map(c=>{
+   let h=headToHead(id,c.id);
+   return{club:c,h};
+ }).filter(x=>x.h.played>0).sort((a,b)=>b.h.played-a.h.played||Math.abs(a.h.w-a.h.l)-Math.abs(b.h.w-b.h.l)||a.club.name.localeCompare(b.club.name));
+
+ if(!opponents.length)return '<div class="card"><div class="title">Head to Head</div><div class="sub">Opponent records will build as league fixtures are completed.</div></div>';
+
+ return '<div class="card"><div class="sectionHead"><div><div class="title">Head to Head</div><div class="sub">Career results against clubs across completed league fixtures.</div></div><div class="sectionCount">'+opponents.length+'</div></div>'+
+ opponents.map(x=>'<div class="h2hProfileRow aiClubLink" data-ai-club="'+x.club.id+'"><div><b>'+x.club.name+'</b><span>'+x.h.played+' meetings · Goals '+x.h.gf+'–'+x.h.ga+'</span></div><div class="h2hProfileRecord">'+x.h.w+'W · '+x.h.d+'D · '+x.h.l+'L</div></div>').join("")+
+ '</div>';
+}
+
 
 function openCareerDB(){
  if(careerDBPromise)return careerDBPromise;
@@ -3135,6 +3188,7 @@ function startingXISlotScore(p,slot,teamId=G.club){
  // Natural tactical roles receive a meaningful advantage, but elite players can still win a close contest.
  if(naturalForTacticalSlot(p,slot))score+=12;
  else if(p.secondaryPositions&&p.secondaryPositions.includes(slot))score+=6;
+ else if(centralForwardCoverageEligible(p,slot))score+=4;
  else if(sideSwitchEligible(p,slot))score+=3;
  else if(midfieldCoverageEligible(p,slot))score+=1;
  else if(defensiveFamilyEligible(p,slot))score-=2;
@@ -3593,8 +3647,8 @@ function showMatchResult(r,playedWeek){
  $("#resultState").textContent=state;
  $("#resultState").className="resultState "+state.toLowerCase();
 
- let playedOpp=userHome?r.b:r.a,playedRivalInfo=rivalryNarrative(G.club,playedOpp);
- $("#resultWeek").textContent=(playedRivalInfo?"RIVALRY MATCH · ":"LEAGUE · ")+"WEEK "+playedWeek;
+ let playedOpp=userHome?r.b:r.a;
+ $("#resultWeek").textContent="LEAGUE · WEEK "+playedWeek;
  $("#resultHome").textContent=G.clubs[r.a].name;
  $("#resultAway").textContent=G.clubs[r.b].name;
  $("#resultHome").dataset.clubProfile=String(r.a);
@@ -3602,8 +3656,7 @@ function showMatchResult(r,playedWeek){
  $("#resultHome").classList.add("resultClubLink");
  $("#resultAway").classList.add("resultClubLink");
  $("#resultScore").textContent=r.ga+" – "+r.gb;
- $("#resultSummary").innerHTML=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.")+
- (playedRivalInfo?'<div class="resultRivalryRecap"><b>'+playedRivalInfo.title+'</b><span>'+playedRivalInfo.level+' · Rivalry score '+playedRivalInfo.score+' · Career H2H '+headToHeadLabel(G.club,playedOpp)+'</span></div>':'');
+ $("#resultSummary").textContent=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.");
 
  let sa=r.statsA||{},sb=r.statsB||{};
  $("#resultTeamStats").innerHTML=
@@ -4096,8 +4149,8 @@ function clubProfileHonours(id){
 function showClubProfile(id,tab="overview"){
  let c=G.clubs[Number(id)];if(!c)return;ensureClubHistoryState();
  let info=leagueInfo(clubCurrentDivisionKey(c.id));
- let tabs=[["overview","Overview"],["squad","Squad"],["rivalries","Rivalries"],["history","History"],["records","Records"],["honours","Honours"]];
- let body=tab==="squad"?clubProfileSquad(c.id):tab==="rivalries"?rivalryProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
+ let tabs=[["overview","Overview"],["squad","Squad"],["headtohead","Head to Head"],["history","History"],["records","Records"],["honours","Honours"]];
+ let body=tab==="squad"?clubProfileSquad(c.id):tab==="headtohead"?headToHeadProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
  $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileName">'+c.name+'</div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
  '<div class="clubProfileTabs">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+'<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
@@ -4340,6 +4393,11 @@ const SIDE_SWITCH_MAP={
  LM:["RM"],RM:["LM"],
  LWB:["RWB"],RWB:["LWB"]
 };
+function centralForwardCoverageEligible(p,slot){
+ if(!p)return false;
+ let natural=normalizePosition(p.pos);
+ return (natural==="ST"&&slot==="CF")||(natural==="CF"&&slot==="ST");
+}
 function sideSwitchEligible(p,slot){
  if(!p)return false;
  return (SIDE_SWITCH_MAP[slot]||[]).includes(p.pos);
@@ -4360,6 +4418,7 @@ function playerEligibleForSlot(p,slot){
  if(!p)return false;
  seedSecondaryPositions(p);
  return naturalForTacticalSlot(p,slot)||
+        centralForwardCoverageEligible(p,slot)||
         sideSwitchEligible(p,slot)||
         defensiveFamilyEligible(p,slot)||
         midfieldCoverageEligible(p,slot)||
@@ -4369,6 +4428,10 @@ function coachAdaptationBand(teamId=G.club){let o=Number(coachProfile(teamId).ov
 function baseSecondaryPenalty(p,slot){
  if(!p)return null;
  if(naturalForTacticalSlot(p,slot))return 0;
+
+ // ST and CF are adjacent central-forward roles. Crossing them is valid,
+ // but carries a modest role-familiarity penalty.
+ if(centralForwardCoverageEligible(p,slot))return 3;
 
  // Opposite-side wide role adaptation.
  if(sideSwitchEligible(p,slot)){
@@ -4414,7 +4477,8 @@ function positionalEffectiveness(p,slot,teamId=G.club){
  if(naturalForTacticalSlot(p,slot))return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
  let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
  let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
- let roleType=sideSwitchEligible(p,slot)?"Side switch":
+ let roleType=centralForwardCoverageEligible(p,slot)?"Forward cover":
+              sideSwitchEligible(p,slot)?"Side switch":
               defensiveFamilyEligible(p,slot)?"Defensive cover":
               midfieldCoverageEligible(p,slot)?"Midfield cover":"Secondary";
  return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:roleType,coachBand:band.label};
@@ -4687,11 +4751,9 @@ function home(){
  ensureLeagueWorld();ensureRivalryState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
  let avg=(roster().length?roster().reduce((s,p)=>s+p.ovr,0)/roster().length:0).toFixed(1),target=G.boardTarget||4,recent=G.feed.slice(0,4),weeks=leagueSeasonWeeks(),info=leagueInfo();
- let rivalInfo=rivalryNarrative(G.club,opp.id);
- let rivalBanner=rivalInfo?'<div class="rivalryBanner '+rivalInfo.status+'"><div class="rivalryEyebrow">RIVALRY MATCH · '+rivalInfo.title.toUpperCase()+'</div><b>'+rivalInfo.context+'</b><span>Career H2H · '+headToHeadLabel(G.club,opp.id)+' · Goals '+rivalInfo.h2h.gf+'–'+rivalInfo.h2h.ga+'</span></div>':'';
  let h2h=headToHead(G.club,opp.id);
  let fixture=
- '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+rivalBanner+
+ '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+
  '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
  '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span> <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span> <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
  '<div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div>'+
