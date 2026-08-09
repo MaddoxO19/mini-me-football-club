@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.7 Button Interaction Recovery Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.8 Startup State Repair Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2212,7 +2212,7 @@ nav{grid-template-columns:repeat(5,1fr)!important}
 (function(){
 "use strict";
 // v2.9.10.2: specialised UI/UX consistency pass. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.7 Button Interaction Recovery Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.8 Startup State Repair Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2316,6 +2316,16 @@ function renderBuildVersion(){
  let a=$("#startBuild");
  if(a)a.textContent=BUILD_VERSION;
 }
+function validateCoreRuntime(){
+ let missing=[];
+ if(typeof buildClubRecord!=="function")missing.push("buildClubRecord");
+ if(typeof world!=="function")missing.push("world");
+ if(typeof ensureLeagueWorld!=="function")missing.push("ensureLeagueWorld");
+ if(typeof render!=="function")missing.push("render");
+ if(missing.length)throw new Error("Missing core runtime: "+missing.join(", "));
+ return true;
+}
+
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
@@ -2324,6 +2334,27 @@ function player(team,i){
  let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
  seedSecondaryPositions(p);p.primaryStyle=independentStyleForPosition(p.pos);let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);if(opts.length&&Math.random()<(age<=24?.38:.25))p.secondaryStyle=opts[rnd(0,opts.length-1)];return p;
 }
+function buildClubRecord(name,i,tier){
+ let baseRep=tier==="top"?90-(i%24):72-Math.floor((i%24)/2);
+ return{
+  id:i,
+  name:name,
+  shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
+  rep:Math.max(56,baseRep+rnd(-2,2)),
+  balance:rnd(tier==="top"?50:18,tier==="top"?180:75)*1e6,
+  budget:rnd(tier==="top"?18:5,tier==="top"?65:22)*1e6,
+  facility:rnd(tier==="top"?2:1,tier==="top"?4:3),
+  facilities:{
+   training:rnd(tier==="top"?2:1,tier==="top"?4:3),
+   youth:rnd(1,3),
+   scouting:rnd(1,3),
+   medical:rnd(1,3)
+  },
+  coach:rnd(tier==="top"?66:58,tier==="top"?88:76),
+  p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0
+ };
+}
+
 function world(){
  generatedNameRegistry=new Set();
  let size=selectedLeagueSize||20,clubs=[],players=[];
@@ -4850,6 +4881,7 @@ function navigateTo(nextPage){
  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  renderSoon();
 }
+validateCoreRuntime();
 renderBuildVersion();
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
