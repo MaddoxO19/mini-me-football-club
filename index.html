@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.11.2 Stability Test Baseline Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.11.3 Navigation Recovery Hotfix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2115,8 +2115,7 @@ button,.btn,.player,.leaderRow,.awardCard,.totsPlayer,.fixtureClubLink,
 .recordPlayerLink,.teamCoachLink,.aiClubLink{
  transition:background-color .10s ease,border-color .10s ease,opacity .10s ease,transform .10s ease!important;
 }
-body.uiRendering main{pointer-events:none}
-body.navBusy nav button{pointer-events:none}
+body.uiRendering main{pointer-events:auto}
 
 /* Main view rendering isolation reduces unnecessary repainting */
 main{
@@ -2505,6 +2504,20 @@ button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-p
 .h2hProfileRow:active{background:var(--ui-focus)}
 .rivalryBanner,.resultRivalryRecap{display:none!important}
 
+
+/* v2.9.11.3 Navigation Recovery Hotfix */
+nav button{
+ pointer-events:auto!important;
+}
+nav button.tapActive{
+ background:#d9b54a0d!important;
+}
+body.uiRendering nav,
+body.uiRendering .sectionTabs,
+body.uiRendering .marketFilter{
+ pointer-events:auto!important;
+}
+
 </style>
 </head>
 <body>
@@ -2581,8 +2594,8 @@ button:focus-visible,.btn:focus-visible,[data-player]:focus-visible,[data-club-p
 <script>
 (function(){
 "use strict";
-// v2.9.11.2: stability-test baseline. ST/CF close-role coverage fixed; rivalry UI replaced by Head to Head.
-const BUILD_VERSION="Mini&Me Football Club v2.9.11.2 Stability Test Baseline Alpha Mobile";
+// v2.9.11.3: navigation recovery hotfix. Removes aggressive nav lock; gameplay unchanged.
+const BUILD_VERSION="Mini&Me Football Club v2.9.11.3 Navigation Recovery Hotfix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5272,9 +5285,8 @@ function startSelectedCareer(){
 document.addEventListener("click",function(e){
  let navTarget=e.target.closest("nav button[data-page]");
  if(navTarget){
-   if(document.body.classList.contains("navBusy")){e.preventDefault();e.stopPropagation();return}
-   document.body.classList.add("navBusy");
-   window.setTimeout(()=>document.body.classList.remove("navBusy"),180);
+   navTarget.classList.add("tapActive");
+   window.setTimeout(()=>navTarget.classList.remove("tapActive"),120);
  }
  let marketFilterBtn=e.target.closest("[data-market-position]");
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
