@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.10.0 UI UX Consistency Pass 1 Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.10.1 UI UX Consistency Pass 2 Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2073,6 +2073,21 @@ select,input,textarea{
  .btn{padding-left:10px!important;padding-right:10px!important}
 }
 
+
+/* v2.9.10.1 UI / UX CONSISTENCY PASS 2 */
+.screenHero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 12px;padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#121b25,#0e151d);box-shadow:0 10px 28px rgba(0,0,0,.15)}
+.screenHero>div:first-child{min-width:0}.screenEyebrow{color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.15em;text-transform:uppercase}.screenTitle{margin-top:4px;font-size:20px;font-weight:950;line-height:1.08;letter-spacing:-.025em}.screenSubtitle{max-width:500px;margin-top:5px;color:var(--muted);font-size:10px;line-height:1.4}.screenMeta{min-width:78px;padding-left:12px;border-left:1px solid var(--line);text-align:right;white-space:nowrap}.screenMeta b{display:block;color:var(--gold);font-size:16px;font-weight:950}.screenMeta span{display:block;margin-top:3px;color:var(--muted);font-size:8px;line-height:1.25}
+.sectionHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}.sectionHead>div:first-child{min-width:0}.sectionHead .title{margin-bottom:3px!important}.sectionCount{min-width:34px;padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:9px;font-weight:900;text-align:center}
+.fixtureClubLink,.recordPlayerLink{cursor:pointer;color:inherit;text-decoration:none;touch-action:manipulation}.fixtureClubLink:active,.recordPlayerLink:active{color:var(--gold)}.fixtureClubLink{border-bottom:1px solid transparent}.fixtureClubLink:hover{border-color:rgba(217,181,74,.45)}
+.interactiveRow{cursor:pointer;border-radius:10px;padding-left:5px!important;padding-right:5px!important;margin-left:-5px;margin-right:-5px}.interactiveRow:active{background:var(--ui-focus)}.compactEmpty{min-height:90px!important;padding:14px!important}
+.needs{grid-template-columns:repeat(2,minmax(0,1fr))!important}.need{min-width:0}.need b{font-size:12px;line-height:1.25}
+.marketFilter{position:sticky;top:calc(var(--nav-top,104px) + 62px);z-index:4;margin:0 -4px 5px;padding:6px 4px 10px!important;background:linear-gradient(180deg,#111923 78%,rgba(17,25,35,0))}
+.depthHead{position:sticky;top:calc(var(--nav-top,104px) + 62px);z-index:3;background:#111923f5;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin:0 -4px;padding-left:4px!important;padding-right:4px!important}.teamCoachSummary{margin-top:2px!important}.teamCoachLink{min-height:34px;touch-action:manipulation}
+.leaderRow.interactiveRow .leaderName{min-width:0}.leaderRow.interactiveRow .leaderName b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fixtureScheduleRow{min-height:44px}.fixtureClub.aiClubLink,.aiClubLink{touch-action:manipulation}
+.recordPlayerLink{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.profileEmpty,.worldNote,.marketPoolNote{line-height:1.45!important}.teamCoachLink,.clubProfileTabs button,.sectionTabs button,.marketFilter button{touch-action:manipulation}
+@media(max-width:430px){.screenHero{padding:12px 13px;gap:10px}.screenTitle{font-size:18px}.screenSubtitle{font-size:9px}.screenMeta{min-width:66px;padding-left:9px}.screenMeta b{font-size:14px}.needs{grid-template-columns:1fr 1fr!important}.marketFilter{top:calc(var(--nav-top,104px) + 56px)}.depthHead{top:calc(var(--nav-top,104px) + 56px)}}
+@media(max-width:360px){.screenHero{grid-template-columns:1fr}.screenMeta{display:flex;gap:7px;align-items:baseline;padding:8px 0 0;border-left:0;border-top:1px solid var(--line);text-align:left}.screenMeta b{font-size:13px}.needs{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 <body>
@@ -2150,7 +2165,7 @@ select,input,textarea{
 (function(){
 "use strict";
 // v2.9.10.0: UI/UX consistency pass only. Gameplay and save schema unchanged.
-const BUILD_VERSION="Mini&Me Football Club v2.9.10.0 UI UX Consistency Pass 1 Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.10.1 UI UX Consistency Pass 2 Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -2240,6 +2255,7 @@ function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEa
 
 let G=null, selected=0, page="home", selectedLeagueSize=20;
 let clubTab="overview",leagueTab="table",squadTab="team";
+let marketPositionFilter="RECOMMENDED";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
 const CAREER_DB_NAME="MiniMeFootballCareers";
 const CAREER_DB_VERSION=1;
@@ -3135,8 +3151,8 @@ function seasonAwards(){
  };
 }
 function leaderCard(title,subtitle,players,valueFn){
- return'<div class="card"><div class="title">'+title+'</div><div class="sub">'+subtitle+'</div><div class="leadersList">'+
- (players.length?players.map((p,i)=>'<div class="leaderRow"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
+ return'<div class="card"><div class="sectionHead"><div><div class="title">'+title+'</div><div class="sub">'+subtitle+'</div></div></div><div class="leadersList">'+
+ (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
  '</div></div>';
 }
 function leagueLeadersHtml(){
@@ -4294,7 +4310,7 @@ function home(){
  let fixture=
  '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+rivalBanner+
  '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
- '<div class="teams">'+c.name+' <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br>'+opp.name+' <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
+ '<div class="teams"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span> <span class="fixturePos">'+ordinal(pos)+'</span><br><span class="sub">vs</span><br><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span> <span class="fixturePos">'+ordinal(oppPos)+'</span></div>'+
  '<div class="sub">'+ordinal(pos)+' vs '+ordinal(oppPos)+' · '+Math.max(0,weeks-G.week)+' matches remaining</div></div>'+
  '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
  '<div class="homeContinue"><button class="btn primary full" id="homeContinueBtn">CONTINUE · WEEK '+(G.week+1)+'</button></div></div>';
@@ -4315,6 +4331,9 @@ function home(){
  return fixture+news+dashboard;
 }
 
+function screenHeroHtml(eyebrow,title,subtitle,meta=""){
+ return '<div class="screenHero"><div><div class="screenEyebrow">'+eyebrow+'</div><div class="screenTitle">'+title+'</div><div class="screenSubtitle">'+subtitle+'</div></div>'+(meta?'<div class="screenMeta">'+meta+'</div>':'')+'</div>';
+}
 function tabsHtml(scope,active,items){
  return '<div class="sectionTabs">'+items.map(function(x){return '<button data-section-tab="'+scope+'" data-tab="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>';}).join("")+'</div>';
 }
@@ -4367,49 +4386,32 @@ function staffView(){
  '<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">Coach Fit shows how naturally each player suits the football identity. It does not replace player OVR.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Perfect+'</b><span>Perfect</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">The best footballers remain difficult to displace. Coach Fit becomes most influential when players are close in ability, giving recruitment and squad building a meaningful identity without turning selection into a tactics puzzle.</div></div>';
 }
 function squad(){
+ let h=coachProfile(G.club),integrity=startingXIIntegrity(G.club);
+ let hero=screenHeroHtml("SQUAD MANAGEMENT","First Team","Starting XI, player development and Head Coach football identity.",'<b>'+h.formation+'</b><span>'+(integrity.ok?'XI Ready':'XI Incomplete')+'</span>');
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
- return tabs+(squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
+ return hero+tabs+(squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
  ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();
  let needs=squadNeeds(),needGroups=[...new Set(needs.map(n=>positionGroup(n.pos)))];
-
- // Build a deliberately mixed free-agent shortlist so one positional group cannot crowd out the pool.
- let allFA=activeFreeAgents().filter(p=>!p.retiring);
- let groupOrder=["GK","DEF","MID","FWD"],faBuckets={};
- groupOrder.forEach(g=>{
-   faBuckets[g]=allFA.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>{
-     let an=needGroups.includes(g)?1:0,bn=needGroups.includes(g)?1:0;
-     return bn-an||b.ovr-a.ovr||a.age-b.age;
-   }).slice(0,g==="GK"?3:6);
- });
+ let allFA=activeFreeAgents().filter(p=>!p.retiring),groupOrder=["GK","DEF","MID","FWD"],faBuckets={};
+ groupOrder.forEach(g=>{faBuckets[g]=allFA.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr||a.age-b.age).slice(0,g==="GK"?3:6)});
  let fas=groupOrder.flatMap(g=>faBuckets[g]).slice(0,21);
-
  let pool=G.players.filter(p=>p.team!==G.club&&p.team>=0&&!p.freeAgent&&!p.retiring);
- pool.forEach(p=>{
-   p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+Math.random()*18;
- });
- let ps=[...pool].sort((a,b)=>b._marketScore-a._marketScore).slice(0,40);
-
+ pool.forEach(p=>{p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+Math.random()*18});
+ let recommended=[...pool].sort((a,b)=>b._marketScore-a._marketScore).slice(0,40);
  let lowerIds=new Set((G.leagues&&G.leagues.lower&&G.leagues.lower.clubIds)||[]);
- let lower=pool.filter(p=>lowerIds.has(p.team))
-   .sort((a,b)=>{
-     let ag=needGroups.includes(positionGroup(a.pos))?1:0,bg=needGroups.includes(positionGroup(b.pos))?1:0;
-     let av=(a.ovr*.8)+(a.pot*.35)-(a.age*.15),bv=(b.ovr*.8)+(b.pot*.35)-(b.age*.15);
-     return bg-ag||bv-av;
-   }).slice(0,14);
-
+ let lower=pool.filter(p=>lowerIds.has(p.team)).sort((a,b)=>{let ag=needGroups.includes(positionGroup(a.pos))?1:0,bg=needGroups.includes(positionGroup(b.pos))?1:0,av=(a.ovr*.8)+(a.pot*.35)-(a.age*.15),bv=(b.ovr*.8)+(b.pot*.35)-(b.age*.15);return bg-ag||bv-av}).slice(0,14);
  let needHtml=needs.map(n=>'<div class="need '+(n.level==="High"?"high":"")+'"><div class="needPos">'+n.level+' priority</div><b>'+n.pos+' · '+n.rating+' OVR</b><div class="sub">Current starter</div></div>').join("");
-
  let counts=freeAgentGroupCounts();
- let faHtml=fas.length?'<div class="card"><div class="title">Free Agents</div><div class="sub">Balanced shortlist · '+counts.GK+' GK · '+counts.DEF+' DEF · '+counts.MID+' MID · '+counts.FWD+' FWD available in the wider pool.</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':
- '<div class="card"><div class="title">Free Agents</div><div class="sub">No suitable free agents are currently available.</div></div>';
-
- let lowerHtml=lower.length?'<div class="card"><div class="title">Championship Opportunities</div><div class="sub">Lower division players are available to Premier clubs. This shortlist favours positional needs, upside and value.</div>'+lower.map(p=>playerRow(p,true)).join("")+'</div>':'';
-
- return'<div class="card"><div class="title">Recruitment Priorities</div><div class="sub">Needs are based on the Head Coach’s '+coachProfile().formation+' system, current Starting XI and positional fit.</div><div class="needs">'+needHtml+'</div></div>'+
- faHtml+lowerHtml+
- '<div class="card"><div class="title">Transfer Market</div><div class="sub">Recommended players can come from either division. System Fit is shown against your current Head Coach.</div><div class="marketFilter"><button class="active">RECOMMENDED</button><button>GK</button><button>DEF</button><button>MID</button><button>FWD</button></div>'+ps.map(p=>playerRow(p,true)).join("")+'</div>'
+ let faHtml=fas.length?'<div class="card"><div class="sectionHead"><div><div class="title">Free Agents</div><div class="sub">Available without a transfer fee.</div></div><div class="sectionCount">'+allFA.length+'</div></div><div class="marketPoolNote">'+counts.GK+' GK · '+counts.DEF+' DEF · '+counts.MID+' MID · '+counts.FWD+' FWD in the wider pool</div>'+fas.map(p=>playerRow(p,true)).join("")+'</div>':'<div class="card"><div class="title">Free Agents</div><div class="sub">No suitable free agents are currently available.</div></div>';
+ let lowerHtml=lower.length?'<div class="card"><div class="sectionHead"><div><div class="title">Championship Opportunities</div><div class="sub">Lower division players with value, upside or positional relevance.</div></div><div class="sectionCount">'+lower.length+'</div></div>'+lower.map(p=>playerRow(p,true)).join("")+'</div>':'';
+ let filtered=marketPositionFilter==="RECOMMENDED"?recommended:pool.filter(p=>positionGroup(p.pos)===marketPositionFilter).sort((a,b)=>b._marketScore-a._marketScore||b.ovr-a.ovr).slice(0,40);
+ let filters=["RECOMMENDED","GK","DEF","MID","FWD"].map(f=>'<button data-market-position="'+f+'" class="'+(marketPositionFilter===f?'active':'')+'">'+f+'</button>').join("");
+ let coach=coachProfile();
+ return screenHeroHtml("RECRUITMENT","Player Market","Build the squad around ability, positional coverage and the Head Coach’s football identity.",'<b>'+money(G.clubs[G.club].budget)+'</b><span>Transfer budget</span>')+
+ '<div class="card"><div class="sectionHead"><div><div class="title">Recruitment Priorities</div><div class="sub">Based on '+coach.name+' · '+coach.formation+' · '+coach.style+'.</div></div><div class="sectionCount">'+needs.length+'</div></div><div class="needs">'+needHtml+'</div></div>'+faHtml+lowerHtml+
+ '<div class="card"><div class="sectionHead"><div><div class="title">Transfer Market</div><div class="sub">'+(marketPositionFilter==="RECOMMENDED"?'Recommended players from both divisions.':'Showing '+marketPositionFilter+' players from both divisions.')+'</div></div><div class="sectionCount">'+filtered.length+'</div></div><div class="marketFilter">'+filters+'</div>'+(filtered.length?filtered.map(p=>playerRow(p,true)).join(""):'<div class="profileEmpty compactEmpty">No players match this filter.</div>')+'</div>';
 }
 function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
@@ -4480,8 +4482,10 @@ function leagueRecordsView(){
   '<div class="card"><div class="title">League Archive</div><div class="sub">Champions and major awards are preserved as each campaign finishes.</div>'+(seasons||'<div class="sub" style="margin-top:12px">Complete a season to begin the archive.</div>')+'</div>';
 }
 function league(){
+ let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
+ let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · league table, fixtures, leaders and historical records.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
  let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["clubs","Clubs"]]);
- return tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
+ return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
 }
 function clubOverviewView(){
  ensureFacilityState();ensureFinanceState();
@@ -4512,9 +4516,9 @@ function clubHistoryView(){
  '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(pts?pts.w*3+pts.d:"—")+'</div><div class="recordNote">'+(pts?pts.season:"—")+'</div></div>'+
  '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(gf?gf.gf:"—")+'</div><div class="recordNote">'+(gf?gf.season:"—")+'</div></div></div>'+
  '<div class="card"><div class="title">Player Records</div>'+
- '<div class="recordRow"><div><b>Appearances</b><span>Club career</span></div><b>'+(apps?apps.name+' · '+apps.pos+' · '+apps.career.apps:"—")+'</b></div>'+
- '<div class="recordRow"><div><b>Goals</b><span>Club career</span></div><b>'+(goals?goals.name+' · '+goals.pos+' · '+goals.career.goals:"—")+'</b></div>'+
- '<div class="recordRow"><div><b>Assists</b><span>Club career</span></div><b>'+(assists?assists.name+' · '+assists.pos+' · '+assists.career.assists:"—")+'</b></div></div>'+
+ '<div class="recordRow"><div><b>Appearances</b><span>Club career</span></div><b>'+(apps?'<span class="recordPlayerLink" data-player="'+apps.id+'">'+apps.name+' · '+apps.pos+' · '+apps.career.apps+'</span>':"—")+'</b></div>'+
+ '<div class="recordRow"><div><b>Goals</b><span>Club career</span></div><b>'+(goals?'<span class="recordPlayerLink" data-player="'+goals.id+'">'+goals.name+' · '+goals.pos+' · '+goals.career.goals+'</span>':"—")+'</b></div>'+
+ '<div class="recordRow"><div><b>Assists</b><span>Club career</span></div><b>'+(assists?'<span class="recordPlayerLink" data-player="'+assists.id+'">'+assists.name+' · '+assists.pos+' · '+assists.career.assists+'</span>':"—")+'</b></div></div>'+
  '<div class="card"><div class="title">Club Records</div>'+
  '<div class="recordRow"><div><b>Longest unbeaten run</b><span>League matches</span></div><b>'+G.records.longestUnbeaten+'</b></div>'+
  '<div class="recordRow"><div><b>Biggest league win</b><span>'+(G.records.biggestWin?G.records.biggestWin.opponent+' · '+G.records.biggestWin.season:'—')+'</span></div><b>'+(G.records.biggestWin?G.records.biggestWin.score:'—')+'</b></div>'+
@@ -4523,8 +4527,10 @@ function clubHistoryView(){
  '<div class="card"><div class="title">Season History</div>'+(seasons||'<div class="sub">Complete a season to begin the club archive.</div>')+'</div>';
 }
 function club(){
+ let c=G.clubs[G.club],key=currentLeagueKey(),pos=clubCurrentPosition(G.club);
+ let hero=screenHeroHtml("CLUB MANAGEMENT",c.name,leagueInfo(key).name+" · facilities, finances and club history.",'<b>'+(pos?ordinal(pos):"—")+'</b><span>League position</span>');
  let tabs=tabsHtml("club",clubTab,[["overview","Overview"],["facilities","Facilities"],["finances","Finances"],["history","History"]]);
- return tabs+(clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
+ return hero+tabs+(clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
 }
 function ensureTransferState(){
  if(!G.transferOffers)G.transferOffers=[];
@@ -4816,6 +4822,8 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let marketFilterBtn=e.target.closest("[data-market-position]");
+ if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
  let resultPlayer=e.target.closest("[data-result-player]");
  if(resultPlayer){
    let id=resultPlayer.getAttribute("data-result-player");
