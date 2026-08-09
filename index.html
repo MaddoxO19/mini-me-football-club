@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8.3 Squad Flexibility & Player Market Balance Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8.4 Role Coverage Refinement Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1905,7 +1905,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8.3 Squad Flexibility & Player Market Balance Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8.4 Role Coverage Refinement Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -3505,21 +3505,69 @@ function sideSwitchEligible(p,slot){
  if(!p)return false;
  return (SIDE_SWITCH_MAP[slot]||[]).includes(p.pos);
 }
+function defensiveFamilyEligible(p,slot){
+ if(!p)return false;
+ let defs=["LB","LWB","LCB","CB","RCB","RB","RWB"];
+ return defs.includes(p.pos)&&defs.includes(slot);
+}
+function midfieldCoverageEligible(p,slot){
+ if(!p)return false;
+ // Wide midfielders can tuck inside; central midfielders can cover wide midfield roles.
+ if(["LM","RM"].includes(p.pos)&&["LCM","CM","RCM"].includes(slot))return true;
+ if(["CM","LCM","RCM"].includes(p.pos)&&["LM","RM"].includes(slot))return true;
+ return false;
+}
 function playerEligibleForSlot(p,slot){
  if(!p)return false;
  seedSecondaryPositions(p);
- return naturalForTacticalSlot(p,slot)||sideSwitchEligible(p,slot)||p.secondaryPositions.includes(slot);
+ return naturalForTacticalSlot(p,slot)||
+        sideSwitchEligible(p,slot)||
+        defensiveFamilyEligible(p,slot)||
+        midfieldCoverageEligible(p,slot)||
+        p.secondaryPositions.includes(slot);
 }
 function coachAdaptationBand(teamId=G.club){let o=Number(coachProfile(teamId).ovr)||0;if(o>=90)return{label:"Elite",recovery:.50};if(o>=80)return{label:"Strong",recovery:.35};if(o>=65)return{label:"Capable",recovery:.20};return{label:"Developing",recovery:.10}}
 function baseSecondaryPenalty(p,slot){
  if(!p)return null;
  if(naturalForTacticalSlot(p,slot))return 0;
+
+ // Opposite-side wide role adaptation.
  if(sideSwitchEligible(p,slot)){
    if(["LW","RW","LM","RM"].includes(p.pos))return 2;
    if(["LWB","RWB"].includes(p.pos))return 4;
  }
+
+ // Defensive family coverage.
+ if(defensiveFamilyEligible(p,slot)){
+   let sameSidePairs=[
+     ["LB","LWB"],["RB","RWB"],
+     ["LB","LCB"],["LWB","LCB"],
+     ["RB","RCB"],["RWB","RCB"],
+     ["CB","LCB"],["CB","RCB"]
+   ];
+   let sameSide=sameSidePairs.some(x=>x.includes(p.pos)&&x.includes(slot));
+   if(sameSide)return 3;
+
+   // CB to fullback / fullback to central defence is viable but more costly.
+   if(["CB","LCB","RCB"].includes(p.pos)&&["LB","LWB","RB","RWB"].includes(slot))return 4;
+   if(["LB","LWB","RB","RWB"].includes(p.pos)&&["CB","LCB","RCB"].includes(slot))return 4;
+
+   // Opposite-side defensive coverage is possible but should be the least attractive defensive solution.
+   return 5;
+ }
+
+ // Wide midfielders can play centrally, and CMs can cover LM/RM.
+ if(midfieldCoverageEligible(p,slot))return 3;
+
  if(!playerEligibleForSlot(p,slot))return null;
- let close=[["LB","LWB"],["RB","RWB"],["DM","CM"],["CDM","CM"],["AM","CM"],["CAM","CM"],["LM","LW"],["RM","RW"],["CF","ST"]];
+
+ let close=[
+   ["LB","LWB"],["RB","RWB"],
+   ["DM","CM"],["CDM","CM"],
+   ["AM","CM"],["CAM","CM"],
+   ["LM","LW"],["RM","RW"],
+   ["CF","ST"]
+ ];
  return close.some(x=>x.includes(p.pos)&&x.includes(slot))?3:5;
 }
 function positionalEffectiveness(p,slot,teamId=G.club){
@@ -3527,7 +3575,9 @@ function positionalEffectiveness(p,slot,teamId=G.club){
  if(naturalForTacticalSlot(p,slot))return{eligible:true,penalty:0,effectiveOvr:Number(p.ovr)||0,familiarity:100,label:"Natural"};
  let raw=baseSecondaryPenalty(p,slot);if(raw===null)return{eligible:false,penalty:99,effectiveOvr:0,familiarity:0,label:"Ineligible"};
  let band=coachAdaptationBand(teamId),penalty=Math.max(1,Math.round(raw*(1-band.recovery)));
- let roleType=sideSwitchEligible(p,slot)?"Side switch":"Secondary";
+ let roleType=sideSwitchEligible(p,slot)?"Side switch":
+              defensiveFamilyEligible(p,slot)?"Defensive cover":
+              midfieldCoverageEligible(p,slot)?"Midfield cover":"Secondary";
  return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:roleType,coachBand:band.label};
 }
 function systemFitScore(p,slot=null,teamId=G.club){
@@ -3549,6 +3599,7 @@ function preferredSlotForPlayer(p,teamId=G.club){
  let slots=formationSlotsForCoach(teamId).flat();
  let natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;
  let side=slots.find(s=>sideSwitchEligible(p,s));if(side)return side;
+ let family=slots.find(s=>defensiveFamilyEligible(p,s)||midfieldCoverageEligible(p,s));if(family)return family;
  let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
 }
 function bestFitForPlayer(p,teamId=G.club){
@@ -3857,7 +3908,7 @@ function staffView(){
  '<div class="identityRoles"><span>Preferred tactical roles</span><b>'+roleText+'</b></div></div>'+
  '<div class="card"><div class="title">Squad System Fit</div><div class="sub">Fit measures suitability to this coach. It does not change a player’s OVR.</div>'+
  '<div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div>'+
- '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR helps players execute valid secondary roles and opposite-side wide roles. It never makes an unrelated player eligible for a position.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of an eligible role penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
+ '<div class="card"><div class="title">Coach Adaptation</div><div class="sub">Coach OVR helps players execute valid secondary roles, opposite-side wide roles, defensive cover and limited midfield cover. It never makes an unrelated player eligible for a position.</div><div class="adaptBand"><b>'+band.label+' · '+Math.round(band.recovery*100)+'%</b><span>of an eligible role penalty recovered</span></div></div>'+'<div class="card"><div class="title">Formation Coverage</div><div class="sub">'+(coverage.ok?'Your squad currently has eligible coverage for every role in '+h.formation+'.':'Missing eligible cover: '+coverage.missing.join(' · ')+'. The game will not fill these roles with fundamentally unsuitable players.')+'</div></div>'+'<div class="card"><div class="title">GM Impact</div><div class="sub">Player OVR remains core ability. Secondary-position effectiveness, coach adaptation and System Fit then shape who is best suited to the Starting XI.</div></div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
