@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.8.4 Role Coverage Refinement Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.8.5 Season Awards Integrity Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1829,6 +1829,10 @@ nav button:active{
   line-height:1.4;
 }
 
+
+/* v2.9.8.5 Season Awards Integrity */
+.awardsHero .sub{max-width:520px}
+
 </style>
 </head>
 <body>
@@ -1905,7 +1909,7 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.8.4 Role Coverage Refinement Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.8.5 Season Awards Integrity Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
@@ -2599,6 +2603,11 @@ function teamMatchStats(gf,ga,home){
  return{possession:poss,shots,onTarget:sot};
 }
 function leagueStatPlayers(){ensurePlayerStats();return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&p.team>=0)}
+function premierStatPlayers(){
+ ensureLeagueWorld();ensurePlayerStats();
+ let topIds=new Set(G.leagues.top.clubIds);
+ return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&topIds.has(p.team));
+}
 function topScorers(n=5){return [...leagueStatPlayers()].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists||b.ovr-a.ovr).slice(0,n)}
 function avgRating(p){let s=p.stats||{};return s.ratedApps?s.ratingTotal/s.ratedApps:0}
 function awardMinimumApps(kind="outfield"){
@@ -2608,6 +2617,18 @@ function awardMinimumApps(kind="outfield"){
 function qualifiedPlayers(filterFn,minApps=null){
  let threshold=Number.isFinite(minApps)?minApps:awardMinimumApps();
  return leagueStatPlayers().filter(p=>(p.stats.apps||0)>=threshold&&(!filterFn||filterFn(p)));
+}
+function premierAwardMinimumApps(kind="outfield"){
+ let weeks=leagueSeasonWeeks("top");
+ return kind==="gk"?Math.max(8,Math.ceil(weeks*.50)):Math.max(8,Math.ceil(weeks*.40));
+}
+function qualifiedPremierPlayers(filterFn,minApps=null){
+ let threshold=Number.isFinite(minApps)?minApps:premierAwardMinimumApps();
+ return premierStatPlayers().filter(p=>(p.stats.apps||0)>=threshold&&(!filterFn||filterFn(p)));
+}
+function premierPlayerSeasonScore(p){
+ let s=p.stats,table=standings("top"),po=table.findIndex(c=>c.id===p.team)+1,avg=avgRating(p)||6;
+ return p.ovr*.20+s.goals*1.7+s.assists*1.15+s.apps*.05+avg*9+s.potm*1.4+Math.max(0,(table.length+1)-po)*.25;
 }
 function awardPayload(p){
  if(!p)return null;
@@ -2641,7 +2662,7 @@ function goalkeeperSeasonScore(p){
  return avg*10+s.cleanSheets*1.8+s.saves*.12-gaPerApp*2+s.potm;
 }
 function teamOfSeason(){
- let ps=qualifiedPlayers(null,awardMinimumApps());
+ let ps=qualifiedPremierPlayers(null,premierAwardMinimumApps());
  let pick=(positions,count,scoreFn)=>{
    let arr=ps.filter(p=>positions.includes(positionGroup(p.pos))||positions.includes(p.pos)).sort((a,b)=>scoreFn(b)-scoreFn(a));
    return arr.slice(0,count).map(awardPayload);
@@ -2652,25 +2673,75 @@ function teamOfSeason(){
  let fwd=pick(["FWD"],3,forwardSeasonScore);
  return [...gk,...def,...mid,...fwd].filter(Boolean);
 }
+function premierManagerOfYear(){
+ let table=standings("top"),topIds=new Set(G.leagues.top.clubIds);
+ let clubs=G.clubs.filter(c=>topIds.has(c.id));
+ if(!clubs.length)return null;
+
+ let winner=[...clubs].sort((a,b)=>{
+   let ap=table.findIndex(x=>x.id===a.id)+1,bp=table.findIndex(x=>x.id===b.id)+1;
+   let ac=coachProfile(a.id),bc=coachProfile(b.id);
+   // League finish is primary; coach quality breaks close outcomes without allowing lower divisions in.
+   let as=((table.length+1)-ap)*5+(Number(ac.ovr)||0)*.18;
+   let bs=((table.length+1)-bp)*5+(Number(bc.ovr)||0)*.18;
+   return bs-as;
+ })[0];
+
+ if(!winner)return null;
+ let coach=coachProfile(winner.id),pos=table.findIndex(x=>x.id===winner.id)+1;
+ return{club:winner.name,clubId:winner.id,name:coach.name,coach:coach.ovr,position:pos};
+}
+function premierGMOfYear(){
+ let table=standings("top"),topIds=new Set(G.leagues.top.clubIds);
+ let clubs=G.clubs.filter(c=>topIds.has(c.id));
+ if(!clubs.length)return null;
+
+ // Infer preseason stature from reputation rank inside the Premier Division.
+ // This rewards outperforming expectations while still valuing elite final results.
+ let stature=[...clubs].sort((a,b)=>(Number(b.rep)||75)-(Number(a.rep)||75));
+ let expectedPos=new Map(stature.map((c,i)=>[c.id,i+1]));
+
+ let ranked=clubs.map(c=>{
+   let actual=table.findIndex(x=>x.id===c.id)+1;
+   let expected=expectedPos.get(c.id)||table.length;
+   let overperformance=expected-actual;
+   let finishScore=(table.length+1-actual)*3.2;
+   let overScore=overperformance*4.5;
+   let gd=Number(c.gf||0)-Number(c.ga||0);
+   let efficiency=Math.max(-4,Math.min(6,gd/12));
+   let financial=Math.max(-2,Math.min(4,(Number(c.budget)||0)/100000000));
+   return{club:c,actual,expected,overperformance,score:finishScore+overScore+efficiency+financial};
+ }).sort((a,b)=>b.score-a.score);
+
+ let best=ranked[0];
+ return best?{
+   club:best.club.name,
+   clubId:best.club.id,
+   position:best.actual,
+   expected:best.expected,
+   overperformance:best.overperformance,
+   score:Number(best.score.toFixed(1))
+ }:null;
+}
 function seasonAwards(){
- let ps=qualifiedPlayers(null,awardMinimumApps()),all=leagueStatPlayers();
+ // The Annual Football Awards are Premier Division awards regardless of the user's current division.
+ let ps=qualifiedPremierPlayers(null,premierAwardMinimumApps()),all=premierStatPlayers();
  let gb=[...all].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists||avgRating(b)-avgRating(a))[0];
  let assist=[...all].sort((a,b)=>b.stats.assists-a.stats.assists||b.stats.keyPasses-a.stats.keyPasses||avgRating(b)-avgRating(a))[0];
- let poty=[...ps].sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0];
- let young=[...ps].filter(p=>p.age<=21).sort((a,b)=>playerSeasonScore(b)-playerSeasonScore(a))[0];
- let gks=qualifiedPlayers(p=>positionGroup(p.pos)==="GK",awardMinimumApps("gk"));
- let defs=qualifiedPlayers(p=>positionGroup(p.pos)==="DEF",awardMinimumApps());
- let mids=qualifiedPlayers(p=>positionGroup(p.pos)==="MID",awardMinimumApps());
- let fwds=qualifiedPlayers(p=>positionGroup(p.pos)==="FWD",awardMinimumApps());
+ let poty=[...ps].sort((a,b)=>premierPlayerSeasonScore(b)-premierPlayerSeasonScore(a))[0];
+ let young=[...ps].filter(p=>p.age<=21).sort((a,b)=>premierPlayerSeasonScore(b)-premierPlayerSeasonScore(a))[0];
+ let gks=qualifiedPremierPlayers(p=>positionGroup(p.pos)==="GK",premierAwardMinimumApps("gk"));
+ let defs=qualifiedPremierPlayers(p=>positionGroup(p.pos)==="DEF",premierAwardMinimumApps());
+ let mids=qualifiedPremierPlayers(p=>positionGroup(p.pos)==="MID",premierAwardMinimumApps());
+ let fwds=qualifiedPremierPlayers(p=>positionGroup(p.pos)==="FWD",premierAwardMinimumApps());
  let glove=[...gks].sort((a,b)=>goalkeeperSeasonScore(b)-goalkeeperSeasonScore(a))[0];
  let def=[...defs].sort((a,b)=>defenderSeasonScore(b)-defenderSeasonScore(a))[0];
  let mid=[...mids].sort((a,b)=>midfielderSeasonScore(b)-midfielderSeasonScore(a))[0];
  let fwd=[...fwds].sort((a,b)=>forwardSeasonScore(b)-forwardSeasonScore(a))[0];
- let table=standings(),mc=[...G.clubs].sort((a,b)=>{
-   let ap=table.findIndex(x=>x.id===a.id)+1,bp=table.findIndex(x=>x.id===b.id)+1;
-   return(((table.length+1)-bp)*4+(95-b.rep)*1.25)-(((table.length+1)-ap)*4+(95-a.rep)*1.25)
- })[0];
+
  return{
+  division:"top",
+  divisionName:leagueInfo("top").name,
   player:awardPayload(poty),
   goldenBoot:awardPayload(gb),
   assistKing:awardPayload(assist),
@@ -2679,7 +2750,8 @@ function seasonAwards(){
   midfielder:awardPayload(mid),
   forward:awardPayload(fwd),
   young:awardPayload(young),
-  manager:mc?{club:mc.name,coach:coachProfile(mc.id).ovr}:null,
+  manager:premierManagerOfYear(),
+  gm:premierGMOfYear(),
   teamOfSeason:teamOfSeason()
  };
 }
@@ -3150,7 +3222,7 @@ function showSeasonReview(){
  stat("FINAL POSITION",ordinal(r.pos),r.divisionName||leagueInfo().name)+
  '</div>'+
  '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">'+(r.division==="lower"?"Promotion places":"Top four")+'</div>'+(((r.division==="lower"?r.promoted:r.topFour)||[]).map(x=>'<div class="podiumRow worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+(r.division==="top"?'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join("")):"")+'</div>'+
-  '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Annual Football Awards</div><div class="sub">League honours based on the completed season.</div></div>'+
+  '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Premier Division Awards</div><div class="sub">Premier Division honours based exclusively on top-flight performance.</div></div>'+
  '<div class="awardsGrid">'+
  (r.awards&&r.awards.player?'<div class="awardCard major worldAwardCard" '+worldPlayerAttrs(r.awards.player)+'><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.player.name+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
  (r.awards&&r.awards.goldenBoot?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenBoot)+'><div class="label">GOLDEN BOOT</div><div class="awardName">'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
@@ -3160,7 +3232,8 @@ function showSeasonReview(){
  (r.awards&&r.awards.midfielder?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.midfielder)+'><div class="label">MIDFIELDER OF THE YEAR</div><div class="awardName">'+r.awards.midfielder.name+' · '+r.awards.midfielder.pos+'</div><div class="awardMeta">'+r.awards.midfielder.club+'</div><div class="awardValue">'+r.awards.midfielder.avg+' AVG</div></div>':'')+
  (r.awards&&r.awards.forward?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.forward)+'><div class="label">FORWARD OF THE YEAR</div><div class="awardName">'+r.awards.forward.name+' · '+r.awards.forward.pos+'</div><div class="awardMeta">'+r.awards.forward.club+'</div><div class="awardValue">'+r.awards.forward.avg+' AVG</div></div>':'')+
  (r.awards&&r.awards.young?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.young)+'><div class="label">YOUNG PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.young.name+' · '+r.awards.young.pos+'</div><div class="awardMeta">'+r.awards.young.club+' · Age '+r.awards.young.age+'</div><div class="awardValue">'+r.awards.young.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.manager?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.manager.club)+'><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.club+'</div><div class="awardMeta">Head Coach</div><div class="awardValue">'+r.awards.manager.coach+' rating</div></div>':'')+
+ (r.awards&&r.awards.manager?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.manager.club)+'><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.name+'</div><div class="awardMeta">'+r.awards.manager.club+' · Head Coach</div><div class="awardValue">'+ordinal(r.awards.manager.position)+' finish · '+r.awards.manager.coach+' OVR</div></div>':'')+
+ (r.awards&&r.awards.gm?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.gm.club)+'><div class="label">GM OF THE YEAR</div><div class="awardName">'+r.awards.gm.club+'</div><div class="awardMeta">General Manager · Premier Division</div><div class="awardValue">'+(r.awards.gm.overperformance>0?("+"+r.awards.gm.overperformance+" vs expectation"):ordinal(r.awards.gm.position)+" finish")+'</div></div>':'')+
  '</div>'+
  (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer worldAwardCard" '+worldPlayerAttrs(p)+'><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
 '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
