@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.9.1 Coach Blueprint Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.9.2 Player Identity & Coach Fit Standardisation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -1840,6 +1840,10 @@ nav button:active{
 .tacticalPlayer .pitchPos{font-size:8px!important;color:#b8c3cb!important;font-weight:800}.tacticalPlayer .pitchFit{font-size:7px!important}.pitchLegend.simple{font-size:9px!important;text-align:center;color:var(--muted)}
 .roleArchetype{display:inline-flex;margin-top:5px;border:1px solid #705d25;background:#d9b54a0c;color:var(--gold);border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900;letter-spacing:.04em}
 
+
+/* v2.9.9.2 Player Identity & Coach Fit Standardisation */
+.playerStyleTag{display:inline-flex;margin-top:5px;margin-right:5px;border:1px solid #4a5968;background:#ffffff04;color:#d7dfe6;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:850;letter-spacing:.035em}
+.teamCoachSummary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 12px;margin-bottom:10px;border:1px solid #705d25;border-radius:13px;background:#d9b54a08}.teamCoachSummary b{display:block;font-size:13px;margin-top:3px}.teamCoachSummary span{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.35}.teamCoachLink{flex:0 0 auto;border:1px solid #705d25;background:#d9b54a10;color:var(--gold);border-radius:999px;padding:8px 10px;font-size:8px;font-weight:950;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -1916,11 +1920,30 @@ nav button:active{
 <script>
 (function(){
 "use strict";
-const BUILD_VERSION="Mini&Me Football Club v2.9.9.1 Coach Blueprint Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.9.2 Player Identity & Coach Fit Standardisation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
-const FIRST=["Luca","Mateo","Jamie","Noah","Leo","Daniel","Alex","Marcus","Ethan","Theo","Oscar","Hugo","Sam","Ben","Tom","Kai","Milan","Nico","Rafael","Julian","Marco","Gabriel","Adam","Finn","Lucas","Oliver","Max","Elijah","Dylan","Jack"];
-const LAST=["Silva","Costa","Bennett","Morgan","Rossi","Martinez","Moretti","Wilson","Davies","Brown","Taylor","Santos","Kovac","Muller","Evans","King","Murphy","Young","Reed","Walker","Hughes","Clarke","Lewis","Scott","Green","Hall","Wright","Baker","Hill","Turner"];
+const NAME_POOLS=[
+ {first:["James","Oliver","Harry","George","Jack","Charlie","Thomas","Oscar","William","Henry","Theo","Leo","Finn","Callum","Lewis","Jamie","Ewan","Rory","Declan","Conor","Liam","Ryan","Kieran","Nathan"],last:["Smith","Jones","Williams","Taylor","Brown","Davies","Wilson","Evans","Roberts","Walker","Wright","White","Hughes","Edwards","Green","Hall","Lewis","Clarke","Morgan","Murphy","Kelly","Doyle","Campbell","Reid"]},
+ {first:["Mateo","Hugo","Lucas","Martin","Daniel","Pablo","Alejandro","Diego","Adrian","Sergio","Nico","Rafael","Tiago","Joao","Bruno","Miguel","Diogo","Pedro","Tomas","Enzo","Iker","Marco","Rodrigo","Antonio"],last:["Garcia","Rodriguez","Gonzalez","Fernandez","Lopez","Martinez","Sanchez","Perez","Gomez","Silva","Santos","Costa","Oliveira","Pereira","Ferreira","Carvalho","Ribeiro","Mendes","Rocha","Nunes","Correia","Teixeira","Navarro","Ramos"]},
+ {first:["Luca","Marco","Matteo","Alessandro","Lorenzo","Davide","Federico","Nicolo","Andrea","Simone","Francesco","Riccardo","Gabriele","Tommaso","Leonardo","Giovanni","Filippo","Stefano","Daniele","Mattia"],last:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","Mancini","Lombardi","Moretti","Barbieri","Rinaldi","Caruso","Ferrara"]},
+ {first:["Lucas","Hugo","Louis","Theo","Jules","Arthur","Nathan","Maxime","Alexandre","Antoine","Mathis","Raphael","Baptiste","Benjamin","Victor","Noah","Enzo","Romain","Loic","Sacha"],last:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefevre","Michel","Bertrand","Roux","Vincent","Fournier","Lambert","Leclerc"]},
+ {first:["Leon","Lukas","Finn","Jonas","Felix","Paul","Julian","Niklas","David","Florian","Timo","Moritz","Mats","Kai","Jan","Nico","Lars","Emil","Jakub","Mateusz","Dominik","Marek","Luka","Ivan"],last:["Muller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Hoffmann","Kovac","Horvat","Novak","Kral","Nowak","Kowalski","Mazur","Jensen","Nielsen","Larsen","Andersen","Berg","Eriksen","Jovic","Markovic"]},
+ {first:["Samuel","Daniel","Victor","Emmanuel","David","Isaac","Joseph","Michael","Ibrahim","Musa","Amadou","Ousmane","Kofi","Kwame","Chinedu","Tunde","Femi","Ayoub","Youssef","Hakim","Rayan","Bilal","Achraf","Karim"],last:["Mensah","Boateng","Owusu","Agyemang","Asante","Kamara","Conteh","Diallo","Traore","Keita","Camara","Toure","Kone","Diop","Ndiaye","Sarr","Okafor","Eze","Nwosu","Adebayo","Balogun","Amrabat","Bamba","Mendy"]},
+ {first:["Gabriel","Matias","Thiago","Nicolas","Santiago","Joaquin","Franco","Valentin","Lautaro","Facundo","Bruno","Enzo","Lucas","Juan","Tomas","Sebastian","Emiliano","Cristian","Diego","Andres","Caio","Vinicius","Pedro","Rafael"],last:["Alvarez","Fernandez","Romero","Gimenez","Suarez","Pereira","Acosta","Benitez","Cabrera","Medina","Torres","Vargas","Rojas","Mendoza","Barrios","Souza","Oliveira","Lima","Costa","Alves","Rocha","Moura","Araujo","Freitas"]},
+ {first:["Ethan","Noah","Liam","Mason","Logan","Owen","Caleb","Cameron","Jordan","Tyler","Connor","Dylan","Austin","Cole","Blake","Cooper","Mitchell","Jackson","Benjamin","Levi","Max","Flynn","Lachlan","Angus"],last:["Anderson","Miller","Davis","Moore","Jackson","Martin","Lee","Harris","Clark","Robinson","Young","Allen","King","Wright","Scott","Baker","Nelson","Carter","Mitchell","Cooper","Parker","Collins","Fletcher","Kennedy"]},
+ {first:["Minjun","Jiho","Hyunwoo","Seojun","Taeyang","Junho","Yuto","Haruto","Ren","Kaito","Sota","Riku","Daichi","Takumi","Wei","Jun","Hao","Chen","Tao","Jian"],last:["Kim","Lee","Park","Choi","Jung","Kang","Cho","Yoon","Jang","Lim","Sato","Suzuki","Takahashi","Tanaka","Watanabe","Ito","Yamamoto","Nakamura","Wang","Zhang"]},
+ {first:["Omar","Ali","Youssef","Ahmed","Mohamed","Karim","Amir","Sami","Rami","Tariq","Nabil","Hassan","Hamza","Bilal","Mehdi","Farid","Reza","Arman","Emre","Kerem"],last:["Haddad","Khalil","Mansour","Nasser","Saleh","Rahman","Farah","Hamdan","Aziz","Darwish","Hussein","Mahmoud","Karimi","Hosseini","Rahimi","Jafari","Demir","Yilmaz","Kaya","Aydin"]}
+];
+const FIRST=[...new Set(NAME_POOLS.flatMap(x=>x.first))];
+const LAST=[...new Set(NAME_POOLS.flatMap(x=>x.last))];
+let generatedNameRegistry=new Set();
+function resetGeneratedNameRegistry(){generatedNameRegistry=new Set();if(G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)})}
+function generateFootballName(){
+ if(!generatedNameRegistry.size&&G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+ for(let attempt=0;attempt<30;attempt++){let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)],name=pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)];if(!generatedNameRegistry.has(name)){generatedNameRegistry.add(name);return name}}
+ let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)],fallback=pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)]+" "+String(rnd(2,99));generatedNameRegistry.add(fallback);return fallback;
+}
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 const COACH_STYLES=["Possession","Balanced","High Press","Direct","Counter Attack"];
 const COACH_STYLE_PROFILES={
@@ -1955,6 +1978,36 @@ const COACH_STYLE_PROFILES={
    tag:"Compact & explosive"
  }
 };
+
+const PLAYER_STYLE_POOLS={
+ GK:["Goalkeeper","Sweeper Keeper"],CB:["Ball Playing Defender","Stopper","Cover Defender"],FB:["Supporting Full Back","Defensive Full Back","Wing Back"],
+ MID:["Controller","Playmaker","Ball Winner","Runner"],WIDE_MID:["Wide Creator","Direct Winger","Wide Midfielder"],WIDE_FWD:["Creative Winger","Direct Winger","Wide Creator"],
+ LINK_FWD:["Link Forward","Second Striker","Striker"],ST:["Striker","Link Forward","Pressing Forward"]
+};
+const STYLE_COMPATIBILITY={
+ "Goalkeeper":["Sweeper Keeper"],"Sweeper Keeper":["Goalkeeper"],"Ball Playing Defender":["Cover Defender"],"Stopper":["Cover Defender","Ball Playing Defender"],"Cover Defender":["Ball Playing Defender","Stopper"],
+ "Supporting Full Back":["Wing Back","Defensive Full Back"],"Defensive Full Back":["Supporting Full Back"],"Wing Back":["Supporting Full Back","Wide Midfielder"],
+ "Controller":["Playmaker","Runner"],"Playmaker":["Controller","Wide Creator"],"Ball Winner":["Runner","Controller"],"Runner":["Ball Winner","Controller"],
+ "Wide Creator":["Creative Winger","Playmaker","Wide Midfielder"],"Creative Winger":["Wide Creator","Direct Winger"],"Direct Winger":["Creative Winger","Wide Midfielder","Wing Back"],"Wide Midfielder":["Wide Creator","Direct Winger","Wing Back"],
+ "Link Forward":["Second Striker","Striker","Playmaker"],"Second Striker":["Link Forward","Striker"],"Striker":["Link Forward","Pressing Forward","Second Striker"],"Pressing Forward":["Striker","Link Forward"]
+};
+function stylePoolForPosition(pos){if(pos==="GK")return PLAYER_STYLE_POOLS.GK;if(["CB","LCB","RCB","SW"].includes(pos))return PLAYER_STYLE_POOLS.CB;if(["LB","RB","LWB","RWB","WB"].includes(pos))return PLAYER_STYLE_POOLS.FB;if(["LM","RM"].includes(pos))return PLAYER_STYLE_POOLS.WIDE_MID;if(["LW","RW","LF","RF"].includes(pos))return PLAYER_STYLE_POOLS.WIDE_FWD;if(["CF","SS"].includes(pos))return PLAYER_STYLE_POOLS.LINK_FWD;if(pos==="ST")return PLAYER_STYLE_POOLS.ST;return PLAYER_STYLE_POOLS.MID}
+function compatiblePlayerStyle(style,target){if(!style||!target)return false;return(STYLE_COMPATIBILITY[target]||[]).includes(style)||(STYLE_COMPATIBILITY[style]||[]).includes(target)}
+function independentStyleForPosition(pos){let pool=stylePoolForPosition(pos);return pool[rnd(0,pool.length-1)]}
+function seedPlayerStyle(p,legacyTeamId=null){
+ if(!p||p.primaryStyle)return;
+ let teamId=Number.isFinite(Number(legacyTeamId))?Number(legacyTeamId):(p.team>=0?p.team:null),desired=null,oldScore=0;
+ if(teamId!==null&&G&&G.clubs&&G.clubs[teamId]){
+  let slot=preferredSlotForPlayer(p,teamId),h=coachProfile(teamId),profile=coachStyleProfile(teamId),pe=positionalEffectiveness(p,slot,teamId);desired=roleArchetypeForSlot(slot,h.style);
+  if(pe.eligible){let positional=p.pos===slot?60:48,styleBonus=profile.roles.includes(p.pos)?18:profile.roles.includes(slot)?12:6,formationBonus=profile.formations.includes(h.formation)?10:5;oldScore=Math.max(20,Math.min(100,Math.round(positional+styleBonus+formationBonus)))}
+ }
+ if(desired&&oldScore>=82)p.primaryStyle=desired;
+ else{let pool=stylePoolForPosition(p.pos);if(desired&&oldScore>=68){let comp=pool.filter(s=>s===desired||compatiblePlayerStyle(s,desired)),source=comp.length?comp:pool;p.primaryStyle=source[rnd(0,source.length-1)]}else p.primaryStyle=independentStyleForPosition(p.pos)}
+ let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);p.secondaryStyle=null;
+ if(opts.length&&Math.random()<(p.age<=24?.38:.25)){let comp=opts.filter(x=>compatiblePlayerStyle(x,p.primaryStyle)),source=comp.length?comp:opts;p.secondaryStyle=source[rnd(0,source.length-1)]}
+}
+function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEach(p=>seedPlayerStyle(p,p.team>=0?p.team:null))}
+
 let G=null, selected=0, page="home", selectedLeagueSize=20;
 let clubTab="overview",leagueTab="table",squadTab="team";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -1973,19 +2026,13 @@ function renderBuildVersion(){
 
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=n=>"$"+(n>=1e6?(n/1e6).toFixed(1)+"m":Math.round(n/1000)+"k");
-function player(team,i){let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);let p={id:uid(),name:FIRST[rnd(0,29)]+" "+LAST[rnd(0,29)],pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[]};seedSecondaryPositions(p);return p}
-function buildClubRecord(name,i,tier){
- let baseRep=tier==="top"?90-(i%24):72-Math.floor((i%24)/2);
- return{id:i,name,shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
-  rep:Math.max(56,baseRep+rnd(-2,2)),
-  balance:rnd(tier==="top"?50:18,tier==="top"?180:75)*1e6,
-  budget:rnd(tier==="top"?18:5,tier==="top"?65:22)*1e6,
-  facility:rnd(tier==="top"?2:1,tier==="top"?4:3),
-  facilities:{training:rnd(tier==="top"?2:1,tier==="top"?4:3),youth:rnd(1,3),scouting:rnd(1,3),medical:rnd(1,3)},
-  coach:rnd(tier==="top"?66:58,tier==="top"?88:76),
-  p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+function player(team,i){
+ let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);
+ let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ seedSecondaryPositions(p);p.primaryStyle=independentStyleForPosition(p.pos);let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);if(opts.length&&Math.random()<(age<=24?.38:.25))p.secondaryStyle=opts[rnd(0,opts.length-1)];return p;
 }
 function world(){
+ generatedNameRegistry=new Set();
  let size=selectedLeagueSize||20,clubs=[],players=[];
  let topNames=CLUBS.slice(0,size),lowerNames=LOWER_CLUBS.slice(0,size);
  while(topNames.length<size)topNames.push("Premier Club "+(topNames.length+1));
@@ -2604,11 +2651,7 @@ function buildMatchPerformance(team,goalsFor,goalsAgainst,matchData,opponentShot
 
  return rows;
 }
-function teamMatchStats(gf,ga,home){
- let edge=(gf-ga)*4+rnd(-7,7),poss=Math.max(34,Math.min(66,50+edge+(home?2:0)));
- let shots=Math.max(gf+2,rnd(7,14)+gf*2),sot=Math.min(shots,Math.max(gf,rnd(Math.max(gf,2),Math.max(gf+2,6))));
- return{possession:poss,shots,onTarget:sot};
-}
+function teamMatchStats(gf,ga,home){let edge=(gf-ga)*2.4+rnd(-6,6),poss=Math.max(36,Math.min(64,50+edge+(home?1.5:0))),shots=Math.max(gf+2,rnd(7,13)+Math.round(gf*1.4)),sot=Math.min(shots,Math.max(gf,rnd(Math.max(gf,2),Math.max(gf+2,6))));return{possession:Math.round(poss),shots,onTarget:sot}}
 function leagueStatPlayers(){ensurePlayerStats();return G.players.filter(p=>p.stats&&p.stats.season===G.season&&p.stats.apps>0&&p.team>=0)}
 function premierStatPlayers(){
  ensureLeagueWorld();ensurePlayerStats();
@@ -2778,7 +2821,8 @@ function leagueLeadersHtml(){
         leaderCard("Highest Average Rating","Minimum 10 appearances",ratings,p=>avgRating(p).toFixed(2))+
         leaderCard("Goalkeeper Leaders","Clean sheets · saves",keepers,p=>p.stats.cleanSheets+" CS");
 }
-function sim(a,b){let sa=strength(a)+2.5,sb=strength(b),ga=0,gb=0;for(let i=0;i<6;i++){if(Math.random()<Math.max(.08,.19+(sa-sb)*.011))ga++;if(Math.random()<Math.max(.08,.18+(sb-sa)*.011))gb++}return[Math.min(ga,6),Math.min(gb,6)]}
+function poissonGoals(lambda){let L=Math.exp(-Math.max(.05,lambda)),k=0,p=1;do{k++;p*=Math.random()}while(p>L&&k<10);return Math.max(0,k-1)}
+function sim(a,b){let sa=strength(a),sb=strength(b),diff=Math.max(-18,Math.min(18,sa-sb)),xgHome=Math.max(.48,Math.min(2.75,1.50+diff*.052)),xgAway=Math.max(.42,Math.min(2.55,1.20-diff*.047));xgHome*=.90+Math.random()*.20;xgAway*=.90+Math.random()*.20;return[Math.min(6,poissonGoals(xgHome)),Math.min(6,poissonGoals(xgAway))]}
 function apply(a,b,ga,gb){let A=G.clubs[a],B=G.clubs[b];A.p++;B.p++;A.gf+=ga;A.ga+=gb;B.gf+=gb;B.ga+=ga;if(ga>gb){A.w++;B.l++;A.pts+=3}else if(gb>ga){B.w++;A.l++;B.pts+=3}else{A.d++;B.d++;A.pts++;B.pts++}}
 function simulateDivisionWeek(key){
  let round=G.schedule[key]?.[G.week];if(!round)return null;
@@ -2940,30 +2984,10 @@ function freeAgentGroupCounts(){
  return counts;
 }
 function ensureFreeAgentMarketHealth(){
- ensureLifecycleState();
- if(!Array.isArray(G.freeAgents))G.freeAgents=[];
- let targets={GK:3,DEF:7,MID:7,FWD:7},counts=freeAgentGroupCounts(),created=0;
- Object.keys(targets).forEach(group=>{
-   let shortage=Math.max(0,targets[group]-counts[group]);
-   for(let i=0;i<shortage;i++){
-     // Affordable depth first, with only occasional stronger options.
-     let roll=Math.random(),bias=roll<.65?rnd(-5,-1):roll<.93?rnd(-1,3):rnd(3,6);
-     let young=Math.random()<.58;
-     let np=generateWorldPlayer(-1,bias,young,group);
-     if(young)np.age=rnd(18,22);
-     np.ovr=Math.max(55,Math.min(80,np.ovr));
-     np.pot=Math.max(np.ovr+2,Math.min(92,np.pot));
-     np.wage=Math.round((8000+Math.max(0,np.ovr-55)*2600+rnd(0,9000))/1000)*1000;
-     np.value=np.ovr*np.ovr*rnd(3000,5200);
-     G.players.push(np);
-     if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);
-     created++;
-   }
- });
- if(created){
-   G._runtimeHydrationStamp=null;
- }
- return created;
+ ensureLifecycleState();if(!Array.isArray(G.freeAgents))G.freeAgents=[];let targets={GK:3,DEF:8,MID:9,FWD:8},counts=freeAgentGroupCounts(),created=0;
+ Object.keys(targets).forEach(group=>{let shortage=Math.max(0,targets[group]-counts[group]);for(let i=0;i<shortage;i++){let roll=Math.random(),bias=roll<.65?rnd(-5,-1):roll<.93?rnd(-1,3):rnd(3,6),young=Math.random()<.58,np=generateWorldPlayer(-1,bias,young,group);if(young)np.age=rnd(18,22);np.ovr=Math.max(55,Math.min(80,np.ovr));np.pot=Math.max(np.ovr+2,Math.min(92,np.pot));np.wage=Math.round((8000+Math.max(0,np.ovr-55)*2600+rnd(0,9000))/1000)*1000;np.value=np.ovr*np.ovr*rnd(3000,5200);G.players.push(np);if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);created++}});
+ ["GK","DEF","MID","FWD"].forEach(group=>{let gp=activeFreeAgents().filter(p=>positionGroup(p.pos)===group&&!p.retiring),styles=[...new Set(gp.flatMap(p=>stylePoolForPosition(p.pos)))];styles.forEach(style=>{if(gp.some(p=>p.primaryStyle===style||p.secondaryStyle===style))return;let np=generateWorldPlayer(-1,rnd(-5,0),true,group);np.primaryStyle=style;np.secondaryStyle=null;np.ovr=Math.max(55,Math.min(74,np.ovr));np.wage=Math.round((7000+Math.max(0,np.ovr-55)*2200)/1000)*1000;G.players.push(np);G.freeAgents.push(np.id);gp.push(np);created++})});
+ if(created)G._runtimeHydrationStamp=null;return created;
 }
 
 function moveToFreeAgency(p){
@@ -2998,16 +3022,20 @@ function randomPositionForGroup(group){
  return arr[rnd(0,arr.length-1)];
 }
 function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null){
- let age=young?rnd(17,22):rnd(18,31);
- let base=rnd(58+qualityBias,74+qualityBias);
- if(young&&Math.random()<.18)base+=rnd(3,8);
- base=Math.max(50,Math.min(86,base));
- let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)];
- let pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- let np={id:uid(),name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[]};
- seedSecondaryPositions(np);return np;
+ let age=young?rnd(17,22):rnd(18,31),base=rnd(58+qualityBias,74+qualityBias);if(young&&Math.random()<.18)base+=rnd(3,8);base=Math.max(50,Math.min(86,base));
+ let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)],pot=Math.min(94,base+rnd(young?5:2,young?16:8));
+ let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ seedSecondaryPositions(np);np.primaryStyle=independentStyleForPosition(np.pos);let opts=stylePoolForPosition(np.pos).filter(x=>x!==np.primaryStyle);if(opts.length&&Math.random()<(young?.42:.28))np.secondaryStyle=opts[rnd(0,opts.length-1)];return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
+function aiRoleNeeds(teamId){
+ let slots=formationSlotsForCoach(teamId).flat(),squad=aiSquad(teamId).filter(p=>!p.retiring),needs=[];
+ slots.forEach(slot=>{let requiredStyle=roleArchetypeForSlot(slot,coachProfile(teamId).style),options=squad.filter(p=>playerEligibleForSlot(p,slot)).map(p=>{let pe=positionalEffectiveness(p,slot,teamId),fit=coachFitAssessment(p,slot,teamId);return{p,score:pe.effectiveOvr+fitSelectionModifier(fit.score),fit}}).sort((a,b)=>b.score-a.score),starter=options[0]?options[0].score:45,depth=options.length,perfectDepth=options.filter(x=>x.fit.label==="Perfect").length;needs.push({slot,requiredStyle,starter,depth,perfectDepth,urgency:(depth===0?38:depth===1?18:0)+Math.max(0,76-starter)+(perfectDepth===0?5:0)})});
+ return needs.sort((a,b)=>b.urgency-a.urgency)
+}
+function aiCandidateScore(player,teamId,need){if(!player||!need||!playerEligibleForSlot(player,need.slot))return -999;let pe=positionalEffectiveness(player,need.slot,teamId),fit=coachFitAssessment(player,need.slot,teamId),ageValue=player.age<=23?3:player.age>=32?-3:0,contractValue=player.years<=1?3:0;return pe.effectiveOvr+fitSelectionModifier(fit.score)*1.8+ageValue+contractValue+need.urgency*.10}
+function aiBestRecruitmentTarget(teamId,candidates){let needs=aiRoleNeeds(teamId).filter(n=>n.urgency>4),best=null;needs.slice(0,6).forEach(need=>candidates.forEach(p=>{let score=aiCandidateScore(p,teamId,need);if(!best||score>best.score)best={player:p,need,score}}));return best}
+function aiEnsureFormationCoverage(teamId){let guard=0;while(!formationCoverage(teamId).ok&&guard<8){guard++;let need=aiRoleNeeds(teamId).find(n=>n.depth===0);if(!need)break;let free=activeFreeAgents().filter(p=>!p.retiring&&playerEligibleForSlot(p,need.slot)).sort((a,b)=>aiCandidateScore(b,teamId,need)-aiCandidateScore(a,teamId,need))[0];if(free){free.team=teamId;openPlayerClubSpell(free,teamId,null);free.freeAgent=false;free.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==free.id)}else{let np=generateWorldPlayer(teamId,rnd(-3,1),true,positionGroup(need.slot));np.primaryStyle=need.requiredStyle;G.players.push(np)}}}
 function aiWorldEvolution(){
  ensureLifecycleState();
  if(!Array.isArray(G.players))G.players=[];
@@ -3074,68 +3102,21 @@ function aiWorldEvolution(){
  }
  ensureFreeAgentMarketHealth();
 
- // AI squad balancing: release surplus fringe players and fill shortages.
+ // AI squad balancing: protect formation coverage and coach identity before general depth.
  G.clubs.forEach(c=>{
-   if(c.id===G.club)return;
-   let squad=aiSquad(c.id).filter(p=>p.team>=0);
-   if(squad.length>30){
-     squad.sort((a,b)=>a.ovr-b.ovr||b.age-a.age).slice(0,squad.length-28).forEach(p=>{
-       moveToFreeAgency(p);
-     });
-   }
-   squad=aiSquad(c.id);
-   let refillGuard=0;
-   while(squad.length<24&&refillGuard<40){
-     refillGuard++;
-     let free=activeFreeAgents().filter(p=>p.ovr<=82).sort((a,b)=>b.ovr-a.ovr)[0];
-     if(free){
-       free.team=c.id;openPlayerClubSpell(free,c.id,null);free.freeAgent=false;free.years=rnd(1,3);
-       G.freeAgents=G.freeAgents.filter(x=>x!==free.id);
-     }else{
-       G.players.push(generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.55));
-     }
-     squad=aiSquad(c.id);
-   }
+  if(c.id===G.club)return;let squad=aiSquad(c.id).filter(p=>p.team>=0);
+  if(squad.length>30){let slots=formationSlotsForCoach(c.id).flat(),utility=p=>{let eligible=slots.filter(s=>playerEligibleForSlot(p,s));if(!eligible.length)return(Number(p.ovr)||0)-12;return Math.max(...eligible.map(s=>{let pe=positionalEffectiveness(p,s,c.id),fit=coachFitAssessment(p,s,c.id);return pe.effectiveOvr+fitSelectionModifier(fit.score)}))};squad.sort((a,b)=>utility(a)-utility(b)||b.age-a.age).slice(0,squad.length-28).forEach(p=>moveToFreeAgency(p))}
+  aiEnsureFormationCoverage(c.id);squad=aiSquad(c.id);let refillGuard=0;
+  while(squad.length<24&&refillGuard<30){refillGuard++;let target=aiBestRecruitmentTarget(c.id,activeFreeAgents().filter(p=>!p.retiring&&p.ovr<=84)),free=target&&target.score>54?target.player:null;if(free){free.team=c.id;openPlayerClubSpell(free,c.id,null);free.freeAgent=false;free.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==free.id)}else{let need=aiRoleNeeds(c.id)[0],np=generateWorldPlayer(c.id,rnd(-2,2),Math.random()<.60,need?positionGroup(need.slot):null);if(need&&Math.random()<.55)np.primaryStyle=need.requiredStyle;G.players.push(np)}squad=aiSquad(c.id)}
  });
 
- // AI transfer activity driven by weak positional groups.
- let moves=0,moveCap=rnd(10,18);
- let clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
- clubs.forEach(buyer=>{
-   if(!buyer||buyer.id===G.club||moves>=moveCap)return;
-   let squad=aiSquad(buyer.id);
-   let groups=["GK","DEF","MID","FWD"];
-   let weakest=groups.map(g=>{
-     let ps=squad.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr);
-     return{g,score:ps.length?ps.slice(0,Math.min(3,ps.length)).reduce((s,p)=>s+p.ovr,0)/Math.min(3,ps.length):50};
-   }).sort((a,b)=>a.score-b.score)[0];
-   let targets=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&positionGroup(p.pos)===weakest.g&&p.ovr>weakest.score+2);
-   targets.sort((a,b)=>(a.years-b.years)||(b.ovr-a.ovr));
-   let p=targets[0];
-   if(p&&buyer.balance>p.value*.75&&Math.random()<.58){
-     let seller=G.clubs[p.team];
-     let fee=Math.round(p.value*(.82+Math.random()*.28)/100000)*100000;
-     if(buyer.balance>=fee){
-       buyer.balance-=fee;if(seller)seller.balance+=fee;
-       closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.years=rnd(2,4);p.listed=false;p.freeAgent=false;
-       moves++;
-     }
-   }
- });
+ // AI transfer activity driven by tactical slot and player-style needs.
+ let moves=0,moveCap=rnd(12,20),clubs=[...G.clubs].filter(Boolean).sort(()=>Math.random()-.5);
+ clubs.forEach(buyer=>{if(!buyer||buyer.id===G.club||moves>=moveCap)return;let need=aiRoleNeeds(buyer.id).find(n=>n.urgency>5);if(!need)return;let candidates=G.players.filter(p=>p.team>=0&&p.team!==buyer.id&&p.team!==G.club&&!p.retiring&&playerEligibleForSlot(p,need.slot)),choice=aiBestRecruitmentTarget(buyer.id,candidates),p=choice&&choice.player;if(!p)return;if(choice.score<need.starter+1.25&&need.depth>1&&need.perfectDepth>0)return;let affordability=(Number(buyer.balance)||0)>p.value*.72,ambition=(Number(buyer.rep)||70)>=84?.68:(Number(buyer.rep)||70)>=74?.56:.45;if(affordability&&Math.random()<ambition){let seller=G.clubs[p.team],fee=Math.round(p.value*(.80+Math.random()*.25)/100000)*100000;if(buyer.balance>=fee){buyer.balance-=fee;if(seller)seller.balance+=fee;closePlayerClubSpell(p,fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.years=rnd(2,4);p.listed=false;p.freeAgent=false;moves++}}});
 
- // Mid/low-level free-agent churn: AI signs some, leaving a changing pool.
+ // Free-agent churn is tactical: clubs prefer players who solve coach-role needs.
  let fas=activeFreeAgents().filter(p=>!p.retiring).sort(()=>Math.random()-.5);
- fas.forEach(p=>{
-   if(Math.random()<.34){
-     let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30);
-     if(possible.length){
-       let c=possible[rnd(0,possible.length-1)];
-       p.team=c.id;openPlayerClubSpell(p,c.id,null);p.freeAgent=false;p.years=rnd(1,3);
-       G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
-     }
-   }
- });
-
+ fas.forEach(p=>{if(Math.random()<.30){let possible=G.clubs.filter(c=>c.id!==G.club&&aiSquad(c.id).length<30).map(c=>{let needs=aiRoleNeeds(c.id).filter(n=>playerEligibleForSlot(p,n.slot));if(!needs.length)return null;let best=needs.map(n=>({n,score:aiCandidateScore(p,c.id,n)})).sort((a,b)=>b.score-a.score)[0];return best?{club:c,need:best.n,score:best.score}:null}).filter(Boolean).sort((a,b)=>b.score-a.score),pick=possible[0];if(pick&&pick.score>54){p.team=pick.club.id;openPlayerClubSpell(p,pick.club.id,null);p.freeAgent=false;p.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==p.id)}}});
  G.worldLastRefresh=G.season;
  if(events.length)G.feed.unshift({t:"LEAGUE MOVEMENT",m:events.slice(0,4).join(" · ")+(events.length>4?" · and more":"")});
 }
@@ -3448,8 +3429,8 @@ function endSeason(){
 }
 function stat(k,v,s){return'<div class="card stat"><div class="label">'+k+'</div><div class="value">'+v+'</div><div class="sub">'+s+'</div></div>'}
 function playerRow(p,market){
- seedSecondaryPositions(p);let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null,fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
+ seedSecondaryPositions(p);seedPlayerStyle(p,p.team>=0?p.team:null);let showFit=p.team===G.club||market,fit=showFit?bestFitForPlayer(p,G.club):null,fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'',style='<span class="playerStyleTag">'+p.primaryStyle+(p.secondaryStyle?' · '+p.secondaryStyle:'')+'</span>';
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
@@ -3660,44 +3641,37 @@ function positionalEffectiveness(p,slot,teamId=G.club){
               midfieldCoverageEligible(p,slot)?"Midfield cover":"Secondary";
  return{eligible:true,penalty,effectiveOvr:Math.max(1,(Number(p.ovr)||0)-penalty),familiarity:Math.max(75,100-penalty*4),label:roleType,coachBand:band.label};
 }
-function systemFitScore(p,slot=null,teamId=G.club){
- if(!p)return 0;let h=coachProfile(teamId),profile=coachStyleProfile(teamId),target=slot||preferredSlotForPlayer(p,teamId),pe=positionalEffectiveness(p,target,teamId);
- if(!pe.eligible)return 0;let positional=p.pos===target?60:48,styleBonus=profile.roles.includes(p.pos)?18:profile.roles.includes(target)?12:6,formationBonus=profile.formations.includes(h.formation)?10:5;
- return Math.max(20,Math.min(100,Math.round(positional+styleBonus+formationBonus)));
+function coachFitAssessment(p,slot=null,teamId=G.club){
+ if(!p)return{score:0,label:"Poor",slot:null,requiredStyle:null,playerStyle:null,reason:"No player"};
+ seedPlayerStyle(p,p.team>=0?p.team:null);let target=slot||preferredSlotForPlayer(p,teamId),pe=positionalEffectiveness(p,target,teamId),requiredStyle=roleArchetypeForSlot(target,coachProfile(teamId).style);
+ if(!pe.eligible)return{score:0,label:"Poor",slot:target,requiredStyle,playerStyle:p.primaryStyle,reason:"Ineligible position",positionLabel:"Ineligible",positionPenalty:99};
+ let level=0,reason="Style mismatch";if(p.primaryStyle===requiredStyle){level=4;reason="Exact primary style"}else if(p.secondaryStyle===requiredStyle){level=3;reason="Exact secondary style"}else if(compatiblePlayerStyle(p.primaryStyle,requiredStyle)){level=2;reason="Compatible primary style"}else if(p.secondaryStyle&&compatiblePlayerStyle(p.secondaryStyle,requiredStyle)){level=1;reason="Compatible secondary style"}
+ let natural=naturalForTacticalSlot(p,target),penalty=Math.max(0,Number(pe.penalty)||0),score=0,label="Poor";
+ if(level===4&&natural){score=100;label="Perfect"}else if(level===4){score=Math.max(82,94-penalty*2);label=score>=92?"Perfect":"Good"}else if(level===3&&natural){score=90;label="Good"}else if(level>=2&&natural){score=82;label="Good"}else if(level>=2){score=Math.max(68,80-penalty*2);label=score>=78?"Good":"Fair"}else if(level===1){score=Math.max(60,72-penalty*2);label="Fair"}else if(natural){score=60;label="Fair"}else{score=Math.max(32,54-penalty*3);label=score>=50?"Fair":"Poor"}
+ return{score:Math.round(score),label,slot:target,requiredStyle,playerStyle:p.primaryStyle,secondaryStyle:p.secondaryStyle||null,positionLabel:pe.label,positionPenalty:penalty,reason};
 }
-function systemFitLabel(score){
- score=Number(score)||0;
- return score>=82?"Excellent":score>=68?"Good":score>=50?"Fair":"Poor";
-}
-function systemFitClass(score){let l=systemFitLabel(score);return l==="Excellent"?"excellent":l==="Good"?"good":l==="Fair"?"fair":"poor"}
-function fitSelectionModifier(score){
- let l=systemFitLabel(score);
- return l==="Excellent"?3:l==="Good"?1.5:l==="Fair"?0:-2.5;
-}
+function systemFitScore(p,slot=null,teamId=G.club){return coachFitAssessment(p,slot,teamId).score}
+function systemFitLabel(score){score=Number(score)||0;return score>=92?"Perfect":score>=78?"Good":score>=50?"Fair":"Poor"}
+function systemFitClass(score){let l=systemFitLabel(score);return l==="Perfect"?"excellent":l==="Good"?"good":l==="Fair"?"fair":"poor"}
+function fitSelectionModifier(score){let l=systemFitLabel(score);return l==="Perfect"?3:l==="Good"?1.5:l==="Fair"?0:-2.5}
 function preferredSlotForPlayer(p,teamId=G.club){
- seedSecondaryPositions(p);
- let slots=formationSlotsForCoach(teamId).flat();
- let natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;
- let side=slots.find(s=>sideSwitchEligible(p,s));if(side)return side;
- let family=slots.find(s=>defensiveFamilyEligible(p,s)||midfieldCoverageEligible(p,s));if(family)return family;
+ seedSecondaryPositions(p);let slots=formationSlotsForCoach(teamId).flat(),natural=slots.find(s=>naturalForTacticalSlot(p,s));if(natural)return natural;
+ let side=slots.find(s=>sideSwitchEligible(p,s));if(side)return side;let family=slots.find(s=>defensiveFamilyEligible(p,s)||midfieldCoverageEligible(p,s));if(family)return family;
  let secondary=slots.find(s=>p.secondaryPositions.includes(s));return secondary||p.pos;
 }
-function bestFitForPlayer(p,teamId=G.club){
- let slot=preferredSlotForPlayer(p,teamId),score=systemFitScore(p,slot,teamId);
- return{slot,score,label:systemFitLabel(score)};
-}
+function bestFitForPlayer(p,teamId=G.club){let slots=formationSlotsForCoach(teamId).flat().filter(s=>playerEligibleForSlot(p,s));if(!slots.length)return coachFitAssessment(p,preferredSlotForPlayer(p,teamId),teamId);return slots.map(slot=>coachFitAssessment(p,slot,teamId)).sort((a,b)=>b.score-a.score)[0]}
 function roleArchetypeForSlot(slot,style="Balanced"){
- if(slot==="GK")return "Goalkeeper";
- if(["CB","LCB","RCB","SW"].includes(slot))return style==="Direct"?"Defender":"Ball Playing Defender";
- if(["LB","RB","LWB","RWB","WB"].includes(slot))return style==="Counter Attack"?"Defensive Full Back":"Supporting Full Back";
- if(["DM","CDM","LDM","RDM"].includes(slot))return "Holding Midfielder";
- if(["AM","CAM","LAM","RAM"].includes(slot))return "Playmaker";
- if(["CM","LCM","RCM"].includes(slot))return style==="High Press"?"Ball Winner":style==="Direct"?"Ball Winner":"Controller";
- if(["LW","RW","LM","RM","LF","RF"].includes(slot))return style==="Direct"||style==="Counter Attack"?"Direct Winger":"Creative Winger";
- if(["CF","SS"].includes(slot))return "Link Forward";
- return "Striker";
+ if(slot==="GK")return style==="Possession"?"Sweeper Keeper":"Goalkeeper";
+ if(["CB","LCB","RCB","SW"].includes(slot)){if(style==="Direct")return"Stopper";if(style==="Counter Attack")return"Cover Defender";return"Ball Playing Defender"}
+ if(["LB","RB","LWB","RWB","WB"].includes(slot)){if(style==="Counter Attack")return"Defensive Full Back";if(style==="High Press")return"Wing Back";return"Supporting Full Back"}
+ if(["DM","CDM","LDM","RDM"].includes(slot))return style==="High Press"?"Ball Winner":"Controller";
+ if(["AM","CAM","LAM","RAM"].includes(slot))return"Playmaker";
+ if(["CM","LCM","RCM"].includes(slot)){if(style==="High Press")return"Ball Winner";if(style==="Direct")return"Runner";if(style==="Counter Attack")return"Ball Winner";return"Controller"}
+ if(["LW","RW","LM","RM","LF","RF"].includes(slot)){if(style==="Direct"||style==="Counter Attack")return"Direct Winger";if(style==="Balanced")return"Wide Creator";return"Creative Winger"}
+ if(["CF","SS"].includes(slot))return style==="High Press"?"Pressing Forward":"Link Forward";
+ return style==="Possession"?"Link Forward":"Striker";
 }
-function playerArchetype(p,teamId=G.club){return roleArchetypeForSlot(preferredSlotForPlayer(p,teamId),coachProfile(teamId).style)}
+function playerArchetype(p,teamId=G.club){seedPlayerStyle(p,p.team>=0?p.team:null);return p.primaryStyle||"Unprofiled"}
 function coachBlueprint(teamId=G.club){
  let h=coachProfile(teamId),profile=coachStyleProfile(teamId),lines=formationSlotsForCoach(teamId);
  let names=["ATTACK","MIDFIELD","DEFENCE","GOALKEEPER"];
@@ -3966,6 +3940,7 @@ function developmentView(){
  '<div class="card"><div class="title">Veteran Watch</div><div class="devSectionHint">Senior players who may be approaching decline or retirement decisions.</div>'+
  (veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric">'+p.ovr+' OVR</div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
 }
+function teamCoachSummaryHtml(teamId=G.club){let h=coachProfile(teamId),p=coachStyleProfile(teamId);return '<div class="teamCoachSummary"><div><div class="label">HEAD COACH FOOTBALL IDENTITY</div><b>'+h.name+' · '+h.ovr+' OVR</b><span>'+h.style+' · '+p.tag+' · '+h.formation+'</span></div><button class="teamCoachLink" data-open-staff="1">VIEW COACH</button></div>'}
 function squadTeamView(){
  let c=coachProfile(),xi=startingXI(),slots=formationSlots(),placed=[];
  xi.lines.forEach((line,lineIndex)=>{
@@ -3985,14 +3960,14 @@ function squadTeamView(){
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
  let depth=groups.map(g=>{let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';}).join("");
  let integrity=startingXIIntegrity(G.club),integrityHtml=integrity.ok?'<div class="xiIntegrity ok">XI READY · 11/11 ELIGIBLE</div>':'<div class="xiIntegrity bad">XI INCOMPLETE · '+integrity.count+'/11 · Missing '+integrity.missing.join(" · ")+'</div>';
- return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Ability remains the foundation. Positional effectiveness and Coach Fit refine selection.</div></div><div class="formationBadge">'+c.formation+'</div></div>'+integrityHtml+coachBlueprintHtml(G.club)+
+ return'<div class="card"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Selected by ability, positional suitability and fit with the Head Coach’s Football Identity.</div></div><div class="formationBadge">'+c.formation+'</div></div>'+integrityHtml+teamCoachSummaryHtml(G.club)+
  '<div class="tacticalPitch"><div class="pitchBoundary"></div><div class="pitchHalfway"></div><div class="pitchCentreArc"></div><div class="pitchCentreSpot"></div><div class="pitchPenaltyBox"></div><div class="pitchSixBox"></div><div class="pitchGoal"></div><div class="pitchPenaltySpot"></div><div class="pitchPenaltyArc"></div><div class="pitchCorner bl"></div><div class="pitchCorner br"></div>'+playerHtml+'</div><div class="pitchLegend simple">OVR · player · starting position · Coach Fit</div></div><div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural position. Tap any player for their role and Coach Fit.</div>'+depth+'</div>';
 }
 function staffView(){
  let h=coachProfile(G.club),profile=coachStyleProfile(G.club),fits=roster().map(p=>bestFitForPlayer(p,G.club));
- let counts={Excellent:0,Good:0,Fair:0,Poor:0};fits.forEach(f=>counts[f.label]++);
+ let counts={Perfect:0,Good:0,Fair:0,Poor:0};fits.forEach(f=>{if(counts[f.label]===undefined)counts[f.label]=0;counts[f.label]++});
  return '<div class="card staffHero"><div class="label">HEAD COACH</div><div class="staffName">'+h.name+'</div><div class="staffMeta">'+h.ovr+' OVR · Appointed '+h.appointedSeason+'</div><div class="staffIdentityGrid"><div><span>PLAY STYLE</span><b>'+h.style+'</b></div><div><span>FORMATION</span><b>'+h.formation+'</b></div></div></div>'+coachBlueprintHtml(G.club)+
- '<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">Coach Fit shows how naturally each player suits the football identity. It does not replace player OVR.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Excellent+'</b><span>Excellent</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">The best footballers remain difficult to displace. Coach Fit becomes most influential when players are close in ability, giving recruitment and squad building a meaningful identity without turning selection into a tactics puzzle.</div></div>';
+ '<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">Coach Fit shows how naturally each player suits the football identity. It does not replace player OVR.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Perfect+'</b><span>Perfect</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">The best footballers remain difficult to displace. Coach Fit becomes most influential when players are close in ability, giving recruitment and squad building a meaningful identity without turning selection into a tactics puzzle.</div></div>';
 }
 function squad(){
  let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
@@ -4339,9 +4314,10 @@ function playerOverviewContent(p){
 
  let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},ar=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
  let editorAction=(G.playerEditingEnabled!==false&&p.team!==-2)?'<div class="actionGroup"><div class="actionLabel">CAREER CONTROL</div><button class="btn full" data-edit-player="'+p.id+'">EDIT PLAYER</button></div><div id="playerEditorHost"></div>':'';
- seedSecondaryPositions(p);
- let fit=bestFitForPlayer(p,G.club),fitContext=p.team===G.club?"Current coach":"Fit with your Head Coach",pe=positionalEffectiveness(p,fit.slot,G.club),roleText=[p.pos,...p.secondaryPositions].join(" · "),archetype=playerArchetype(p,G.club);
- return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POSITIONS",roleText,p.secondaryPositions.length?"Natural + secondary positions":"Natural position only")+stat("COACH FIT",fit.label,fitContext+" · "+coachProfile(G.club).style)+stat("BEST ROLE",archetype,"Blueprint role · "+fit.slot)+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
+ seedSecondaryPositions(p);seedPlayerStyle(p,p.team>=0?p.team:null);
+ let fit=bestFitForPlayer(p,G.club),fitContext=p.team===G.club?"Current coach":"Fit with your Head Coach",roleText=[p.pos,...p.secondaryPositions].join(" · "),styleText=p.primaryStyle+(p.secondaryStyle?" · "+p.secondaryStyle:"");
+ let fitExplain=fit.requiredStyle?("Needs "+fit.requiredStyle+" at "+fit.slot+" · "+fit.positionLabel+(fit.positionPenalty?" · "+fit.positionPenalty+" OVR positional penalty":"")):"No valid coach role";
+ return '<div class="grid2">'+stat("OVERALL",p.ovr,"Current ability")+stat("POSITIONS",roleText,p.secondaryPositions.length?"Natural + secondary positions":"Natural position only")+stat("PLAYER STYLE",styleText,p.secondaryStyle?"Primary + secondary style":"Primary playing style")+stat("COACH FIT",fit.label,fitContext+" · "+coachProfile(G.club).style)+stat("COACH ROLE",fit.requiredStyle||"—",fitExplain)+stat("POTENTIAL",Math.max(p.ovr,p.pot-4)+"–"+Math.min(96,p.pot+2),"Scout estimate")+stat("VALUE",money(p.value),"Market value")+stat("CONTRACT",(free?"Free agent":p.years+" yr"),free?"Available":money(p.wage)+"/week")+'</div>'+
  '<div class="seasonLine"><div class="label">'+G.season+' SEASON</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+ss.apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+ss.goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+ss.assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+ar+'</b><span>Rating</span></div><div class="seasonStat"><b>'+ss.potm+'</b><span>POTM</span></div></div>'+
  '<div class="financeRows" style="margin-top:9px">'+
  (positionGroup(p.pos)==="GK"?'<div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div><div class="financeRow"><span>Saves</span><b>'+ss.saves+'</b></div>':'')+
@@ -4374,12 +4350,14 @@ function ensureRecordState(){
 let renderQueued=false;
 function ensureRuntimeState(){
  if(!G)return;
+ if(!G._nameRegistryHydrated){resetGeneratedNameRegistry();G._nameRegistryHydrated=true}
  ensureLeagueWorld();
  ensureRecordState();
  ensureClubHistoryState();
  ensureFacilityState();
  ensureStaffState();
  ensurePlayerPositionState();
+ ensurePlayerStyleState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
@@ -4441,6 +4419,8 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+if(e.target.closest("[data-open-staff]")){squadTab="staff";page="squad";renderSoon();return}
+
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
