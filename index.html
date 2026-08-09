@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.19.0 Economy Transfer Market Maturity Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.20.0 Club Sustainability Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3696,6 +3696,12 @@ body.coach-edit-open{overflow:hidden}
 .playerCareerCard{min-height:560px}
 @media(max-width:430px){.playerCareerCard{min-height:600px}}
 
+
+/* ==========================================================
+   v2.9.20 CLUB SUSTAINABILITY
+   ========================================================== */
+.sustainabilityCard .financeRow b{max-width:56%;text-align:right}
+
 </style>
 </head>
 <body>
@@ -3773,7 +3779,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.19.0 Economy Transfer Market Maturity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.20.0 Club Sustainability Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6272,6 +6278,7 @@ function beginNewSeason(){
   archiveSeasonAwardsToPlayers(r);
   snapshotAllClubHistories();
   archiveRivalrySeason();
+  applyWorldClubSustainability(r.season);
   applyPromotionRelegation();
   G.season=(Number(G.season)||2026)+1;
   G.week=0;
@@ -6294,9 +6301,12 @@ function beginNewSeason(){
 
   userClub.finance.seasonTransferIn=0;
   userClub.finance.seasonTransferOut=0;
-  userClub.finance.broadcast=Math.round((Number(userClub.finance.broadcast)||70000000)*(.98+Math.random()*.05));
-  userClub.finance.commercial=Math.round((Number(userClub.finance.commercial)||30000000)*(pos<=4?1.06:pos<=8?1.03:pos>=15?.97:1.0));
-  userClub.wageBudget=Math.max(Number(userClub.wageBudget)||70000000,Math.round(annualWages()*1.12/1000000)*1000000);
+  let newKey=currentLeagueKey(),newPos=Math.max(1,Number(r.pos)||Math.ceil(leagueInfo(newKey).clubIds.length/2));
+  let newRevenue=clubSeasonRevenueModel(G.club,newPos,newKey);
+  userClub.finance.broadcast=newRevenue.broadcast;
+  userClub.finance.commercial=newRevenue.commercial;
+  userClub.wageBudget=sustainableWageBudget(G.club,newPos,newKey);
+  userClub.budget=Math.min(Number(userClub.balance)||0,sustainableTransferBudget(G.club,newPos,newKey));
 
   G.feed.unshift({t:"NEW SEASON",m:gmNewsName()+" enters the new season with a board expectation to "+boardExpectationText(G.boardTarget).toLowerCase()+"."});
 
@@ -6717,8 +6727,13 @@ function upgradeFacility(key){
  ensureFacilityState();ensureFinanceState();
  let c=G.clubs[G.club],info=FACILITY_INFO[key];if(!info)return;
  let lvl=c.facilities[key];if(lvl>=5){alert(info.name+" is already Level 5.");return}
- let cost=facilityCost(key);
+ let cost=facilityCost(key),guard=clubFinancialGuard();
+ let reserve=Math.max(10000000,guard.recurringCosts?guard.recurringCosts*.20:guard.operatingCosts*.20);
  if(c.balance<cost){alert("The club needs "+money(cost)+" in available cash for this upgrade.");return}
+ if(lvl>=3&&guard.status==="At Risk"){alert("The board will not approve an elite facility upgrade while the club is financially At Risk.");return}
+ if(c.balance-cost<reserve){
+   alert("The board requires a minimum operating reserve of "+money(reserve)+" after this upgrade.");return;
+ }
  c.balance-=cost;c.facilities[key]++;
  c.facility=c.facilities.training;
  c.finance.facilityCosts=facilityAnnualCost();
@@ -6794,58 +6809,180 @@ function facilityCard(key){
  (lvl<5?'<button class="btn full" data-upgrade-facility="'+key+'">UPGRADE · '+money(cost)+'</button><div class="facilityCost"><span>Annual operations</span><b>'+money(info.annual*lvl)+'</b></div>':'<button class="btn full" disabled>MAXIMUM LEVEL</button><div class="facilityCost"><span>Annual operations</span><b>'+money(info.annual*lvl)+'</b></div>')+'</div>';
 }
 
+
+const CLUB_SUSTAINABILITY_VERSION="2.9.20";
+
+function facilityAnnualCostForClub(clubId){
+ let c=G.clubs[clubId];if(!c)return 0;
+ let fac=c.facilities||{training:c.facility||1,youth:1,scouting:1,medical:1};
+ return Object.keys(FACILITY_INFO).reduce((sum,k)=>sum+(Number(FACILITY_INFO[k].annual)||0)*(Number(fac[k])||1),0);
+}
+function clubAnnualWages(clubId){
+ return (G.players||[]).filter(p=>p.team===clubId&&!p.retiring).reduce((s,p)=>s+(Number(p.wage)||0)*52,0);
+}
+function clubStatureBand(rep){
+ rep=Number(rep)||70;
+ return rep>=92?"Global Power":rep>=86?"Elite":rep>=80?"Established":rep>=72?"Competitive":rep>=64?"Developing":"Modest";
+}
+function divisionBaseRevenue(divKey){
+ return divKey==="top"?{broadcast:72000000,commercial:30000000,matchday:22000000}:{broadcast:32000000,commercial:12000000,matchday:9500000};
+}
+function clubSeasonRevenueModel(clubId,position,divKey){
+ let c=G.clubs[clubId],rep=Number(c&&c.rep)||70,base=divisionBaseRevenue(divKey);
+ let stature=Math.max(.65,Math.min(1.42,.78+(rep-60)*.016));
+ let finish=Math.max(.80,Math.min(1.18,1.10-(Math.max(1,Number(position)||10)-1)*.014));
+ let broadcast=base.broadcast*(.90+stature*.10);
+ let commercial=base.commercial*stature*finish;
+ let matchday=base.matchday*(.78+stature*.22)*(.92+finish*.08);
+ let prize=(divKey==="top"?Math.max(5000000,54000000-(position-1)*2350000):Math.max(2500000,22000000-(position-1)*800000));
+ return{
+  broadcast:Math.round(broadcast/100000)*100000,
+  commercial:Math.round(commercial/100000)*100000,
+  matchday:Math.round(matchday/100000)*100000,
+  prize:Math.round(prize/100000)*100000
+ };
+}
+function clubOperatingModel(clubId,position,divKey){
+ let c=G.clubs[clubId],r=clubSeasonRevenueModel(clubId,position,divKey);
+ let wages=clubAnnualWages(clubId),facilities=facilityAnnualCostForClub(clubId);
+ let rep=Number(c&&c.rep)||70,staff=Math.round((7000000+Math.max(0,rep-60)*420000)/100000)*100000;
+ let revenue=r.broadcast+r.commercial+r.matchday+r.prize;
+ let operatingCosts=wages+facilities+staff;
+ let operatingProfit=revenue-operatingCosts;
+ let wageRatio=revenue>0?wages/revenue:1;
+ let reserveMonths=operatingCosts>0?(Number(c.balance)||0)/(operatingCosts/12):0;
+ let status=operatingProfit>=10000000&&wageRatio<=.62&&reserveMonths>=5?"Sustainable":
+            operatingProfit>=-8000000&&wageRatio<=.74&&reserveMonths>=2.5?"Watch":"At Risk";
+ return{...r,revenue,wages,facilities,staff,operatingCosts,operatingProfit,wageRatio,reserveMonths,status};
+}
+function updateClubStatureAfterSeason(clubId,position,divKey,champion=false,promoted=false,relegated=false){
+ let c=G.clubs[clubId];if(!c)return 0;
+ let before=Number(c.rep)||70,delta=0;
+ if(champion)delta+=3;
+ else if(divKey==="top"&&position<=4)delta+=1;
+ else if(divKey==="lower"&&position<=4)delta+=1;
+ if(promoted)delta+=2;
+ if(relegated)delta-=3;
+ if(divKey==="top"&&position>=16)delta-=1;
+ if(divKey==="lower"&&position>=16)delta-=1;
+ c.rep=Math.max(55,Math.min(95,before+delta));
+ return c.rep-before;
+}
+function sustainableWageBudget(clubId,position,divKey){
+ let c=G.clubs[clubId],model=clubSeasonRevenueModel(clubId,position,divKey);
+ let recurring=model.broadcast+model.commercial+model.matchday+model.prize;
+ let target=.62,rep=Number(c.rep)||70;
+ if(rep>=88)target=.66;
+ else if(rep<70)target=.58;
+ return Math.max(18000000,Math.round(recurring*target/1000000)*1000000);
+}
+function sustainableTransferBudget(clubId,position,divKey){
+ let c=G.clubs[clubId],op=clubOperatingModel(clubId,position,divKey);
+ let cash=Math.max(0,Number(c.balance)||0);
+ let reserve=Math.max(10000000,op.operatingCosts*.25);
+ let deployable=Math.max(0,cash-reserve);
+ let profitAllowance=Math.max(0,op.operatingProfit)*.45;
+ let statureAllowance=Math.max(5000000,(Number(c.rep)||70)-60)*700000;
+ let budget=deployable*.42+profitAllowance+statureAllowance;
+ if(op.status==="At Risk")budget*=.45;
+ else if(op.status==="Watch")budget*=.72;
+ return Math.max(5000000,Math.min(cash*.70,Math.round(budget/1000000)*1000000));
+}
+function applyWorldClubSustainability(season){
+ ["top","lower"].forEach(divKey=>{
+  let table=standings(divKey),ids=leagueInfo(divKey).clubIds;
+  table.forEach((row,i)=>{
+   let c=G.clubs[row.id];if(!c)return;
+   let pos=i+1,champion=pos===1;
+   let relegated=divKey==="top"&&pos>table.length-3;
+   let promoted=divKey==="lower"&&pos<=3;
+   updateClubStatureAfterSeason(c.id,pos,divKey,champion,promoted,relegated);
+
+   // User club's current season profit is already committed by beginNewSeason.
+   // AI clubs receive the same recurring sustainability treatment here.
+   if(c.id!==G.club){
+    let op=clubOperatingModel(c.id,pos,divKey);
+    c.balance=Math.max(3000000,(Number(c.balance)||0)+op.operatingProfit);
+   }
+   c.wageBudget=sustainableWageBudget(c.id,pos,divKey);
+   c.budget=sustainableTransferBudget(c.id,pos,divKey);
+   c.sustainability={
+    season,status:clubOperatingModel(c.id,pos,divKey).status,
+    stature:clubStatureBand(c.rep),position:pos,division:divKey
+   };
+  });
+ });
+}
+function clubFinancialGuard(){
+ let c=G.clubs[G.club],key=currentLeagueKey(),pos=standings(key).findIndex(x=>x.id===G.club)+1;
+ if(pos<1)pos=Math.ceil(leagueInfo(key).clubIds.length/2);
+ return clubOperatingModel(G.club,pos,key);
+}
+
 function ensureFinanceState(){
  let c=G.clubs[G.club];
  if(!c)return;
  ensureFacilityState();
+ let key=currentLeagueKey(),pos=standings(key).findIndex(x=>x.id===G.club)+1;if(pos<1)pos=Math.ceil(leagueInfo(key).clubIds.length/2);
+ let modeled=clubSeasonRevenueModel(G.club,pos,key);
  if(!c.finance){
-   let rep=c.rep||82;
    c.finance={
-     broadcast:Math.round((68+(rep-75)*2.2)*1000000),
-     commercial:Math.round((28+(rep-75)*2.0)*1000000),
-     matchday:0,prize:0,staffCosts:12000000,facilityCosts:7000000,
+     broadcast:modeled.broadcast,commercial:modeled.commercial,
+     matchday:modeled.matchday,prize:modeled.prize,
+     staffCosts:12000000,facilityCosts:facilityAnnualCost(),
      seasonTransferIn:0,seasonTransferOut:0,lastProfit:0
    };
  }
- if(!Number.isFinite(c.finance.broadcast))c.finance.broadcast=70000000;
- if(!Number.isFinite(c.finance.commercial))c.finance.commercial=30000000;
+ if(!Number.isFinite(c.finance.broadcast))c.finance.broadcast=modeled.broadcast;
+ if(!Number.isFinite(c.finance.commercial))c.finance.commercial=modeled.commercial;
  if(!Number.isFinite(c.finance.staffCosts))c.finance.staffCosts=12000000;
- if(!Number.isFinite(c.finance.facilityCosts))c.finance.facilityCosts=7000000;
  c.finance.facilityCosts=facilityAnnualCost();
  if(!Number.isFinite(c.finance.seasonTransferIn))c.finance.seasonTransferIn=0;
  if(!Number.isFinite(c.finance.seasonTransferOut))c.finance.seasonTransferOut=0;
- if(!Number.isFinite(c.wageBudget)||c.wageBudget<=0){
-   c.wageBudget=Math.max(70000000,Math.round(annualWages()*1.18/1000000)*1000000);
- }
+ if(!Number.isFinite(c.wageBudget)||c.wageBudget<=0)c.wageBudget=sustainableWageBudget(G.club,pos,key);
+ if(!Number.isFinite(c.budget)||c.budget<0)c.budget=sustainableTransferBudget(G.club,pos,key);
+ G.clubSustainabilityVersion=CLUB_SUSTAINABILITY_VERSION;
 }
 function annualWages(){
  return roster().reduce((s,p)=>s+(Number(p.wage)||0)*52,0);
 }
 function projectedMatchday(){
- let c=G.clubs[G.club],rep=(c&&c.rep)||82;
- return Math.round((18+(rep-75)*.9)*1000000);
+ let key=currentLeagueKey(),pos=standings(key).findIndex(x=>x.id===G.club)+1;if(pos<1)pos=Math.ceil(leagueInfo(key).clubIds.length/2);
+ return clubSeasonRevenueModel(G.club,pos,key).matchday;
 }
 function projectedPrize(){
- let pos=standings().findIndex(x=>x.id===G.club)+1;
- if(pos<1)pos=20;
- return Math.round(Math.max(5,52-(pos-1)*2.3)*1000000);
+ let key=currentLeagueKey(),pos=standings(key).findIndex(x=>x.id===G.club)+1;if(pos<1)pos=Math.ceil(leagueInfo(key).clubIds.length/2);
+ return clubSeasonRevenueModel(G.club,pos,key).prize;
 }
 function financeSnapshot(){
  ensureFinanceState();
- let c=G.clubs[G.club],f=c.finance,wages=annualWages();
- let matchday=projectedMatchday(),prize=projectedPrize();
- let revenue=(f.broadcast||0)+(f.commercial||0)+matchday+prize+(f.seasonTransferOut||0);
+ let c=G.clubs[G.club],f=c.finance,wages=annualWages(),key=currentLeagueKey(),pos=standings(key).findIndex(x=>x.id===G.club)+1;
+ if(pos<1)pos=Math.ceil(leagueInfo(key).clubIds.length/2);
+ let model=clubSeasonRevenueModel(G.club,pos,key);
+ f.broadcast=model.broadcast;f.commercial=model.commercial;
+ let matchday=model.matchday,prize=model.prize;
+ let revenue=f.broadcast+f.commercial+matchday+prize+(f.seasonTransferOut||0);
+ let recurringRevenue=f.broadcast+f.commercial+matchday+prize;
  let costs=wages+(f.staffCosts||0)+(f.facilityCosts||0)+(f.seasonTransferIn||0);
- let profit=revenue-costs;
+ let recurringCosts=wages+(f.staffCosts||0)+(f.facilityCosts||0);
+ let profit=revenue-costs,operatingProfit=recurringRevenue-recurringCosts;
  let usage=c.wageBudget>0?Math.round(wages/c.wageBudget*100):0;
- let status=profit>=10000000&&usage<=90?"Healthy":profit>=-10000000&&usage<=100?"Watch":"Under Pressure";
- return{revenue,costs,profit,wages,usage,status,matchday,prize,f};
+ let wageRatio=recurringRevenue>0?wages/recurringRevenue:1;
+ let reserveMonths=recurringCosts>0?(Number(c.balance)||0)/(recurringCosts/12):0;
+ let status=operatingProfit>=10000000&&wageRatio<=.62&&reserveMonths>=5?"Sustainable":
+            operatingProfit>=-8000000&&wageRatio<=.74&&reserveMonths>=2.5?"Watch":"At Risk";
+ return{revenue,costs,profit,operatingProfit,wages,usage,status,matchday,prize,f,wageRatio,reserveMonths,recurringRevenue,recurringCosts};
 }
 function financeView(){
- let x=financeSnapshot(),c=G.clubs[G.club],cls=x.status==="Healthy"?"healthy":x.status==="Watch"?"watch":"pressure";
- let pct=Math.min(100,Math.max(0,x.usage));
+ let x=financeSnapshot(),c=G.clubs[G.club],cls=x.status==="Sustainable"?"healthy":x.status==="Watch"?"watch":"pressure";
+ let pct=Math.min(100,Math.max(0,x.usage)),ratio=Math.round(x.wageRatio*100),reserve=x.reserveMonths.toFixed(1);
  return'<div class="financeHero"><div class="label">FINANCIAL OUTLOOK</div><div class="financeStatus '+cls+'">'+x.status+'</div><div class="sub">Projected season result '+(x.profit>=0?"+":"")+money(x.profit)+'</div></div>'+
  '<div class="grid2">'+stat("CLUB BALANCE",money(c.balance),"Available cash")+stat("TRANSFER BUDGET",money(c.budget),"Recruitment")+stat("WAGE SPEND",money(x.wages),"Annual")+stat("WAGE BUDGET",x.usage+"%","Used")+'</div>'+
+ '<div class="card sustainabilityCard"><div class="title">Club Sustainability</div><div class="sub">Recurring football operations before transfer trading.</div>'+
+ '<div class="financeRows"><div class="financeRow"><span>Club stature</span><b>'+clubStatureBand(c.rep)+' · '+c.rep+'</b></div>'+
+ '<div class="financeRow"><span>Operating result</span><b>'+(x.operatingProfit>=0?"+":"")+money(x.operatingProfit)+'</b></div>'+
+ '<div class="financeRow"><span>Wages / recurring revenue</span><b>'+ratio+'%</b></div>'+
+ '<div class="financeRow"><span>Cash reserve</span><b>'+reserve+' months</b></div></div></div>'+
  '<div class="card"><div class="title">Wage Budget</div><div class="wageBar"><div class="wageFill" style="width:'+pct+'%"></div></div><div class="sub">'+money(x.wages)+' of '+money(c.wageBudget)+' annual wage budget</div></div>'+
  '<div class="card"><div class="title">Projected Revenue</div><div class="financeRows">'+
  '<div class="financeRow"><span>Broadcasting</span><b>'+money(x.f.broadcast)+'</b></div>'+
