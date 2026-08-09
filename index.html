@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.14.0 GM Identity Profile Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.14.1 GM Profile Interaction Hotfix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3515,6 +3515,72 @@ body.gm-profile-open{overflow:hidden}
  .gmProfileName{font-size:20px}
 }
 
+
+/* ==========================================================
+   v2.9.14.1 GM PROFILE INTERACTION HOTFIX
+   ========================================================== */
+.gmHeaderButton{
+ overflow:hidden!important;
+}
+.gmPersonIcon{
+ position:relative!important;
+ display:block!important;
+ width:20px!important;
+ height:22px!important;
+ font-size:0!important;
+ line-height:0!important;
+}
+.gmPersonHead{
+ position:absolute!important;
+ left:50%!important;
+ top:1px!important;
+ transform:translateX(-50%)!important;
+ width:8px!important;
+ height:8px!important;
+ border-radius:50%!important;
+ background:var(--gold)!important;
+}
+.gmPersonBody{
+ position:absolute!important;
+ left:50%!important;
+ bottom:1px!important;
+ transform:translateX(-50%)!important;
+ width:17px!important;
+ height:10px!important;
+ border-radius:9px 9px 4px 4px!important;
+ background:var(--gold)!important;
+}
+#gmProfileClose{
+ position:relative!important;
+ z-index:10!important;
+ width:38px!important;
+ height:38px!important;
+ min-width:38px!important;
+ min-height:38px!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ cursor:pointer!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+ font-size:23px!important;
+ line-height:1!important;
+}
+.gmProfileTop{
+ position:sticky!important;
+ top:0!important;
+ z-index:20!important;
+ background:#0d141d!important;
+ padding-top:2px!important;
+}
+.gmProfileModal,
+.gmProfileSheet,
+#gmProfileClose,
+[data-gm-profile-open],
+[data-gm-profile-close]{
+ pointer-events:auto!important;
+}
+
 </style>
 </head>
 <body>
@@ -3560,7 +3626,7 @@ body.gm-profile-open{overflow:hidden}
     <span class="gameHeaderTitle">FOOTBALL CLUB</span>
   </div>
   <div id="clubline"></div>
-<button id="gmProfileBtn" class="gmHeaderButton" aria-label="Open GM profile" title="GM Profile"><span class="gmPersonIcon">●</span></button></header>
+<button id="gmProfileBtn" class="gmHeaderButton" data-gm-profile-open="1" aria-label="Open GM profile" title="GM Profile"><span class="gmPersonIcon" aria-hidden="true"><span class="gmPersonHead"></span><span class="gmPersonBody"></span></span></button></header>
 <nav id="nav">
 <div class="navAction active" data-page="home" role="button" tabindex="0"><b>⌂</b><span>HOME</span></div>
 <div class="navAction" data-page="squad" role="button" tabindex="0"><b>◎</b><span>SQUAD</span></div>
@@ -3592,7 +3658,7 @@ body.gm-profile-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.14.0 GM Identity Profile Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.14.1 GM Profile Interaction Hotfix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6754,8 +6820,14 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let gmOpen=e.target.closest&&e.target.closest("[data-gm-profile-open]");
+ if(gmOpen){e.preventDefault();showGMProfile();return}
+ let gmClose=e.target.closest&&e.target.closest("[data-gm-profile-close]");
+ if(gmClose){e.preventDefault();hideGMProfile();return}
  let gmEdit=e.target.closest&&e.target.closest("[data-gm-edit-name]");
  if(gmEdit){e.preventDefault();editGMName();return}
+ let gmBackdrop=e.target&&e.target.id==="gmProfileModal";
+ if(gmBackdrop){e.preventDefault();hideGMProfile();return}
 
  let marketFilterBtn=e.target.closest("[data-market-position]");
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
@@ -6819,9 +6891,6 @@ document.addEventListener("keydown",function(e){
  let nav=e.target.closest&&e.target.closest("#nav [data-page]");
  if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
 });
-let gmBtn=$("#gmProfileBtn");if(gmBtn)gmBtn.addEventListener("click",function(){showGMProfile()});
-let gmClose=$("#gmProfileClose");if(gmClose)gmClose.addEventListener("click",function(){hideGMProfile()});
-let gmModal=$("#gmProfileModal");if(gmModal)gmModal.addEventListener("click",function(e){if(e.target===gmModal)hideGMProfile()});
 $("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
 $("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
 $("#backToLaunchFromSlots").addEventListener("click",function(){
@@ -6872,7 +6941,7 @@ setTimeout(updateTopNavOffset,250);
 
 <div id="gmProfileModal" class="gmProfileModal hidden">
  <div class="gmProfileSheet">
-  <div class="gmProfileTop"><div><div class="label">YOUR CAREER</div><div class="title">GM Profile</div></div><button id="gmProfileClose" class="closeBtn">×</button></div>
+  <div class="gmProfileTop"><div><div class="label">YOUR CAREER</div><div class="title">GM Profile</div></div><button id="gmProfileClose" class="closeBtn" data-gm-profile-close="1" aria-label="Close GM profile">×</button></div>
   <div id="gmProfileContent"></div>
  </div>
 </div>
