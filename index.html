@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.10.2 Player Story & Clubs Consolidation Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11 Stability & QA Pass Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3846,6 +3846,8 @@ body.coach-edit-open{overflow:hidden}
 .clubSpellMeta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:9px;color:var(--muted)}.clubSpellMeta b{color:var(--gold)}
 @media(max-width:430px){.clubSpellStats{grid-template-columns:1fr 1fr}.clubSpellMeta{display:grid;grid-template-columns:1fr}}
 
+
+/* v2.10.11 Stability & QA Pass: no gameplay changes. */
 </style>
 </head>
 <body>
@@ -3923,7 +3925,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.10.2 Player Story & Clubs Consolidation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11 Stability & QA Pass Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4332,6 +4334,7 @@ function careerSlotSummary(slot){
 function save(){
  try{
   if(!G)return false;
+  ensureCoreSaveIntegrity();
   if(![1,2,3].includes(Number(activeSaveSlot)))activeSaveSlot=1;
   G._lastPlayedAt=Date.now();G._careerSlot=activeSaveSlot;G._storageMode="slot";
   const snapshot=JSON.parse(JSON.stringify(G));
@@ -5417,14 +5420,7 @@ function hallOfFameAwardWeight(name){
  return 30;
 }
 function playerChampionshipCount(p){
- let seasons=new Set((p.careerHistory||[]).map(h=>h.season));
- let count=0;
- (G.leagueAlmanac&&Array.isArray(G.leagueAlmanac.seasons)?G.leagueAlmanac.seasons:[]).forEach(s=>{
-  if(!s.champion||!seasons.has(s.season))return;
-  let h=(p.careerHistory||[]).find(x=>x.season===s.season);
-  if(h&&Number(h.clubId)===Number(s.champion.id))count++;
- });
- return count;
+ return playerChampionshipSeasons(p).length;
 }
 function playerHonoursPoints(p){
  let awards=(p.awards||[]),points=0;
@@ -6039,6 +6035,101 @@ function recordClubSeasonLegacy(season){
  });
 }
 
+
+const STABILITY_QA_VERSION="2.10.11";
+
+function ensureCoreSaveIntegrity(){
+ if(!G||typeof G!=="object")return false;
+ if(!Array.isArray(G.clubs))G.clubs=[];
+ if(!Array.isArray(G.players))G.players=[];
+ if(!Array.isArray(G.history))G.history=[];
+ if(!Array.isArray(G.feed))G.feed=[];
+ if(!G.leagues||typeof G.leagues!=="object")ensureLeagueWorld();
+ G.players.forEach(p=>{
+  if(!p)return;
+  if(!Array.isArray(p.careerHistory))p.careerHistory=[];
+  if(!Array.isArray(p.clubHistory))p.clubHistory=[];
+  if(!Array.isArray(p.awards))p.awards=[];
+ });
+ return true;
+}
+function championshipArchiveRows(){
+ let map=new Map();
+
+ // Newer complete league archive.
+ if(G.leagueAlmanac&&Array.isArray(G.leagueAlmanac.seasons)){
+  G.leagueAlmanac.seasons.forEach(s=>{
+   if(!s||!Number.isFinite(Number(s.season))||!s.champion)return;
+   let id=Number(s.champion.id);
+   map.set(Number(s.season),{
+    season:Number(s.season),
+    clubId:Number.isFinite(id)?id:null,
+    clubName:s.champion.name||"Champion",
+    source:"Almanac"
+   });
+  });
+ }
+
+ // Older save history can backfill seasons predating the Almanac.
+ if(Array.isArray(G.history)){
+  G.history.forEach(h=>{
+   if(!h||!Number.isFinite(Number(h.season))||!h.champ)return;
+   let season=Number(h.season);
+   if(map.has(season))return;
+   let id=Number(h.champClubId);
+   if(!Number.isFinite(id)){
+    let club=(G.clubs||[]).find(c=>c&&c.name===h.champ);
+    id=club?Number(club.id):NaN;
+   }
+   map.set(season,{
+    season,
+    clubId:Number.isFinite(id)?id:null,
+    clubName:h.champ,
+    source:"Career History"
+   });
+  });
+ }
+
+ return [...map.values()].sort((a,b)=>a.season-b.season);
+}
+function reconcileHistoricalChampionshipData(){
+ ensureCoreSaveIntegrity();
+ let rows=championshipArchiveRows();
+ if(!G.historyIntegrity||typeof G.historyIntegrity!=="object")G.historyIntegrity={};
+ G.historyIntegrity.championshipArchiveSeasons=rows.length;
+ G.historyIntegrity.championshipArchiveFirst=rows.length?rows[0].season:null;
+ G.historyIntegrity.championshipArchiveLast=rows.length?rows[rows.length-1].season:null;
+ G.historyIntegrity.version=STABILITY_QA_VERSION;
+ return rows;
+}
+function runStabilityQAPass(){
+ try{
+  ensureCoreSaveIntegrity();
+  if(typeof ensureLeagueAlmanacState==="function")ensureLeagueAlmanacState();
+  if(typeof ensureClubLegacyState==="function")ensureClubLegacyState();
+  if(typeof ensureStaffWorldHistory==="function")ensureStaffWorldHistory();
+  if(typeof ensureSeasonStoryState==="function")ensureSeasonStoryState();
+  if(typeof ensureGMLegacyState==="function")ensureGMLegacyState();
+  if(typeof ensureClubIntelligenceState==="function")ensureClubIntelligenceState();
+  reconcileHistoricalChampionshipData();
+
+  // Remove exact duplicate archived awards introduced by repeated rollover attempts.
+  G.players.forEach(p=>{
+   let seen=new Set();
+   p.awards=(p.awards||[]).filter(a=>{
+    let k=[a.name,a.season,a.clubId,a.clubNameAtTime].join("|");
+    if(seen.has(k))return false;
+    seen.add(k);return true;
+   });
+  });
+
+  return true;
+ }catch(e){
+  console.error("Stability QA pass failed",e);
+  return false;
+ }
+}
+
 const PLAYER_CAREER_STORY_VERSION="2.10.10";
 
 function playerCareerSeasonsPlayed(p){
@@ -6075,12 +6166,17 @@ function playerMajorHonoursSummary(p){
  }).slice(0,3);
 }
 function playerChampionshipSeasons(p){
- let out=[],hist=p.careerHistory||[];
- if(!G.leagueAlmanac||!Array.isArray(G.leagueAlmanac.seasons))return out;
- G.leagueAlmanac.seasons.forEach(s=>{
-  if(!s.champion)return;
+ let out=[],hist=Array.isArray(p.careerHistory)?p.careerHistory:[];
+ let archive=championshipArchiveRows();
+ archive.forEach(s=>{
   let h=hist.find(x=>Number(x.season)===Number(s.season));
-  if(h&&Number(h.clubId)===Number(s.champion.id))out.push({season:s.season,clubId:s.champion.id,clubName:s.champion.name});
+  if(!h)return;
+  let playerClubId=Number(h.clubId);
+  let champClubId=Number(s.clubId);
+  let sameClub=Number.isFinite(champClubId)
+    ?playerClubId===champClubId
+    :(h.clubNameAtTime&&s.clubName&&h.clubNameAtTime===s.clubName);
+  if(sameClub)out.push({season:s.season,clubId:playerClubId,clubName:s.clubName,source:s.source});
  });
  return out.sort((a,b)=>a.season-b.season);
 }
@@ -7452,6 +7548,7 @@ function beginNewSeason(){
     return;
   }
   ensureLifecycleState();ensureFacilityState();ensureFinanceState();ensureTransferState();
+  if(!runStabilityQAPass())throw new Error("Save integrity preflight failed.");
 
   let financial=financeSnapshot();
   let userClub=G.clubs[G.club];
@@ -8994,6 +9091,7 @@ function ensureRuntimeState(){
    G.players.forEach(ensurePlayerClubHistory);
    G._runtimeHydrationStamp=stamp;
  }
+ runStabilityQAPass();
 }
 function render(){
  // Never allow a failed or interrupted render to leave the UI locked.
