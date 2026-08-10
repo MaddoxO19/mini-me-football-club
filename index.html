@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.9.20.0 Club Sustainability Alpha Mobile</title>
+<title>Mini&Me Football Club v2.9.21.0 Club Intelligence Engine Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3702,6 +3702,17 @@ body.coach-edit-open{overflow:hidden}
    ========================================================== */
 .sustainabilityCard .financeRow b{max-width:56%;text-align:right}
 
+
+/* ==========================================================
+   v2.9.21 CLUB INTELLIGENCE ENGINE
+   ========================================================== */
+.clubDNACard .sectionHead{align-items:flex-start}
+.dnaBadge{border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:6px 9px;font-size:9px;font-weight:900;white-space:nowrap}
+.dnaRows{margin-top:12px}
+.dnaNeed{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.dnaNeed:last-child{border-bottom:0}.dnaNeed b{font-size:12px;color:var(--gold)}.dnaNeed span{font-size:10px;color:var(--muted);text-align:right}
+@media(max-width:430px){.clubDNACard .sectionHead{display:grid;grid-template-columns:1fr}.dnaBadge{justify-self:start;margin-top:7px}}
+
 </style>
 </head>
 <body>
@@ -3779,7 +3790,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.9.20.0 Club Sustainability Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.9.21.0 Club Intelligence Engine Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5201,12 +5212,195 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null)
  seedSecondaryPositions(np);np.primaryStyle=independentStyleForPosition(np.pos);let opts=stylePoolForPosition(np.pos).filter(x=>x!==np.primaryStyle);if(opts.length&&Math.random()<(young?.42:.28))np.secondaryStyle=opts[rnd(0,opts.length-1)];return np;
 }
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
+
+const CLUB_INTELLIGENCE_VERSION="2.9.21";
+
+const CLUB_DNA_PROFILES={
+ "Youth Development":{
+  ageTarget:[18,23],youth:1.35,potential:1.30,proven:.72,value:1.04,wage:.90,sellOlder:1.25,risk:.92,
+  description:"Develop young talent, promote prospects and sell established players at the right moment."
+ },
+ "Elite Contender":{
+  ageTarget:[23,29],youth:.78,potential:.88,proven:1.38,value:.86,wage:1.18,sellOlder:.72,risk:1.16,
+  description:"Prioritise immediate quality, proven performers and sustained title contention."
+ },
+ "Moneyball":{
+  ageTarget:[20,27],youth:1.08,potential:1.12,proven:.92,value:1.35,wage:1.16,sellOlder:1.10,risk:.94,
+  description:"Seek efficient value, contract opportunities and under-priced contributors."
+ },
+ "Selling Club":{
+  ageTarget:[18,24],youth:1.28,potential:1.25,proven:.78,value:1.18,wage:1.02,sellOlder:1.38,risk:.88,
+  description:"Develop assets, maintain squad value and reinvest transfer profits."
+ },
+ "Balanced":{
+  ageTarget:[20,29],youth:1,potential:1,proven:1,value:1,wage:1,sellOlder:1,risk:1,
+  description:"Balance development, experience, finances and immediate performance."
+ },
+ "Financial Conservative":{
+  ageTarget:[20,28],youth:1.05,potential:1.04,proven:.86,value:1.28,wage:1.34,sellOlder:1.18,risk:.72,
+  description:"Protect financial sustainability and avoid expensive recruitment or wage commitments."
+ }
+};
+
+function deterministicClubDNA(club){
+ let rep=Number(club&&club.rep)||70,id=Number(club&&club.id)||0;
+ let names=Object.keys(CLUB_DNA_PROFILES);
+ if(rep>=88)return id%3===0?"Elite Contender":id%3===1?"Balanced":"Moneyball";
+ if(rep<=67)return id%3===0?"Youth Development":id%3===1?"Financial Conservative":"Selling Club";
+ return names[id%names.length];
+}
+function ensureClubIntelligenceState(){
+ if(!G.clubIntelligence||typeof G.clubIntelligence!=="object")G.clubIntelligence={version:CLUB_INTELLIGENCE_VERSION,clubs:{}};
+ if(!G.clubIntelligence.clubs||typeof G.clubIntelligence.clubs!=="object")G.clubIntelligence.clubs={};
+ G.clubs.forEach(c=>{
+  if(!c)return;
+  let ci=G.clubIntelligence.clubs[c.id];
+  if(!ci){
+   let philosophy=deterministicClubDNA(c);
+   ci=G.clubIntelligence.clubs[c.id]={
+    philosophy,createdSeason:G.season,planSeason:null,phase:"Build",squadAudit:null,plan:null,
+    academyGraduates:0,homegrownPlayers:0,lastMajorDecision:null
+   };
+  }
+  if(!CLUB_DNA_PROFILES[ci.philosophy])ci.philosophy=deterministicClubDNA(c);
+ });
+ G.clubIntelligence.version=CLUB_INTELLIGENCE_VERSION;
+}
+function clubIntelligence(clubId){
+ ensureClubIntelligenceState();
+ return G.clubIntelligence.clubs[clubId];
+}
+function clubDNAProfile(clubId){
+ let ci=clubIntelligence(clubId);
+ return CLUB_DNA_PROFILES[ci.philosophy]||CLUB_DNA_PROFILES.Balanced;
+}
+function playerSquadRole(player,teamId){
+ if(!player)return"Fringe";
+ let squad=aiSquad(teamId).filter(p=>!p.retiring).sort((a,b)=>Number(b.ovr)-Number(a.ovr));
+ let idx=squad.findIndex(p=>p.id===player.id),rank=idx<0?99:idx+1;
+ let ovr=Number(player.ovr)||0,pot=Number(player.pot)||ovr,age=Number(player.age)||25;
+ if(rank<=2||ovr>=90)return"Franchise Star";
+ if(rank<=5)return"Key Player";
+ if(rank<=11)return"First XI";
+ if(age<=22&&pot>=ovr+7)return"Prospect";
+ if(rank<=18)return"Rotation";
+ return"Fringe";
+}
+function squadAuditForClub(clubId){
+ let c=G.clubs[clubId],squad=aiSquad(clubId).filter(p=>!p.retiring),needs=aiRoleNeeds(clubId);
+ let ages=squad.map(p=>Number(p.age)||25),avgAge=ages.length?ages.reduce((a,b)=>a+b,0)/ages.length:0;
+ let avgOvr=squad.length?squad.reduce((s,p)=>s+(Number(p.ovr)||0),0)/squad.length:0;
+ let aging=squad.filter(p=>Number(p.age)>=31).sort((a,b)=>b.age-a.age);
+ let expiring=squad.filter(p=>Number(p.years)<=1);
+ let prospects=squad.filter(p=>Number(p.age)<=22&&Number(p.pot)>=Number(p.ovr)+6);
+ let poorFit=squad.filter(p=>bestFitForPlayer(p,clubId).label==="Poor");
+ let roles={};squad.forEach(p=>roles[p.id]=playerSquadRole(p,clubId));
+ let topNeeds=needs.slice(0,5).map(n=>({slot:n.slot,urgency:Math.round(n.urgency),starter:Math.round(n.starter),depth:n.depth,requiredStyle:n.requiredStyle}));
+ let surplus=[];
+ ["GK","DEF","MID","FWD"].forEach(group=>{
+  let gp=squad.filter(p=>positionGroup(p.pos)===group);
+  let max={GK:3,DEF:10,MID:10,FWD:8}[group];
+  if(gp.length>max)surplus.push(...gp.sort((a,b)=>Number(a.ovr)-Number(b.ovr)).slice(0,gp.length-max));
+ });
+ return{
+  season:G.season,size:squad.length,avgAge:Number(avgAge.toFixed(1)),avgOvr:Number(avgOvr.toFixed(1)),
+  aging:aging.map(p=>p.id),expiring:expiring.map(p=>p.id),prospects:prospects.map(p=>p.id),
+  poorFit:poorFit.map(p=>p.id),surplus:surplus.map(p=>p.id),roles,topNeeds
+ };
+}
+function strategicPhaseForClub(clubId,audit){
+ let c=G.clubs[clubId],rep=Number(c.rep)||70;
+ let key=G.leagues.top.clubIds.includes(clubId)?"top":"lower",tab=standings(key),pos=tab.findIndex(x=>x.id===clubId)+1;
+ if(audit.avgAge>=29.2||audit.aging.length>=6)return"Refresh";
+ if(rep>=85&&(pos===0||pos<=7))return"Contend";
+ if(audit.prospects.length>=5)return"Develop";
+ if(rep<70)return"Build";
+ return"Compete";
+}
+function buildClubStrategicPlan(clubId,force=false){
+ ensureClubIntelligenceState();
+ let ci=clubIntelligence(clubId);
+ if(!force&&ci.planSeason===G.season&&ci.plan)return ci.plan;
+ let audit=squadAuditForClub(clubId),dna=clubDNAProfile(clubId),phase=strategicPhaseForClub(clubId,audit);
+ let c=G.clubs[clubId],budget=Number(c.budget)||0;
+ let priorityNeeds=audit.topNeeds.filter(n=>n.urgency>=6).slice(0,4);
+ let sellIds=[...new Set([...audit.surplus,...audit.poorFit.filter(id=>{
+   let p=G.players.find(x=>x.id===id);return p&&playerSquadRole(p,clubId)!=="Franchise Star"&&playerSquadRole(p,clubId)!=="Key Player"
+  }),...audit.aging.filter(id=>{
+   let p=G.players.find(x=>x.id===id);return p&&playerSquadRole(p,clubId)!=="Franchise Star"
+  })])];
+ let protectIds=G.players.filter(p=>p.team===clubId&&["Franchise Star","Key Player"].includes(audit.roles[p.id])).map(p=>p.id);
+ let successionIds=audit.aging.filter(id=>{
+   let p=G.players.find(x=>x.id===id);return p&&["Franchise Star","Key Player","First XI"].includes(audit.roles[id]);
+ });
+ let plan={
+  season:G.season,phase,philosophy:ci.philosophy,priorityNeeds,sellIds,protectIds,successionIds,
+  recruitAgeMin:dna.ageTarget[0],recruitAgeMax:dna.ageTarget[1],
+  budgetStrategy:budget<12000000?"Conservative":dna.risk>1.08?"Aggressive":dna.risk<.85?"Conservative":"Measured",
+  youthPriority:dna.youth>=1.18?"High":dna.youth<=.85?"Low":"Balanced"
+ };
+ ci.squadAudit=audit;ci.plan=plan;ci.planSeason=G.season;ci.phase=phase;
+ return plan;
+}
+function clubIntelligenceRecruitmentModifier(player,clubId,need){
+ let ci=clubIntelligence(clubId),dna=clubDNAProfile(clubId),plan=buildClubStrategicPlan(clubId);
+ let age=Number(player.age)||25,pot=Number(player.pot)||Number(player.ovr)||60,ovr=Number(player.ovr)||60;
+ let mod=0;
+ if(age>=plan.recruitAgeMin&&age<=plan.recruitAgeMax)mod+=5;
+ else if(age>plan.recruitAgeMax+3)mod-=5;
+ if(age<=23)mod+=(pot-ovr)*.22*dna.potential;
+ if(ovr>=80)mod+=(ovr-79)*.28*dna.proven;
+ let value=playerTransferValue(player),budget=Math.max(1,Number(G.clubs[clubId].budget)||1);
+ let affordability=value/budget;
+ if(affordability>.8)mod-=8*dna.value;
+ else if(affordability<.35)mod+=4*dna.value;
+ let wage=balancedPlayerWage(player),wageBudget=Math.max(1,Number(G.clubs[clubId].wageBudget)||1);
+ if(wage*52>wageBudget*.12)mod-=5*dna.wage;
+ if(plan.phase==="Refresh"&&age<=24)mod+=4;
+ if(plan.phase==="Contend"&&ovr>=82)mod+=4;
+ if(plan.phase==="Develop"&&age<=22)mod+=5;
+ return mod;
+}
+function shouldProtectPlayerFromSale(player,clubId){
+ let plan=buildClubStrategicPlan(clubId);
+ return plan.protectIds.includes(player.id)&&Number(player.years)>1;
+}
+function clubDNAView(clubId=G.club){
+ ensureClubIntelligenceState();
+ let c=G.clubs[clubId],ci=clubIntelligence(clubId),dna=clubDNAProfile(clubId),plan=buildClubStrategicPlan(clubId),a=ci.squadAudit||squadAuditForClub(clubId);
+ let squad=aiSquad(clubId).filter(p=>!p.retiring);
+ let homegrown=squad.filter(p=>Array.isArray(p.clubHistory)&&p.clubHistory.length&&p.clubHistory[0].clubId===clubId).length;
+ let prospectCount=a.prospects.length,agingCount=a.aging.length;
+ let needs=plan.priorityNeeds.length?plan.priorityNeeds.map(n=>'<div class="dnaNeed"><b>'+n.slot+'</b><span>Urgency '+n.urgency+' · '+n.requiredStyle+'</span></div>').join(""):'<div class="sub">No major positional recruitment need.</div>';
+ return '<div class="card clubDNACard"><div class="sectionHead"><div><div class="title">Club DNA</div><div class="sub">'+dna.description+'</div></div><div class="dnaBadge">'+ci.philosophy+'</div></div>'+
+ '<div class="grid2">'+
+  stat("PHASE",plan.phase,"Strategic cycle")+
+  stat("SQUAD AGE",a.avgAge.toFixed(1),"Average")+
+  stat("SQUAD OVR",a.avgOvr.toFixed(1),"Average")+
+  stat("YOUTH",plan.youthPriority,prospectCount+" prospects")+
+ '</div>'+
+ '<div class="financeRows dnaRows">'+
+  '<div class="financeRow"><span>Recruitment age</span><b>'+plan.recruitAgeMin+'–'+plan.recruitAgeMax+'</b></div>'+
+  '<div class="financeRow"><span>Budget strategy</span><b>'+plan.budgetStrategy+'</b></div>'+
+  '<div class="financeRow"><span>Homegrown squad</span><b>'+homegrown+'</b></div>'+
+  '<div class="financeRow"><span>Players 31+</span><b>'+agingCount+'</b></div>'+
+  '<div class="financeRow"><span>Protected core</span><b>'+plan.protectIds.length+'</b></div>'+
+ '</div></div>'+
+ '<div class="card"><div class="title">Strategic Recruitment Needs</div>'+needs+'</div>';
+}
+
 function aiRoleNeeds(teamId){
  let slots=formationSlotsForCoach(teamId).flat(),squad=aiSquad(teamId).filter(p=>!p.retiring),needs=[];
  slots.forEach(slot=>{let requiredStyle=roleArchetypeForSlot(slot,coachProfile(teamId).style),options=squad.filter(p=>playerEligibleForSlot(p,slot)).map(p=>{let pe=positionalEffectiveness(p,slot,teamId),fit=coachFitAssessment(p,slot,teamId);return{p,score:pe.effectiveOvr+fitSelectionModifier(fit.score),fit}}).sort((a,b)=>b.score-a.score),starter=options[0]?options[0].score:45,depth=options.length,perfectDepth=options.filter(x=>x.fit.label==="Perfect").length;needs.push({slot,requiredStyle,starter,depth,perfectDepth,urgency:(depth===0?38:depth===1?18:0)+Math.max(0,76-starter)+(perfectDepth===0?5:0)})});
  return needs.sort((a,b)=>b.urgency-a.urgency)
 }
-function aiCandidateScore(player,teamId,need){if(!player||!need||!playerEligibleForSlot(player,need.slot))return -999;let pe=positionalEffectiveness(player,need.slot,teamId),fit=coachFitAssessment(player,need.slot,teamId),ageValue=player.age<=23?3:player.age>=32?-3:0,contractValue=player.years<=1?3:0;return pe.effectiveOvr+fitSelectionModifier(fit.score)*1.8+ageValue+contractValue+need.urgency*.10}
+function aiCandidateScore(player,teamId,need){
+ if(!player||!need||!playerEligibleForSlot(player,need.slot))return -999;
+ let pe=positionalEffectiveness(player,need.slot,teamId),fit=coachFitAssessment(player,need.slot,teamId);
+ let ageValue=player.age<=23?3:player.age>=32?-3:0,contractValue=player.years<=1?3:0;
+ let intelligence=clubIntelligenceRecruitmentModifier(player,teamId,need);
+ return pe.effectiveOvr+fitSelectionModifier(fit.score)*1.8+ageValue+contractValue+need.urgency*.10+intelligence;
+}
 function aiBestRecruitmentTarget(teamId,candidates){let needs=aiRoleNeeds(teamId).filter(n=>n.urgency>4),best=null;needs.slice(0,6).forEach(need=>candidates.forEach(p=>{let score=aiCandidateScore(p,teamId,need);if(!best||score>best.score)best={player:p,need,score}}));return best}
 function aiEnsureFormationCoverage(teamId){let guard=0;while(!formationCoverage(teamId).ok&&guard<8){guard++;let need=aiRoleNeeds(teamId).find(n=>n.depth===0);if(!need)break;let free=activeFreeAgents().filter(p=>!p.retiring&&playerEligibleForSlot(p,need.slot)).sort((a,b)=>aiCandidateScore(b,teamId,need)-aiCandidateScore(a,teamId,need))[0];if(free){free.team=teamId;openPlayerClubSpell(free,teamId,null);free.freeAgent=false;free.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==free.id)}else{let np=generateWorldPlayer(teamId,rnd(-3,1),true,positionGroup(need.slot));np.primaryStyle=need.requiredStyle;G.players.push(np)}}}
 function aiWorldEvolution(){
@@ -5216,6 +5410,8 @@ function aiWorldEvolution(){
  if(!Array.isArray(G.freeAgents))G.freeAgents=[];
  G.freeAgents=G.freeAgents.filter(id=>G.players.some(p=>p.id===id&&(p.freeAgent||p.team<0)));
  let events=[];
+ ensureClubIntelligenceState();
+ G.clubs.forEach(c=>{if(c)buildClubStrategicPlan(c.id,true)});
 
  // League-wide retirements: strong age curve, with rare exceptional longevity.
  G.players.forEach(p=>{
@@ -5238,7 +5434,11 @@ function aiWorldEvolution(){
      let club=G.clubs[p.team];
      if(!club){moveToFreeAgency(p);return}
      let fit=bestFitForPlayer(p,club.id),same=aiSquad(club.id).filter(x=>positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>b.ovr-a.ovr),rank=same.findIndex(x=>x.id===p.id)+1;
-     let keepChance=.48+(p.ovr-70)*.015+(rank&&rank<=2?.20:rank<=4?.06:-.08)+(fit.label==="Perfect"?.08:fit.label==="Poor"?-.12:0)-(p.age>32?.10:0);
+     let role=playerSquadRole(p,club.id),plan=buildClubStrategicPlan(club.id);
+     let roleAdj=role==="Franchise Star"?.26:role==="Key Player"?.18:role==="First XI"?.10:role==="Prospect"?.08:role==="Fringe"?-.14:0;
+     let keepChance=.44+(p.ovr-70)*.014+roleAdj+(fit.label==="Perfect"?.08:fit.label==="Poor"?-.12:0)-(p.age>32?.10:0);
+     if(plan.protectIds.includes(p.id))keepChance+=.18;
+     if(plan.sellIds.includes(p.id))keepChance-=.20;
      let desired=balancedPlayerWage(p),clubAnnual=aiSquad(club.id).reduce((s,x)=>s+(Number(x.wage)||0)*52,0),room=(Number(club.wageBudget)||70000000)-clubAnnual;
      if(room<desired*52*.65)keepChance-=.18;
      if(Math.random()<Math.max(.08,Math.min(.92,keepChance))){
@@ -5271,9 +5471,13 @@ function aiWorldEvolution(){
      G.players.push(np);
      if(!G.freeAgents.includes(np.id))G.freeAgents.push(np.id);
    }else{
-     let cid=rnd(0,G.clubs.length-1);
-     let club=G.clubs[cid],youthLvl=club&&club.facilities?Number(club.facilities.youth)||1:1;
-     G.players.push(generateWorldPlayer(cid,rnd(-2,Math.min(4,youthLvl)),true,group));
+     let weighted=G.clubs.map(c=>({c,w:(clubDNAProfile(c.id).youth||1)*(1+((c.facilities&&c.facilities.youth)||1)*.08)}));
+     let totalW=weighted.reduce((s,x)=>s+x.w,0),rollW=Math.random()*totalW,pickClub=weighted[0].c;
+     for(let w of weighted){rollW-=w.w;if(rollW<=0){pickClub=w.c;break}}
+     let cid=pickClub.id,club=pickClub,youthLvl=club&&club.facilities?Number(club.facilities.youth)||1:1;
+     let np=generateWorldPlayer(cid,rnd(-2,Math.min(4,youthLvl)),true,group);
+     if(clubDNAProfile(cid).youth>=1.25&&Math.random()<.22)np.pot=Math.min(99,Math.max(np.pot,np.ovr+rnd(8,15)));
+     G.players.push(np);
    }
  }
  ensureFreeAgentMarketHealth();
@@ -6316,6 +6520,8 @@ function beginNewSeason(){
 
   runSafeWorldEvolution();
   considerRetirements();
+  ensureClubIntelligenceState();
+  G.clubs.forEach(c=>{if(c)buildClubStrategicPlan(c.id,true)});
   save();
 
   $("#seasonReview").classList.add("hidden");
@@ -7428,8 +7634,8 @@ function clubHistoryView(){return legacyClubHistoryView()+richClubWorldHistoryHt
 function club(){
  let c=G.clubs[G.club],key=currentLeagueKey(),pos=clubCurrentPosition(G.club);
  let hero=screenHeroHtml("CLUB MANAGEMENT",c.name,leagueInfo(key).name+" · facilities, finances and club history.",'<b>'+(pos?ordinal(pos):"—")+'</b><span>League position</span>');
- let tabs=tabsHtml("club",clubTab,[["overview","Overview"],["staff","Staff"],["facilities","Facilities"],["finances","Finances"],["history","History"]]);
- return hero+tabs+(clubTab==="staff"?coachEmploymentView():clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
+ let tabs=tabsHtml("club",clubTab,[["overview","Overview"],["dna","DNA"],["staff","Staff"],["facilities","Facilities"],["finances","Finances"],["history","History"]]);
+ return hero+tabs+(clubTab==="dna"?clubDNAView(G.club):clubTab==="staff"?coachEmploymentView():clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
 }
 function ensureTransferState(){
  if(!G.transferOffers)G.transferOffers=[];
@@ -7469,6 +7675,8 @@ function transferAmbitionScore(club,p){
 }
 function aiShouldSellPlayer(p,clubId){
  let squad=aiSquad(clubId).filter(x=>!x.retiring),slots=formationSlotsForCoach(clubId).flat();
+ let plan=buildClubStrategicPlan(clubId);
+ if(shouldProtectPlayerFromSale(p,clubId))return false;
  let utility=slots.some(s=>playerEligibleForSlot(p,s));
  let same=squad.filter(x=>positionGroup(x.pos)===positionGroup(p.pos)).sort((a,b)=>Number(b.ovr)-Number(a.ovr));
  let rank=same.findIndex(x=>x.id===p.id)+1;
@@ -7476,7 +7684,7 @@ function aiShouldSellPlayer(p,clubId){
  let aging=p.age>=32&&rank>=3;
  let contractRisk=Number(p.years)<=1&&rank>=3;
  let poorFit=bestFitForPlayer(p,clubId).label==="Poor"&&rank>=3;
- return utility&&(surplus||aging||contractRisk||poorFit);
+ return utility&&(plan.sellIds.includes(p.id)||surplus||aging||contractRisk||poorFit);
 }
 function aiTransferFee(p,buyer,seller=null){
  let value=playerTransferValue(p);
@@ -7742,6 +7950,7 @@ function ensureRuntimeState(){
  ensureCoachMarket();
  ensurePlayerPositionState();
  ensurePlayerStyleState();
+ ensureClubIntelligenceState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
