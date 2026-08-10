@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.4 Production Visual & UX Polish QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.5 Squad Information Polish QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4321,6 +4321,9 @@ input,select,textarea{
 .playerNameEdit{background:none;border:0;color:var(--gold);font-size:15px;padding:2px 5px;vertical-align:middle}.playerOverviewCompact{display:grid;gap:9px;margin-bottom:12px}.profileCompactPanel{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--card2)}.profileCompactPanel.single{grid-template-columns:1fr}.profileCompactPanel>div{min-width:0}.profileCompactPanel span{display:block;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.08em}.profileCompactPanel b{display:block;font-size:15px;line-height:1.25;margin-top:4px}.profileCompactPanel small{display:block;color:var(--muted);font-size:9px;line-height:1.4;margin-top:3px}.productionCareerHero{grid-template-columns:repeat(4,minmax(0,1fr))!important}.productionCareerHero .recordTile{min-height:76px!important;padding:9px!important}.productionCareerHero .recordValue{font-size:20px!important}.playerStoryCard{min-height:auto!important}.careerStorySummary>div{min-height:86px!important}.clubSpellMeta b:before{content:"Club legacy · ";color:var(--muted);font-weight:700}
 @media(max-width:430px){.gmCareerGrid.compactGMCareer{grid-template-columns:1fr 1fr!important}.productionCareerHero{grid-template-columns:1fr 1fr!important}.recordCategoryTabs,.gmProfileTabs{overflow-x:auto}.recordCategoryTabs{grid-template-columns:repeat(5,minmax(58px,1fr))}.gmProfileTabs{grid-template-columns:repeat(4,minmax(65px,1fr))}}
 
+
+/* v2.10.11.5 Squad information polish */
+.facilityIcon{display:grid!important;place-items:center;font-style:normal}.facilityIcon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
 <body>
@@ -4398,7 +4401,7 @@ input,select,textarea{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.4 Production Visual & UX Polish QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.5 Squad Information Polish QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -7040,7 +7043,7 @@ function clubDNAView(clubId=G.club){
  let homegrown=squad.filter(p=>Array.isArray(p.clubHistory)&&p.clubHistory.length&&p.clubHistory[0].clubId===clubId).length;
  let prospectCount=a.prospects.length,agingCount=a.aging.length;
  let needs=plan.priorityNeeds.length?plan.priorityNeeds.map(n=>'<div class="dnaNeed"><b>'+n.slot+'</b><span>Urgency '+n.urgency+' · '+n.requiredStyle+'</span></div>').join(""):'<div class="sub">No major positional recruitment need.</div>';
- return '<div class="card clubDNACard"><div class="sectionHead"><div><div class="title">Club DNA</div><div class="sub">'+dna.description+'</div></div><div class="dnaBadge">'+ci.philosophy+'</div></div>'+
+ return '<div class="card clubDNACard"><div class="sectionHead"><div><div class="title">Club DNA</div><div class="sub">'+dna.description+'</div></div></div>'+
  '<div class="grid2">'+
   stat("PHASE",plan.phase,"Strategic cycle")+
   stat("SQUAD AGE",a.avgAge.toFixed(1),"Average")+
@@ -8489,8 +8492,8 @@ function coachBlueprint(teamId=G.club){
  return{coach:h,profile,lines:roleLines};
 }
 function coachBlueprintHtml(teamId=G.club){
- let b=coachBlueprint(teamId),h=b.coach,p=b.profile;
- return '<div class="coachBlueprint"><div class="blueprintTop"><div class="blueprintCoach"><div class="label">COACH BLUEPRINT</div><b>'+h.name+' · '+h.ovr+' OVR</b><span>'+h.style+' · '+p.tag+'</span></div><div class="blueprintFormation">'+h.formation+'</div></div><div class="blueprintIntent">'+p.desc+'</div><div class="blueprintLines">'+b.lines.map(x=>'<div class="blueprintLine"><span>'+x.label+'</span><b>'+x.roles.join(' · ')+'</b></div>').join('')+'</div></div>';
+ let b=coachBlueprint(teamId),p=b.profile;
+ return '<div class="coachBlueprint"><div class="label">COACH BLUEPRINT</div><div class="blueprintIntent">'+p.desc+'</div><div class="blueprintLines">'+b.lines.map(x=>'<div class="blueprintLine"><span>'+x.label+'</span><b>'+x.roles.join(' · ')+'</b></div>').join('')+'</div></div>';
 }
 
 function bestForSlot(slot,used){
@@ -8892,7 +8895,7 @@ function developmentView(){
  let veterans=roster().filter(p=>p.age>=30).sort((a,b)=>b.age-a.age||a.ovr-b.ovr).slice(0,8);
  let trend=x=>x.delta>0?'<span class="trend up">↑'+x.delta+'</span>':x.delta<0?'<span class="trend down">↓'+Math.abs(x.delta)+'</span>':'<span class="trend flat">•</span>';
  let recent=dev.length?dev.slice(0,12).map(x=>'<div class="devCardRow"><div class="devPlayerMain"><b>'+x.name+'</b><span class="devPlayerMeta">Last offseason</span></div><div class="devMetric productionDevMetric"><b>'+x.from+' → '+x.to+'</b>'+trend(x)+'</div></div>').join(""):'<div class="sub">Development changes will appear after the next offseason.</div>';
- return '<div class="card developmentIntro"><div class="title">Development Centre</div><div class="sub">Player progression, potential and age profile. Infrastructure upgrades remain under Club → Facilities.</div><div class="devIntroGrid"><div class="devMini"><div><span>TRAINING CENTRE</span><b>LV '+c.facilities.training+'/5</b></div><i class="facilityGlyph">TC</i></div><div class="devMini"><div><span>YOUTH ACADEMY</span><b>LV '+c.facilities.youth+'/5</b></div><i class="facilityGlyph">YA</i></div></div></div>'+ '<div class="card"><div class="title">Recent Development</div><div class="devSectionHint">Changes recorded at the most recent offseason.</div>'+recent+'</div>'+ '<div class="card"><div class="title">High Potential</div><div class="devSectionHint">Young first-team players ranked by remaining development ceiling.</div>'+youth.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+' · Current '+p.ovr+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' → '+p.pot+'</b></div></div>').join("")+'</div>'+ '<div class="card"><div class="title">Veteran Watch</div><div class="devSectionHint">Senior players who may be approaching decline or retirement decisions.</div>'+(veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' OVR</b></div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
+ return '<div class="card developmentIntro"><div class="title">Development Centre</div><div class="sub">Player progression, potential and age profile. Infrastructure upgrades remain under Club → Facilities.</div><div class="devIntroGrid"><div class="devMini"><div><span>TRAINING CENTRE</span><b>LV '+c.facilities.training+'/5</b></div><i class="facilityGlyph facilityIcon" aria-label="Training Centre"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6m3-8v10m12-10v10m3-8v6M6 12h12"/></svg></i></div><div class="devMini"><div><span>YOUTH ACADEMY</span><b>LV '+c.facilities.youth+'/5</b></div><i class="facilityGlyph facilityIcon" aria-label="Youth Academy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9 12 4l9.5 5L12 14 2.5 9Zm4 2.4V16c3.5 2.7 7.5 2.7 11 0v-4.6M21.5 9v6"/></svg></i></div></div></div>'+ '<div class="card"><div class="title">Recent Development</div><div class="devSectionHint">Changes recorded at the most recent offseason.</div>'+recent+'</div>'+ '<div class="card"><div class="title">High Potential</div><div class="devSectionHint">Young first-team players ranked by remaining development ceiling.</div>'+youth.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+' · Current '+p.ovr+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' → '+p.pot+'</b></div></div>').join("")+'</div>'+ '<div class="card"><div class="title">Veteran Watch</div><div class="devSectionHint">Senior players who may be approaching decline or retirement decisions.</div>'+(veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' OVR</b></div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
 }
 function teamCoachSummaryHtml(teamId=G.club){
  let h=coachProfile(teamId),p=coachStyleProfile(teamId);
@@ -8993,7 +8996,7 @@ function leagueFixturesView(){
    let status=week<playedWeeks?"Completed":week===playedWeeks?"Latest round":week===playedWeeks+1?"Next round":"Scheduled";
    return '<div class="fixtureWeek"><div class="fixtureWeekHead"><b>Week '+week+'</b><span>'+status+'</span></div>'+rows+'</div>';
  }).join("");
- return '<div class="card"><div class="title">'+info.name+' Fixtures · '+G.season+'</div><div class="sub">Completed scores and the full season draw. Your club’s fixtures are highlighted.</div></div>'+weeks;
+ return '<div class="card"><div class="title">'+info.name+' Fixtures · '+G.season+'</div></div>'+weeks;
 }
 
 function leagueClubsView(){
