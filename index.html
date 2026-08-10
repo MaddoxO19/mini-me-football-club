@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.3 GM & Coach World History Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.4 World Legacy & Dynasties Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3754,6 +3754,16 @@ body.coach-edit-open{overflow:hidden}
 .staffWorldRow>div:last-child{text-align:right}
 @media(max-width:430px){.staffWorldRow{grid-template-columns:34px minmax(0,1fr)}.staffWorldRow>div:last-child{grid-column:2;text-align:left;margin-top:2px}}
 
+
+/* v2.10.4 WORLD LEGACY & DYNASTIES */
+.worldLegacyRow{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(115px,.7fr);gap:11px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.worldLegacyRow:last-child{border-bottom:0}.legacyRank{color:var(--gold);font-weight:950;font-size:12px}
+.worldLegacyRow b{display:block;font-size:12px}.worldLegacyRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.35}
+.worldLegacyRow>div:last-child{text-align:right}
+.dynastyRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.dynastyRow:last-child{border-bottom:0}.dynastyRow b{display:block;font-size:12px}.dynastyRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.dynastyRow>div:last-child{color:var(--gold);font-size:11px;font-weight:900}
+@media(max-width:430px){.worldLegacyRow{grid-template-columns:28px minmax(0,1fr)}.worldLegacyRow>div:last-child{grid-column:2;text-align:left}.legacySummaryGrid b{font-size:14px!important;overflow-wrap:anywhere}}
+
 </style>
 </head>
 <body>
@@ -3831,7 +3841,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.3 GM & Coach World History Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.4 World Legacy & Dynasties Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5257,6 +5267,63 @@ function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 
 
 
+
+
+const WORLD_LEGACY_VERSION="2.10.4";
+
+function allTimeClubLegacyRows(){
+ ensureLeagueAlmanacState();ensureClubLegacyState();
+ let titleMap={};
+ (G.leagueAlmanac.seasons||[]).forEach(s=>{
+  if(s.champion)titleMap[s.champion.id]=(titleMap[s.champion.id]||0)+1;
+ });
+ return G.clubs.map(c=>{
+  let l=clubLegacy(c.id),titles=titleMap[c.id]||Number(l.championships)||0;
+  let promotions=Number(l.promotions)||0;
+  let best=l.bestFinish?Number(l.bestFinish.position):99;
+  let score=titles*100+promotions*25+Math.max(0,20-best*2)+(Number(c.rep)||70);
+  return{club:c,titles,promotions,best,score,identity:clubIdentityLabel(c.id)};
+ }).sort((a,b)=>b.score-a.score||b.titles-a.titles||b.club.rep-a.club.rep);
+}
+function detectDynasties(){
+ ensureLeagueAlmanacState();
+ let seasons=(G.leagueAlmanac.seasons||[]).slice().sort((a,b)=>a.season-b.season),out=[];
+ let current=null;
+ seasons.forEach(s=>{
+  if(!s.champion)return;
+  if(current&&current.clubId===s.champion.id&&s.season===current.end+1){
+   current.end=s.season;current.titles++;
+  }else{
+   if(current&&current.titles>=2)out.push(current);
+   current={clubId:s.champion.id,clubName:s.champion.name,start:s.season,end:s.season,titles:1};
+  }
+ });
+ if(current&&current.titles>=2)out.push(current);
+ return out.sort((a,b)=>b.titles-a.titles||b.end-a.end);
+}
+function allTimePlayerLegacyRows(){
+ return (G.players||[]).map(p=>{
+  let t=playerCareerTotals(p),awards=(p.awards||[]).length;
+  let score=(t.apps||0)*.28+(t.goals||0)*1.2+(t.assists||0)*.75+(t.wins||0)*.2+awards*24;
+  let bestClub=null,bestClubScore=0;
+  [...new Set((p.clubHistory||[]).map(h=>h.clubId).filter(id=>id>=0))].forEach(id=>{
+   let s=clubPlayerLegacyScore(p,id);if(s>bestClubScore){bestClub=id;bestClubScore=s}
+  });
+  return{p,t,awards,score,bestClub,tier:bestClub!==null?clubPlayerLegacyTier(p,bestClub):null};
+ }).filter(x=>x.score>=120).sort((a,b)=>b.score-a.score);
+}
+function worldLegacyView(){
+ let clubs=allTimeClubLegacyRows(),dynasties=detectDynasties(),players=allTimePlayerLegacyRows();
+ let clubRows=clubs.slice(0,12).map((x,i)=>'<div class="worldLegacyRow aiClubLink" data-ai-club="'+x.club.id+'"><div class="legacyRank">'+(i+1)+'</div><div><b>'+x.club.name+'</b><span>'+x.identity+' · Best '+(x.best<99?ordinal(x.best):"—")+'</span></div><div><b>'+x.titles+' titles</b><span>'+x.promotions+' promotions</span></div></div>').join("");
+ let dynastyRows=dynasties.length?dynasties.slice(0,10).map(d=>'<div class="dynastyRow"><div><b>'+d.clubName+'</b><span>'+d.start+(d.end!==d.start?'–'+d.end:'')+'</span></div><div>'+d.titles+' consecutive titles</div></div>').join(""):'<div class="profileEmpty compactEmpty">A dynasty will appear when a club wins consecutive championships.</div>';
+ let playerRows=players.slice(0,15).map((x,i)=>'<div class="worldLegacyRow" data-player="'+x.p.id+'"><div class="legacyRank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>'+(x.tier||"League Great")+(x.bestClub!==null?' · '+playerClubNameNow(x.bestClub):'')+'</span></div><div><b>'+Math.round(x.score)+'</b><span>'+x.t.apps+' apps · '+x.t.goals+' goals</span></div></div>').join("");
+ let leader=clubs[0],great=players[0];
+ return '<div class="card almanacHero"><div class="label">WORLD LEGACY</div><div class="legacyIdentity">Great Eras</div><div class="sub">The clubs, dynasties and players that defined this football world.</div>'+
+ '<div class="legacySummaryGrid"><div><span>Leading Club</span><b>'+(leader?leader.club.name:"—")+'</b></div><div><span>Most Titles</span><b>'+(leader?leader.titles:"—")+'</b></div><div><span>Greatest Player</span><b>'+(great?great.p.name:"—")+'</b></div><div><span>Dynasties</span><b>'+dynasties.length+'</b></div></div></div>'+
+ '<div class="card"><div class="title">All-Time Club Ranking</div>'+clubRows+'</div>'+
+ '<div class="card"><div class="title">Dynasties</div><div class="sub">Consecutive championship runs that defined an era.</div>'+dynastyRows+'</div>'+
+ '<div class="card"><div class="title">All-Time Player Ranking</div><div class="sub">Based on visible career achievements only.</div>'+playerRows+'</div>';
+}
 
 const STAFF_WORLD_HISTORY_VERSION="2.10.3";
 
@@ -7847,8 +7914,8 @@ function leagueRecordsView(){
 function league(){
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
  let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · league table, fixtures, leaders and historical records.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
- let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["almanac","Almanac"],["staffhistory","GM & Coaches"],["clubs","Clubs"]]);
- return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="almanac"?leagueAlmanacView():leagueTab==="staffhistory"?staffWorldHistoryView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
+ let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["almanac","Almanac"],["staffhistory","GM & Coaches"],["worldlegacy","Legacy"],["clubs","Clubs"]]);
+ return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="almanac"?leagueAlmanacView():leagueTab==="staffhistory"?staffWorldHistoryView():leagueTab==="worldlegacy"?worldLegacyView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
 }
 function clubOverviewView(){
  ensureFacilityState();ensureFinanceState();
