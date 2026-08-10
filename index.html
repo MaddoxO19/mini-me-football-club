@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.9 AI Club Lifecycle & Competitive Balance Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.10 Player Career Story Refinement Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3819,6 +3819,15 @@ body.coach-edit-open{overflow:hidden}
 /* v2.10.8.3: weighted honours and championship scoring. */
 
 /* v2.10.9: AI club lifecycle and competitive balance refinement. */
+
+/* v2.10.10 PLAYER CAREER STORY REFINEMENT */
+.careerStorySummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.careerStorySummary>div{border:1px solid var(--line);background:#ffffff02;border-radius:11px;padding:10px;min-width:0}
+.careerStorySummary span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.09em}
+.careerStorySummary b{display:block;color:var(--gold);font-size:18px;margin-top:4px}
+.careerStorySummary small{display:block;color:#aab4bd;font-size:8px;line-height:1.35;margin-top:4px;overflow-wrap:anywhere}
+@media(max-width:430px){.careerStorySummary{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -3896,7 +3905,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.9 AI Club Lifecycle & Competitive Balance Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.10 Player Career Story Refinement Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6006,37 +6015,109 @@ function recordClubSeasonLegacy(season){
   });
  });
 }
+
+const PLAYER_CAREER_STORY_VERSION="2.10.10";
+
+function playerCareerSeasonsPlayed(p){
+ let set=new Set((p.careerHistory||[]).filter(h=>(Number(h.apps)||0)>0).map(h=>Number(h.season)));
+ if(p.stats&&p.stats.season===G.season&&(Number(p.stats.apps)||0)>0)set.add(Number(G.season));
+ return set.size;
+}
+function playerCareerClubs(p){
+ let ids=[];
+ (p.clubHistory||[]).slice().sort((a,b)=>(Number(a.startSeason)||0)-(Number(b.startSeason)||0)).forEach(h=>{
+  let id=Number(h.clubId);if(id>=0&&!ids.includes(id))ids.push(id);
+ });
+ if(!ids.length)(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season).forEach(h=>{
+  let id=Number(h.clubId);if(id>=0&&!ids.includes(id))ids.push(id);
+ });
+ return ids;
+}
+function playerBestCareerSeason(p){
+ let rows=(p.careerHistory||[]).filter(h=>(Number(h.apps)||0)>0);
+ if(!rows.length)return null;
+ return rows.slice().sort((a,b)=>{
+  let as=(Number(a.goals)||0)*3+(Number(a.assists)||0)*2+(Number(a.potm)||0)*2+(Number(a.apps)||0)*.15+(Number(a.ovr)||0)*.08;
+  let bs=(Number(b.goals)||0)*3+(Number(b.assists)||0)*2+(Number(b.potm)||0)*2+(Number(b.apps)||0)*.15+(Number(b.ovr)||0)*.08;
+  return bs-as;
+ })[0];
+}
+function playerMajorHonoursSummary(p){
+ let awards=Array.isArray(p.awards)?p.awards:[];
+ let grouped={};
+ awards.forEach(a=>grouped[a.name]=(grouped[a.name]||0)+1);
+ return Object.entries(grouped).sort((a,b)=>{
+  let wa=hallOfFameAwardWeight(a[0]),wb=hallOfFameAwardWeight(b[0]);
+  return wb* b[1]-wa* a[1];
+ }).slice(0,3);
+}
+function playerChampionshipSeasons(p){
+ let out=[],hist=p.careerHistory||[];
+ if(!G.leagueAlmanac||!Array.isArray(G.leagueAlmanac.seasons))return out;
+ G.leagueAlmanac.seasons.forEach(s=>{
+  if(!s.champion)return;
+  let h=hist.find(x=>Number(x.season)===Number(s.season));
+  if(h&&Number(h.clubId)===Number(s.champion.id))out.push({season:s.season,clubId:s.champion.id,clubName:s.champion.name});
+ });
+ return out.sort((a,b)=>a.season-b.season);
+}
+
 function playerCareerStory(p){
  let hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
- let first=hs[0],last=hs[hs.length-1],t=playerCareerTotals(p),awards=(p.awards||[]).length;
+ let first=hs[0],last=hs[hs.length-1],t=playerCareerTotals(p);
+ let awards=(p.awards||[]).length,championships=playerChampionshipSeasons(p).length;
  let peak=Math.max(Number(p.ovr)||0,...hs.map(h=>Number(h.ovr)||0));
- let clubs=[...new Set((p.clubHistory||[]).map(h=>h.clubId).filter(id=>id>=0))];
- let best=null,bestScore=0;clubs.forEach(id=>{let s=clubPlayerLegacyScore(p,id);if(s>bestScore){best=id;bestScore=s}});
+ let clubs=playerCareerClubs(p),best=null,bestScore=0;
+ clubs.forEach(id=>{let s=clubPlayerLegacyScore(p,id);if(s>bestScore){best=id;bestScore=s}});
  let tier=best!==null?clubPlayerLegacyTier(p,best):null;
+ let bestSeason=playerBestCareerSeason(p),seasons=playerCareerSeasonsPlayed(p);
  let out=[];
- if(first)out.push("Began his career with "+first.clubNameAtTime+" in "+first.season+".");
+ if(first)out.push("Career began with "+first.clubNameAtTime+" in "+first.season+".");
+ if(clubs.length>1)out.push("Played senior football for "+clubs.length+" clubs across "+seasons+" seasons.");
+ else if(seasons)out.push("Played "+seasons+" senior season"+(seasons===1?"":"s")+".");
  if(t.apps)out.push("Recorded "+t.apps+" appearances, "+t.goals+" goals and "+t.assists+" assists.");
- if(awards)out.push("Won "+awards+" major individual honour"+(awards===1?"":"s")+".");
+ if(championships)out.push("Won "+championships+" league championship"+(championships===1?"":"s")+".");
+ if(awards)out.push("Collected "+awards+" individual honour"+(awards===1?"":"s")+".");
+ if(bestSeason)out.push("Best statistical season came in "+bestSeason.season+" with "+(bestSeason.goals||0)+" goals and "+(bestSeason.assists||0)+" assists.");
  if(peak)out.push("Reached a peak OVR of "+peak+".");
- if(tier&&best!==null)out.push("Remembered as a "+tier+" at "+playerClubNameNow(best)+".");
+ if(tier&&best!==null)out.push("Recognised as a "+tier+" at "+playerClubNameNow(best)+".");
  if(p.team===-2)out.push("Retired after the "+(last?last.season:G.season)+" season.");
+ else out.push("Career remains active.");
  return out.join(" ");
 }
 function playerCareerMilestones(p){
  let out=[],hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
  if(hs[0])out.push({season:hs[0].season,title:"Career Debut",detail:hs[0].clubNameAtTime});
- (p.awards||[]).slice().sort((a,b)=>a.season-b.season).forEach(a=>out.push({season:a.season,title:a.name,detail:a.clubNameAtTime||playerClubNameNow(a.clubId)}));
- (p.clubHistory||[]).slice().sort((a,b)=>a.startSeason-b.startSeason).forEach((h,i)=>{if(i>0)out.push({season:h.startSeason,title:"Joined "+playerClubNameNow(h.clubId,h.clubNameAtStart),detail:"New club"});});
+ (p.clubHistory||[]).slice().sort((a,b)=>a.startSeason-b.startSeason).forEach((h,i)=>{
+  if(i>0)out.push({season:h.startSeason,title:"Joined "+playerClubNameNow(h.clubId,h.clubNameAtStart),detail:"New club"});
+ });
+ playerChampionshipSeasons(p).forEach(x=>out.push({season:x.season,title:"League Champion",detail:x.clubName}));
+ (p.awards||[]).slice().sort((a,b)=>a.season-b.season).forEach(a=>{
+  if(hallOfFameAwardWeight(a.name)>=60)out.push({season:a.season,title:a.name,detail:a.clubNameAtTime||playerClubNameNow(a.clubId)});
+ });
+ let best=playerBestCareerSeason(p);
+ if(best)out.push({season:best.season,title:"Peak Season",detail:(best.goals||0)+" goals · "+(best.assists||0)+" assists · "+(best.apps||0)+" apps"});
  if(p.team===-2){let last=hs[hs.length-1];out.push({season:last?last.season:G.season,title:"Retired",detail:"Career concluded"});}
- return out.sort((a,b)=>a.season-b.season);
+ let seen=new Set();
+ return out.filter(x=>{let k=x.season+"|"+x.title+"|"+x.detail;if(seen.has(k))return false;seen.add(k);return true})
+   .sort((a,b)=>a.season-b.season||a.title.localeCompare(b.title));
 }
 function playerStoryView(p){
- let milestones=playerCareerMilestones(p),story=playerCareerStory(p);
- let legacy=(p.clubHistory||[]).map(h=>h.clubId).filter((v,i,a)=>v>=0&&a.indexOf(v)===i).map(id=>{
+ let milestones=playerCareerMilestones(p),story=playerCareerStory(p),t=playerCareerTotals(p);
+ let championships=playerChampionshipSeasons(p),best=playerBestCareerSeason(p),clubs=playerCareerClubs(p),major=playerMajorHonoursSummary(p);
+ let legacy=clubs.map(id=>{
   let tier=clubPlayerLegacyTier(p,id);return tier?'<div class="playerLegacyRow"><span>'+playerClubNameNow(id)+'</span><b>'+tier+'</b></div>':"";
  }).join("");
- return '<div class="card playerStoryCard"><div class="title">Career Story</div><div class="careerStoryText">'+(story||"This career is still being written.")+'</div>'+legacy+'</div>'+
- '<div class="card playerStoryCard"><div class="title">Career Timeline</div>'+
+ let clubsLine=clubs.length?clubs.map(id=>playerClubNameNow(id)).join(" · "):"No senior club history";
+ let honoursLine=major.length?major.map(x=>x[0]+" "+x[1]+"×").join(" · "):"No major individual honours";
+ return '<div class="card playerStoryCard"><div class="title">Career Story</div><div class="careerStoryText">'+(story||"This career is still being written.")+'</div>'+
+ '<div class="careerStorySummary">'+
+  '<div><span>CLUBS</span><b>'+clubs.length+'</b><small>'+clubsLine+'</small></div>'+
+  '<div><span>CHAMPIONSHIPS</span><b>'+championships.length+'</b><small>'+(championships.length?championships.map(x=>x.season).join(" · "):"None yet")+'</small></div>'+
+  '<div><span>HONOURS</span><b>'+((p.awards||[]).length)+'</b><small>'+honoursLine+'</small></div>'+
+  '<div><span>BEST SEASON</span><b>'+(best?best.season:"—")+'</b><small>'+(best?((best.goals||0)+" G · "+(best.assists||0)+" A · "+(best.apps||0)+" apps"):"Career building")+'</small></div>'+
+ '</div>'+legacy+'</div>'+
+ '<div class="card playerStoryCard"><div class="sectionHead"><div><div class="title">Career Timeline</div><div class="sub">Major moments only.</div></div><div class="sectionCount">'+milestones.length+'</div></div>'+
  (milestones.length?milestones.map(m=>'<div class="careerTimelineRow"><div class="yr">'+m.season+'</div><div><b>'+m.title+'</b><span>'+m.detail+'</span></div></div>').join(""):'<div class="profileEmpty">Career milestones will appear over time.</div>')+'</div>';
 }
 function clubLegacyView(clubId=G.club){
