@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.8 Hall of Fame Positional Rankings Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.8.2 Universal Hall of Fame Scoring Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3802,6 +3802,19 @@ body.coach-edit-open{overflow:hidden}
 .hofPoints{text-align:right}.hofPoints b{display:block;color:var(--gold);font-size:17px}.hofPoints span{display:block;color:var(--muted);font-size:8px;text-transform:uppercase;margin-top:2px}
 @media(max-width:430px){.hofPositionTabs{grid-template-columns:1fr 1fr}.hofPosRow{grid-template-columns:26px minmax(0,1fr)}.hofPoints{grid-column:2;text-align:left;margin-top:2px}.hofPoints b,.hofPoints span{display:inline-block}.hofPoints span{margin-left:5px}}
 
+
+/* v2.10.8.1 HALL OF FAME ALL-TIME DEFAULT */
+.hofPositionTabsAll{grid-template-columns:repeat(4,minmax(0,1fr))}
+.hofPositionTabsAll button[data-hof-position="ALL"]{grid-column:1/-1;font-size:10px;padding:11px 6px}
+@media(max-width:430px){
+ .hofPositionTabsAll{grid-template-columns:1fr 1fr}
+ .hofPositionTabsAll button[data-hof-position="ALL"]{grid-column:1/-1}
+}
+
+
+/* v2.10.8.2 UNIVERSAL HALL OF FAME SCORING */
+.hofBreakdown{color:#9da8b2!important;font-size:8px!important;letter-spacing:.01em}
+
 </style>
 </head>
 <body>
@@ -3879,7 +3892,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.8 Hall of Fame Positional Rankings Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.8.2 Universal Hall of Fame Scoring Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5358,22 +5371,74 @@ function hallOfFameRoleStats(p){
  return{t,awards,seasons,peak,cleanSheets,saves,tackles,interceptions,avgRating};
 }
 function hallOfFameRoleScore(p){
- let g=hallOfFamePositionGroup(p),s=hallOfFameRoleStats(p),t=s.t,score=0;
- if(g==="GK"){
-  score=(t.apps||0)*.55+(t.wins||0)*.32+s.cleanSheets*2.8+s.saves*.045+s.awards*30+s.seasons*4+Math.max(0,s.peak-78)*7;
- }else if(g==="DEF"){
-  score=(t.apps||0)*.50+(t.wins||0)*.30+s.cleanSheets*1.5+s.tackles*.035+s.interceptions*.05+(t.goals||0)*.45+(t.assists||0)*.35+s.awards*30+s.seasons*4+Math.max(0,s.peak-78)*7;
- }else if(g==="MID"){
-  score=(t.apps||0)*.42+(t.wins||0)*.24+(t.goals||0)*.82+(t.assists||0)*1.02+s.awards*31+s.seasons*4+Math.max(0,s.peak-78)*7+(s.avgRating?Math.max(0,s.avgRating-6.5)*30:0);
- }else{
-  score=(t.apps||0)*.34+(t.wins||0)*.22+(t.goals||0)*1.34+(t.assists||0)*.72+s.awards*32+s.seasons*4+Math.max(0,s.peak-78)*7+(s.avgRating?Math.max(0,s.avgRating-6.5)*24:0);
+ let g=hallOfFamePositionGroup(p),s=hallOfFameRoleStats(p),t=s.t;
+ let apps=Number(t.apps)||0,wins=Number(t.wins)||0,goals=Number(t.goals)||0,assists=Number(t.assists)||0;
+ let awards=Number(s.awards)||0,seasons=Number(s.seasons)||0,peak=Number(s.peak)||0;
+ let performance=0,available=0,weight=0;
+ function addMetric(value,scale,maxPoints,reliable=true){
+  if(!reliable)return;
+  available+=maxPoints;
+  performance+=Math.min(maxPoints,Math.max(0,(Number(value)||0)/scale*maxPoints));
  }
- return Math.max(0,Math.round(score));
+ // Career Performance has a universal maximum of 1200 points.
+ // Position-specific evidence is used, but missing historical defensive/GK
+ // data is not treated as zero: its weight is redistributed to reliable data.
+ if(g==="GK"){
+  addMetric(apps,650,420,true);
+  addMetric(s.cleanSheets,220,360,(Number(s.cleanSheets)||0)>0);
+  addMetric(s.saves,1800,300,(Number(s.saves)||0)>0);
+  addMetric(wins,330,120,true);
+ }else if(g==="DEF"){
+  addMetric(apps,650,400,true);
+  addMetric(s.cleanSheets,210,260,(Number(s.cleanSheets)||0)>0);
+  addMetric(s.tackles,1700,230,(Number(s.tackles)||0)>0);
+  addMetric(s.interceptions,850,190,(Number(s.interceptions)||0)>0);
+  addMetric(wins,330,120,true);
+ }else if(g==="MID"){
+  addMetric(apps,650,330,true);
+  addMetric(goals,180,250,true);
+  addMetric(assists,240,360,true);
+  addMetric(wins,330,140,true);
+  addMetric(s.avgRating?Math.max(0,s.avgRating-6.2):0,1.8,120,!!s.avgRating);
+ }else{
+  addMetric(apps,650,250,true);
+  addMetric(goals,420,600,true);
+  addMetric(assists,190,230,true);
+  addMetric(wins,330,120,true);
+ }
+ if(available>0)performance=Math.min(1200,performance*(1200/available));
+
+ // The remaining three components are identical across every position.
+ let teamSuccess=Math.min(350,(wins/330)*350);
+ let recognition=Math.min(450,awards*75);
+ let longevity=Math.min(300,(seasons/18)*180+Math.max(0,peak-78)*10);
+
+ // Universal maximum: 2300 points.
+ return Math.max(0,Math.round(performance+teamSuccess+recognition+longevity));
 }
+function hallOfFameScoreBreakdown(p){
+ let g=hallOfFamePositionGroup(p),s=hallOfFameRoleStats(p),t=s.t;
+ let apps=Number(t.apps)||0,wins=Number(t.wins)||0,goals=Number(t.goals)||0,assists=Number(t.assists)||0;
+ let awards=Number(s.awards)||0,seasons=Number(s.seasons)||0,peak=Number(s.peak)||0;
+ let perf=0,available=0;
+ function add(value,scale,maxPoints,reliable=true){if(!reliable)return;available+=maxPoints;perf+=Math.min(maxPoints,Math.max(0,(Number(value)||0)/scale*maxPoints))}
+ if(g==="GK"){add(apps,650,420);add(s.cleanSheets,220,360,(Number(s.cleanSheets)||0)>0);add(s.saves,1800,300,(Number(s.saves)||0)>0);add(wins,330,120)}
+ else if(g==="DEF"){add(apps,650,400);add(s.cleanSheets,210,260,(Number(s.cleanSheets)||0)>0);add(s.tackles,1700,230,(Number(s.tackles)||0)>0);add(s.interceptions,850,190,(Number(s.interceptions)||0)>0);add(wins,330,120)}
+ else if(g==="MID"){add(apps,650,330);add(goals,180,250);add(assists,240,360);add(wins,330,140);add(s.avgRating?Math.max(0,s.avgRating-6.2):0,1.8,120,!!s.avgRating)}
+ else{add(apps,650,250);add(goals,420,600);add(assists,190,230);add(wins,330,120)}
+ if(available>0)perf=Math.min(1200,perf*(1200/available));
+ return{
+  performance:Math.round(perf),
+  success:Math.round(Math.min(350,(wins/330)*350)),
+  recognition:Math.round(Math.min(450,awards*75)),
+  longevity:Math.round(Math.min(300,(seasons/18)*180+Math.max(0,peak-78)*10))
+ };
+}
+
 function hallOfFameCandidates(group=null){
  return (G.players||[]).map(p=>{
   let stats=hallOfFameRoleStats(p),score=hallOfFameRoleScore(p),positionGroup=hallOfFamePositionGroup(p);
-  return{p,group:positionGroup,score,stats,clubs:hallOfFameClubCareer(p)};
+  return{p,group:positionGroup,score,stats,clubs:hallOfFameClubCareer(p),breakdown:hallOfFameScoreBreakdown(p)};
  }).filter(x=>(!group||x.group===group)&&x.score>0).sort((a,b)=>b.score-a.score);
 }
 function eraRecords(){
@@ -5396,26 +5461,26 @@ function eraRecords(){
  });
 }
 function hallOfFameView(){
- let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
- let active=window.hofPositionGroup||"FWD";
- if(!groups.some(x=>x[0]===active))active="FWD";
+ let groups=[["ALL","All-Time"],["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
+ let active=window.hofPositionGroup||"ALL";
+ if(!groups.some(x=>x[0]===active))active="ALL";
  window.hofPositionGroup=active;
- let ranked=hallOfFameCandidates(active).slice(0,20);
- let tabs='<div class="hofPositionTabs">'+groups.map(x=>'<button data-hof-position="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';
+ let ranked=(active==="ALL"?hallOfFameCandidates():hallOfFameCandidates(active)).slice(0,20);
+ let tabs='<div class="hofPositionTabs hofPositionTabsAll">'+groups.map(x=>'<button data-hof-position="'+x[0]+'" class="'+(active===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';
  let rows=ranked.length?ranked.map((x,i)=>{
   let s=x.stats,t=s.t,clubs=x.clubs.length?x.clubs.join(" · "):"No senior club history";
-  let statLine="";
-  if(active==="GK")statLine=(t.apps||0)+" apps · "+s.cleanSheets+" clean sheets · "+s.saves+" saves · "+s.awards+" awards";
-  else if(active==="DEF")statLine=(t.apps||0)+" apps · "+s.cleanSheets+" clean sheets · "+s.tackles+" tackles · "+s.interceptions+" interceptions";
-  else if(active==="MID")statLine=(t.apps||0)+" apps · "+(t.goals||0)+" goals · "+(t.assists||0)+" assists · "+s.awards+" awards";
+  let statLine="",bd=x.breakdown;
+  if(x.group==="GK")statLine=(t.apps||0)+" apps · "+s.cleanSheets+" clean sheets · "+s.saves+" saves · "+s.awards+" awards";
+  else if(x.group==="DEF")statLine=(t.apps||0)+" apps · "+s.cleanSheets+" clean sheets · "+s.tackles+" tackles · "+s.interceptions+" interceptions";
+  else if(x.group==="MID")statLine=(t.apps||0)+" apps · "+(t.goals||0)+" goals · "+(t.assists||0)+" assists · "+s.awards+" awards";
   else statLine=(t.apps||0)+" apps · "+(t.goals||0)+" goals · "+(t.assists||0)+" assists · "+s.awards+" awards";
-  return '<div class="hofPosRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div class="hofPosIdentity"><b>'+x.p.name+'</b><span>'+x.p.pos+' · '+clubs+'</span><small>'+statLine+'</small></div><div class="hofPoints"><b>'+x.score.toLocaleString()+'</b><span>points</span></div></div>';
- }).join(""):'<div class="profileEmpty">No players have yet recorded a career in this positional group.</div>';
- let leader=ranked[0];
- return '<div class="card almanacHero"><div class="label">HALL OF FAME</div><div class="legacyIdentity">Positional Rankings</div><div class="sub">Top 20 by position, using role-appropriate career scoring.</div>'+
- '<div class="legacySummaryGrid"><div><span>Category</span><b>'+groups.find(x=>x[0]===active)[1]+'</b></div><div><span>Players Ranked</span><b>'+ranked.length+'</b></div><div><span>No. 1</span><b>'+(leader?leader.p.name:"—")+'</b></div><div><span>Leading Score</span><b>'+(leader?leader.score.toLocaleString():"—")+'</b></div></div></div>'+
+  return '<div class="hofPosRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div class="hofPosIdentity"><b>'+x.p.name+'</b><span>'+x.p.pos+' · '+clubs+'</span><small>'+statLine+'</small><small class="hofBreakdown">Performance '+bd.performance+' · Success '+bd.success+' · Recognition '+bd.recognition+' · Longevity '+bd.longevity+'</small></div><div class="hofPoints"><b>'+x.score.toLocaleString()+'</b><span>points</span></div></div>';
+ }).join(""):'<div class="profileEmpty">No players have yet recorded a career in this ranking.</div>';
+ let leader=ranked[0],label=groups.find(x=>x[0]===active)[1];
+ return '<div class="card almanacHero"><div class="label">HALL OF FAME</div><div class="legacyIdentity">'+(active==="ALL"?"All-Time Greats":"Positional Rankings")+'</div><div class="sub">'+(active==="ALL"?"The best players in football history regardless of position.":"Top 20 by position, using role-appropriate career scoring.")+'</div>'+
+ '<div class="legacySummaryGrid"><div><span>Category</span><b>'+label+'</b></div><div><span>Players Ranked</span><b>'+ranked.length+'</b></div><div><span>No. 1</span><b>'+(leader?leader.p.name:"—")+'</b></div><div><span>Leading Score</span><b>'+(leader?leader.score.toLocaleString():"—")+'</b></div></div></div>'+
  tabs+
- '<div class="card"><div class="title">Top 20 '+groups.find(x=>x[0]===active)[1]+'</div><div class="sub">Career score reflects the contribution expected from this position. Clubs are shown in career order.</div>'+rows+'</div>';
+ '<div class="card"><div class="title">Top 20 '+label+'</div><div class="sub">'+(active==="ALL"?"Every position is converted to the same 2,300-point scale: Performance 1,200 · Team Success 350 · Recognition 450 · Longevity & Peak 300.":"Position-specific performance is normalised to the same universal points scale. Missing historical defensive or goalkeeper data is not treated as zero.")+'</div>'+rows+'</div>';
 }
 
 const GM_LEGACY_VERSION="2.10.5";
