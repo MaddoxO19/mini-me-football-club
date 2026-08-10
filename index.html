@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.10.1 Career Honours Readability Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.10.2 Player Story & Clubs Consolidation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3837,6 +3837,15 @@ body.coach-edit-open{overflow:hidden}
  .honoursChronology{font-size:9px;line-height:1.55}
 }
 
+
+/* v2.10.10.2 PLAYER STORY & CLUBS CONSOLIDATION */
+.clubSpellRow{padding:13px 0;border-bottom:1px solid var(--line)}
+.clubSpellRow:last-child{border-bottom:0}.clubSpellRow>div:first-child b{display:block;font-size:12px}.clubSpellRow>div:first-child span{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.clubSpellStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.clubSpellStats span{border:1px solid var(--line);border-radius:9px;padding:7px;text-align:center;color:var(--muted);font-size:8px}.clubSpellStats b{display:block;color:#e9eef2;font-size:12px;margin-bottom:2px}
+.clubSpellMeta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:9px;color:var(--muted)}.clubSpellMeta b{color:var(--gold)}
+@media(max-width:430px){.clubSpellStats{grid-template-columns:1fr 1fr}.clubSpellMeta{display:grid;grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -3914,7 +3923,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.10.1 Career Honours Readability Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.10.2 Player Story & Clubs Consolidation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -4539,19 +4548,17 @@ function playerCareerView(p){
    (rows||'<div class="profileEmpty">No archived career seasons yet. This season will be added when it is completed.</div>')+'</div>';
 }
 function playerClubsView(p){
- ensurePlayerClubHistory(p);
- let spells=[...p.clubHistory].reverse();
- let rows=spells.map(sp=>{
-   let end=sp.endSeason||"Present";
-   let seasons=sp.endSeason?sp.endSeason-sp.startSeason+1:Math.max(1,G.season-sp.startSeason+1);
-   let archived=(p.careerHistory||[]).filter(h=>h.clubId===sp.clubId&&h.season>=sp.startSeason&&(!sp.endSeason||h.season<=sp.endSeason));
-   let apps=archived.reduce((s,h)=>s+(h.apps||0),0);
-   let goals=archived.reduce((s,h)=>s+(h.goals||0),0);
-   if(!sp.endSeason&&p.stats&&p.team===sp.clubId){apps+=p.stats.apps||0;goals+=p.stats.goals||0}
-   return '<div class="profileTableRow"><div><b>'+playerClubNameNow(sp.clubId,sp.clubNameAtStart)+'</b><span>'+sp.startSeason+' – '+end+'</span></div><div class="right">'+apps+' apps<br><span>'+goals+' goals</span></div><div class="right">'+seasons+' yr</div></div>';
+ let spells=Array.isArray(p.clubHistory)?p.clubHistory.slice().sort((a,b)=>(a.startSeason||0)-(b.startSeason||0)):[];
+ if(!spells.length)return '<div class="card playerClubsCard"><div class="title">Club Career</div><div class="profileEmpty">No club history yet.</div></div>';
+ let rows=spells.map(spell=>{
+  let s=playerClubSpellStats(p,spell),club=playerClubNameNow(spell.clubId,spell.clubNameAtStart);
+  let from=spell.startSeason||"—",to=spell.to==null?(p.team===spell.clubId?"Present":G.season):(spell.to||"—");
+  let champ=s.championships.length?s.championships.map(x=>x.season).join(" · "):"None";
+  return '<div class="clubSpellRow"><div><b>'+club+'</b><span>'+from+'–'+to+' · '+s.seasons+' season'+(s.seasons===1?"":"s")+'</span></div>'+
+   '<div class="clubSpellStats"><span><b>'+s.apps+'</b> apps</span><span><b>'+s.goals+'</b> goals</span><span><b>'+s.assists+'</b> assists</span><span><b>'+s.championships.length+'</b> titles</span></div>'+
+   '<div class="clubSpellMeta"><span>Championships: '+champ+'</span><b>'+(s.tier||"Club career")+'</b></div></div>';
  }).join("");
- return '<div class="card profileTableCard playerClubsCard"><div class="title">Club History</div><div class="profileTableHead"><div>Club / Seasons</div><div>Stats</div><div>Tenure</div></div>'+
- (rows||'<div class="profileEmpty">No club history recorded yet.</div>')+'</div>';
+ return '<div class="card playerClubsCard"><div class="sectionHead"><div><div class="title">Club Career</div><div class="sub">Each senior spell, its contribution and achievements.</div></div><div class="sectionCount">'+spells.length+' club'+(spells.length===1?"":"s")+'</div></div>'+rows+'</div>';
 }
 function playerAwardIcon(name){
  let icons={
@@ -4577,16 +4584,26 @@ function playerAwardsView(p){
  let priority={"Player of the Year":1,"Golden Boot":2,"Forward of the Year":3,"Midfielder of the Year":4,"Defender of the Year":5,"Playmaker Award":6,"Golden Glove":7,"Young Player of the Year":8,"Team of the Season":9};
 
  let groups=Object.keys(grouped).sort((x,y)=>(priority[x]||99)-(priority[y]||99)||x.localeCompare(y)).map(name=>{
-  let items=grouped[name].slice().sort((x,y)=>Number(x.season)-Number(y.season));
-  let occurrences=items.map(playerAwardOccurrenceLabel);
-  return '<div class="honoursRow honoursRowReadable"><div class="honoursIcon">'+playerAwardIcon(name)+'</div><div class="honoursMain"><div class="honoursTitle">'+name+'</div><div class="honoursChronology">'+occurrences.join("; ")+'</div></div><div class="honoursCount">'+items.length+'×</div></div>';
+  let items=grouped[name].slice().sort((x,y)=>Number(y.season)-Number(x.season));
+  let seasons=[...new Set(items.map(x=>Number(x.season)).filter(Number.isFinite))].sort((x,y)=>x-y);
+  let clubGroups={};
+  items.forEach(a=>{
+   let club=playerClubNameNow(a.clubId,a.clubNameAtTime)||"Unknown Club";
+   if(!clubGroups[club])clubGroups[club]=[];
+   clubGroups[club].push(Number(a.season));
+  });
+  let clubs=Object.keys(clubGroups);
+  let context=clubs.length<=1
+   ?'<div class="honoursClub">'+(clubs[0]||"")+'</div><div class="honoursYears">'+seasons.join(" · ")+'</div>'
+   :'<div class="honoursClub">'+clubs.map(club=>club+' · '+[...new Set(clubGroups[club])].sort((x,y)=>x-y).join(", ")).join("<br>")+'</div>';
+  return '<div class="honoursRow"><div class="honoursIcon">'+playerAwardIcon(name)+'</div><div class="honoursMain"><div class="honoursTitle">'+name+'</div>'+context+'</div><div class="honoursCount">'+items.length+'×</div></div>';
  }).join("");
 
  let total=awards.length,types=Object.keys(grouped).length;
  let seasonSet=new Set((p.careerHistory||[]).filter(h=>(Number(h.apps)||0)>0).map(h=>Number(h.season)));
  if(p.stats&&p.stats.season===G.season&&(Number(p.stats.apps)||0)>0)seasonSet.add(Number(G.season));
  let seasonsPlayed=seasonSet.size;
- return '<div class="card honoursCard"><div class="sectionHead"><div><div class="title">Career Honours</div><div class="sub">Each award shows the season and club where it was won.</div></div><div class="sectionCount">'+total+' honours</div></div>'+
+ return '<div class="card honoursCard"><div class="sectionHead"><div><div class="title">Career Honours</div><div class="sub">Awards grouped across the player career.</div></div><div class="sectionCount">'+total+' honours</div></div>'+
  '<div class="honoursSummary honoursSummary3"><b>'+seasonsPlayed+'</b><span>seasons played</span><b>'+types+'</b><span>award types</span><b>'+total+'</b><span>total honours</span></div><div class="honoursList">'+groups+'</div></div>';
 }
 
@@ -6068,62 +6085,130 @@ function playerChampionshipSeasons(p){
  return out.sort((a,b)=>a.season-b.season);
 }
 
+
+function playerClubSpellStats(p,spell){
+ let rows=(p.careerHistory||[]).filter(h=>Number(h.clubId)===Number(spell.clubId));
+ let apps=rows.reduce((s,h)=>s+(Number(h.apps)||0),0);
+ let goals=rows.reduce((s,h)=>s+(Number(h.goals)||0),0);
+ let assists=rows.reduce((s,h)=>s+(Number(h.assists)||0),0);
+ let seasons=new Set(rows.map(h=>Number(h.season))).size;
+ let championships=playerChampionshipSeasons(p).filter(x=>Number(x.clubId)===Number(spell.clubId));
+ let tier=clubPlayerLegacyTier(p,spell.clubId);
+ return{apps,goals,assists,seasons,championships,tier};
+}
+function playerCareerSpan(p){
+ let hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
+ let first=hs[0]?Number(hs[0].season):null,last=hs.length?Number(hs[hs.length-1].season):null;
+ if(p.stats&&p.stats.season===G.season&&(Number(p.stats.apps)||0)>0)last=Number(G.season);
+ return{first,last};
+}
+function playerRecordMilestones(p){
+ let out=[],t=playerCareerTotals(p);
+ let thresholds=[
+  ["100 Career Appearances",100,t.apps],
+  ["250 Career Appearances",250,t.apps],
+  ["500 Career Appearances",500,t.apps],
+  ["100 Career Goals",100,t.goals],
+  ["250 Career Goals",250,t.goals],
+  ["500 Career Goals",500,t.goals]
+ ];
+ let hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
+ thresholds.forEach(x=>{
+  if(x[2]<x[1])return;
+  let cumulative=0,season=null;
+  for(let h of hs){
+   cumulative+=x[0].includes("Goals")?(Number(h.goals)||0):(Number(h.apps)||0);
+   if(cumulative>=x[1]){season=h.season;break}
+  }
+  if(season)out.push({season,title:x[0],detail:"Career milestone"});
+ });
+ return out;
+}
+
 function playerCareerStory(p){
  let hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
  let first=hs[0],last=hs[hs.length-1],t=playerCareerTotals(p);
- let awards=(p.awards||[]).length,championships=playerChampionshipSeasons(p).length;
- let peak=Math.max(Number(p.ovr)||0,...hs.map(h=>Number(h.ovr)||0));
+ let championships=playerChampionshipSeasons(p).length,peak=Math.max(Number(p.ovr)||0,...hs.map(h=>Number(h.ovr)||0));
  let clubs=playerCareerClubs(p),best=null,bestScore=0;
  clubs.forEach(id=>{let s=clubPlayerLegacyScore(p,id);if(s>bestScore){best=id;bestScore=s}});
  let tier=best!==null?clubPlayerLegacyTier(p,best):null;
- let bestSeason=playerBestCareerSeason(p),seasons=playerCareerSeasonsPlayed(p);
  let out=[];
  if(first)out.push("Career began with "+first.clubNameAtTime+" in "+first.season+".");
- if(clubs.length>1)out.push("Played senior football for "+clubs.length+" clubs across "+seasons+" seasons.");
- else if(seasons)out.push("Played "+seasons+" senior season"+(seasons===1?"":"s")+".");
- if(t.apps)out.push("Recorded "+t.apps+" appearances, "+t.goals+" goals and "+t.assists+" assists.");
- if(championships)out.push("Won "+championships+" league championship"+(championships===1?"":"s")+".");
- if(awards)out.push("Collected "+awards+" individual honour"+(awards===1?"":"s")+".");
- if(bestSeason)out.push("Best statistical season came in "+bestSeason.season+" with "+(bestSeason.goals||0)+" goals and "+(bestSeason.assists||0)+" assists.");
- if(peak)out.push("Reached a peak OVR of "+peak+".");
- if(tier&&best!==null)out.push("Recognised as a "+tier+" at "+playerClubNameNow(best)+".");
+ if(championships)out.push("Won "+championships+" league championship"+(championships===1?"":"s")+" during the career.");
+ if(t.apps>=500)out.push("Surpassed 500 senior appearances.");
+ else if(t.apps>=250)out.push("Surpassed 250 senior appearances.");
+ if(t.goals>=250)out.push("Reached the 250-goal career milestone.");
+ else if(t.goals>=100)out.push("Reached 100 career goals.");
+ if(peak>=90)out.push("Reached elite status with a peak OVR of "+peak+".");
+ if(tier&&best!==null)out.push("Became a "+tier+" at "+playerClubNameNow(best)+".");
  if(p.team===-2)out.push("Retired after the "+(last?last.season:G.season)+" season.");
  else out.push("Career remains active.");
  return out.join(" ");
 }
 function playerCareerMilestones(p){
  let out=[],hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
- if(hs[0])out.push({season:hs[0].season,title:"Career Debut",detail:hs[0].clubNameAtTime});
- (p.clubHistory||[]).slice().sort((a,b)=>a.startSeason-b.startSeason).forEach((h,i)=>{
-  if(i>0)out.push({season:h.startSeason,title:"Joined "+playerClubNameNow(h.clubId,h.clubNameAtStart),detail:"New club"});
+ if(hs[0])out.push({season:hs[0].season,title:"Senior Debut",detail:hs[0].clubNameAtTime});
+
+ let spells=(p.clubHistory||[]).slice().sort((a,b)=>a.startSeason-b.startSeason);
+ spells.forEach((h,i)=>{
+  if(i>0)out.push({season:h.startSeason,title:"Career Move",detail:"Joined "+playerClubNameNow(h.clubId,h.clubNameAtStart)});
  });
- playerChampionshipSeasons(p).forEach(x=>out.push({season:x.season,title:"League Champion",detail:x.clubName}));
- (p.awards||[]).slice().sort((a,b)=>a.season-b.season).forEach(a=>{
-  if(hallOfFameAwardWeight(a.name)>=60)out.push({season:a.season,title:a.name,detail:a.clubNameAtTime||playerClubNameNow(a.clubId)});
- });
+
+ let champs=playerChampionshipSeasons(p);
+ if(champs.length){
+  let byClub={};
+  champs.forEach(x=>{
+   let key=x.clubName||playerClubNameNow(x.clubId);
+   if(!byClub[key])byClub[key]=[];
+   byClub[key].push(x.season);
+  });
+  Object.entries(byClub).forEach(([club,years])=>{
+   out.push({season:Math.min(...years),title:"League Championship"+(years.length>1?"s":""),detail:years.sort((a,b)=>a-b).join("; ")+" ("+club+")"});
+  });
+ }
+
  let best=playerBestCareerSeason(p);
  if(best)out.push({season:best.season,title:"Peak Season",detail:(best.goals||0)+" goals · "+(best.assists||0)+" assists · "+(best.apps||0)+" apps"});
- if(p.team===-2){let last=hs[hs.length-1];out.push({season:last?last.season:G.season,title:"Retired",detail:"Career concluded"});}
+
+ out.push(...playerRecordMilestones(p));
+
+ let clubs=playerCareerClubs(p),bestClub=null,bestScore=0;
+ clubs.forEach(id=>{let s=clubPlayerLegacyScore(p,id);if(s>bestScore){bestClub=id;bestScore=s}});
+ let tier=bestClub!==null?clubPlayerLegacyTier(p,bestClub):null;
+ if(tier&&bestClub!==null){
+   let rows=(p.careerHistory||[]).filter(h=>Number(h.clubId)===Number(bestClub)).sort((a,b)=>a.season-b.season);
+   let season=rows.length?rows[rows.length-1].season:G.season;
+   out.push({season,title:tier,detail:playerClubNameNow(bestClub)});
+ }
+
+ if(p.team===-2){
+  let last=hs[hs.length-1];
+  out.push({season:last?last.season:G.season,title:"Retirement",detail:"Career concluded"});
+ }
+
  let seen=new Set();
- return out.filter(x=>{let k=x.season+"|"+x.title+"|"+x.detail;if(seen.has(k))return false;seen.add(k);return true})
-   .sort((a,b)=>a.season-b.season||a.title.localeCompare(b.title));
+ return out.filter(x=>{
+  let k=x.season+"|"+x.title+"|"+x.detail;
+  if(seen.has(k))return false;
+  seen.add(k);return true;
+ }).sort((a,b)=>a.season-b.season||a.title.localeCompare(b.title));
 }
 function playerStoryView(p){
- let milestones=playerCareerMilestones(p),story=playerCareerStory(p),t=playerCareerTotals(p);
- let championships=playerChampionshipSeasons(p),best=playerBestCareerSeason(p),clubs=playerCareerClubs(p),major=playerMajorHonoursSummary(p);
- let legacy=clubs.map(id=>{
-  let tier=clubPlayerLegacyTier(p,id);return tier?'<div class="playerLegacyRow"><span>'+playerClubNameNow(id)+'</span><b>'+tier+'</b></div>':"";
- }).join("");
- let clubsLine=clubs.length?clubs.map(id=>playerClubNameNow(id)).join(" · "):"No senior club history";
- let honoursLine=major.length?major.map(x=>x[0]+" "+x[1]+"×").join(" · "):"No major individual honours";
+ let milestones=playerCareerMilestones(p),story=playerCareerStory(p),hs=(p.careerHistory||[]);
+ let span=playerCareerSpan(p),championships=playerChampionshipSeasons(p);
+ let peak=Math.max(Number(p.ovr)||0,...hs.map(h=>Number(h.ovr)||0));
+ let clubs=playerCareerClubs(p),bestClub=null,bestScore=0;
+ clubs.forEach(id=>{let s=clubPlayerLegacyScore(p,id);if(s>bestScore){bestClub=id;bestScore=s}});
+ let legacy=bestClub!==null?clubPlayerLegacyTier(p,bestClub):null;
+ let careerSpan=(span.first&&span.last)?(span.first===span.last?String(span.first):span.first+"–"+span.last):"—";
  return '<div class="card playerStoryCard"><div class="title">Career Story</div><div class="careerStoryText">'+(story||"This career is still being written.")+'</div>'+
  '<div class="careerStorySummary">'+
-  '<div><span>CLUBS</span><b>'+clubs.length+'</b><small>'+clubsLine+'</small></div>'+
+  '<div><span>CAREER SPAN</span><b>'+careerSpan+'</b><small>'+(p.team===-2?"Retired":"Active career")+'</small></div>'+
+  '<div><span>PEAK OVR</span><b>'+peak+'</b><small>Highest recorded level</small></div>'+
   '<div><span>CHAMPIONSHIPS</span><b>'+championships.length+'</b><small>'+(championships.length?championships.map(x=>x.season).join(" · "):"None yet")+'</small></div>'+
-  '<div><span>HONOURS</span><b>'+((p.awards||[]).length)+'</b><small>'+honoursLine+'</small></div>'+
-  '<div><span>BEST SEASON</span><b>'+(best?best.season:"—")+'</b><small>'+(best?((best.goals||0)+" G · "+(best.assists||0)+" A · "+(best.apps||0)+" apps"):"Career building")+'</small></div>'+
- '</div>'+legacy+'</div>'+
- '<div class="card playerStoryCard"><div class="sectionHead"><div><div class="title">Career Timeline</div><div class="sub">Major moments only.</div></div><div class="sectionCount">'+milestones.length+'</div></div>'+
+  '<div><span>LEGACY</span><b>'+(legacy||"Building")+'</b><small>'+(bestClub!==null?playerClubNameNow(bestClub):"Career still developing")+'</small></div>'+
+ '</div></div>'+
+ '<div class="card playerStoryCard"><div class="sectionHead"><div><div class="title">Career Timeline</div><div class="sub">Only the moments that shaped the career.</div></div><div class="sectionCount">'+milestones.length+'</div></div>'+
  (milestones.length?milestones.map(m=>'<div class="careerTimelineRow"><div class="yr">'+m.season+'</div><div><b>'+m.title+'</b><span>'+m.detail+'</span></div></div>').join(""):'<div class="profileEmpty">Career milestones will appear over time.</div>')+'</div>';
 }
 function clubLegacyView(clubId=G.club){
