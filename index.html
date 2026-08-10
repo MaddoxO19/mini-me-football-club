@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.7 Player Profile Header & Edit Polish QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.8 Home Form & Squad Status Polish QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4567,6 +4567,112 @@ input,select,textarea{
  .playerTopIdentityBand small{font-size:8.5px!important}
 }
 
+
+/* ==========================================================
+   v2.10.11.8 HOME FORM + SQUAD STATUS POLISH
+   ========================================================== */
+
+/* Last-five form sits directly below league placing. */
+.homeFixtureForm{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:4px;
+ min-height:18px;
+ margin-top:2px;
+ white-space:nowrap;
+}
+.homeFixtureForm .formLabel{
+ color:var(--muted);
+ font-size:8px!important;
+ font-weight:850;
+ letter-spacing:.08em;
+ margin-right:2px;
+}
+.homeFixtureForm .formResult{
+ width:16px;
+ height:16px;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ border-radius:4px;
+ font-size:8px!important;
+ font-weight:950;
+ line-height:1;
+}
+.homeFixtureForm .formResult.win{
+ color:var(--green);
+ background:rgba(74,222,128,.08);
+}
+.homeFixtureForm .formResult.draw{
+ color:var(--gold);
+ background:rgba(217,181,74,.08);
+}
+.homeFixtureForm .formResult.loss{
+ color:var(--red);
+ background:rgba(251,113,133,.08);
+}
+.homeFixtureForm.empty{
+ color:var(--muted);
+ font-size:8px;
+}
+
+/* Give the new form a little air before Head to Head. */
+.homePrimaryFixture .h2hStrip{
+ margin-top:17px!important;
+}
+
+/* Club News is a primary Home information area, not micro-copy. */
+.homeNewsCard .newsItem{
+ padding:13px 0!important;
+}
+.homeNewsCard .newsItem b{
+ font-size:13px!important;
+ line-height:1.25!important;
+}
+.homeNewsCard .newsItem span{
+ font-size:12px!important;
+ line-height:1.42!important;
+ margin-top:5px!important;
+}
+
+/* Restore a distinct RAG-style fit hierarchy. */
+.miniFit.excellent,.pitchFit.excellent{
+ color:var(--green)!important;
+}
+.miniFit.good,.pitchFit.good{
+ color:var(--gold)!important;
+}
+.miniFit.fair,.pitchFit.fair{
+ color:#b9c4ce!important;
+}
+.miniFit.poor,.pitchFit.poor{
+ color:var(--red)!important;
+}
+
+/* Retirement remains visible without another pill/bubble. */
+.retiringSquadText{
+ display:block;
+ margin-top:6px;
+ color:var(--red);
+ font-size:9px!important;
+ font-weight:800;
+ letter-spacing:.01em;
+ line-height:1.25;
+}
+
+@media(max-width:430px){
+ .homeFixtureForm{gap:3px}
+ .homeFixtureForm .formLabel{font-size:7.5px!important}
+ .homeFixtureForm .formResult{
+  width:15px;
+  height:15px;
+  font-size:7.5px!important;
+ }
+ .homeNewsCard .newsItem b{font-size:12.5px!important}
+ .homeNewsCard .newsItem span{font-size:11.5px!important}
+}
+
 </style>
 </head>
 <body>
@@ -4644,7 +4750,7 @@ input,select,textarea{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.7 Player Profile Header & Edit Polish QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.8 Home Form & Squad Status Polish QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -8477,7 +8583,7 @@ function playerRow(p,market){
      fitHtml=fit?'<span class="miniFit '+systemFitClass(fit.score)+'">'+fit.label+' FIT</span>':'',
      roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'',
      style='<span class="playerStyleTag">'+p.primaryStyle+(p.secondaryStyle?' · '+p.secondaryStyle:'')+'</span>',
-     retireTag=p.retiring?'<span class="retiringSquadTag">RETIRES END OF SEASON</span>':'';
+     retireTag=p.retiring?'<span class="retiringSquadText">Retires end of season</span>':'';
  return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+retireTag+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
 }
 
@@ -9136,6 +9242,19 @@ function financeView(){
  '<div class="financeRow"><span>Player Purchases</span><b>'+money(x.f.seasonTransferIn)+'</b></div></div></div>';
 }
 
+function clubLastFiveForm(clubId){
+ let games=fullMatchHistory().filter(m=>m&&m.played!==false&&Number(m.season)===Number(G.season)&&(m.homeClubId===clubId||m.awayClubId===clubId));
+ games.sort((a,b)=>(Number(a.week)||0)-(Number(b.week)||0));
+ return games.slice(-5).map(m=>{
+  let home=m.homeClubId===clubId,gf=home?Number(m.homeGoals):Number(m.awayGoals),ga=home?Number(m.awayGoals):Number(m.homeGoals);
+  return gf>ga?"W":gf<ga?"L":"D";
+ });
+}
+function homeFormHtml(clubId){
+ let form=clubLastFiveForm(clubId);
+ if(!form.length)return '<div class="homeFixtureForm empty">FORM · —</div>';
+ return '<div class="homeFixtureForm"><span class="formLabel">FORM</span>'+form.map(r=>'<b class="formResult '+(r==="W"?"win":r==="L"?"loss":"draw")+'">'+r+'</b>').join("")+'</div>';
+}
 function home(){
  ensureLeagueWorld();ensureRivalryState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1,opp=G.clubs[nextOpp()],oppPos=tab.findIndex(x=>x.id===opp.id)+1;
@@ -9145,9 +9264,9 @@ function home(){
  '<div class="card homePrimaryFixture"><div class="title">Next Fixture</div>'+
  '<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div>'+
  '<div class="homeMatchup">'+
-   '<div class="homeMatchupClub homeMatchupClubLeft"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span><span class="homeFixtureRank">'+ordinal(pos)+'</span></div>'+
+   '<div class="homeMatchupClub homeMatchupClubLeft"><span class="fixtureClubLink" data-club-profile="'+c.id+'">'+c.name+'</span><span class="homeFixtureRank">'+ordinal(pos)+'</span>'+homeFormHtml(c.id)+'</div>'+
    '<div class="homeMatchupVs">VS</div>'+
-   '<div class="homeMatchupClub homeMatchupClubRight"><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span><span class="homeFixtureRank">'+ordinal(oppPos)+'</span></div>'+
+   '<div class="homeMatchupClub homeMatchupClubRight"><span class="fixtureClubLink" data-club-profile="'+opp.id+'">'+opp.name+'</span><span class="homeFixtureRank">'+ordinal(oppPos)+'</span>'+homeFormHtml(opp.id)+'</div>'+
  '</div></div>'+
  '<div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+
  '<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
