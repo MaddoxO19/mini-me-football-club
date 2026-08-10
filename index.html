@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.13 Season Transition & Instant Contract Refresh QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.14 Club Profile Edit Access QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4932,6 +4932,36 @@ body.season-transition-active{
  .transitionBall,.transitionDots i{animation:none!important}
 }
 
+
+/* v2.10.11.14 CLUB PROFILE EDIT ACCESS */
+.clubProfileNameRow{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+}
+.clubProfileNameRow .clubProfileName{min-width:0}
+.clubProfileEditButton{
+ flex:0 0 auto;
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ min-height:34px;
+ padding:7px 10px;
+ border:1px solid #6a5925;
+ border-radius:10px;
+ background:#d9b54a0d;
+ color:var(--gold);
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:.08em;
+}
+.clubProfileEditButton:active{transform:translateY(1px)}
+.clubProfileEditIcon{font-size:13px;line-height:1}
+@media(max-width:430px){
+ .clubProfileEditButton{padding:7px 9px}
+}
+
 </style>
 </head>
 <body>
@@ -5024,7 +5054,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.13 Season Transition & Instant Contract Refresh QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.14 Club Profile Edit Access QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -8737,7 +8767,7 @@ function showClubProfile(id,tab="overview"){
  let info=leagueInfo(clubCurrentDivisionKey(c.id));
  let tabs=[["overview","Overview"],["squad","Squad"],["rivalries","Head to Head"],["history","History"],["records","Records"],["honours","Honours"]];
  let body=tab==="squad"?clubProfileSquad(c.id):tab==="rivalries"?rivalryProfileHtml(c.id):tab==="history"?clubProfileHistory(c.id):tab==="records"?clubProfileRecords(c.id):tab==="honours"?clubProfileHonours(c.id):clubProfileOverview(c.id);
- $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileName">'+c.name+'</div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
+ $("#sheetbox").innerHTML='<div class="clubProfileHero"><div class="label">CLUB PROFILE</div><div class="clubProfileNameRow"><div class="clubProfileName">'+c.name+'</div><button class="clubProfileEditButton" data-edit-club="'+c.id+'" aria-label="Edit '+c.name+'"><span class="clubProfileEditIcon">✎</span><span>EDIT</span></button></div><div class="clubProfileMeta">'+info.name+' · '+(c.shortName||"")+' · REP '+c.rep+'</div></div>'+
  '<div class="clubProfileTabs">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+'<button class="btn full" data-close="1" style="margin-top:10px">CLOSE</button>';
  $("#sheet").classList.remove("hidden");
@@ -10150,7 +10180,10 @@ function saveClubEdit(id){
  let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;
  let name=($("#editClubName")||{}).value||c.name,shortName=($("#editClubShort")||{}).value||c.shortName,rep=Number(($("#editClubRep")||{}).value),coach=Number(($("#editClubCoach")||{}).value),budget=Number(($("#editClubBudget")||{}).value),balance=Number(($("#editClubBalance")||{}).value);
  c.name=String(name).trim().slice(0,36)||c.name;c.shortName=String(shortName).trim().toUpperCase().slice(0,4)||c.shortName;c.rep=Math.max(50,Math.min(99,Number.isFinite(rep)?Math.round(rep):c.rep));c.coach=Math.max(50,Math.min(99,Number.isFinite(coach)?Math.round(coach):c.coach));c.budget=Math.max(0,Number.isFinite(budget)?Math.round(budget/100000)*100000:c.budget);c.balance=Math.max(0,Number.isFinite(balance)?Math.round(balance/100000)*100000:c.balance);
- G.feed.unshift({t:"CLUB EDITED",m:c.name+" updated via League Control."});save();$("#sheet").classList.add("hidden");render();
+ G.feed.unshift({t:"CLUB EDITED",m:c.name+" updated via Club Profile."});
+ save();
+ render();
+ showClubProfile(c.id,"overview");
 }
 
 const EDIT_POSITIONS=["GK","LB","LWB","LCB","CB","RCB","RB","RWB","SW","DM","CDM","LDM","RDM","CM","LCM","RCM","AM","CAM","LAM","RAM","LM","RM","LW","RW","LF","CF","RF","SS","ST"];
