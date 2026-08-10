@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.10 Retirement State & Career Exit QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.11 Live Statistics Eligibility Fix QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4857,7 +4857,7 @@ header{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.10 Retirement State & Career Exit QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.11 Live Statistics Eligibility Fix QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6039,8 +6039,26 @@ function leaderCard(title,subtitle,players,valueFn){
  '</div></div>';
 }
 function leagueLeadersHtml(){
- let ps=leagueStatPlayers(),scorers=[...ps].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists).slice(0,5),assists=[...ps].sort((a,b)=>b.stats.assists-a.stats.assists||b.stats.keyPasses-a.stats.keyPasses).slice(0,5),ratings=ps.filter(p=>p.stats.apps>=awardMinimumApps()).sort((a,b)=>avgRating(b)-avgRating(a)).slice(0,5),keepers=ps.filter(p=>positionGroup(p.pos)==="GK"&&p.stats.apps>=awardMinimumApps("gk")).sort((a,b)=>b.stats.cleanSheets-a.stats.cleanSheets||b.stats.saves-a.stats.saves||avgRating(b)-avgRating(a)).slice(0,5);
- return leaderCard("Golden Boot Race","League goals · "+G.season,scorers,p=>p.stats.goals+" G")+leaderCard("Assist Leaders","League assists · "+G.season,assists,p=>p.stats.assists+" A")+leaderCard("Goalkeeper Leaders","Clean sheets · saves",keepers,p=>p.stats.cleanSheets+" CS")+leaderCard("Highest Average Rating","Minimum 10 appearances",ratings,p=>avgRating(p).toFixed(2));
+ let ps=leagueStatPlayers();
+ let scorers=[...ps].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists).slice(0,5);
+ let assists=[...ps].sort((a,b)=>b.stats.assists-a.stats.assists||b.stats.keyPasses-a.stats.keyPasses).slice(0,5);
+
+ // Live leaderboards use readable in-season eligibility.
+ // End-of-season awards continue to use awardMinimumApps().
+ let liveRatingMin=10,liveGoalkeeperMin=8;
+ let ratings=ps
+   .filter(p=>(Number(p.stats.ratedApps)||0)>=liveRatingMin)
+   .sort((a,b)=>avgRating(b)-avgRating(a))
+   .slice(0,5);
+ let keepers=ps
+   .filter(p=>positionGroup(p.pos)==="GK"&&(Number(p.stats.ratedApps)||0)>=liveGoalkeeperMin)
+   .sort((a,b)=>b.stats.cleanSheets-a.stats.cleanSheets||b.stats.saves-a.stats.saves||avgRating(b)-avgRating(a))
+   .slice(0,5);
+
+ return leaderCard("Golden Boot Race","League goals · "+G.season,scorers,p=>p.stats.goals+" G")+
+        leaderCard("Assist Leaders","League assists · "+G.season,assists,p=>p.stats.assists+" A")+
+        leaderCard("Goalkeeper Leaders","Minimum 8 appearances · clean sheets · saves",keepers,p=>p.stats.cleanSheets+" CS · "+p.stats.saves+" saves")+
+        leaderCard("Highest Average Rating","Minimum 10 rated appearances",ratings,p=>avgRating(p).toFixed(2));
 }
 function poissonGoals(lambda){let L=Math.exp(-Math.max(.05,lambda)),k=0,p=1;do{k++;p*=gameRandom()}while(p>L&&k<10);return Math.max(0,k-1)}
 function sim(a,b){let sa=strength(a),sb=strength(b),diff=Math.max(-18,Math.min(18,sa-sb)),xgHome=Math.max(.48,Math.min(2.75,1.50+diff*.052)),xgAway=Math.max(.42,Math.min(2.55,1.20-diff*.047));xgHome*=.90+gameRandom()*.20;xgAway*=.90+gameRandom()*.20;return[Math.min(6,poissonGoals(xgHome)),Math.min(6,poissonGoals(xgAway))]}
