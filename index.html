@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.9 Retirement & Fixture Clarity QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.10 Retirement State & Career Exit QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4723,6 +4723,63 @@ input,select,textarea{
  .homeAwayMark{font-size:7.5px}
 }
 
+
+/* ==========================================================
+   v2.10.11.10 RETIREMENT STATE + CAREER EXIT
+   ========================================================== */
+
+/* Softer pastel form colours: recognisable without visual glare. */
+.homeFixtureForm .formResult.win{
+ color:#9fd7b2!important;
+ background:rgba(159,215,178,.09)!important;
+ border-color:rgba(159,215,178,.14)!important;
+}
+.homeFixtureForm .formResult.draw{
+ color:#d8c892!important;
+ background:rgba(216,200,146,.09)!important;
+ border-color:rgba(216,200,146,.14)!important;
+}
+.homeFixtureForm .formResult.loss{
+ color:#d6a0a8!important;
+ background:rgba(214,160,168,.09)!important;
+ border-color:rgba(214,160,168,.14)!important;
+}
+
+/* Compact career-exit control next to the GM profile. */
+header{
+ position:relative;
+}
+.careerExitHeader{
+ position:absolute;
+ right:62px;
+ top:50%;
+ transform:translateY(-50%);
+ min-height:34px;
+ padding:7px 9px;
+ border:1px solid var(--line);
+ border-radius:10px;
+ background:transparent;
+ color:var(--muted);
+ font-size:8px;
+ font-weight:900;
+ letter-spacing:.08em;
+}
+.careerExitHeader:active{
+ background:rgba(185,196,206,.06);
+}
+@media(max-width:430px){
+ .careerExitHeader{
+  right:58px;
+  padding:6px 8px;
+  font-size:7.5px;
+ }
+}
+
+/* Retired careers should not visually imply transfer value or contracts. */
+.retiredStatusBand{
+ grid-template-columns:1fr!important;
+}
+
 </style>
 </head>
 <body>
@@ -4768,7 +4825,7 @@ input,select,textarea{
     <span class="gameHeaderTitle">FOOTBALL CLUB</span>
   </div>
   <div id="clubline"></div>
-<button id="gmProfileBtn" class="gmHeaderButton" data-gm-profile-open="1" aria-label="Open GM profile" title="GM Profile"><span class="gmPersonIcon" aria-hidden="true"><span class="gmPersonHead"></span><span class="gmPersonBody"></span></span></button></header>
+<button id="exitCareerBtn" class="careerExitHeader" data-exit-career="1" aria-label="Exit career" title="Exit Career">EXIT</button><button id="gmProfileBtn" class="gmHeaderButton" data-gm-profile-open="1" aria-label="Open GM profile" title="GM Profile"><span class="gmPersonIcon" aria-hidden="true"><span class="gmPersonHead"></span><span class="gmPersonBody"></span></span></button></header>
 <nav id="nav">
 <div class="navAction active" data-page="home" role="button" tabindex="0"><b>⌂</b><span>HOME</span></div>
 <div class="navAction" data-page="squad" role="button" tabindex="0"><b>◎</b><span>SQUAD</span></div>
@@ -4800,7 +4857,7 @@ input,select,textarea{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.9 Retirement & Fixture Clarity QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.10 Retirement State & Career Exit QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -8303,6 +8360,20 @@ function gmClubHistoryRows(){
  }).join("");
 }
 function gmProfileHtml(){let t=gmCareerTotals(),club=G.clubs[t.currentClubId],clubName=club?club.name:"Unattached",tab=window.gmProfileTab||"record";if(!["record","clubs","status","opportunities"].includes(tab))tab="record";window.gmProfileTab=tab;let tabs='<div class="gmProfileTabs">'+[["record","Record"],["clubs","Clubs"],["status","Status"],["opportunities","Opportunities"]].map(x=>'<button data-gm-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';let record='<div class="card compactGMRecord"><div class="title">Career Record</div><div class="gmRecordGrid"><div><span>W / D / L</span><b>'+t.w+' / '+t.d+' / '+t.l+'</b></div><div><span>Goals</span><b>'+t.gf+' / '+t.ga+'</b></div><div><span>Best Finish</span><b>'+(t.bestFinish?ordinal(t.bestFinish):'—')+'</b></div><div><span>Best Points</span><b>'+(t.bestPoints||'—')+'</b></div></div></div>';let clubs='<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+(gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+'</div>';let status='<div class="card gmFutureCard"><div class="title">Career Status</div>'+richRecordRow('Board Status',t.board.label,t.board.score)+richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+'<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';return '<div class="gmProfileHero"><div class="gmProfileAvatar">●</div><div class="gmProfileIdentity"><div class="screenEyebrow">GENERAL MANAGER</div><div class="gmProfileName">'+t.name+'</div><div class="sub">'+clubName+' · '+t.status+'</div></div><button class="gmEditNameBtn" data-gm-edit-name="1">EDIT</button></div>'+gmLegacyHtml()+'<div class="gmCareerGrid compactGMCareer"><div class="gmCareerStat"><div class="label">TITLES</div><div class="value">'+t.titles+'</div></div><div class="gmCareerStat"><div class="label">MATCHES</div><div class="value">'+t.matches+'</div></div><div class="gmCareerStat"><div class="label">WINS</div><div class="value">'+t.w+'</div></div><div class="gmCareerStat"><div class="label">WIN RATE</div><div class="value">'+t.winPct.toFixed(1)+'%</div></div></div>'+tabs+(tab==="clubs"?clubs:tab==="status"?status:tab==="opportunities"?gmOpportunitiesHtml():record);}
+function exitToCareerHub(){
+ try{save()}catch(e){}
+ hideGMProfile();
+ let sheet=$("#sheet");if(sheet)sheet.classList.add("hidden");
+ let review=$("#seasonReview");if(review)review.classList.add("hidden");
+ let result=$("#resultScreen");if(result)result.classList.add("hidden");
+ $("#clubStep").classList.add("hidden");
+ $("#saveSlotStep").classList.add("hidden");
+ $("#launchStep").classList.remove("hidden");
+ $("#start").classList.remove("hidden");
+ document.body.classList.add("career-hub-active");
+ let status=$("#startStatus");
+ if(status)status.textContent="Career saved. Choose New Career or Load Career.";
+}
 function showGMProfile(){
  ensureUserGMIdentity();
  let box=$("#gmProfileModal");if(!box)return;
@@ -9932,9 +10003,12 @@ function playerCareerStage(p){
  if(age<=31)return "Experienced";
  return "Veteran";
 }
+function isRetiredPlayer(p){
+ return !!(p&&(p.retired===true||Number(p.team)===-2));
+}
 function playerOverviewContent(p){
  ensureTransferState();ensureLifecycleState();ensurePlayerStats();if(!p.manualEconomy)syncPlayerEconomy(p);
- let own=p.team===G.club,free=!!p.freeAgent||p.team<0,market=!own&&!free,offers=playerOffers(p.id),body="";
+ let retired=isRetiredPlayer(p),own=!retired&&p.team===G.club,free=!retired&&(!!p.freeAgent||p.team<0),market=!retired&&!own&&!free,offers=retired?[]:playerOffers(p.id),body="";
  if(own){
    let state=p.retiring?'<span class="statusPill danger">RETIRING</span>':
      p.renewedThisSeason?'<span class="statusPill good">RENEWED</span>':
@@ -9960,6 +10034,8 @@ function playerOverviewContent(p){
      '<div class="actionGroup"><div class="actionLabel">TRANSFER STATUS</div><div class="sub">Estimated market range: '+estimatedMarketRange(p)+'</div>'+
      '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div>'+
      (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>';
+ }else if(retired){
+   body='';
  }else if(free){
    let d=contractDemand(p);
    body='<div class="freeAgentBanner"><b>FREE AGENT</b><span class="sub">No transfer fee required · Expected terms around '+d.years+' years at '+money(d.wage)+'/week.</span></div><button class="btn primary full" data-sign-free="'+p.id+'">OFFER CONTRACT</button>';
@@ -9984,7 +10060,7 @@ function playerOverviewContent(p){
  '<div class="profileCompactPanel featureBand single">'+
   '<div><span>COACH ROLE</span><b>'+(fit.requiredStyle||"—")+'</b><small>'+fitExplain+'</small></div>'+
  '</div>'+
- (p.retired
+ (retired
  ?'<div class="profileCompactPanel retiredStatusBand single"><div><span>STATUS</span><b>Retired</b><small>Playing career complete</small></div></div>'
  :'<div class="profileCompactPanel managementBand">'+
    '<div><span>COACH FIT</span><b>'+fit.label+'</b><small>'+fitContext+'</small></div>'+
@@ -10003,7 +10079,7 @@ function showPlayer(id,tab="overview"){
  ensureTransferState();ensureLifecycleState();ensurePlayerStats();
  let p=G.players.find(x=>x.id===id);if(!p)return;
  ensurePlayerClubHistory(p);
- let clubLabel=p.team>=0?playerClubNameNow(p.team):p.team===-1?"Free Agent":"Retired";
+ let retired=isRetiredPlayer(p),clubLabel=retired?"Retired":p.team>=0?playerClubNameNow(p.team):"Free Agent";
  let tabs=[["overview","Overview"],["career","Career"],["story","Story"],["clubs","Clubs"],["awards","Awards"]];
  let body=tab==="career"?playerCareerView(p):tab==="story"?playerStoryView(p):tab==="clubs"?playerClubsView(p):tab==="awards"?playerAwardsView(p):playerOverviewContent(p);
  $("#sheetbox").innerHTML=
@@ -10146,6 +10222,8 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let exitCareer=e.target.closest&&e.target.closest("[data-exit-career]");
+ if(exitCareer){e.preventDefault();if(confirm("Exit this career and return to the main menu? Your current career will be saved."))exitToCareerHub();return}
  let gmOpen=e.target.closest&&e.target.closest("[data-gm-profile-open]");
  if(gmOpen){e.preventDefault();showGMProfile();return}
  let gmClose=e.target.closest&&e.target.closest("[data-gm-profile-close]");
@@ -10212,6 +10290,11 @@ let offerBtn=e.target.closest("[data-offer-player]");if(offerBtn){let p=G.player
 let acceptBtn=e.target.closest("[data-accept-sale]");if(acceptBtn){acceptSale(acceptBtn.dataset.acceptSale);return}
 
 let signFreeBtn=e.target.closest("[data-sign-free]");if(signFreeBtn){signFreeAgent(signFreeBtn.dataset.signFree);return}
+ 
+ if(signFreeBtn){
+  let retiredSignPlayer=G.players.find(p=>String(p.id)===String(signFreeBtn.dataset.signFree));
+  if(retiredSignPlayer&&isRetiredPlayer(retiredSignPlayer)){alert("This player has retired and cannot return on a playing contract.");return}
+ }
 let adjustContractBtn=e.target.closest("[data-adjust-contract]");if(adjustContractBtn){adjustContract(adjustContractBtn.dataset.adjustContract,adjustContractBtn.dataset.field,Number(adjustContractBtn.dataset.delta));return}
 let submitContractBtn=e.target.closest("[data-submit-contract]");if(submitContractBtn){submitContractOffer(submitContractBtn.dataset.submitContract);return}
 
