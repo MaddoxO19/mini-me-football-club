@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.4 World Legacy & Dynasties Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.5 Season Stories & GM Legacy Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3764,6 +3764,17 @@ body.coach-edit-open{overflow:hidden}
 .dynastyRow:last-child{border-bottom:0}.dynastyRow b{display:block;font-size:12px}.dynastyRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.dynastyRow>div:last-child{color:var(--gold);font-size:11px;font-weight:900}
 @media(max-width:430px){.worldLegacyRow{grid-template-columns:28px minmax(0,1fr)}.worldLegacyRow>div:last-child{grid-column:2;text-align:left}.legacySummaryGrid b{font-size:14px!important;overflow-wrap:anywhere}}
 
+
+/* v2.10.5 SEASON STORIES & GM LEGACY */
+.gmLegacyCard{border-color:#705d25;background:linear-gradient(180deg,#18190f,#101821)}
+.gmLegacyPlayer{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.gmLegacyPlayer:last-child{border-bottom:0}.gmLegacyPlayer .rank{color:var(--gold);font-weight:950}
+.gmLegacyPlayer b{display:block;font-size:12px}.gmLegacyPlayer span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.gmLegacyPlayer>div:last-child{color:var(--gold);font-weight:900}
+.seasonStoryArchive{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.seasonStoryArchive:last-child{border-bottom:0}.seasonStoryArchive .yr{color:var(--gold);font-weight:950;font-size:12px}
+.seasonStoryArchive b{display:block;font-size:12px}.seasonStoryArchive span{display:block;color:var(--muted);font-size:10px;line-height:1.45;margin-top:4px}
+@media(max-width:430px){.gmLegacyPlayer{grid-template-columns:26px minmax(0,1fr)}.gmLegacyPlayer>div:last-child{grid-column:2}.seasonStoryArchive{grid-template-columns:46px minmax(0,1fr)}}
+
 </style>
 </head>
 <body>
@@ -3841,7 +3852,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.4 World Legacy & Dynasties Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.5 Season Stories & GM Legacy Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5269,6 +5280,107 @@ function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 
 
 
+
+const GM_LEGACY_VERSION="2.10.5";
+
+function ensureSeasonStoryState(){
+ if(!Array.isArray(G.seasonStories))G.seasonStories=[];
+}
+function ensureGMLegacyState(){
+ if(!G.gmLegacy||typeof G.gmLegacy!=="object")G.gmLegacy={version:GM_LEGACY_VERSION,seasons:[],peakReputation:null};
+ if(!Array.isArray(G.gmLegacy.seasons))G.gmLegacy.seasons=[];
+ G.gmLegacy.version=GM_LEGACY_VERSION;
+ ensureUserGMIdentity();
+ let rep=Number(G.userGM&&G.userGM.reputation);
+ if(Number.isFinite(rep))G.gmLegacy.peakReputation=Math.max(Number(G.gmLegacy.peakReputation)||0,rep);
+}
+function seasonStoryFromReview(r){
+ if(!r)return"";
+ let parts=[],club=G.clubs[G.club],clubName=club?club.name:"Your club";
+ parts.push(r.champion+" won the "+(r.divisionName||"league")+".");
+ parts.push(clubName+" finished "+ordinal(r.pos)+" with "+r.p+" matches played and a "+(r.gd>=0?"+":"")+r.gd+" goal difference.");
+ if(r.met)parts.push("The club achieved its board objective.");
+ else parts.push("The club finished below its board expectation.");
+ if(r.awards){
+  if(r.awards.player)parts.push(r.awards.player.name+" was named Player of the Year.");
+  if(r.awards.goldenBoot)parts.push(r.awards.goldenBoot.name+" won the Golden Boot with "+r.awards.goldenBoot.goals+" goals.");
+  if(r.awards.manager)parts.push(r.awards.manager.name+" of "+r.awards.manager.club+" was named Manager of the Year.");
+ }
+ let retirees=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
+ if(retirees.length){
+  let names=retirees.slice(0,2).map(x=>x.name).join(" and ");
+  parts.push(names+(retirees.length>2?" and "+(retirees.length-2)+" others":"")+" retired from the club.");
+ }
+ return parts.join(" ");
+}
+function recordSeasonStory(r){
+ ensureSeasonStoryState();
+ if(!r||G.seasonStories.some(x=>x.season===r.season))return;
+ G.seasonStories.unshift({
+  season:r.season,
+  clubId:G.club,
+  clubName:G.clubs[G.club]?G.clubs[G.club].name:"Club",
+  position:r.pos,
+  divisionName:r.divisionName,
+  champion:r.champion,
+  story:seasonStoryFromReview(r)
+ });
+ if(G.seasonStories.length>100)G.seasonStories=G.seasonStories.slice(0,100);
+}
+function recordGMLegacySeason(r){
+ ensureGMLegacyState();
+ if(!r||G.gmLegacy.seasons.some(x=>x.season===r.season))return;
+ let t=gmCareerTotals(),club=G.clubs[G.club];
+ G.gmLegacy.seasons.unshift({
+  season:r.season,
+  clubId:G.club,
+  clubName:club?club.name:"Club",
+  position:r.pos,
+  points:r.pts||r.points||0,
+  w:r.w||0,d:r.d||0,l:r.l||0,
+  gf:r.gf||0,ga:r.ga||0,
+  champion:!!(r.championClubId===G.club),
+  boardMet:!!r.met,
+  reputation:t.reputation
+ });
+ G.gmLegacy.peakReputation=Math.max(Number(G.gmLegacy.peakReputation)||0,Number(t.reputation)||0);
+}
+function gmManagedSeasonRanges(){
+ ensureUserGMIdentity();
+ return (G.userGM.clubs||[]).map(h=>({
+  clubId:h.clubId,
+  from:Number(h.from)||G.userGM.createdSeason||G.season,
+  to:h.to==null?G.season:Number(h.to)
+ }));
+}
+function gmGreatestPlayersManaged(limit=5){
+ let ranges=gmManagedSeasonRanges();
+ return (G.players||[]).map(p=>{
+  let relevant=(p.careerHistory||[]).filter(h=>ranges.some(r=>h.clubId===r.clubId&&h.season>=r.from&&h.season<=r.to));
+  if(!relevant.length)return null;
+  let apps=relevant.reduce((s,h)=>s+(h.apps||0),0),goals=relevant.reduce((s,h)=>s+(h.goals||0),0),assists=relevant.reduce((s,h)=>s+(h.assists||0),0),wins=relevant.reduce((s,h)=>s+(h.wins||0),0);
+  let awards=(p.awards||[]).filter(a=>ranges.some(r=>a.clubId===r.clubId&&a.season>=r.from&&a.season<=r.to)).length;
+  let score=apps*.35+goals*1.25+assists*.75+wins*.15+awards*22;
+  return{p,apps,goals,assists,awards,score};
+ }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,limit);
+}
+function gmLegacyHtml(){
+ ensureGMLegacyState();
+ let t=gmCareerTotals(),seasons=G.gmLegacy.seasons||[],greats=gmGreatestPlayersManaged(5);
+ let bestSeason=seasons.slice().sort((a,b)=>(a.position||99)-(b.position||99)||(b.points||0)-(a.points||0))[0];
+ let playerRows=greats.length?greats.map((x,i)=>'<div class="gmLegacyPlayer" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>'+x.apps+' apps · '+x.goals+' goals · '+x.assists+' assists</span></div><div>'+Math.round(x.score)+'</div></div>').join(""):'<div class="profileEmpty compactEmpty">Your greatest players managed will emerge as seasons are completed.</div>';
+ let summary='Managed '+t.clubs.length+' club'+(t.clubs.length===1?"":"s")+' across '+t.seasons+' completed season'+(t.seasons===1?"":"s")+', winning '+t.titles+' championship'+(t.titles===1?"":"s")+' with a '+t.winPct.toFixed(1)+'% career win rate.';
+ if(bestSeason)summary+=' Best recorded league finish: '+ordinal(bestSeason.position)+' with '+bestSeason.clubName+' in '+bestSeason.season+'.';
+ return '<div class="card gmLegacyCard"><div class="label">GM LEGACY</div><div class="title" style="margin-top:6px">Career Summary</div><div class="careerStoryText">'+summary+'</div>'+
+ '<div class="legacySummaryGrid"><div><span>Clubs</span><b>'+t.clubs.length+'</b></div><div><span>Titles</span><b>'+t.titles+'</b></div><div><span>Peak Reputation</span><b>'+(G.gmLegacy.peakReputation||t.reputation)+'</b></div><div><span>Seasons</span><b>'+t.seasons+'</b></div></div></div>'+
+ '<div class="card"><div class="title">Greatest Players Managed</div><div class="sub">Based on achievements recorded while playing for your clubs during your tenure.</div>'+playerRows+'</div>';
+}
+function seasonStoriesArchiveHtml(){
+ ensureSeasonStoryState();
+ let stories=G.seasonStories||[];
+ return stories.length?stories.map(s=>'<div class="seasonStoryArchive"><div class="yr">'+s.season+'</div><div><b>'+s.clubName+' · '+ordinal(s.position)+'</b><span>'+s.story+'</span></div></div>').join(""):'<div class="profileEmpty">Complete a season to begin your personal season story archive.</div>';
+}
+
 const WORLD_LEGACY_VERSION="2.10.4";
 
 function allTimeClubLegacyRows(){
@@ -5447,7 +5559,7 @@ function leagueAlmanacView(){
  let hofRows=hof.length?hof.map((x,i)=>'<div class="hofRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>'+x.p.pos+' · '+(x.p.team===-2?"Retired":playerClubNameNow(x.p.team))+'</span></div><div>'+Math.round(x.score)+'</div></div>').join(""):'<div class="profileEmpty">League greats will emerge as careers develop.</div>';
  return '<div class="card almanacHero"><div class="label">FOOTBALL HISTORY</div><div class="legacyIdentity">League Almanac</div><div class="sub">The story of your football world, season by season.</div><div class="legacySummaryGrid"><div><span>Seasons Recorded</span><b>'+seasons.length+'</b></div><div><span>Champions</span><b>'+Object.keys(champs).length+'</b></div><div><span>Most Titles</span><b>'+(dynasty?dynasty[1]:"—")+'</b></div><div><span>Leading Club</span><b>'+(dynasty?dynasty[0]:"—")+'</b></div></div></div>'+
  '<div class="card"><div class="title">Champions & Awards</div>'+championRows+'</div>'+
- '<div class="card"><div class="title">Season Stories</div>'+(stories||'<div class="profileEmpty">Season stories will appear after completed seasons.</div>')+'</div>'+
+ '<div class="card"><div class="title">Season Stories</div><div class="sub">Your club and the wider league, remembered season by season.</div>'+seasonStoriesArchiveHtml()+'</div>'+
  '<div class="card"><div class="title">League Greats</div><div class="sub">Players recognised through visible career achievements.</div>'+hofRows+'</div>';
 }
 
@@ -6596,7 +6708,7 @@ function gmProfileHtml(){
   richRecordRow('Board Status',t.board.label,t.board.score)+
   richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+
   '<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>'+
-  gmOpportunitiesHtml();
+  gmLegacyHtml()+gmOpportunitiesHtml();
 }
 function showGMProfile(){
  ensureUserGMIdentity();
@@ -6860,6 +6972,8 @@ function beginNewSeason(){
   recordClubSeasonLegacy(r.season);
   recordLeagueAlmanacSeason(r.season);
   recordStaffWorldSeason(r.season);
+  recordSeasonStory(r);
+  recordGMLegacySeason(r);
   archiveRivalrySeason();
   applyWorldClubSustainability(r.season);
   applyPromotionRelegation();
@@ -8334,6 +8448,8 @@ function ensureRuntimeState(){
  ensureClubLegacyState();
  ensureLeagueAlmanacState();
  ensureStaffWorldHistory();
+ ensureSeasonStoryState();
+ ensureGMLegacyState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
