@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.2 UI UX GUI Consistency QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.3 Brand Visual Consistency QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3955,6 +3955,363 @@ nav button{
  .careerStorySummary{grid-template-columns:1fr 1fr}
 }
 
+
+/* ==========================================================
+   v2.10.11.3 BRAND VISUAL CONSISTENCY QA
+   Home is the visual reference standard.
+   ========================================================== */
+:root{
+ --brand-screen-title:20px;
+ --brand-section-title:17px;
+ --brand-row-title:13px;
+ --brand-body:11px;
+ --brand-meta:10px;
+ --brand-label:9px;
+ --brand-control:11px;
+ --brand-stat:22px;
+ --brand-radius-card:16px;
+ --brand-radius-inner:12px;
+ --brand-row-gap:10px;
+}
+
+/* Global hierarchy */
+.screenEyebrow{
+ font-size:var(--brand-label)!important;
+ font-weight:900!important;
+ letter-spacing:.14em!important;
+ color:var(--gold)!important;
+}
+.screenTitle{
+ font-size:var(--brand-screen-title)!important;
+ font-weight:900!important;
+ line-height:1.08!important;
+ letter-spacing:-.01em!important;
+}
+.screenSubtitle{
+ font-size:var(--brand-body)!important;
+ line-height:1.45!important;
+ color:var(--muted)!important;
+ margin-top:4px!important;
+}
+.screenMeta b{
+ font-size:17px!important;
+ line-height:1.1!important;
+}
+.screenMeta span{
+ font-size:9px!important;
+ line-height:1.35!important;
+}
+.title{
+ font-size:var(--brand-section-title)!important;
+ font-weight:850!important;
+ line-height:1.2!important;
+ letter-spacing:-.005em!important;
+ margin-bottom:8px!important;
+}
+.sub{
+ font-size:var(--brand-body)!important;
+ line-height:1.45!important;
+ color:var(--muted)!important;
+}
+.label{
+ font-size:var(--brand-label)!important;
+ font-weight:850!important;
+ letter-spacing:.10em!important;
+ line-height:1.25!important;
+ color:var(--muted)!important;
+}
+.value,.recordValue{
+ font-size:var(--brand-stat)!important;
+ font-weight:900!important;
+ line-height:1.05!important;
+}
+.sectionCount{
+ font-size:9px!important;
+ line-height:1!important;
+ padding:6px 8px!important;
+ min-height:26px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+}
+
+/* One sub-navigation language everywhere */
+.sectionTabs,.playerProfileTabs,.clubProfileTabs{
+ display:flex!important;
+ gap:7px!important;
+ overflow-x:auto!important;
+ scrollbar-width:none!important;
+ padding:2px 0 12px!important;
+}
+.sectionTabs::-webkit-scrollbar,
+.playerProfileTabs::-webkit-scrollbar,
+.clubProfileTabs::-webkit-scrollbar{display:none!important}
+.sectionTabs button,
+.playerProfileTabs button,
+.clubProfileTabs button{
+ flex:0 0 auto!important;
+ min-height:40px!important;
+ border:1px solid var(--line)!important;
+ border-radius:999px!important;
+ background:var(--card2)!important;
+ color:var(--muted)!important;
+ font-size:var(--brand-control)!important;
+ font-weight:850!important;
+ letter-spacing:.02em!important;
+ padding:9px 13px!important;
+ text-transform:none!important;
+}
+.sectionTabs button.active,
+.playerProfileTabs button.active,
+.clubProfileTabs button.active{
+ border-color:var(--gold)!important;
+ color:var(--gold)!important;
+ background:#d9b54a10!important;
+}
+
+/* Consistent cards and inset surfaces */
+.card{
+ border-radius:var(--brand-radius-card)!important;
+ border-color:var(--line)!important;
+}
+.recordTile,
+.clubProfileStat,
+.careerStorySummary>div,
+.contractBox,
+.contractFigure,
+.offerCard,
+.need,
+.needCard,
+.financeTile,
+.facilityCard,
+.staffCard,
+.coachCard,
+.devSummaryCard,
+.devMetricCard{
+ border:1px solid var(--line)!important;
+ border-radius:var(--brand-radius-inner)!important;
+ background:var(--card2)!important;
+}
+.recordTile,
+.clubProfileStat,
+.careerStorySummary>div{
+ padding:11px!important;
+}
+
+/* Standard row hierarchy */
+.player,.devCardRow,.profileTableRow,.historySeason,.historySeasonRow,
+.careerTimelineRow,.honoursRow,.honourRow,.gmLegacyPlayer,.hofPosRow,
+.worldLegacyRow,.staffWorldRow,.legacyPlayerRow,.clubSpellRow,
+.seasonStoryArchive,.historyCompactRow,.almanacSeason{
+ padding-top:12px!important;
+ padding-bottom:12px!important;
+}
+.pname,
+.profileTableRow b,
+.playerSeasonRow b,
+.historySeason b,
+.historySeasonRow b,
+.careerTimelineRow b,
+.honoursTitle,
+.honourRow b,
+.gmLegacyPlayer b,
+.hofPosIdentity b,
+.worldLegacyRow b,
+.staffWorldRow b,
+.legacyPlayerRow b,
+.clubSpellRow b,
+.devPlayerMain b,
+.newsItem b{
+ font-size:var(--brand-row-title)!important;
+ font-weight:850!important;
+ line-height:1.25!important;
+}
+.meta,
+.profileTableRow span,
+.playerSeasonRow span,
+.historySeason span,
+.historySeasonRow span,
+.careerTimelineRow span,
+.honoursClub,.honoursYears,
+.honourRow span,
+.gmLegacyPlayer span,
+.hofPosIdentity span,.hofPosIdentity small,
+.worldLegacyRow span,
+.staffWorldRow span,
+.legacyPlayerRow span,
+.clubSpellRow span,
+.devPlayerMeta,
+.newsItem span,
+.recordNote,
+.devSectionHint{
+ font-size:var(--brand-meta)!important;
+ line-height:1.4!important;
+ color:var(--muted)!important;
+}
+
+/* Player identity and metrics */
+.pos{
+ width:40px!important;height:40px!important;
+ border-radius:11px!important;
+ font-size:10px!important;
+ font-weight:900!important;
+}
+.ovr{
+ font-size:18px!important;
+ font-weight:900!important;
+ line-height:1.05!important;
+}
+.pot{
+ font-size:9px!important;
+ line-height:1.3!important;
+}
+.rating{text-align:right!important}
+
+/* Career / awards / history consistency */
+.honoursCount{
+ font-size:20px!important;
+ font-weight:900!important;
+ color:var(--gold)!important;
+}
+.careerStoryText{
+ font-size:12px!important;
+ line-height:1.55!important;
+ color:#d7dee5!important;
+}
+.careerStorySummary span{
+ font-size:9px!important;
+ letter-spacing:.08em!important;
+}
+.careerStorySummary b{
+ font-size:18px!important;
+}
+.careerStorySummary small{
+ font-size:9px!important;
+ line-height:1.4!important;
+}
+.careerTimelineRow .yr,
+.historySeasonRow .yr,
+.seasonStoryArchive .yr,
+.almanacYear,
+.legacyMilestone .yr{
+ font-size:11px!important;
+ font-weight:900!important;
+ color:var(--gold)!important;
+}
+
+/* League / records */
+.leagueRow{font-size:11px!important}
+.leagueRow.head{font-size:9px!important}
+.leagueCell.club{font-size:12px!important}
+.recordTile .recordValue{font-size:22px!important}
+.recordTile .label{font-size:9px!important}
+
+/* Hall of Fame */
+.hofPositionTabs button{
+ min-height:40px!important;
+ border-radius:11px!important;
+ font-size:10px!important;
+ font-weight:850!important;
+ letter-spacing:.03em!important;
+}
+.hofPosIdentity small.hofBreakdown{
+ font-size:9px!important;
+ line-height:1.4!important;
+}
+.hofPoints b{
+ font-size:18px!important;
+ font-weight:900!important;
+}
+.hofPoints span{
+ font-size:9px!important;
+}
+
+/* Market / recruitment */
+.marketFilter button,
+.teamCoachLink,
+.backBtn{
+ font-size:10px!important;
+ font-weight:850!important;
+}
+.offerClub,.needTitle{
+ font-size:13px!important;
+ font-weight:850!important;
+}
+.transferTag,.statusPill,.miniFlag{
+ font-size:9px!important;
+ font-weight:850!important;
+}
+
+/* Forms / controls */
+.btn{
+ font-size:12px!important;
+ font-weight:850!important;
+ letter-spacing:.01em!important;
+}
+.btn.primary{font-weight:900!important}
+input,select,textarea{
+ font-size:12px!important;
+}
+.editorField label,
+.contractFigure .label{
+ font-size:9px!important;
+ font-weight:850!important;
+ letter-spacing:.06em!important;
+}
+
+/* Home remains reference; only requested adjustment */
+.homeContinueAction{
+ font-size:14px!important;
+ font-weight:900!important;
+ letter-spacing:.02em!important;
+ min-height:48px!important;
+}
+
+/* Modal / result / review hierarchy */
+.sheetbox .title,
+.resultScreen .title{
+ font-size:17px!important;
+}
+.resultTeam{font-size:15px!important}
+.resultState{font-size:10px!important}
+.matchStatSide{font-size:14px!important}
+.matchStatLabel{font-size:9px!important}
+.awardCard .awardName{font-size:13px!important}
+.awardCard .awardMeta{font-size:10px!important}
+.awardCard .awardValue{font-size:18px!important}
+
+/* Avoid visual noise from too many competing badge sizes */
+.sectionCount,.statusPill,.transferTag,.miniFlag{
+ border-radius:999px!important;
+}
+
+/* Mobile tuning */
+@media(max-width:430px){
+ :root{
+  --brand-screen-title:19px;
+  --brand-section-title:16px;
+  --brand-row-title:12px;
+  --brand-body:10px;
+  --brand-meta:9px;
+  --brand-control:10px;
+  --brand-stat:21px;
+ }
+ .screenSubtitle{font-size:10px!important}
+ .sectionTabs button,
+ .playerProfileTabs button,
+ .clubProfileTabs button{
+  min-height:38px!important;
+  padding:8px 12px!important;
+ }
+ .homeContinueAction{
+  font-size:14px!important;
+  min-height:48px!important;
+ }
+ .careerStoryText{font-size:11px!important}
+ .honoursCount{font-size:19px!important}
+ .hofPoints b{font-size:17px!important}
+}
+
 </style>
 </head>
 <body>
@@ -4032,7 +4389,7 @@ nav button{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.2 UI UX GUI Consistency QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.3 Brand Visual Consistency QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6241,6 +6598,8 @@ function recordClubSeasonLegacy(season){
 
 const STABILITY_QA_VERSION="2.10.11";
 const UI_UX_QA_VERSION="2.10.11.2";
+const BRAND_VISUAL_QA_VERSION="2.10.11.3";
+const BRAND_REFERENCE_SCREEN="home";
 
 function ensureCoreSaveIntegrity(){
  if(!G||typeof G!=="object")return false;
