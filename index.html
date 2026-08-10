@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.0 Club Identity & Legacy Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.1 World Competitiveness & AI Refinement Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3734,6 +3734,8 @@ body.coach-edit-open{overflow:hidden}
 .playerLegacyRow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:11px}.playerLegacyRow span{color:var(--muted)}.playerLegacyRow b{color:var(--gold)}
 @media(max-width:430px){.legacySummaryGrid{grid-template-columns:1fr 1fr}.legacyIdentity{font-size:21px}.playerStoryCard{min-height:320px}}
 
+
+/* v2.10.1: Club DNA moved to Squad; AI world competitiveness refinement. */
 </style>
 </head>
 <body>
@@ -3811,7 +3813,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.0 Club Identity & Legacy Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.1 World Competitiveness & AI Refinement Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5235,6 +5237,37 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null)
 function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 
 
+
+const WORLD_COMPETITIVENESS_VERSION="2.10.1";
+function clubCompetitiveProfile(clubId){
+ let c=G.clubs[clubId],s=aiSquad(clubId).filter(p=>!p.retiring),ci=clubIntelligence(clubId);
+ let avg=s.length?s.reduce((x,p)=>x+(Number(p.ovr)||0),0)/s.length:0;
+ let top=s.slice().sort((a,b)=>b.ovr-a.ovr).slice(0,11);
+ let xi=top.length?top.reduce((x,p)=>x+(Number(p.ovr)||0),0)/top.length:0;
+ return{avg,xi,youth:s.filter(p=>p.age<=22&&p.pot>=p.ovr+6).length,aging:s.filter(p=>p.age>=31).length,cash:Number(c.budget)||0,rep:Number(c.rep)||70,phase:ci.phase||"Compete"};
+}
+function competitiveRecruitmentModifier(player,clubId,need){
+ let cp=clubCompetitiveProfile(clubId),ovr=Number(player.ovr)||0,age=Number(player.age)||25,pot=Number(player.pot)||ovr,mod=0;
+ if(ovr>=cp.xi+2)mod+=5; else if(ovr<cp.avg-3)mod-=4;
+ if(cp.aging>=5&&age<=25)mod+=4;
+ if(cp.youth<=1&&age<=22&&pot>=ovr+8)mod+=4;
+ if(cp.xi>=82&&ovr<cp.xi-7)mod-=5;
+ return mod;
+}
+function aiSquadBalanceGuard(player,clubId){
+ let squad=aiSquad(clubId).filter(p=>!p.retiring),group=positionGroup(player.pos),count=squad.filter(p=>positionGroup(p.pos)===group).length;
+ return count<({GK:3,DEF:10,MID:10,FWD:8}[group]||9);
+}
+function runWorldCompetitivenessReview(){
+ ensureClubIntelligenceState();
+ G.clubs.forEach(c=>{
+  if(!c)return;
+  let plan=buildClubStrategicPlan(c.id,true),cp=clubCompetitiveProfile(c.id);
+  if(cp.aging>=6&&plan.phase==="Contend"){plan.phase="Refresh";clubIntelligence(c.id).phase="Refresh";}
+  if((plan.phase==="Build"||plan.phase==="Refresh")&&plan.priorityNeeds.length>2)plan.priorityNeeds=plan.priorityNeeds.slice(0,2);
+ });
+}
+
 const CLUB_LEGACY_VERSION="2.10.0";
 
 function ensureClubLegacyState(){
@@ -5527,7 +5560,9 @@ function aiCandidateScore(player,teamId,need){
  let pe=positionalEffectiveness(player,need.slot,teamId),fit=coachFitAssessment(player,need.slot,teamId);
  let ageValue=player.age<=23?3:player.age>=32?-3:0,contractValue=player.years<=1?3:0;
  let intelligence=clubIntelligenceRecruitmentModifier(player,teamId,need);
- return pe.effectiveOvr+fitSelectionModifier(fit.score)*1.8+ageValue+contractValue+need.urgency*.10+intelligence;
+ let competitive=competitiveRecruitmentModifier(player,teamId,need);
+ if(!aiSquadBalanceGuard(player,teamId))return -999;
+ return pe.effectiveOvr+fitSelectionModifier(fit.score)*1.8+ageValue+contractValue+need.urgency*.10+intelligence+competitive;
 }
 function aiBestRecruitmentTarget(teamId,candidates){let needs=aiRoleNeeds(teamId).filter(n=>n.urgency>4),best=null;needs.slice(0,6).forEach(need=>candidates.forEach(p=>{let score=aiCandidateScore(p,teamId,need);if(!best||score>best.score)best={player:p,need,score}}));return best}
 function aiEnsureFormationCoverage(teamId){let guard=0;while(!formationCoverage(teamId).ok&&guard<8){guard++;let need=aiRoleNeeds(teamId).find(n=>n.depth===0);if(!need)break;let free=activeFreeAgents().filter(p=>!p.retiring&&playerEligibleForSlot(p,need.slot)).sort((a,b)=>aiCandidateScore(b,teamId,need)-aiCandidateScore(a,teamId,need))[0];if(free){free.team=teamId;openPlayerClubSpell(free,teamId,null);free.freeAgent=false;free.years=rnd(1,3);G.freeAgents=G.freeAgents.filter(x=>x!==free.id)}else{let np=generateWorldPlayer(teamId,rnd(-3,1),true,positionGroup(need.slot));np.primaryStyle=need.requiredStyle;G.players.push(np)}}}
@@ -6651,6 +6686,7 @@ function beginNewSeason(){
   considerRetirements();
   ensureClubIntelligenceState();
   G.clubs.forEach(c=>{if(c)buildClubStrategicPlan(c.id,true)});
+  runWorldCompetitivenessReview();
   save();
 
   $("#seasonReview").classList.add("hidden");
@@ -7411,8 +7447,8 @@ function staffView(){
 function squad(){
  let h=coachProfile(G.club),integrity=startingXIIntegrity(G.club);
  let hero=screenHeroHtml("SQUAD MANAGEMENT","First Team","Starting XI, player development and Head Coach football identity.",'<b>'+h.formation+'</b><span>'+(integrity.ok?'XI Ready':'XI Incomplete')+'</span>');
- let tabs=tabsHtml("squad",squadTab,[["team","Team"],["development","Development"],["staff","Staff"]]);
- return hero+tabs+(squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
+ let tabs=tabsHtml("squad",squadTab,[["dna","DNA"],["team","Team"],["development","Development"],["staff","Staff"]]);
+ return hero+tabs+(squadTab==="dna"?clubDNAView(G.club):squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
  ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();
@@ -7763,8 +7799,8 @@ function clubHistoryView(){return legacyClubHistoryView()+richClubWorldHistoryHt
 function club(){
  let c=G.clubs[G.club],key=currentLeagueKey(),pos=clubCurrentPosition(G.club);
  let hero=screenHeroHtml("CLUB MANAGEMENT",c.name,leagueInfo(key).name+" · facilities, finances and club history.",'<b>'+(pos?ordinal(pos):"—")+'</b><span>League position</span>');
- let tabs=tabsHtml("club",clubTab,[["overview","Overview"],["dna","DNA"],["legacy","Legacy"],["staff","Staff"],["facilities","Facilities"],["finances","Finances"],["history","History"]]);
- return hero+tabs+(clubTab==="legacy"?clubLegacyView(G.club):clubTab==="dna"?clubDNAView(G.club):clubTab==="staff"?coachEmploymentView():clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
+ let tabs=tabsHtml("club",clubTab,[["overview","Overview"],["legacy","Legacy"],["staff","Staff"],["facilities","Facilities"],["finances","Finances"],["history","History"]]);
+ return hero+tabs+(clubTab==="legacy"?clubLegacyView(G.club):clubTab==="staff"?coachEmploymentView():clubTab==="facilities"?clubFacilitiesView():clubTab==="finances"?financeView():clubTab==="history"?clubHistoryView():clubOverviewView());
 }
 function ensureTransferState(){
  if(!G.transferOffers)G.transferOffers=[];
