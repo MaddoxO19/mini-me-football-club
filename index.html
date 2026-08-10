@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.12 League Records & History Integrity QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.11.13 Season Transition & Instant Contract Refresh QA Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4787,6 +4787,151 @@ header{
  font-size:10px!important;
 }
 
+
+/* ==========================================================
+   v2.10.11.13 SEASON TRANSITION + INSTANT TRANSACTION REFRESH
+   ========================================================== */
+.seasonTransition{
+ position:fixed;
+ inset:0;
+ z-index:7000;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:24px;
+ background:
+   radial-gradient(circle at 50% 42%,rgba(217,181,74,.08),transparent 32%),
+   linear-gradient(180deg,#080d12 0%,#0b1219 58%,#080d12 100%);
+}
+.seasonTransition.hidden{display:none!important}
+.seasonTransitionInner{
+ width:min(100%,460px);
+ text-align:center;
+}
+.transitionBrand{
+ display:flex;
+ align-items:baseline;
+ justify-content:center;
+ gap:10px;
+ margin-bottom:30px;
+}
+.transitionBrand span{
+ color:var(--gold);
+ font-size:10px;
+ font-weight:950;
+ letter-spacing:.22em;
+}
+.transitionBrand b{
+ color:var(--text);
+ font-size:22px;
+ letter-spacing:.04em;
+}
+.transitionPitch{
+ position:relative;
+ width:190px;
+ height:112px;
+ margin:0 auto 28px;
+ border:2px solid rgba(217,181,74,.38);
+ border-radius:18px;
+ overflow:hidden;
+ background:rgba(13,27,22,.46);
+ box-shadow:0 24px 60px #0008,inset 0 0 36px rgba(217,181,74,.025);
+}
+.transitionPitch:before,.transitionPitch:after{
+ content:"";
+ position:absolute;
+ top:28px;
+ width:28px;
+ height:54px;
+ border:1px solid rgba(217,181,74,.25);
+}
+.transitionPitch:before{left:-1px;border-left:0}
+.transitionPitch:after{right:-1px;border-right:0}
+.transitionHalfway{
+ position:absolute;
+ top:0;
+ bottom:0;
+ left:50%;
+ width:1px;
+ background:rgba(217,181,74,.25);
+}
+.transitionCircle{
+ position:absolute;
+ width:42px;
+ height:42px;
+ left:50%;
+ top:50%;
+ transform:translate(-50%,-50%);
+ border:1px solid rgba(217,181,74,.28);
+ border-radius:50%;
+}
+.transitionBall{
+ position:absolute;
+ left:50%;
+ top:50%;
+ width:24px;
+ height:24px;
+ margin:-12px 0 0 -12px;
+ display:grid;
+ place-items:center;
+ border-radius:50%;
+ color:#17130a;
+ background:var(--gold);
+ font-size:9px;
+ box-shadow:0 0 22px rgba(217,181,74,.3);
+ animation:seasonBallRun 1.8s cubic-bezier(.45,.05,.55,.95) infinite;
+}
+.transitionTitle{
+ color:var(--text);
+ font-size:19px;
+ font-weight:900;
+}
+.transitionSeasonLabel{
+ margin-top:6px;
+ color:var(--gold);
+ font-size:12px;
+ font-weight:950;
+ letter-spacing:.14em;
+}
+.transitionSub{
+ margin:15px auto 0;
+ max-width:340px;
+ color:var(--muted);
+ font-size:10px;
+ line-height:1.5;
+}
+.transitionDots{
+ display:flex;
+ justify-content:center;
+ gap:6px;
+ margin-top:18px;
+}
+.transitionDots i{
+ width:6px;
+ height:6px;
+ border-radius:50%;
+ background:#c5cdd4;
+ opacity:.25;
+ animation:seasonDots 1.1s ease-in-out infinite;
+}
+.transitionDots i:nth-child(2){animation-delay:.16s}
+.transitionDots i:nth-child(3){animation-delay:.32s}
+body.season-transition-active{
+ overflow:hidden!important;
+}
+@keyframes seasonBallRun{
+ 0%{transform:translateX(-64px) rotate(0deg)}
+ 50%{transform:translateX(64px) rotate(180deg)}
+ 100%{transform:translateX(-64px) rotate(360deg)}
+}
+@keyframes seasonDots{
+ 0%,100%{opacity:.22;transform:scale(.85)}
+ 50%{opacity:.95;transform:scale(1.15)}
+}
+@media(prefers-reduced-motion:reduce){
+ .transitionBall,.transitionDots i{animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -4858,13 +5003,28 @@ header{
  </div>
 </div>
 
+<div id="seasonTransition" class="seasonTransition hidden" aria-live="polite" aria-busy="true">
+ <div class="seasonTransitionInner">
+  <div class="transitionBrand"><span>MINI&ME</span><b>FOOTBALL</b></div>
+  <div class="transitionPitch" aria-hidden="true">
+   <div class="transitionHalfway"></div>
+   <div class="transitionCircle"></div>
+   <div class="transitionBall">◆</div>
+  </div>
+  <div class="transitionTitle">Preparing the new season</div>
+  <div id="transitionSeasonLabel" class="transitionSeasonLabel"></div>
+  <div class="transitionDots"><i></i><i></i><i></i></div>
+  <div class="transitionSub">Updating squads, careers, fixtures and the football world.</div>
+ </div>
+</div>
+
 <div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="card resultPanel"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div class="resultScoreStack"><div id="resultScore" class="resultScore"></div><div id="resultState" class="resultState"></div></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
 <div id="sheet" class="sheet hidden"><div id="sheetbox" class="sheetbox"></div></div>
 <script>
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.12 League Records & History Integrity QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.11.13 Season Transition & Instant Contract Refresh QA Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -6286,17 +6446,17 @@ function submitContractOffer(id){
    p.wage=offer.wage;p.years=offer.years;p.renewedThisSeason=true;
    delete contractDrafts[p.id];
    G.feed.unshift({t:"CONTRACT RENEWED",m:p.name+" signs for "+offer.years+" years at "+money(offer.wage)+"/week."});
-   save();showPlayer(id);return;
+   save();refreshPlayerTransactionUI(id);return;
  }
  if(score>=35){
    let counterWage=Math.round(Math.max(demand.wage,offer.wage*1.06)/1000)*1000;
    let counterYears=demand.years;
    contractDrafts[p.id]={years:counterYears,wage:counterWage};
    G.feed.unshift({t:"CONTRACT COUNTER",m:p.name+" has countered at "+counterYears+" years and "+money(counterWage)+"/week."});
-   save();showPlayer(id);return;
+   save();refreshPlayerTransactionUI(id);return;
  }
  G.feed.unshift({t:"CONTRACT TALKS",m:p.name+" rejected the proposal and wants improved terms."});
- save();showPlayer(id);
+ save();refreshPlayerTransactionUI(id);
 }
 function estimatedMarketRange(p){
  let value=p&&p.manualEconomy?(Number(p.value)||0):balancedPlayerValue(p);
@@ -6373,7 +6533,10 @@ function signFreeAgent(id){
    p.team=G.club;openPlayerClubSpell(p,G.club,null);p.freeAgent=false;p.years=d.years;p.wage=d.wage;p.renewedThisSeason=true;
    G.freeAgents=G.freeAgents.filter(x=>x!==p.id);
    G.feed.unshift({t:"FREE AGENT SIGNING",m:p.name+" has signed a "+d.years+" year contract."});
-   save();$("#sheet").classList.add("hidden");render();
+   save();
+   $("#sheet").classList.add("hidden");
+   if(document.body.classList.contains("season-review-active")&&G.pendingSeasonReview)showSeasonReview();
+   else render();
  }else{
    alert(p.name+" rejected the contract offer.");
  }
@@ -8591,6 +8754,42 @@ function applyPromotionRelegation(){
  G.lastMovement={season:G.season,relegated,promoted};
 }
 
+function showSeasonTransition(){
+ let overlay=$("#seasonTransition");
+ if(!overlay)return;
+ let nextSeason=(Number(G.season)||2026)+1;
+ let label=$("#transitionSeasonLabel");
+ if(label)label.textContent=nextSeason+" SEASON";
+ overlay.classList.remove("hidden");
+ document.body.classList.add("season-transition-active");
+ let btn=$("#newSeasonBtn");
+ if(btn){btn.disabled=true;btn.textContent="PREPARING "+nextSeason+" SEASON…"}
+}
+function hideSeasonTransition(){
+ let overlay=$("#seasonTransition");
+ if(overlay)overlay.classList.add("hidden");
+ document.body.classList.remove("season-transition-active");
+ let btn=$("#newSeasonBtn");
+ if(btn){btn.disabled=false;btn.textContent="CONTINUE TO NEW SEASON"}
+}
+function startSeasonTransition(){
+ if($("#seasonTransition")&&!$("#seasonTransition").classList.contains("hidden"))return;
+ showSeasonTransition();
+ // Allow the transition view to paint before the synchronous offseason work begins.
+ requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(beginNewSeason,60)));
+}
+function refreshPlayerTransactionUI(id){
+ let p=G.players.find(x=>String(x.id)===String(id));
+ if(!p)return;
+ let reviewActive=document.body.classList.contains("season-review-active")&&G.pendingSeasonReview;
+ if(reviewActive){
+   showSeasonReview();
+   showPlayer(p.id);
+   return;
+ }
+ render();
+ showPlayer(p.id);
+}
 function beginNewSeason(){
  try{
   let r=G.pendingSeasonReview;
@@ -8696,8 +8895,10 @@ function beginNewSeason(){
   document.body.classList.remove("season-review-active");
   page="home";
   render();
+  hideSeasonTransition();
  }catch(err){
   console.error("New season rollover failed",err);
+  hideSeasonTransition();
   alert("The new season could not start: "+(err&&err.message?err.message:String(err))+". Your current save has been preserved.");
  }
 }
@@ -10327,7 +10528,10 @@ let cancelClubBtn=e.target.closest("[data-cancel-club-edit]");if(cancelClubBtn){
 let editPlayerBtn=e.target.closest("[data-edit-player]");if(editPlayerBtn){openPlayerEditor(editPlayerBtn.dataset.editPlayer);return}
 let savePlayerBtn=e.target.closest("[data-save-player-edit]");if(savePlayerBtn){savePlayerEdit(savePlayerBtn.dataset.savePlayerEdit);return}
 let cancelPlayerBtn=e.target.closest("[data-cancel-player-edit]");if(cancelPlayerBtn){cancelPlayerEdit(cancelPlayerBtn.dataset.cancelPlayerEdit);return}
-if(e.target.closest("[data-close]")||e.target.id==="sheet")$("#sheet").classList.add("hidden");});
+if(e.target.closest("[data-close]")||e.target.id==="sheet"){
+ $("#sheet").classList.add("hidden");
+ if(document.body.classList.contains("season-review-active")&&G.pendingSeasonReview)showSeasonReview();
+}});
 document.addEventListener("keydown",function(e){
  if(e.key!=="Enter"&&e.key!==" ")return;
  let homeContinue=e.target.closest&&e.target.closest("[data-home-continue]");
@@ -10353,7 +10557,7 @@ $("#backToLaunch").addEventListener("click",function(){
 });
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
-$("#newSeasonBtn").addEventListener("click",beginNewSeason);
+$("#newSeasonBtn").addEventListener("click",startSeasonTransition);
 $("#resultContinueBtn").addEventListener("click",function(){
  // Close the match report immediately so the tap feels responsive.
  $("#resultScreen").classList.add("hidden");
