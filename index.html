@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.6 Era Records & Hall of Fame Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.7 League Experience Consolidation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3783,6 +3783,14 @@ body.coach-edit-open{overflow:hidden}
 .eraRow{display:grid;grid-template-columns:minmax(110px,.45fr) minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.eraRow:last-child{border-bottom:0}.eraRow b{display:block;font-size:12px}.eraRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}
 @media(max-width:430px){.hofLegacyRow{grid-template-columns:28px minmax(0,1fr)}.hofLegacyRow>div:last-child{grid-column:2;text-align:left}.eraRow{grid-template-columns:1fr}}
 
+
+/* v2.10.7 LEAGUE EXPERIENCE CONSOLIDATION */
+.historySeasonRow{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.historySeasonRow:last-child{border-bottom:0}.historySeasonRow .yr{color:var(--gold);font-weight:950}.historySeasonRow b{display:block;font-size:12px}.historySeasonRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.historyCompactRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.historyCompactRow:last-child{border-bottom:0}.historyCompactRow b{display:block;font-size:11px}.historyCompactRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.historyCompactRow>div:last-child{color:var(--gold);font-size:10px;font-weight:850;text-align:right}
+@media(max-width:430px){.historyCompactRow{grid-template-columns:1fr}.historyCompactRow>div:last-child{text-align:left}}
+
 </style>
 </head>
 <body>
@@ -3860,7 +3868,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.6 Era Records & Hall of Fame Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.7 League Experience Consolidation Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5290,6 +5298,23 @@ function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 
 
 
+
+const LEAGUE_EXPERIENCE_VERSION="2.10.7";
+
+function leagueHistoryView(){
+ ensureLeagueAlmanacState();ensureStaffWorldHistory();ensureSeasonStoryState();
+ let seasons=G.leagueAlmanac.seasons||[],dynasties=detectDynasties(),eras=eraRecords();
+ let seasonRows=seasons.length?seasons.slice(0,12).map(s=>'<div class="historySeasonRow"><div class="yr">'+s.season+'</div><div><b>'+(s.champion?s.champion.name:"Season")+'</b><span>'+(s.champion?(s.champion.points+" pts · "+s.champion.wins+" wins"):"")+(s.playerOfYear?" · POTY "+s.playerOfYear.name:"")+'</span></div></div>').join(""):'<div class="profileEmpty">Complete a season to begin league history.</div>';
+ let dynastyRows=dynasties.length?dynasties.slice(0,6).map(d=>'<div class="historyCompactRow"><div><b>'+d.clubName+'</b><span>'+d.start+(d.end!==d.start?"–"+d.end:"")+'</span></div><div>'+d.titles+' consecutive titles</div></div>').join(""):'<div class="profileEmpty compactEmpty">No championship dynasty has emerged yet.</div>';
+ let eraRows=eras.length?eras.slice().reverse().slice(0,6).map(e=>'<div class="historyCompactRow"><div><b>'+e.start+(e.end!==e.start?"–"+e.end:"")+'</b><span>'+e.seasons+' recorded season'+(e.seasons===1?"":"s")+'</span></div><div>'+(e.dominant?e.dominant[0]+" · "+e.dominant[1]+" titles":"Open era")+'</div></div>').join(""):'<div class="profileEmpty compactEmpty">Era records will form as seasons accumulate.</div>';
+ let coaches=(G.staffWorldHistory.coaches||[]).slice().sort((a,b)=>coachWorldScore(b)-coachWorldScore(a)).slice(0,5);
+ let coachRows=coaches.length?coaches.map(c=>'<div class="historyCompactRow"><div><b>'+c.name+'</b><span>'+c.seasons.length+' seasons · Peak '+c.peakOvr+' OVR</span></div><div>'+c.championships+' titles</div></div>').join(""):'<div class="profileEmpty compactEmpty">Coach history will build over time.</div>';
+ return '<div class="card almanacHero"><div class="label">LEAGUE HISTORY</div><div class="legacyIdentity">Football Through the Years</div><div class="sub">Champions, eras, dynasties and the people who shaped the competition.</div></div>'+
+ '<div class="card"><div class="title">Season by Season</div>'+seasonRows+'</div>'+
+ '<div class="card"><div class="title">Eras & Dynasties</div><div class="sub">The clubs that defined periods of the competition.</div>'+dynastyRows+eraRows+'</div>'+
+ '<div class="card"><div class="title">Notable Coaches</div><div class="sub">Leadership history retained without a separate League menu.</div>'+coachRows+'</div>';
+}
+
 const HALL_OF_FAME_VERSION="2.10.6";
 
 function hallOfFameCandidates(){
@@ -5298,7 +5323,7 @@ function hallOfFameCandidates(){
   let seasons=new Set((p.careerHistory||[]).map(h=>h.season)).size;
   let peak=Math.max(Number(p.ovr)||0,...(p.careerHistory||[]).map(h=>Number(h.ovr)||0));
   let score=(t.apps||0)*.24+(t.goals||0)*1.15+(t.assists||0)*.7+(t.wins||0)*.15+awards*25+seasons*3+Math.max(0,peak-80)*4;
-  let status=score>=360?"Immortal":score>=250?"Hall of Fame":score>=170?"Great":null;
+  let status=score>=250?"Hall of Fame":null;
   return{p,t,awards,seasons,peak,score,status};
  }).filter(x=>x.status).sort((a,b)=>b.score-a.score);
 }
@@ -5322,14 +5347,10 @@ function eraRecords(){
  });
 }
 function hallOfFameView(){
- let hof=hallOfFameCandidates(),eras=eraRecords();
- let immortal=hof.filter(x=>x.status==="Immortal").length;
- let rows=hof.length?hof.slice(0,20).map((x,i)=>'<div class="hofLegacyRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>'+x.status+' · Peak '+x.peak+' OVR · '+x.seasons+' seasons</span></div><div><b>'+Math.round(x.score)+'</b><span>'+x.t.apps+' apps · '+x.t.goals+' goals · '+x.awards+' awards</span></div></div>').join(""):'<div class="profileEmpty">Players will enter the Hall of Fame as careers build significant achievements.</div>';
- let eraRows=eras.length?eras.slice().reverse().map(e=>'<div class="eraRow"><div><b>'+e.start+(e.end!==e.start?'–'+e.end:'')+'</b><span>'+e.seasons+' recorded season'+(e.seasons===1?"":"s")+'</span></div><div><b>'+(e.dominant?e.dominant[0]:"Open era")+'</b><span>'+(e.dominant?e.dominant[1]+' titles':"No dominant club")+(e.star?' · '+e.star[0]+' leading player':"")+'</span></div></div>').join(""):'<div class="profileEmpty">Era records will form as completed seasons accumulate.</div>';
- return '<div class="card almanacHero"><div class="label">FOOTBALL IMMORTALITY</div><div class="legacyIdentity">Hall of Fame</div><div class="sub">Recognition reserved for the careers that genuinely defined the save.</div>'+
- '<div class="legacySummaryGrid"><div><span>Recognised Greats</span><b>'+hof.length+'</b></div><div><span>Immortals</span><b>'+immortal+'</b></div><div><span>Recorded Eras</span><b>'+eras.length+'</b></div><div><span>Highest Score</span><b>'+(hof[0]?Math.round(hof[0].score):"—")+'</b></div></div></div>'+
- '<div class="card"><div class="title">Hall of Fame</div><div class="sub">Career recognition based entirely on visible football achievements.</div>'+rows+'</div>'+
- '<div class="card"><div class="title">Eras of the Game</div><div class="sub">Five-season windows showing the clubs and players that shaped each period.</div>'+eraRows+'</div>';
+ let hof=hallOfFameCandidates();
+ let rows=hof.length?hof.slice(0,24).map((x,i)=>'<div class="hofLegacyRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>Hall of Fame · Peak '+x.peak+' OVR · '+x.seasons+' seasons</span></div><div><b>'+x.t.goals+' goals</b><span>'+x.t.apps+' apps · '+x.awards+' awards</span></div></div>').join(""):'<div class="profileEmpty">No player has yet built a Hall of Fame career.</div>';
+ return '<div class="card almanacHero"><div class="label">FOOTBALL IMMORTALITY</div><div class="legacyIdentity">Hall of Fame</div><div class="sub">Reserved for exceptional players whose careers genuinely defined the league.</div><div class="legacySummaryGrid"><div><span>Inductees</span><b>'+hof.length+'</b></div><div><span>Leading Inductee</span><b>'+(hof[0]?hof[0].p.name:"—")+'</b></div><div><span>Highest Career Score</span><b>'+(hof[0]?Math.round(hof[0].score):"—")+'</b></div><div><span>Threshold</span><b>250</b></div></div></div>'+
+ '<div class="card"><div class="title">Inductees</div><div class="sub">Recognition is based only on visible career achievements. Club legends remain within individual Club Legacy.</div>'+rows+'</div>';
 }
 
 const GM_LEGACY_VERSION="2.10.5";
@@ -7825,10 +7846,11 @@ function staffView(){
  '<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">Coach Fit shows how naturally each player suits the football identity. It does not replace player OVR.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Perfect+'</b><span>Perfect</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">The best footballers remain difficult to displace. Coach Fit becomes most influential when players are close in ability, giving recruitment and squad building a meaningful identity without turning selection into a tactics puzzle.</div></div>';
 }
 function squad(){
+ normalizeSectionTabs();
  let h=coachProfile(G.club),integrity=startingXIIntegrity(G.club);
- let hero=screenHeroHtml("SQUAD MANAGEMENT","First Team","Starting XI, player development and Head Coach football identity.",'<b>'+h.formation+'</b><span>'+(integrity.ok?'XI Ready':'XI Incomplete')+'</span>');
- let tabs=tabsHtml("squad",squadTab,[["dna","DNA"],["team","Team"],["development","Development"],["staff","Staff"]]);
- return hero+tabs+(squadTab==="dna"?clubDNAView(G.club):squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
+ let hero=screenHeroHtml("SQUAD MANAGEMENT","First Team","Team, fixtures, football identity, development and staff.",'<b>'+h.formation+'</b><span>'+(integrity.ok?'XI Ready':'XI Incomplete')+'</span>');
+ let tabs=tabsHtml("squad",squadTab,[["team","Team"],["fixtures","Fixtures"],["dna","DNA"],["development","Development"],["staff","Staff"]]);
+ return hero+tabs+(squadTab==="fixtures"?leagueFixturesView():squadTab==="dna"?clubDNAView(G.club):squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
  ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();
@@ -8076,11 +8098,19 @@ function leagueRecordsView(){
   '<div class="card richRecordSection"><div class="sectionHead"><div><div class="title">League Archive</div><div class="sub">Champions and major individual awards by season.</div></div><div class="sectionCount">'+hs.length+'</div></div>'+(archive||'<div class="sub">Complete a season to begin the archive.</div>')+'</div>';
 }
 
+
+function normalizeSectionTabs(){
+ if(["fixtures","leaders","almanac","staffhistory","worldlegacy","clubs"].includes(leagueTab))leagueTab=(leagueTab==="leaders"?"statistics":"history");
+ if(!["table","statistics","records","history","halloffame"].includes(leagueTab))leagueTab="table";
+ if(!["team","fixtures","dna","development","staff"].includes(squadTab))squadTab="team";
+}
+
 function league(){
+ normalizeSectionTabs();
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
- let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · league table, fixtures, leaders and historical records.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
- let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["almanac","Almanac"],["staffhistory","GM & Coaches"],["worldlegacy","Legacy"],["halloffame","Hall of Fame"],["clubs","Clubs"]]);
- return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="almanac"?leagueAlmanacView():leagueTab==="staffhistory"?staffWorldHistoryView():leagueTab==="worldlegacy"?worldLegacyView():leagueTab==="halloffame"?hallOfFameView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
+ let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · table, statistics, records and football history.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
+ let tabs=tabsHtml("league",leagueTab,[["table","Table"],["statistics","Statistics"],["records","Records"],["history","History"],["halloffame","Hall of Fame"]]);
+ return hero+tabs+(leagueTab==="statistics"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="history"?leagueHistoryView():leagueTab==="halloffame"?hallOfFameView():leagueTableView());
 }
 function clubOverviewView(){
  ensureFacilityState();ensureFinanceState();
