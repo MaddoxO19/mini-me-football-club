@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.1 World Competitiveness & AI Refinement Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.2 League Almanac Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3736,6 +3736,16 @@ body.coach-edit-open{overflow:hidden}
 
 
 /* v2.10.1: Club DNA moved to Squad; AI world competitiveness refinement. */
+
+/* v2.10.2 LEAGUE ALMANAC */
+.almanacHero{border-color:#705d25;background:linear-gradient(180deg,#18190f,#101821)}
+.almanacSeason{display:grid;grid-template-columns:54px minmax(0,1fr) minmax(130px,.8fr);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.almanacSeason:last-child{border-bottom:0}.almanacYear{font-size:13px;font-weight:950;color:var(--gold)}
+.almanacMain b{display:block;font-size:12px}.almanacMain span,.almanacAwards span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.almanacAwards{text-align:right}
+.seasonStory{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:11px;line-height:1.45}.seasonStory:last-child{border-bottom:0}.seasonStory .yr{color:var(--gold);font-weight:900}
+.hofRow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}.hofRow:last-child{border-bottom:0}.hofRow .rank{color:var(--gold);font-weight:900}.hofRow b{display:block;font-size:12px}.hofRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.hofRow>div:last-child{color:var(--gold);font-weight:900}
+@media(max-width:430px){.almanacSeason{grid-template-columns:46px 1fr}.almanacAwards{grid-column:2;text-align:left}.almanacAwards span{display:inline-block;margin-right:10px}}
+
 </style>
 </head>
 <body>
@@ -3813,7 +3823,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.1 World Competitiveness & AI Refinement Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.2 League Almanac Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5238,6 +5248,60 @@ function aiSquad(clubId){return G.players.filter(p=>p.team===clubId)}
 
 
 
+
+const LEAGUE_ALMANAC_VERSION="2.10.2";
+
+function ensureLeagueAlmanacState(){
+ if(!G.leagueAlmanac||typeof G.leagueAlmanac!=="object")G.leagueAlmanac={version:LEAGUE_ALMANAC_VERSION,seasons:[]};
+ if(!Array.isArray(G.leagueAlmanac.seasons))G.leagueAlmanac.seasons=[];
+ G.leagueAlmanac.version=LEAGUE_ALMANAC_VERSION;
+}
+function almanacPlayerName(id,fallback){
+ let p=G.players.find(x=>x.id===id);return p?p.name:(fallback||"Unknown");
+}
+function recordLeagueAlmanacSeason(season){
+ ensureLeagueAlmanacState();
+ if(G.leagueAlmanac.seasons.some(s=>s.season===season))return;
+ let top=standings("top"),lower=standings("lower"),champ=top[0];
+ let leaders=leagueLeaderData?leagueLeaderData():null;
+ let awards=(G.awardHistory||[]).filter(a=>a.season===season);
+ let poty=awards.find(a=>/player of the year/i.test(a.name||""));
+ let golden=awards.find(a=>/golden boot|top scorer/i.test(a.name||""));
+ let promoted=lower.slice(0,3).map(r=>({id:r.id,name:G.clubs[r.id]?.name||"Club"}));
+ let relegated=top.slice(-3).map(r=>({id:r.id,name:G.clubs[r.id]?.name||"Club"}));
+ let story=[];
+ if(champ)story.push((G.clubs[champ.id]?.name||"The champions")+" won the Premier Division.");
+ if(golden)story.push((golden.playerName||almanacPlayerName(golden.playerId))+" claimed the Golden Boot.");
+ if(poty)story.push((poty.playerName||almanacPlayerName(poty.playerId))+" was named Player of the Year.");
+ if(promoted.length)story.push(promoted.map(x=>x.name).join(", ")+" earned promotion.");
+ G.leagueAlmanac.seasons.unshift({
+  season,
+  champion:champ?{id:champ.id,name:G.clubs[champ.id]?.name||"Club",points:champ.pts,wins:champ.w}:null,
+  playerOfYear:poty?{id:poty.playerId,name:poty.playerName||almanacPlayerName(poty.playerId)}:null,
+  goldenBoot:golden?{id:golden.playerId,name:golden.playerName||almanacPlayerName(golden.playerId)}:null,
+  promoted,relegated,story:story.join(" ")
+ });
+ if(G.leagueAlmanac.seasons.length>100)G.leagueAlmanac.seasons=G.leagueAlmanac.seasons.slice(0,100);
+}
+function leagueAlmanacView(){
+ ensureLeagueAlmanacState();
+ let seasons=G.leagueAlmanac.seasons||[];
+ let champs={};seasons.forEach(s=>{if(s.champion)champs[s.champion.name]=(champs[s.champion.name]||0)+1});
+ let dynasty=Object.entries(champs).sort((a,b)=>b[1]-a[1])[0];
+ let championRows=seasons.length?seasons.map(s=>'<div class="almanacSeason"><div class="almanacYear">'+s.season+'</div><div class="almanacMain"><b>'+(s.champion?s.champion.name:"—")+'</b><span>'+(s.champion?(s.champion.points+" pts · "+s.champion.wins+" wins"):"Season record")+'</span></div><div class="almanacAwards">'+(s.playerOfYear?'<span>POTY · '+s.playerOfYear.name+'</span>':"")+(s.goldenBoot?'<span>Golden Boot · '+s.goldenBoot.name+'</span>':"")+'</div></div>').join(""):'<div class="profileEmpty">Complete the current season to begin your League Almanac.</div>';
+ let stories=seasons.filter(s=>s.story).slice(0,8).map(s=>'<div class="seasonStory"><div class="yr">'+s.season+'</div><div>'+s.story+'</div></div>').join("");
+ let hof=(G.players||[]).map(p=>{
+  let total=playerCareerTotals(p),aw=(p.awards||[]).length;
+  let score=(total.apps||0)*.25+(total.goals||0)*1.1+(total.assists||0)*.65+aw*20;
+  return{p,score};
+ }).filter(x=>x.score>=180).sort((a,b)=>b.score-a.score).slice(0,12);
+ let hofRows=hof.length?hof.map((x,i)=>'<div class="hofRow" data-player="'+x.p.id+'"><div class="rank">'+(i+1)+'</div><div><b>'+x.p.name+'</b><span>'+x.p.pos+' · '+(x.p.team===-2?"Retired":playerClubNameNow(x.p.team))+'</span></div><div>'+Math.round(x.score)+'</div></div>').join(""):'<div class="profileEmpty">League greats will emerge as careers develop.</div>';
+ return '<div class="card almanacHero"><div class="label">FOOTBALL HISTORY</div><div class="legacyIdentity">League Almanac</div><div class="sub">The story of your football world, season by season.</div><div class="legacySummaryGrid"><div><span>Seasons Recorded</span><b>'+seasons.length+'</b></div><div><span>Champions</span><b>'+Object.keys(champs).length+'</b></div><div><span>Most Titles</span><b>'+(dynasty?dynasty[1]:"—")+'</b></div><div><span>Leading Club</span><b>'+(dynasty?dynasty[0]:"—")+'</b></div></div></div>'+
+ '<div class="card"><div class="title">Champions & Awards</div>'+championRows+'</div>'+
+ '<div class="card"><div class="title">Season Stories</div>'+(stories||'<div class="profileEmpty">Season stories will appear after completed seasons.</div>')+'</div>'+
+ '<div class="card"><div class="title">League Greats</div><div class="sub">Players recognised through visible career achievements.</div>'+hofRows+'</div>';
+}
+
 const WORLD_COMPETITIVENESS_VERSION="2.10.1";
 function clubCompetitiveProfile(clubId){
  let c=G.clubs[clubId],s=aiSquad(clubId).filter(p=>!p.retiring),ci=clubIntelligence(clubId);
@@ -6645,6 +6709,7 @@ function beginNewSeason(){
   archiveSeasonAwardsToPlayers(r);
   snapshotAllClubHistories();
   recordClubSeasonLegacy(r.season);
+  recordLeagueAlmanacSeason(r.season);
   archiveRivalrySeason();
   applyWorldClubSustainability(r.season);
   applyPromotionRelegation();
@@ -7699,8 +7764,8 @@ function leagueRecordsView(){
 function league(){
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
  let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · league table, fixtures, leaders and historical records.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
- let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["clubs","Clubs"]]);
- return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
+ let tabs=tabsHtml("league",leagueTab,[["table","Table"],["fixtures","Fixtures"],["leaders","Leaders"],["records","Records"],["almanac","Almanac"],["clubs","Clubs"]]);
+ return hero+tabs+(leagueTab==="fixtures"?leagueFixturesView():leagueTab==="leaders"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="almanac"?leagueAlmanacView():leagueTab==="clubs"?leagueClubsView():leagueTableView());
 }
 function clubOverviewView(){
  ensureFacilityState();ensureFinanceState();
@@ -8117,6 +8182,7 @@ function ensureRuntimeState(){
  ensurePlayerStyleState();
  ensureClubIntelligenceState();
  ensureClubLegacyState();
+ ensureLeagueAlmanacState();
  // Player-wide normalisation is expensive on large careers.
  // Only run it once per loaded season instead of on every navigation click.
  let stamp=String(G.season)+"|"+G.players.length;
