@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.8.3 Career Honours & Championship Scoring Fix Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.8.4 Season Rollover Stability Fix Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -3894,7 +3894,7 @@ body.coach-edit-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.8.3 Career Honours & Championship Scoring Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.8.4 Season Rollover Stability Fix Alpha Mobile";
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5749,11 +5749,22 @@ function ensureLeagueAlmanacState(){
 function almanacPlayerName(id,fallback){
  let p=G.players.find(x=>x.id===id);return p?p.name:(fallback||"Unknown");
 }
+
+function safeOptionalCall(name,args=[]){
+ try{
+  let fn=(typeof window!=="undefined"&&typeof window[name]==="function")?window[name]:null;
+  return fn?fn.apply(null,args):null;
+ }catch(e){
+  console.warn("Optional game function failed:",name,e);
+  return null;
+ }
+}
+
 function recordLeagueAlmanacSeason(season){
  ensureLeagueAlmanacState();
  if(G.leagueAlmanac.seasons.some(s=>s.season===season))return;
  let top=standings("top"),lower=standings("lower"),champ=top[0];
- let leaders=leagueLeaderData?leagueLeaderData():null;
+ let leaders=(typeof leagueLeaderData==="function")?leagueLeaderData():null;
  let awards=(G.awardHistory||[]).filter(a=>a.season===season);
  let poty=awards.find(a=>/player of the year/i.test(a.name||""));
  let golden=awards.find(a=>/golden boot|top scorer/i.test(a.name||""));
