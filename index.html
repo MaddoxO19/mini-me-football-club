@@ -5217,6 +5217,29 @@ body.season-transition-active{
 }
 
 
+
+
+/* ==========================================================
+   v2.10.15.2 LEAGUE TABLE POLISH
+   Club badges stay. Promotion/relegation status is shown through
+   the position number and a subtle row tone, not extra vertical bars.
+   ========================================================== */
+.leagueMark{display:none!important}
+.leagueRow.zone-top .stickyPos{color:var(--gold)!important;font-weight:900!important}
+.leagueRow.zone-drop .stickyPos{color:var(--red)!important;font-weight:900!important}
+.leagueRow.zone-top:not(.me){background:rgba(217,181,74,.018)!important}
+.leagueRow.zone-drop:not(.me){background:rgba(251,113,133,.018)!important}
+.leagueRow.zone-top .stickyClub,.leagueRow.zone-top .stickyPos{background:#131b22!important}
+.leagueRow.zone-drop .stickyClub,.leagueRow.zone-drop .stickyPos{background:#131a21!important}
+.leagueRow.me .stickyPos,.leagueRow.me .stickyClub{background:#151b20!important}
+.leagueCell.club{padding-left:8px!important}
+.leagueCell.club .clubIdentityInline{gap:8px!important}
+@media(max-width:430px){
+  .leagueRow{grid-template-columns:40px 184px repeat(8,56px)!important}
+  .leagueCell.club{padding-left:8px!important;padding-right:8px!important}
+  .leagueCell.club .clubIdentityInline{gap:8px!important}
+}
+
 </style>
 </head>
 <body>
@@ -5313,7 +5336,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.15.1 Name Integrity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.15.2 League Table Polish Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -10362,8 +10385,9 @@ function market(){
 function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
  let rows=table.map((c,i)=>{
-  let gd=c.gf-c.ga,mark=key==="top"?(i<4?'<i class="leagueMark top"></i>':i>=dropStart?'<i class="leagueMark drop"></i>':''):(i<3?'<i class="leagueMark top"></i>':'');
-  return '<div class="leagueRow '+(c.id===G.club?'me':'')+'"><div class="leagueCell stickyPos">'+(i+1)+'</div><div class="leagueCell club stickyClub">'+mark+clubIdentityLinkHtml(c.id,c.name)+'</div><div class="leagueCell">'+c.p+'</div><div class="leagueCell">'+c.w+'</div><div class="leagueCell">'+c.d+'</div><div class="leagueCell">'+c.l+'</div><div class="leagueCell">'+c.gf+'</div><div class="leagueCell">'+c.ga+'</div><div class="leagueCell">'+(gd>0?'+':'')+gd+'</div><div class="leagueCell"><b>'+c.pts+'</b></div></div>';
+  let gd=c.gf-c.ga;
+  let zone=key==="top"?(i<4?"zone-top":i>=dropStart?"zone-drop":""):(i<3?"zone-top":"");
+  return '<div class="leagueRow '+zone+' '+(c.id===G.club?'me':'')+'"><div class="leagueCell stickyPos">'+(i+1)+'</div><div class="leagueCell club stickyClub">'+clubIdentityLinkHtml(c.id,c.name)+'</div><div class="leagueCell">'+c.p+'</div><div class="leagueCell">'+c.w+'</div><div class="leagueCell">'+c.d+'</div><div class="leagueCell">'+c.l+'</div><div class="leagueCell">'+c.gf+'</div><div class="leagueCell">'+c.ga+'</div><div class="leagueCell">'+(gd>0?'+':'')+gd+'</div><div class="leagueCell"><b>'+c.pts+'</b></div></div>';
  }).join("");
  let legend=key==="top"?'<span><i class="top"></i>Top four</span><span><i class="drop"></i>Relegation places</span>':'<span><i class="top"></i>Promotion places</span>';
  return '<div class="card"><div class="title">'+info.name+' · '+G.season+'</div><div class="sub">Swipe across the table to view all statistics.</div><div class="legend">'+legend+'</div><div class="leagueWrap"><div class="leagueTable"><div class="leagueRow head"><div class="leagueCell stickyPos">#</div><div class="leagueCell club stickyClub">CLUB</div><div class="leagueCell">P</div><div class="leagueCell">W</div><div class="leagueCell">D</div><div class="leagueCell">L</div><div class="leagueCell">GF</div><div class="leagueCell">GA</div><div class="leagueCell">GD</div><div class="leagueCell">PTS</div></div>'+rows+'</div></div></div>';
