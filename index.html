@@ -4964,7 +4964,7 @@ body.season-transition-active{
 
 
 /* ==========================================================
-   v2.10.12.2 PHASE 2 — DOMESTIC CUP ENGINE
+   v2.10.12.3 PHASE 2 — CUP INTEGRATION
    Built on v2.10.12.1 fixed 20-club world.
    ========================================================== */
 
@@ -4984,7 +4984,7 @@ body.season-transition-active{
 
 
 /* ==========================================================
-   v2.10.12.2 PHASE 2 — DOMESTIC CUP ENGINE
+   v2.10.12.3 PHASE 2 — CUP INTEGRATION
    64 clubs · six knockout rounds · persistent regional clubs.
    ========================================================== */
 .cupHero{border-color:#705d25;background:linear-gradient(180deg,#18190f,#101821)}
@@ -4998,6 +4998,18 @@ body.season-transition-active{
 .cupFixtureRow:last-child{border-bottom:0}.cupFixtureRow.userCupFixture{background:#d9b54a0b}.cupTeam{min-width:0;font-weight:800;line-height:1.25}.cupTeam.away{text-align:right}.cupScore{text-align:center;font-size:11px;font-weight:900;color:var(--gold)}.cupScore.pending{color:var(--muted);font-size:9px}.cupRegional{display:block;color:var(--muted);font-size:8px;font-weight:700;margin-top:2px}
 .cupHistoryRow{display:grid;grid-template-columns:54px minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.cupHistoryRow:last-child{border-bottom:0}.cupHistoryRow .yr{color:var(--gold);font-weight:900}.cupHistoryRow b{display:block;font-size:12px}.cupHistoryRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.cupHistoryRow>div:last-child{text-align:right}
 @media(max-width:430px){.cupStatusGrid{grid-template-columns:1fr 1fr}.cupStatusGrid>div:last-child{grid-column:1/-1}.cupFixtureRow{grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr);padding:9px}.cupHistoryRow{grid-template-columns:46px 1fr}.cupHistoryRow>div:last-child{grid-column:2;text-align:left}}
+
+
+/* ==========================================================
+   v2.10.12.3 CUP INTEGRATION
+   ========================================================== */
+.cupFixtureWeek{border-color:#705d25!important;background:linear-gradient(180deg,#18190f,#101821)!important}
+.cupFixtureWeek .fixtureWeekHead{background:#d9b54a08}
+.cupFixtureWeek .fixtureWeekHead b{color:var(--gold)}
+.cupFixtureIntegrated{background:#d9b54a0d!important}
+.cupFixtureWeek .cupTeam{min-width:0;font-weight:750;line-height:1.25}
+.cupFixtureWeek .cupTeam.away{text-align:right}
+.cupFixtureWeek .cupRegional{display:block;color:var(--muted);font-size:8px;margin-top:2px}
 
 </style>
 </head>
@@ -5095,7 +5107,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.12.2 Domestic Cup Engine Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.12.3 Cup Integration Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const WORLD_ENGINE_VERSION="2.0";
 const FOOTBALL_NATIONS=[
@@ -5443,6 +5455,30 @@ function cupUserKey(){return cupDomesticKey(G.club)}
 function cupUserAlive(){ensureCupState();return !G.cup.eliminated.includes(cupUserKey())&&!G.cup.champion}
 function cupRoundDue(){ensureCupState();let i=Number(G.cup.currentRound)||0,r=G.cup.rounds[i],meta=CUP_ROUNDS[i];return !!(r&&meta&&!r.complete&&Number(G.week)>=meta.anchorWeek)}
 function cupUserFixtureDue(){if(!cupRoundDue()||!cupUserAlive())return null;let r=G.cup.rounds[G.cup.currentRound];return r.matches.find(m=>!m.played&&(m.home===cupUserKey()||m.away===cupUserKey()))||null}
+function cupFinishForKey(key){
+ ensureCupState();
+ if(G.cup.champion===key)return "Winner";
+ if(G.cup.runnerUp===key)return "Runner-up";
+ let reached=-1;
+ (G.cup.rounds||[]).forEach((r,ri)=>{if((r.matches||[]).some(m=>m.home===key||m.away===key))reached=Math.max(reached,ri)});
+ if(reached<0)return "Did not enter";
+ let r=G.cup.rounds[reached],m=(r.matches||[]).find(x=>x.home===key||x.away===key);
+ if(m&&m.played&&m.winner!==key)return r.name;
+ return r&&r.name?r.name:CUP_ROUNDS[reached].name;
+}
+function cupFinishRank(label){
+ let order={"Winner":7,"Runner-up":6,"Semi Final":5,"Quarter Final":4,"Round of 16":3,"Round of 32":2,"Round of 64":1};
+ return order[label]||0;
+}
+function cupGoldenBoot(season=G.season){
+ let best=null;
+ G.players.forEach(p=>{let st=p.competitionStats&&p.competitionStats.DOM_CUP&&p.competitionStats.DOM_CUP[String(season)];if(!st)return;let row={id:p.id,name:p.name,pos:p.pos,clubId:p.team,club:playerClubNameNow(p.team),goals:Number(st.goals)||0,assists:Number(st.assists)||0,apps:Number(st.apps)||0};if(!best||row.goals>best.goals||(row.goals===best.goals&&row.assists>best.assists)||(row.goals===best.goals&&row.assists===best.assists&&row.apps<best.apps))best=row});
+ return best&&best.goals>0?best:null;
+}
+function cupSeasonSummaryForClub(clubId){
+ ensureCupState();let key=cupDomesticKey(clubId),gold=cupGoldenBoot(G.season),history=(G.cup.history||[]).find(h=>Number(h.season)===Number(G.season));
+ return {competition:"DOM_CUP",name:G.cup.name||"National Cup",finish:cupFinishForKey(key),winnerName:history?history.winnerName:(G.cup.champion?cupTeamName(G.cup.champion):"—"),winnerClubId:history?history.winnerClubId:cupDomesticId(G.cup.champion),runnerUpName:history?history.runnerUpName:(G.cup.runnerUp?cupTeamName(G.cup.runnerUp):"—"),runnerUpClubId:history?history.runnerUpClubId:cupDomesticId(G.cup.runnerUp),goldenBoot:gold};
+}
 function cupTeamStrength(key){let t=cupTeamRecord(key);if(!t)return 60;return t.regional?Number(t.rating)||62:strength(t.clubId)}
 function cupSim(keyA,keyB){let sa=cupTeamStrength(keyA),sb=cupTeamStrength(keyB),diff=Math.max(-20,Math.min(20,sa-sb)),ha=Math.max(.45,Math.min(2.7,1.35+diff*.05)),aa=Math.max(.4,Math.min(2.45,1.15-diff*.045));return[Math.min(6,poissonGoals(ha*(.9+gameRandom()*.2))),Math.min(6,poissonGoals(aa*(.9+gameRandom()*.2)))]}
 function cupAwardClub(key,amount,label){let id=cupDomesticId(key);if(id===null)return;let c=G.clubs[id];if(!c)return;c.balance=(Number(c.balance)||0)+amount;c.budget=(Number(c.budget)||0)+Math.round(amount*.4);if(id===G.club)G.feed.unshift({t:"CUP PRIZE",m:label+" · "+money(amount)+" earned. "+money(Math.round(amount*.4))+" added to the transfer budget."})}
@@ -5923,7 +5959,8 @@ function playerCareerTotals(p){
  let goals=hs.reduce((s,h)=>s+(h.goals||0),0)+(current?current.goals||0:0);
  let assists=hs.reduce((s,h)=>s+(h.assists||0),0)+(current?current.assists||0:0);
  let potm=hs.reduce((s,h)=>s+(h.potm||0),0)+(current?current.potm||0:0);
- return{apps,goals,assists,potm};
+ let cup={apps:0,goals:0,assists:0,cleanSheets:0};let cs=p.competitionStats&&p.competitionStats.DOM_CUP||{};Object.values(cs).forEach(x=>{cup.apps+=Number(x.apps)||0;cup.goals+=Number(x.goals)||0;cup.assists+=Number(x.assists)||0;cup.cleanSheets+=Number(x.cleanSheets)||0});
+ return{apps,goals,assists,potm,cup};
 }
 function playerCareerView(p){
  let t=playerCareerTotals(p),hs=Array.isArray(p.careerHistory)?p.careerHistory:[];
@@ -5940,6 +5977,7 @@ function playerCareerView(p){
    '<div class="recordTile"><div class="label">GOALS</div><div class="recordValue">'+t.goals+'</div></div>'+
    '<div class="recordTile"><div class="label">ASSISTS</div><div class="recordValue">'+t.assists+'</div></div>'+
    '<div class="recordTile"><div class="label">POTM</div><div class="recordValue">'+t.potm+'</div></div></div>'+
+   '<div class="card"><div class="title">National Cup Career</div><div class="recordGrid"><div class="recordTile"><div class="label">CUP APPS</div><div class="recordValue">'+t.cup.apps+'</div></div><div class="recordTile"><div class="label">CUP GOALS</div><div class="recordValue">'+t.cup.goals+'</div></div><div class="recordTile"><div class="label">CUP ASSISTS</div><div class="recordValue">'+t.cup.assists+'</div></div><div class="recordTile"><div class="label">CLEAN SHEETS</div><div class="recordValue">'+t.cup.cleanSheets+'</div></div></div></div>'+
    '<div class="card profileTableCard playerCareerCard"><div class="title">Career History</div><div class="profileTableHead"><div>Season / Club</div><div>Stats</div><div>AVG</div></div>'+
    (rows||'<div class="profileEmpty">No archived career seasons yet. This season will be added when it is completed.</div>')+'</div>';
 }
@@ -6813,7 +6851,8 @@ function leagueHistoryView(){
 
  return '<div class="card historyHeroCompact"><div class="label">LEAGUE HISTORY</div><div class="title">Football Through the Years</div><div class="sub">Dynasties and the coaches who shaped the Premier Division. Season champions remain available under Records → Archive.</div></div>'+
  '<div class="card compactHistoryCard historyDataCard"><div class="title">Eras & Dynasties</div><div class="sub historySectionIntro">Only genuine consecutive-title runs are recorded here.</div>'+dynastyRows+'</div>'+
- '<div class="card compactHistoryCard historyDataCard"><div class="title">Notable Coaches</div>'+coachRows+'</div>';
+ '<div class="card compactHistoryCard historyDataCard"><div class="title">Notable Coaches</div>'+coachRows+'</div>'+
+ '<div class="card compactHistoryCard historyDataCard"><div class="title">National Cup History</div><div class="sub historySectionIntro">Domestic cup champions and finalists.</div>'+(((G.cup&&G.cup.history)||[]).length?(G.cup.history||[]).map(h=>'<div class="historyWideRow"><div class="historyYear">'+h.season+'</div><div class="historyIdentity"><b>'+h.winnerName+'</b><span>Champion</span></div><div class="historyOutcome">Runner-up · '+h.runnerUpName+'</div></div>').join(''):'<div class="profileEmpty compactEmpty">No National Cup has been completed yet.</div>')+'</div>';
 }
 
 const HALL_OF_FAME_VERSION="2.10.6";
@@ -8141,7 +8180,7 @@ function prepareSeasonReview(){
  G.pendingSeasonReview={
    season:G.season,pos,position:pos,champion:champion.name,championClubId:champion.id,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,
    target,met,expiring,finalYear,topFour,relegated,promoted,division:key,divisionName:leagueInfo(key).name,awards,
-   clubRetirements,leagueRetirements
+   cup:cupSeasonSummaryForClub(G.club),clubRetirements,leagueRetirements
  };
  updateGMReputationForSeason({
    season:G.season,position:pos,target,
@@ -8195,6 +8234,17 @@ function showSeasonReview(){
  stat("FINAL POSITION",ordinal(r.pos),r.divisionName||leagueInfo().name)+
  '</div>'+
  '<div class="card reviewSection"><div class="title">Final League Summary</div><div class="sub">'+(r.division==="lower"?"Promotion places":"Top four")+'</div>'+(((r.division==="lower"?r.promoted:r.topFour)||[]).map(x=>'<div class="podiumRow worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join(""))+(r.division==="top"?'<div class="sub" style="margin-top:13px">Relegated</div>'+((r.relegated||[]).map(x=>'<div class="podiumRow relegated worldLinkRow" '+worldClubAttrs(x.name)+'><div class="podiumPos">'+x.pos+'</div><div><b>'+x.name+'</b></div><div>'+x.pts+' pts</div></div>').join("")):"")+'</div>'+
+  '<div class="reviewPhase"><span>DOMESTIC CUP</span><b>National Cup</b></div>'+ 
+  '<div class="reviewGrid">'+
+   stat("YOUR RESULT",r.cup&&r.cup.finish?r.cup.finish:"—","64-team knockout")+
+   stat("WINNER",r.cup&&r.cup.winnerName?r.cup.winnerName:"—",r.cup&&r.cup.runnerUpName?"Runner-up · "+r.cup.runnerUpName:"Competition result")+
+  '</div>'+ 
+  '<div class="card reviewSection"><div class="title">National Cup Summary</div>'+
+   '<div class="honourRow"><div><b>Champion</b><span>'+r.season+' National Cup</span></div><b>'+(r.cup&&r.cup.winnerName?r.cup.winnerName:"—")+'</b></div>'+
+   '<div class="honourRow"><div><b>Runner-up</b><span>Finalist</span></div><b>'+(r.cup&&r.cup.runnerUpName?r.cup.runnerUpName:"—")+'</b></div>'+
+   '<div class="honourRow"><div><b>Your Club</b><span>Cup finish</span></div><b>'+(r.cup&&r.cup.finish?r.cup.finish:"—")+'</b></div>'+
+   (r.cup&&r.cup.goldenBoot?'<div class="honourRow reviewPlayerRow" data-review-player="'+r.cup.goldenBoot.id+'"><div><b>Golden Boot · '+r.cup.goldenBoot.name+'</b><span>'+r.cup.goldenBoot.club+' · '+r.cup.goldenBoot.apps+' apps</span></div><b>'+r.cup.goldenBoot.goals+' goals</b></div>':'')+
+  '</div>'+ 
   '<div class="reviewPhase"><span>LEAGUE HONOURS</span><b>Premier Division</b></div>'+
   '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title" style="margin-top:6px">'+r.season+' Premier Division Awards</div><div class="sub">Premier Division honours based exclusively on top-flight performance. Tap players or clubs to inspect them.</div></div>'+
  '<div class="awardsGrid">'+
@@ -8750,7 +8800,7 @@ function gmClubHistoryRows(){
   return '<div class="gmClubHistoryRow"><div><b>'+name+'</b><span>'+gmSpellLabel(h,current)+'</span></div><div><b>'+tenure+'</b><span>'+(current?"Current club":"Career history")+'</span></div></div>';
  }).join("");
 }
-function gmProfileHtml(){let t=gmCareerTotals(),club=G.clubs[t.currentClubId],clubName=club?club.name:"Unattached",tab=window.gmProfileTab||"record";if(!["record","clubs","status","opportunities"].includes(tab))tab="record";window.gmProfileTab=tab;let tabs='<div class="gmProfileTabs">'+[["record","Record"],["clubs","Clubs"],["status","Status"],["opportunities","Opportunities"]].map(x=>'<button data-gm-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';let record='<div class="card compactGMRecord"><div class="title">Career Record</div><div class="gmRecordGrid"><div><span>W / D / L</span><b>'+t.w+' / '+t.d+' / '+t.l+'</b></div><div><span>Goals</span><b>'+t.gf+' / '+t.ga+'</b></div><div><span>Best Finish</span><b>'+(t.bestFinish?ordinal(t.bestFinish):'—')+'</b></div><div><span>Best Points</span><b>'+(t.bestPoints||'—')+'</b></div></div></div>';let clubs='<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+(gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+'</div>';let status='<div class="card gmFutureCard"><div class="title">Career Status</div>'+richRecordRow('Board Status',t.board.label,t.board.score)+richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+'<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';return '<div class="gmProfileHero"><div class="gmProfileAvatar">●</div><div class="gmProfileIdentity"><div class="screenEyebrow">GENERAL MANAGER</div><div class="gmProfileName">'+t.name+'</div><div class="sub">'+nationFlag(G.userGM.nation||G.careerNation)+' '+nationName(G.userGM.nation||G.careerNation)+' · '+clubName+' · '+t.status+'</div></div><button class="gmEditNameBtn" data-gm-edit-name="1">EDIT</button></div>'+gmLegacyHtml()+'<div class="gmCareerGrid compactGMCareer"><div class="gmCareerStat"><div class="label">TITLES</div><div class="value">'+t.titles+'</div></div><div class="gmCareerStat"><div class="label">MATCHES</div><div class="value">'+t.matches+'</div></div><div class="gmCareerStat"><div class="label">WINS</div><div class="value">'+t.w+'</div></div><div class="gmCareerStat"><div class="label">WIN RATE</div><div class="value">'+t.winPct.toFixed(1)+'%</div></div></div>'+tabs+(tab==="clubs"?clubs:tab==="status"?status:tab==="opportunities"?gmOpportunitiesHtml():record);}
+function gmProfileHtml(){let t=gmCareerTotals(),cupSeasons=(G.history||[]).filter(h=>h&&h.cup),cupTitles=cupSeasons.filter(h=>h.cup.finish==="Winner").length,cupFinals=cupSeasons.filter(h=>h.cup.finish==="Winner"||h.cup.finish==="Runner-up").length,bestCup=cupSeasons.map(h=>h.cup.finish).sort((a,b)=>cupFinishRank(b)-cupFinishRank(a))[0]||"—",club=G.clubs[t.currentClubId],clubName=club?club.name:"Unattached",tab=window.gmProfileTab||"record";if(!["record","clubs","status","opportunities"].includes(tab))tab="record";window.gmProfileTab=tab;let tabs='<div class="gmProfileTabs">'+[["record","Record"],["clubs","Clubs"],["status","Status"],["opportunities","Opportunities"]].map(x=>'<button data-gm-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';let record='<div class="card compactGMRecord"><div class="title">Career Record</div><div class="gmRecordGrid"><div><span>W / D / L</span><b>'+t.w+' / '+t.d+' / '+t.l+'</b></div><div><span>Goals</span><b>'+t.gf+' / '+t.ga+'</b></div><div><span>Best Finish</span><b>'+(t.bestFinish?ordinal(t.bestFinish):'—')+'</b></div><div><span>Best Points</span><b>'+(t.bestPoints||'—')+'</b></div><div><span>Cup Titles</span><b>'+cupTitles+'</b></div><div><span>Cup Finals</span><b>'+cupFinals+'</b></div><div><span>Best Cup Run</span><b>'+bestCup+'</b></div></div></div>';let clubs='<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+(gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+'</div>';let status='<div class="card gmFutureCard"><div class="title">Career Status</div>'+richRecordRow('Board Status',t.board.label,t.board.score)+richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+'<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';return '<div class="gmProfileHero"><div class="gmProfileAvatar">●</div><div class="gmProfileIdentity"><div class="screenEyebrow">GENERAL MANAGER</div><div class="gmProfileName">'+t.name+'</div><div class="sub">'+nationFlag(G.userGM.nation||G.careerNation)+' '+nationName(G.userGM.nation||G.careerNation)+' · '+clubName+' · '+t.status+'</div></div><button class="gmEditNameBtn" data-gm-edit-name="1">EDIT</button></div>'+gmLegacyHtml()+'<div class="gmCareerGrid compactGMCareer"><div class="gmCareerStat"><div class="label">TITLES</div><div class="value">'+t.titles+'</div></div><div class="gmCareerStat"><div class="label">MATCHES</div><div class="value">'+t.matches+'</div></div><div class="gmCareerStat"><div class="label">WINS</div><div class="value">'+t.w+'</div></div><div class="gmCareerStat"><div class="label">WIN RATE</div><div class="value">'+t.winPct.toFixed(1)+'%</div></div></div>'+tabs+(tab==="clubs"?clubs:tab==="status"?status:tab==="opportunities"?gmOpportunitiesHtml():record);}
 function exitToCareerHub(){
  try{save()}catch(e){}
  hideGMProfile();
@@ -8887,7 +8937,7 @@ function snapshotAllClubHistories(){
  ["top","lower"].forEach(key=>{
   let table=standings(key),info=leagueInfo(key);
   table.forEach((c,index)=>{
-   let snap={season:G.season,division:key,divisionName:info.name,position:index+1,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,pts:c.pts,champion:index===0};
+   let snap={season:G.season,division:key,divisionName:info.name,position:index+1,p:c.p,w:c.w,d:c.d,l:c.l,gf:c.gf,ga:c.ga,gd:c.gf-c.ga,pts:c.pts,champion:index===0,cupFinish:cupFinishForKey(cupDomesticKey(c.id))};
    c.history.unshift(snap);
    if(index===0)c.records.titles++;
    if(!c.records.bestFinish || (key==="top"&&c.records.bestFinish.division==="lower") || (key===c.records.bestFinish.division&&index+1<c.records.bestFinish.position))
@@ -8930,7 +8980,7 @@ function clubProfileSquad(id){
 }
 function clubProfileHistory(id){
  let c=G.clubs[id];ensureClubHistoryState();let hs=c.history||[];
- let rows=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+h.divisionName+'</b><div class="seasonMeta">'+ordinal(h.position)+' place · '+h.w+'-'+h.d+'-'+h.l+(h.champion?' · Champions':'')+'</div></div><div>'+h.pts+' pts</div></div>').join("");
+ let rows=hs.map(h=>'<div class="historySeason"><div class="seasonYear">'+h.season+'</div><div><b>'+h.divisionName+'</b><div class="seasonMeta">'+ordinal(h.position)+' place · '+h.w+'-'+h.d+'-'+h.l+(h.champion?' · Champions':'')+(h.cupFinish?' · Cup '+h.cupFinish:'')+'</div></div><div>'+h.pts+' pts</div></div>').join("");
  return '<div class="card"><div class="title">Season History</div>'+
  (rows||'<div class="sub" style="margin-top:10px">Complete a season to begin this club’s archive.</div>')+'</div>';
 }
@@ -8942,7 +8992,9 @@ function clubProfileRecords(id){
  '<div class="recordTile"><div class="label">BEST FINISH</div><div class="recordValue">'+(r.bestFinish?ordinal(r.bestFinish.position):"—")+'</div><div class="recordNote">'+(r.bestFinish?r.bestFinish.divisionName+' · '+r.bestFinish.season:'No archived season')+'</div></div>'+
  '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(r.bestPoints?r.bestPoints.points:"—")+'</div><div class="recordNote">'+(r.bestPoints?r.bestPoints.season:'No archived season')+'</div></div>'+
  '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(r.mostGoals?r.mostGoals.goals:"—")+'</div><div class="recordNote">'+(r.mostGoals?r.mostGoals.season:'No archived season')+'</div></div>'+
- '<div class="recordTile"><div class="label">RELEGATIONS</div><div class="recordValue">'+(r.relegations||0)+'</div></div></div>';
+ '<div class="recordTile"><div class="label">RELEGATIONS</div><div class="recordValue">'+(r.relegations||0)+'</div></div>'+
+ '<div class="recordTile"><div class="label">CUP TITLES</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id).length+'</div></div>'+
+ '<div class="recordTile"><div class="label">CUP FINALS</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id||h.runnerUpClubId===id).length+'</div></div></div>';
 }
 function clubProfileHonours(id){
  let c=G.clubs[id];ensureClubHistoryState();let r=c.records||{},years=(c.history||[]).filter(h=>h.champion).map(h=>h.season);
@@ -8950,6 +9002,8 @@ function clubProfileHonours(id){
  '<div class="honourRow"><div><b>League Titles</b><span>Career era</span></div><b>'+(r.titles||0)+'</b></div>'+
  '<div class="honourRow"><div><b>Promotions</b><span>Career era</span></div><b>'+(r.promotions||0)+'</b></div>'+
  '<div class="honourRow"><div><b>Relegations</b><span>Career era</span></div><b>'+(r.relegations||0)+'</b></div>'+
+ '<div class="honourRow"><div><b>National Cups</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id).length+'</b></div>'+
+ '<div class="honourRow"><div><b>Cup Finals</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id||h.runnerUpClubId===id).length+'</b></div>'+
  (years.length?'<div class="sub" style="margin-top:12px">Title seasons · '+years.join(", ")+'</div>':'')+'</div>';
 }
 function showClubProfile(id,tab="overview"){
@@ -9049,7 +9103,7 @@ function beginNewSeason(){
   if(freeDepartures.length)G.feed.unshift({t:"FREE AGENCY",m:freeDepartures.map(p=>p.name).join(", ")+" entered free agency."});
 
   if(!Array.isArray(G.history))G.history=[];
-  G.history.unshift({season:r.season,champ:r.champion,champClubId:r.championClubId,pos:r.pos,clubId:G.club,p:r.p,w:r.w,d:r.d,l:r.l,gf:r.gf,ga:r.ga,gd:r.gd,topFour:r.topFour,relegated:r.relegated,promoted:r.promoted,division:r.division,divisionName:r.divisionName,awards:r.awards});
+  G.history.unshift({season:r.season,champ:r.champion,champClubId:r.championClubId,pos:r.pos,clubId:G.club,p:r.p,w:r.w,d:r.d,l:r.l,gf:r.gf,ga:r.ga,gd:r.gd,topFour:r.topFour,relegated:r.relegated,promoted:r.promoted,division:r.division,divisionName:r.divisionName,awards:r.awards,cup:r.cup||null});
 
   ["top","lower"].forEach(divKey=>{
    standings(divKey).forEach((row,i)=>{
@@ -9924,36 +9978,29 @@ function leagueTableView(){
 }
 
 function leagueFixturesView(){
- ensureLeagueWorld();
+ ensureLeagueWorld();ensureCupState();
  let key=currentLeagueKey(),info=leagueInfo(key),rounds=G.schedule[key]||[],playedWeeks=G.week;
- let weeks=rounds.map((round,index)=>{
+ let cupByAnchor={};
+ (G.cup.rounds||[]).forEach((r,ri)=>{let a=(CUP_ROUNDS[ri]&&CUP_ROUNDS[ri].anchorWeek)||r.anchorWeek;if(a!=null)(cupByAnchor[a]=cupByAnchor[a]||[]).push({round:r,index:ri})});
+ let sections=[];
+ rounds.forEach((round,index)=>{
    let week=index+1;
    let rows=round.map(([homeId,awayId])=>{
      let home=G.clubs[homeId],away=G.clubs[awayId],user=homeId===G.club||awayId===G.club;
-     let archived=findArchivedFixture(G.season,week,key,homeId,awayId);
-     let score;
-     if(archived){
-       let userResult="";
-       if(user){
-         let ug=homeId===G.club?archived.homeGoals:archived.awayGoals;
-         let og=homeId===G.club?archived.awayGoals:archived.homeGoals;
-         userResult='<span class="fixtureResultTag">'+(ug>og?"W":ug<og?"L":"D")+'</span>';
-       }
-       score='<div class="fixtureScore">'+archived.homeGoals+'–'+archived.awayGoals+userResult+'</div>';
-     }else if(week<=playedWeeks){
-       score='<div class="fixtureScore missing">RESULT NOT ARCHIVED</div>';
-     }else{
-       score='<div class="fixtureScore future">VS</div>';
-     }
-     return '<div class="fixtureScheduleRow '+(user?'userFixture':'')+'">'+
-       '<div class="fixtureClub"><span class="aiClubLink" data-club-profile="'+homeId+'">'+home.name+'</span></div>'+
-       score+
-       '<div class="fixtureClub away"><span class="aiClubLink" data-club-profile="'+awayId+'">'+away.name+'</span></div></div>';
+     let archived=findArchivedFixture(G.season,week,key,homeId,awayId),score;
+     if(archived){let userResult="";if(user){let ug=homeId===G.club?archived.homeGoals:archived.awayGoals,og=homeId===G.club?archived.awayGoals:archived.homeGoals;userResult='<span class="fixtureResultTag">'+(ug>og?"W":ug<og?"L":"D")+'</span>'}score='<div class="fixtureScore">'+archived.homeGoals+'–'+archived.awayGoals+userResult+'</div>'}
+     else if(week<=playedWeeks)score='<div class="fixtureScore missing">RESULT NOT ARCHIVED</div>';
+     else score='<div class="fixtureScore future">VS</div>';
+     return '<div class="fixtureScheduleRow '+(user?'userFixture':'')+'"><div class="fixtureClub"><span class="aiClubLink" data-club-profile="'+homeId+'">'+home.name+'</span></div>'+score+'<div class="fixtureClub away"><span class="aiClubLink" data-club-profile="'+awayId+'">'+away.name+'</span></div></div>';
    }).join("");
    let status=week<playedWeeks?"Completed":week===playedWeeks?"Latest round":week===playedWeeks+1?"Next round":"Scheduled";
-   return '<div class="fixtureWeek"><div class="fixtureWeekHead"><b>Week '+week+'</b><span>'+status+'</span></div>'+rows+'</div>';
- }).join("");
- return '<div class="card"><div class="title">'+info.name+' Fixtures · '+G.season+'</div></div>'+weeks;
+   sections.push('<div class="fixtureWeek"><div class="fixtureWeekHead"><b>League · Week '+week+'</b><span>'+status+'</span></div>'+rows+'</div>');
+   (cupByAnchor[week]||[]).forEach(item=>{
+     let cr=item.round,ri=item.index,crows=(cr.matches||[]).map(m=>{let user=m.home===cupUserKey()||m.away===cupUserKey(),score=m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')):'VS';return '<div class="fixtureScheduleRow '+(user?'userFixture cupFixtureIntegrated':'')+'">'+cupTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+score+'</div>'+cupTeamHtml(m.away,true)+'</div>'}).join('');
+     sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>National Cup · '+cr.name+'</b><span>'+(cr.complete?'Completed':'Cup round')+'</span></div>'+crows+'</div>');
+   });
+ });
+ return '<div class="card"><div class="title">All Fixtures · '+G.season+'</div><div class="sub">'+info.name+' and National Cup fixtures are shown together in season order.</div></div>'+sections.join('');
 }
 
 function leagueClubsView(){
@@ -10523,7 +10570,8 @@ function playerOverviewContent(p){
  (positionGroup(p.pos)==="DEF"?'<div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div><div class="financeRow"><span>Interceptions</span><b>'+ss.interceptions+'</b></div><div class="financeRow"><span>Clean sheets</span><b>'+ss.cleanSheets+'</b></div>':'')+
  (positionGroup(p.pos)==="MID"?'<div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div><div class="financeRow"><span>Tackles</span><b>'+ss.tackles+'</b></div>':'')+
  (positionGroup(p.pos)==="FWD"?'<div class="financeRow"><span>Shots on target</span><b>'+ss.shotsOnTarget+'</b></div><div class="financeRow"><span>Key passes</span><b>'+ss.keyPasses+'</b></div>':'')+
- '</div></div>'+body;
+ '</div></div>'+
+ (p.competitionStats&&p.competitionStats.DOM_CUP&&p.competitionStats.DOM_CUP[String(G.season)]?'<div class="seasonLine"><div class="label">NATIONAL CUP · '+G.season+'</div><div class="seasonStatsGrid"><div class="seasonStat"><b>'+p.competitionStats.DOM_CUP[String(G.season)].apps+'</b><span>Apps</span></div><div class="seasonStat"><b>'+p.competitionStats.DOM_CUP[String(G.season)].goals+'</b><span>Goals</span></div><div class="seasonStat"><b>'+p.competitionStats.DOM_CUP[String(G.season)].assists+'</b><span>Assists</span></div><div class="seasonStat"><b>'+p.competitionStats.DOM_CUP[String(G.season)].wins+'</b><span>Wins</span></div><div class="seasonStat"><b>'+p.competitionStats.DOM_CUP[String(G.season)].cleanSheets+'</b><span>CS</span></div></div></div>':'')+body;
 }
 function showPlayer(id,tab="overview"){
  ensureTransferState();ensureLifecycleState();ensurePlayerStats();
