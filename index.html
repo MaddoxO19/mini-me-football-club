@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.10.11.14 Club Profile Edit Access QA Alpha Mobile</title>
+<title>Mini&Me Football Club v2.10.12.0 Phase 2 World Foundation Alpha Mobile</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -4962,6 +4962,21 @@ body.season-transition-active{
  .clubProfileEditButton{padding:7px 9px}
 }
 
+
+/* ==========================================================
+   v2.10.12.0 PHASE 2 — WORLD FOUNDATION
+   Nation identity + scalable competition metadata.
+   Existing domestic gameplay remains unchanged.
+   ========================================================== */
+.nationGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 16px;text-align:left}
+.nationPick{min-height:64px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--text);padding:11px 12px;text-align:left;display:flex;align-items:center;gap:10px}
+.nationPick.selected{border-color:var(--gold);background:#d9b54a10;box-shadow:0 0 0 1px #d9b54a22 inset}
+.nationFlag{font-size:22px;line-height:1;flex:0 0 auto}.nationPick b{display:block;font-size:13px}.nationPick span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.3}
+.worldFoundationNote{border:1px solid #5f5126;background:#d9b54a08;border-radius:13px;padding:11px 12px;margin:10px 0 14px;text-align:left;color:var(--muted);font-size:10px;line-height:1.45}
+.nationIdentity{color:var(--gold);font-weight:850}
+@media(max-width:430px){.nationGrid{grid-template-columns:1fr 1fr;gap:7px}.nationPick{min-height:60px;padding:10px}.nationFlag{font-size:20px}.nationPick b{font-size:12px}}
+@media(max-width:360px){.nationGrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -4987,10 +5002,18 @@ body.season-transition-active{
   <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
   <div id="careerSlots" class="careerSlots"></div>
 </div>
+<div id="nationStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToSlotsFromNation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
+  <h2>Choose Your Football Nation</h2>
+  <div class="sub">Your nation gives this career its football identity. The Mini&Me clubs and domestic competitions will belong to this country, while the core game remains unchanged.</div>
+  <div class="worldFoundationNote"><b style="color:var(--text)">Phase 2 foundation.</b> Nation identity will later connect domestic cup qualification, international club competition and national-team representation.</div>
+  <div id="nations" class="nationGrid"></div>
+  <button id="continueNationBtn" class="btn primary full">CONTINUE TO CLUBS</button>
+</div>
 <div id="clubStep" class="careerStep hidden">
   <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
   <h2>Choose Your Club</h2>
-  <div class="sub">Choose a simple league structure, then tap the club you want to lead. A second division is created automatically underneath it.</div>
+  <div class="sub"><span id="clubNationLabel" class="nationIdentity"></span> · Choose a simple league structure, then tap the club you want to lead. A second division is created automatically underneath it.</div>
   <div class="leaguePresetRow">
     <button class="leaguePreset" data-league-size="18">18 CLUBS<span>34 league matches</span></button>
     <button class="leaguePreset active" data-league-size="20">20 CLUBS<span>38 league matches</span></button>
@@ -5054,7 +5077,18 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.11.14 Club Profile Edit Access QA Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.12.0 Phase 2 World Foundation Alpha Mobile";
+const WORLD_ENGINE_VERSION="2.0";
+const FOOTBALL_NATIONS=[
+ {id:"AUS",name:"Australia",flag:"🇦🇺"},{id:"ENG",name:"England",flag:"🏴"},{id:"FRA",name:"France",flag:"🇫🇷"},{id:"GER",name:"Germany",flag:"🇩🇪"},
+ {id:"ITA",name:"Italy",flag:"🇮🇹"},{id:"JPN",name:"Japan",flag:"🇯🇵"},{id:"ESP",name:"Spain",flag:"🇪🇸"},{id:"USA",name:"United States",flag:"🇺🇸"},
+ {id:"BRA",name:"Brazil",flag:"🇧🇷"},{id:"ARG",name:"Argentina",flag:"🇦🇷"},{id:"NED",name:"Netherlands",flag:"🇳🇱"},{id:"POR",name:"Portugal",flag:"🇵🇹"},
+ {id:"KOR",name:"South Korea",flag:"🇰🇷"},{id:"MEX",name:"Mexico",flag:"🇲🇽"},{id:"CAN",name:"Canada",flag:"🇨🇦"},{id:"NGA",name:"Nigeria",flag:"🇳🇬"}
+];
+function nationById(id){return FOOTBALL_NATIONS.find(n=>n.id===id)||FOOTBALL_NATIONS[0]}
+function nationName(id){return nationById(id).name}
+function nationFlag(id){return nationById(id).flag}
+
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
 const NAME_POOLS=[
@@ -5142,7 +5176,7 @@ function seedPlayerStyle(p,legacyTeamId=null){
 }
 function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEach(p=>seedPlayerStyle(p,p.team>=0?p.team:null))}
 
-let G=null, selected=0, page="home", selectedLeagueSize=20;
+let G=null, selected=0, page="home", selectedLeagueSize=20, selectedCareerNation="AUS";
 let clubTab="overview",leagueTab="table",squadTab="team";
 let marketPositionFilter="RECOMMENDED";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -5212,9 +5246,40 @@ function applyGenerationalTalent(p,context="world"){
  return p;
 }
 
+
+function randomPlayerNationality(domesticId){
+ let home=FOOTBALL_NATIONS.some(n=>n.id===domesticId)?domesticId:"AUS";
+ if(gameRandom()<.55)return home;
+ let pool=FOOTBALL_NATIONS.filter(n=>n.id!==home);
+ return pool[rnd(0,pool.length-1)].id;
+}
+function ensureWorldEngineState(){
+ if(!G)return;
+ let fallback=(G.userGM&&G.userGM.nation)||G.careerNation||"ENG";
+ if(!FOOTBALL_NATIONS.some(n=>n.id===fallback))fallback="ENG";
+ if(!G.careerNation)G.careerNation=fallback;
+ if(!G.worldEngine||typeof G.worldEngine!=="object")G.worldEngine={};
+ G.worldEngine.version=WORLD_ENGINE_VERSION;
+ G.worldEngine.homeNation=G.careerNation;
+ if(!Array.isArray(G.worldEngine.nations)||!G.worldEngine.nations.length){
+  G.worldEngine.nations=FOOTBALL_NATIONS.map((n,i)=>({id:n.id,name:n.name,flag:n.flag,active:n.id===G.careerNation,footballStrength:72+((i*7)%18)}));
+ }else G.worldEngine.nations.forEach(n=>n.active=n.id===G.careerNation);
+ if(!G.competitions||typeof G.competitions!=="object")G.competitions={};
+ let topName=G.leagues&&G.leagues.top&&G.leagues.top.name||"Premier Division";
+ let lowerName=G.leagues&&G.leagues.lower&&G.leagues.lower.name||"Championship";
+ G.competitions.DOM_LEAGUE_1=Object.assign({id:"DOM_LEAGUE_1",type:"DOMESTIC_LEAGUE",tier:1,enabled:true},G.competitions.DOM_LEAGUE_1||{},{name:topName,nation:G.careerNation});
+ G.competitions.DOM_LEAGUE_2=Object.assign({id:"DOM_LEAGUE_2",type:"DOMESTIC_LEAGUE",tier:2,enabled:true},G.competitions.DOM_LEAGUE_2||{},{name:lowerName,nation:G.careerNation});
+ G.competitions.DOM_CUP=Object.assign({id:"DOM_CUP",type:"DOMESTIC_CUP",enabled:false,name:"National Cup",nation:G.careerNation,format:"64_TEAM_KNOCKOUT"},G.competitions.DOM_CUP||{});
+ G.competitions.INT_CLUB=Object.assign({id:"INT_CLUB",type:"INTERNATIONAL_CLUB",enabled:false,name:"Champions Tournament",format:"32_TEAM"},G.competitions.INT_CLUB||{});
+ G.competitions.INT_NATIONAL=Object.assign({id:"INT_NATIONAL",type:"INTERNATIONAL_NATIONAL",enabled:false,name:"World Championship",format:"32_TEAM"},G.competitions.INT_NATIONAL||{});
+ if(Array.isArray(G.clubs))G.clubs.forEach(c=>{if(c&&!c.nation)c.nation=G.careerNation});
+ if(Array.isArray(G.players))G.players.forEach(p=>{if(p&&!p.nationality)p.nationality=randomPlayerNationality(G.careerNation)});
+ if(G.userGM&&typeof G.userGM==="object"&&!G.userGM.nation)G.userGM.nation=G.careerNation;
+}
+function playerNationality(p){return nationById(p&&p.nationality||G&&G.careerNation||"AUS")}
 function player(team,i){
  let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);
- let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,nationality:randomPlayerNationality(selectedCareerNation),secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
  applyGenerationalTalent(p,"initial");
  syncPlayerEconomy(p,true);seedSecondaryPositions(p);p.primaryStyle=independentStyleForPosition(p.pos);let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);if(opts.length&&gameRandom()<(age<=24?.38:.25))p.secondaryStyle=opts[rnd(0,opts.length-1)];return p;
 }
@@ -5223,6 +5288,7 @@ function buildClubRecord(name,i,tier){
  return{
   id:i,
   name:name,
+  nation:selectedCareerNation,
   shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
   rep:Math.max(56,baseRep+rnd(-2,2)),
   balance:rnd(tier==="top"?50:18,tier==="top"?180:75)*1e6,
@@ -5248,7 +5314,7 @@ function world(){
  topNames.forEach((name,i)=>clubs.push(buildClubRecord(name,i,"top")));
  lowerNames.forEach((name,i)=>clubs.push(buildClubRecord(name,size+i,"lower")));
  clubs.forEach((c,i)=>{for(let j=0;j<28;j++)players.push(player(i,j))});
- let g={season:2026,week:0,club:selected,seed:((Date.now()>>>0)^Math.floor(NATIVE_RANDOM()*0xffffffff))>>>0,rngState:null,rngCalls:0,clubs,players,history:[],matchHistory:[],matchHistoryArchive:[],rivalries:{},rivalryHistory:[],leagueSize:size,
+ let g={season:2026,week:0,club:selected,careerNation:selectedCareerNation,seed:((Date.now()>>>0)^Math.floor(NATIVE_RANDOM()*0xffffffff))>>>0,rngState:null,rngCalls:0,clubs,players,history:[],matchHistory:[],matchHistoryArchive:[],rivalries:{},rivalryHistory:[],leagueSize:size,
   leagues:{top:{name:"Premier Division",clubIds:Array.from({length:size},(_,i)=>i)},lower:{name:"Championship",clubIds:Array.from({length:size},(_,i)=>size+i)}},
   records:{biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null},
   feed:[{t:"WELCOME TO THE CLUB",m:"The board has handed you control of football operations."}]};
@@ -5502,7 +5568,7 @@ function careerSlotSummary(slot){
   if(g.leagues.lower&&Array.isArray(g.leagues.lower.clubIds)&&g.leagues.lower.clubIds.includes(g.club))division=g.leagues.lower.name||"Championship";
   else if(g.leagues.top)division=g.leagues.top.name||"Premier Division";
  }
- return{club:club?club.name:"Unknown Club",season:g.season||2026,week:Number(g.week)||0,division,seasons:Math.max(1,(Number(g.season)||2026)-2025),lastPlayed:g._lastPlayedAt||null};
+ return{club:club?club.name:"Unknown Club",nation:g.careerNation||g.userGM&&g.userGM.nation||null,season:g.season||2026,week:Number(g.week)||0,division,seasons:Math.max(1,(Number(g.season)||2026)-2025),lastPlayed:g._lastPlayedAt||null};
 }
 
 function buildQASnapshot(){
@@ -5512,7 +5578,7 @@ function buildQASnapshot(){
   seed:Number(G.seed)>>>0,
   rngState:Number(G.rngState)>>>0,
   rngCalls:Number(G.rngCalls)||0,
-  season:G.season,week:G.week,clubId:G.club,
+  season:G.season,week:G.week,clubId:G.club,careerNation:G.careerNation||null,worldEngineVersion:G.worldEngine&&G.worldEngine.version||null,
   players:Array.isArray(G.players)?G.players.length:0,
   clubs:Array.isArray(G.clubs)?G.clubs.length:0,
   activeMatchHistory:Array.isArray(G.matchHistory)?G.matchHistory.length:0,
@@ -5570,12 +5636,13 @@ function renderCareerSlots(mode=careerSlotMode){
  $("#saveSlotTitle").textContent=mode==="new"?"NEW CAREER":"LOAD CAREER";
  $("#saveSlotHeading").textContent=mode==="new"?"Choose a Career Slot":"Choose a Career";
  $("#saveSlotHint").textContent=mode==="new"?"Choose Career 1, 2 or 3. Existing careers can be replaced after confirmation.":"Select a saved career to resume exactly where you left it.";
- host.innerHTML=[1,2,3].map(slot=>{let s=careerSlotSummary(slot);if(!s)return '<button class="careerSlot empty" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">Empty Career Slot</div><div class="careerSlotMeta">'+(mode==="new"?"Start a new football legacy here.":"No career has been created in this slot.")+'</div></div><div class="careerSlotSeason">EMPTY</div></div></button>';return '<button class="careerSlot" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">'+s.club+'</div><div class="careerSlotMeta">'+s.division+' · Week '+s.week+'</div></div><div class="careerSlotSeason">'+s.season+'</div></div><div class="careerSlotFoot"><span>Season '+s.seasons+'</span><span>Last played '+formatSlotDate(s.lastPlayed)+'</span></div></button>'}).join("");
+ host.innerHTML=[1,2,3].map(slot=>{let s=careerSlotSummary(slot);if(!s)return '<button class="careerSlot empty" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">Empty Career Slot</div><div class="careerSlotMeta">'+(mode==="new"?"Start a new football legacy here.":"No career has been created in this slot.")+'</div></div><div class="careerSlotSeason">EMPTY</div></div></button>';return '<button class="careerSlot" data-career-slot="'+slot+'" data-slot-mode="'+mode+'"><div class="careerSlotTop"><div><div class="careerSlotNo">CAREER '+slot+'</div><div class="careerSlotName">'+s.club+'</div><div class="careerSlotMeta">'+(s.nation?nationFlag(s.nation)+' '+nationName(s.nation)+' · ':'')+s.division+' · Week '+s.week+'</div></div><div class="careerSlotSeason">'+s.season+'</div></div><div class="careerSlotFoot"><span>Season '+s.seasons+'</span><span>Last played '+formatSlotDate(s.lastPlayed)+'</span></div></button>'}).join("");
 }
 function showCareerSlots(mode){
  careerSlotMode=mode;
  $("#launchStep").classList.add("hidden");
  $("#clubStep").classList.add("hidden");
+ $("#nationStep").classList.add("hidden");
  $("#saveSlotStep").classList.remove("hidden");
  renderCareerSlots(mode);
 }
@@ -6586,7 +6653,7 @@ function randomPositionForGroup(group){
 function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null){
  let age=young?rnd(17,22):rnd(18,31),base=rnd(58+qualityBias,74+qualityBias);if(young&&gameRandom()<.18)base+=rnd(3,8);base=Math.max(50,Math.min(86,base));
  let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)],pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,nationality:randomPlayerNationality(G&&G.careerNation||selectedCareerNation),secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
  if(young)applyGenerationalTalent(np,"world");
  syncPlayerEconomy(np,true);
  seedSecondaryPositions(np);np.primaryStyle=independentStyleForPosition(np.pos);let opts=stylePoolForPosition(np.pos).filter(x=>x!==np.primaryStyle);if(opts.length&&gameRandom()<(young?.42:.28))np.secondaryStyle=opts[rnd(0,opts.length-1)];return np;
@@ -8323,13 +8390,14 @@ function ensureUserGMIdentity(){
  ensureStaffHistoryState();
  if(!G.userGM||typeof G.userGM!=="object"){
   G.userGM={
-   id:"USER-GM",name:"General Manager",createdSeason:G.season,currentClubId:G.club,status:"Employed",
+   id:"USER-GM",name:"General Manager",nation:G.careerNation||"ENG",createdSeason:G.season,currentClubId:G.club,status:"Employed",
    reputation:Math.max(60,Math.min(95,Math.round((G.clubs[G.club].rep||72)*.85))),
    clubs:[{clubId:G.club,from:G.season,fromWeek:Number(G.week)||0,to:null,toWeek:null}]
   };
  }
  if(!G.userGM.id)G.userGM.id="USER-GM";
  if(!G.userGM.name)G.userGM.name="General Manager";
+ if(!G.userGM.nation)G.userGM.nation=G.careerNation||"ENG";
  if(!Number.isFinite(G.userGM.createdSeason))G.userGM.createdSeason=G.season;
  if(!Array.isArray(G.userGM.clubs))G.userGM.clubs=[];
  if(!G.userGM.status)G.userGM.status="Employed";
@@ -8560,7 +8628,7 @@ function gmClubHistoryRows(){
   return '<div class="gmClubHistoryRow"><div><b>'+name+'</b><span>'+gmSpellLabel(h,current)+'</span></div><div><b>'+tenure+'</b><span>'+(current?"Current club":"Career history")+'</span></div></div>';
  }).join("");
 }
-function gmProfileHtml(){let t=gmCareerTotals(),club=G.clubs[t.currentClubId],clubName=club?club.name:"Unattached",tab=window.gmProfileTab||"record";if(!["record","clubs","status","opportunities"].includes(tab))tab="record";window.gmProfileTab=tab;let tabs='<div class="gmProfileTabs">'+[["record","Record"],["clubs","Clubs"],["status","Status"],["opportunities","Opportunities"]].map(x=>'<button data-gm-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';let record='<div class="card compactGMRecord"><div class="title">Career Record</div><div class="gmRecordGrid"><div><span>W / D / L</span><b>'+t.w+' / '+t.d+' / '+t.l+'</b></div><div><span>Goals</span><b>'+t.gf+' / '+t.ga+'</b></div><div><span>Best Finish</span><b>'+(t.bestFinish?ordinal(t.bestFinish):'—')+'</b></div><div><span>Best Points</span><b>'+(t.bestPoints||'—')+'</b></div></div></div>';let clubs='<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+(gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+'</div>';let status='<div class="card gmFutureCard"><div class="title">Career Status</div>'+richRecordRow('Board Status',t.board.label,t.board.score)+richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+'<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';return '<div class="gmProfileHero"><div class="gmProfileAvatar">●</div><div class="gmProfileIdentity"><div class="screenEyebrow">GENERAL MANAGER</div><div class="gmProfileName">'+t.name+'</div><div class="sub">'+clubName+' · '+t.status+'</div></div><button class="gmEditNameBtn" data-gm-edit-name="1">EDIT</button></div>'+gmLegacyHtml()+'<div class="gmCareerGrid compactGMCareer"><div class="gmCareerStat"><div class="label">TITLES</div><div class="value">'+t.titles+'</div></div><div class="gmCareerStat"><div class="label">MATCHES</div><div class="value">'+t.matches+'</div></div><div class="gmCareerStat"><div class="label">WINS</div><div class="value">'+t.w+'</div></div><div class="gmCareerStat"><div class="label">WIN RATE</div><div class="value">'+t.winPct.toFixed(1)+'%</div></div></div>'+tabs+(tab==="clubs"?clubs:tab==="status"?status:tab==="opportunities"?gmOpportunitiesHtml():record);}
+function gmProfileHtml(){let t=gmCareerTotals(),club=G.clubs[t.currentClubId],clubName=club?club.name:"Unattached",tab=window.gmProfileTab||"record";if(!["record","clubs","status","opportunities"].includes(tab))tab="record";window.gmProfileTab=tab;let tabs='<div class="gmProfileTabs">'+[["record","Record"],["clubs","Clubs"],["status","Status"],["opportunities","Opportunities"]].map(x=>'<button data-gm-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>';let record='<div class="card compactGMRecord"><div class="title">Career Record</div><div class="gmRecordGrid"><div><span>W / D / L</span><b>'+t.w+' / '+t.d+' / '+t.l+'</b></div><div><span>Goals</span><b>'+t.gf+' / '+t.ga+'</b></div><div><span>Best Finish</span><b>'+(t.bestFinish?ordinal(t.bestFinish):'—')+'</b></div><div><span>Best Points</span><b>'+(t.bestPoints||'—')+'</b></div></div></div>';let clubs='<div class="card"><div class="sectionHead"><div><div class="title">Clubs Managed</div><div class="sub">Your GM career travels with you.</div></div><div class="sectionCount">'+t.clubs.length+'</div></div>'+(gmClubHistoryRows()||'<div class="sub">No club history yet.</div>')+'</div>';let status='<div class="card gmFutureCard"><div class="title">Career Status</div>'+richRecordRow('Board Status',t.board.label,t.board.score)+richRecordRow('GM Reputation',t.reputationLabel,t.reputation)+'<div class="gmStatusLine"><b>'+t.status+'</b><span>'+t.reputationLabel+' reputation</span></div></div>';return '<div class="gmProfileHero"><div class="gmProfileAvatar">●</div><div class="gmProfileIdentity"><div class="screenEyebrow">GENERAL MANAGER</div><div class="gmProfileName">'+t.name+'</div><div class="sub">'+nationFlag(G.userGM.nation||G.careerNation)+' '+nationName(G.userGM.nation||G.careerNation)+' · '+clubName+' · '+t.status+'</div></div><button class="gmEditNameBtn" data-gm-edit-name="1">EDIT</button></div>'+gmLegacyHtml()+'<div class="gmCareerGrid compactGMCareer"><div class="gmCareerStat"><div class="label">TITLES</div><div class="value">'+t.titles+'</div></div><div class="gmCareerStat"><div class="label">MATCHES</div><div class="value">'+t.matches+'</div></div><div class="gmCareerStat"><div class="label">WINS</div><div class="value">'+t.w+'</div></div><div class="gmCareerStat"><div class="label">WIN RATE</div><div class="value">'+t.winPct.toFixed(1)+'%</div></div></div>'+tabs+(tab==="clubs"?clubs:tab==="status"?status:tab==="opportunities"?gmOpportunitiesHtml():record);}
 function exitToCareerHub(){
  try{save()}catch(e){}
  hideGMProfile();
@@ -10336,7 +10404,7 @@ function showPlayer(id,tab="overview"){
  let body=tab==="career"?playerCareerView(p):tab==="story"?playerStoryView(p):tab==="clubs"?playerClubsView(p):tab==="awards"?playerAwardsView(p):playerOverviewContent(p);
  $("#sheetbox").innerHTML=
  '<button class="sheetPersistentClose" data-close="1" aria-label="Close player profile">×</button>'+
- '<div class="playerProfileHero"><div class="label">PLAYER PROFILE</div><div class="playerProfileNameRow"><div class="playerProfileName">'+p.name+'</div>'+((G.playerEditingEnabled!==false&&p.team!==-2)?'<button class="playerEditButton" data-edit-player="'+p.id+'" aria-label="Edit '+p.name+'"><span class="playerEditIcon">✎</span><span>EDIT</span></button>':'')+'</div><div class="playerProfileMeta">'+clubLabel+'</div></div>'+
+ '<div class="playerProfileHero"><div class="label">PLAYER PROFILE</div><div class="playerProfileNameRow"><div class="playerProfileName">'+p.name+'</div>'+((G.playerEditingEnabled!==false&&p.team!==-2)?'<button class="playerEditButton" data-edit-player="'+p.id+'" aria-label="Edit '+p.name+'"><span class="playerEditIcon">✎</span><span>EDIT</span></button>':'')+'</div><div class="playerProfileMeta">'+nationFlag(p.nationality)+' '+nationName(p.nationality)+' · '+clubLabel+'</div></div>'+
  '<div class="playerProfileTabs">'+tabs.map(x=>'<button data-player-profile-tab="'+p.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+
  '<div id="playerEditorHost" class="playerEditorHost"></div>'+
@@ -10375,6 +10443,7 @@ function ensureRuntimeState(){
  if(!G)return;
  if(!G._nameRegistryHydrated){resetGeneratedNameRegistry();G._nameRegistryHydrated=true}
  ensureLeagueWorld();
+ ensureWorldEngineState();
  ensureSimulationRNG();
  ensureMatchHistoryArchive();
  ensureRecordState();
@@ -10411,7 +10480,7 @@ function render(){
  if(!G)return true;
  try{
   ensureRuntimeState();
-  $("#clubline").textContent=G.clubs[G.club].name+" · "+leagueInfo().name+" · "+G.season+" Season";
+  $("#clubline").textContent=G.clubs[G.club].name+" · "+nationFlag(G.careerNation)+" "+nationName(G.careerNation)+" · "+leagueInfo().name+" · "+G.season+" Season";
   let viewFn=({home,squad,market,league,club})[page];
   if(typeof viewFn!=="function")throw new Error("Unknown page: "+page);
   $("#app").innerHTML=viewFn();
@@ -10446,6 +10515,23 @@ function navigateTo(nextPage){
 }
 validateCoreRuntime();
 renderBuildVersion();
+
+function renderNationChoices(){
+ let host=$("#nations");if(!host)return;
+ host.innerHTML=FOOTBALL_NATIONS.map(n=>'<button class="nationPick '+(n.id===selectedCareerNation?'selected':'')+'" data-nation="'+n.id+'"><span class="nationFlag">'+n.flag+'</span><span><b>'+n.name+'</b><span>Domestic football identity</span></span></button>').join("");
+}
+function showNationStep(){
+ $("#saveSlotStep").classList.add("hidden");
+ $("#clubStep").classList.add("hidden");
+ $("#nationStep").classList.remove("hidden");
+ renderNationChoices();
+}
+function showClubStepFromNation(){
+ $("#nationStep").classList.add("hidden");
+ $("#clubStep").classList.remove("hidden");
+ let label=$("#clubNationLabel");if(label)label.textContent=nationFlag(selectedCareerNation)+" "+nationName(selectedCareerNation);
+ selected=0;renderClubChoices();
+}
 function renderClubChoices(){
  let names=CLUBS.slice(0,selectedLeagueSize);
  $("#clubs").innerHTML=names.map((c,i)=>{
@@ -10469,6 +10555,7 @@ function startSelectedCareer(){
   if(!saved)G.feed.unshift({t:"SAVE WARNING",m:"Safari is running the game but local saving is unavailable in this browsing mode."});
  }catch(e){
   $("#clubStep").classList.add("hidden");
+  $("#nationStep").classList.add("hidden");
   $("#launchStep").classList.remove("hidden");
   status.textContent="Game startup failed: "+(e&&e.message?e.message:String(e));
  }
@@ -10513,6 +10600,7 @@ if(e.target.closest("[data-open-staff]")){squadTab="staff";page="squad";renderSo
 
 let hofPos=e.target.closest("[data-hof-position]");if(hofPos){window.hofPositionGroup=hofPos.dataset.hofPosition||"FWD";renderSoon();return}
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
+let nationPick=e.target.closest("[data-nation]");if(nationPick){selectedCareerNation=nationPick.dataset.nation||"AUS";renderNationChoices();return}
 let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
@@ -10523,10 +10611,7 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  if(existing&&!confirm("Career "+slot+" already contains "+(careerSlotSummary(slot)?.club||"a saved career")+". Replace it with a new career?"))return;
  activeSaveSlot=slot;
  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(slot))}catch(e){}
- $("#saveSlotStep").classList.add("hidden");
- $("#clubStep").classList.remove("hidden");
- selected=0;
- renderClubChoices();
+ showNationStep();
  return;
 }
 let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}
@@ -10583,10 +10668,16 @@ $("#backToLaunchFromSlots").addEventListener("click",function(){
  $("#saveSlotStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
 });
-$("#backToLaunch").addEventListener("click",function(){
- $("#clubStep").classList.add("hidden");
+$("#backToSlotsFromNation").addEventListener("click",function(){
+ $("#nationStep").classList.add("hidden");
  $("#saveSlotStep").classList.remove("hidden");
  renderCareerSlots("new");
+});
+$("#continueNationBtn").addEventListener("click",showClubStepFromNation);
+$("#backToLaunch").addEventListener("click",function(){
+ $("#clubStep").classList.add("hidden");
+ $("#nationStep").classList.remove("hidden");
+ renderNationChoices();
 });
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
