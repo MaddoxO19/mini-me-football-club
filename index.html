@@ -5001,6 +5001,18 @@ body.season-transition-active{
 
 
 /* ==========================================================
+   v2.10.12.4 SEASON REVIEW TABS + UNIFIED FIXTURE CALENDAR
+   ========================================================== */
+.reviewTabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 14px;position:sticky;top:0;z-index:8;padding:8px 0;background:linear-gradient(180deg,#081019 82%,rgba(8,16,25,0))}
+.reviewTabs button{min-height:40px;border:1px solid var(--line);border-radius:11px;background:var(--card2);color:var(--muted);padding:8px 6px;font-size:9px;font-weight:900;line-height:1.2}
+.reviewTabs button.active{border-color:var(--gold);color:var(--gold);background:#d9b54a10}
+.reviewTabPanel{display:none}.reviewTabPanel.active{display:block}.reviewTabPanel>.reviewPhase:first-child{margin-top:4px!important}
+.fixtureCompetitionTag{display:inline-flex;align-items:center;margin-left:7px;padding:3px 6px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.06em}
+.cupFixtureWeek .fixtureCompetitionTag{border-color:#705d25;color:var(--gold);background:#d9b54a08}
+.cupFixturePlaceholder{padding:15px 13px;color:var(--muted);font-size:10px;line-height:1.4;text-align:center}
+@media(max-width:430px){.reviewTabs{grid-template-columns:1fr 1fr}.reviewTabs button{font-size:9px}.fixtureCompetitionTag{display:block;width:max-content;margin:4px 0 0}}
+
+/* ==========================================================
    v2.10.12.3 CUP INTEGRATION
    ========================================================== */
 .cupFixtureWeek{border-color:#705d25!important;background:linear-gradient(180deg,#18190f,#101821)!important}
@@ -5011,6 +5023,12 @@ body.season-transition-active{
 .cupFixtureWeek .cupTeam.away{text-align:right}
 .cupFixtureWeek .cupRegional{display:block;color:var(--muted);font-size:8px;margin-top:2px}
 
+
+/* ==========================================================
+   v2.10.13.0 COMPETITION INTEGRATION
+   Phase 2 consolidation release: unified League + Cup fixtures,
+   tabbed Season Review, and Cup history/profile integration.
+   ========================================================== */
 </style>
 </head>
 <body>
@@ -5107,7 +5125,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.12.3 Cup Integration Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.13.0 Competition Integration Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const WORLD_ENGINE_VERSION="2.0";
 const FOOTBALL_NATIONS=[
@@ -8205,8 +8223,11 @@ function resolveReviewPlayerId(item){
 }
 
 function showSeasonReview(){
- ensureSeasonState();
+ ensureSeasonState();ensureCupState();
  let r=G.pendingSeasonReview;if(!r)return;
+ // Reviews created by an earlier Phase 2 build may not contain the cup snapshot.
+ // Derive it live so Cup Outcomes always renders for the current review.
+ if(!r.cup)r.cup=cupSeasonSummaryForClub(G.club);
  $("#reviewSeason").textContent=r.season+" Season";
  $("#reviewFinish").textContent=ordinal(r.pos);
  $("#reviewHeadline").textContent=r.champion+" are champions · You finished "+ordinal(r.pos);
@@ -8266,8 +8287,39 @@ function showSeasonReview(){
  '<div class="card reviewSection"><div class="title">Entering Final Contract Year</div>'+fy+'</div>'+
  '<div class="card reviewSection"><div class="title">Club Retirements</div><div class="sub" style="margin-bottom:6px">Players from your squad retiring at the end of this season.</div>'+clubRetireHtml+'</div>'+
  '<div class="card reviewSection"><div class="title">Notable League Retirements</div><div class="sub" style="margin-bottom:6px">Notable retirements from clubs across the football world.</div>'+leagueRetireHtml+'</div>';
+ applySeasonReviewTabs();
  $("#seasonReview").classList.remove("hidden");
  document.body.classList.add("season-review-active");
+}
+
+function applySeasonReviewTabs(){
+ let host=$("#reviewContent");if(!host)return;
+ let phases=[...host.querySelectorAll(":scope > .reviewPhase")];if(!phases.length)return;
+ let defs=[
+  {key:"league",match:"SEASON OUTCOME",label:"League Outcomes"},
+  {key:"cup",match:"DOMESTIC CUP",label:"Cup Outcomes"},
+  {key:"honours",match:"LEAGUE HONOURS",label:"League Honours"},
+  {key:"club",match:"CLUB DECISIONS",label:"Club Decisions"}
+ ];
+ let active=window.seasonReviewTab||"league";
+ if(!defs.some(d=>d.key===active))active="league";
+ let tabs=document.createElement("div");tabs.className="reviewTabs";
+ defs.forEach(d=>{let b=document.createElement("button");b.type="button";b.dataset.reviewTab=d.key;b.textContent=d.label;b.className=d.key===active?"active":"";tabs.appendChild(b)});
+ let panels={};defs.forEach(d=>{let p=document.createElement("div");p.className="reviewTabPanel"+(d.key===active?" active":"");p.dataset.reviewPanel=d.key;panels[d.key]=p});
+ let children=[...host.children],current=null;
+ children.forEach(node=>{
+  if(node.classList&&node.classList.contains("reviewPhase")){
+   let txt=(node.textContent||"").toUpperCase();let def=defs.find(d=>txt.includes(d.match));current=def?def.key:current;
+  }
+  if(current&&panels[current])panels[current].appendChild(node);
+ });
+ host.innerHTML="";host.appendChild(tabs);defs.forEach(d=>host.appendChild(panels[d.key]));
+}
+function setSeasonReviewTab(key){
+ window.seasonReviewTab=key;
+ document.querySelectorAll("[data-review-tab]").forEach(b=>b.classList.toggle("active",b.dataset.reviewTab===key));
+ document.querySelectorAll("[data-review-panel]").forEach(p=>p.classList.toggle("active",p.dataset.reviewPanel===key));
+ let review=$("#seasonReview");if(review)review.scrollTop=0;
 }
 
 function runSafeWorldEvolution(){
@@ -9981,7 +10033,7 @@ function leagueFixturesView(){
  ensureLeagueWorld();ensureCupState();
  let key=currentLeagueKey(),info=leagueInfo(key),rounds=G.schedule[key]||[],playedWeeks=G.week;
  let cupByAnchor={};
- (G.cup.rounds||[]).forEach((r,ri)=>{let a=(CUP_ROUNDS[ri]&&CUP_ROUNDS[ri].anchorWeek)||r.anchorWeek;if(a!=null)(cupByAnchor[a]=cupByAnchor[a]||[]).push({round:r,index:ri})});
+ CUP_ROUNDS.forEach((meta,ri)=>{let r=(G.cup.rounds||[])[ri]||null;(cupByAnchor[meta.anchorWeek]=cupByAnchor[meta.anchorWeek]||[]).push({round:r,index:ri,meta})});
  let sections=[];
  rounds.forEach((round,index)=>{
    let week=index+1;
@@ -9994,13 +10046,19 @@ function leagueFixturesView(){
      return '<div class="fixtureScheduleRow '+(user?'userFixture':'')+'"><div class="fixtureClub"><span class="aiClubLink" data-club-profile="'+homeId+'">'+home.name+'</span></div>'+score+'<div class="fixtureClub away"><span class="aiClubLink" data-club-profile="'+awayId+'">'+away.name+'</span></div></div>';
    }).join("");
    let status=week<playedWeeks?"Completed":week===playedWeeks?"Latest round":week===playedWeeks+1?"Next round":"Scheduled";
-   sections.push('<div class="fixtureWeek"><div class="fixtureWeekHead"><b>League · Week '+week+'</b><span>'+status+'</span></div>'+rows+'</div>');
+   sections.push('<div class="fixtureWeek"><div class="fixtureWeekHead"><b>Week '+week+' <span class="fixtureCompetitionTag">'+info.name+'</span></b><span>'+status+'</span></div>'+rows+'</div>');
    (cupByAnchor[week]||[]).forEach(item=>{
-     let cr=item.round,ri=item.index,crows=(cr.matches||[]).map(m=>{let user=m.home===cupUserKey()||m.away===cupUserKey(),score=m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')):'VS';return '<div class="fixtureScheduleRow '+(user?'userFixture cupFixtureIntegrated':'')+'">'+cupTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+score+'</div>'+cupTeamHtml(m.away,true)+'</div>'}).join('');
-     sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>National Cup · '+cr.name+'</b><span>'+(cr.complete?'Completed':'Cup round')+'</span></div>'+crows+'</div>');
+     let cr=item.round,ri=item.index,meta=item.meta;
+     if(cr&&Array.isArray(cr.matches)&&cr.matches.length){
+       let crows=cr.matches.map(m=>{let user=m.home===cupUserKey()||m.away===cupUserKey(),score=m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')):'VS';return '<div class="fixtureScheduleRow '+(user?'userFixture cupFixtureIntegrated':'')+'">'+cupTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+score+'</div>'+cupTeamHtml(m.away,true)+'</div>'}).join('');
+       sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>'+cr.name+' <span class="fixtureCompetitionTag">National Cup</span></b><span>'+(cr.complete?'Completed':'After league week '+meta.anchorWeek)+'</span></div>'+crows+'</div>');
+     }else{
+       let userStatus=cupUserAlive()?'Draw pending':'Your club eliminated';
+       sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>'+meta.name+' <span class="fixtureCompetitionTag">National Cup</span></b><span>After league week '+meta.anchorWeek+'</span></div><div class="cupFixturePlaceholder">'+userStatus+' · Fixture draw will populate when the previous Cup round is complete.</div></div>');
+     }
    });
  });
- return '<div class="card"><div class="title">All Fixtures · '+G.season+'</div><div class="sub">'+info.name+' and National Cup fixtures are shown together in season order.</div></div>'+sections.join('');
+ return '<div class="card"><div class="title">All Fixtures · '+G.season+'</div><div class="sub">'+info.name+' and all six National Cup checkpoints are integrated into one season calendar.</div></div>'+sections.join('');
 }
 
 function leagueClubsView(){
@@ -10766,6 +10824,7 @@ document.addEventListener("click",function(e){
  let marketSource=e.target.closest&&e.target.closest("[data-market-source]");if(marketSource){window.marketSourceTab=marketSource.dataset.marketSource||"free";page="market";renderSoon();return}
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
  let gmTab=e.target.closest&&e.target.closest("[data-gm-tab]");if(gmTab){window.gmProfileTab=gmTab.dataset.gmTab||"record";showGMProfile();return}
+ let reviewTab=e.target.closest&&e.target.closest("[data-review-tab]");if(reviewTab){e.preventDefault();setSeasonReviewTab(reviewTab.dataset.reviewTab||"league");return}
  let marketFilterBtn=e.target.closest("[data-market-position]");
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
  let resultPlayer=e.target.closest("[data-result-player]");
