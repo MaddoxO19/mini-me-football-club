@@ -5083,6 +5083,77 @@ body.season-transition-active{
  .reviewSection .honourRow{grid-template-columns:minmax(0,1fr) minmax(96px,40%)!important;gap:9px!important}
 }
 
+
+
+/* ==========================================================
+   v2.10.14.4 MOBILE HEADER COLLISION FIX
+   Presentation only. Reserves a right-side control zone for
+   Exit + GM Profile and prevents identity text flowing below it.
+   ========================================================== */
+@media(max-width:600px){
+  header{
+    padding:calc(9px + env(safe-area-inset-top)) 116px 8px 14px!important;
+    min-height:82px;
+  }
+  .gameHeaderIdentity{
+    display:flex!important;
+    align-items:baseline!important;
+    gap:6px!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  .gameHeaderMini{
+    flex:0 0 auto;
+    font-size:8.5px!important;
+    letter-spacing:.14em!important;
+  }
+  .gameHeaderTitle{
+    min-width:0!important;
+    font-size:13px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #clubline{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin-top:6px!important;
+    font-size:10px!important;
+    line-height:1.25!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .careerExitHeader{
+    right:55px!important;
+    top:calc(50% + env(safe-area-inset-top)/2)!important;
+    min-width:48px!important;
+    min-height:36px!important;
+    padding:7px 8px!important;
+    font-size:8px!important;
+  }
+  .gmHeaderButton{
+    right:10px!important;
+    top:calc(50% + env(safe-area-inset-top)/2)!important;
+    width:36px!important;
+    height:36px!important;
+  }
+  nav{
+    padding-top:4px!important;
+    padding-bottom:4px!important;
+  }
+}
+@media(max-width:390px){
+  header{padding-right:112px!important;padding-left:12px!important}
+  .gameHeaderMini{font-size:8px!important}
+  .gameHeaderTitle{font-size:12.5px!important}
+  #clubline{font-size:9.5px!important}
+  .careerExitHeader{right:53px!important;min-width:46px!important}
+  .gmHeaderButton{right:9px!important;width:35px!important;height:35px!important}
+}
+
 </style>
 </head>
 <body>
@@ -5179,7 +5250,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.14.3 Competition + GM Record Integration Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.14.4 Mobile Header Fix Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const WORLD_ENGINE_VERSION="2.0";
 const FOOTBALL_NATIONS=[
