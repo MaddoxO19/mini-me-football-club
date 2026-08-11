@@ -4964,9 +4964,14 @@ body.season-transition-active{
 
 
 /* ==========================================================
-   v2.10.12.0 PHASE 2 — WORLD FOUNDATION
+   v2.10.12.2 PHASE 2 — DOMESTIC CUP ENGINE
+   Built on v2.10.12.1 fixed 20-club world.
+   ========================================================== */
+
+/* ==========================================================
+   v2.10.12.1 PHASE 2 — FIXED DOMESTIC WORLD
    Nation identity + scalable competition metadata.
-   Existing domestic gameplay remains unchanged.
+   Domestic pyramid standardised to 20 Premier + 20 Championship clubs.
    ========================================================== */
 .nationGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 16px;text-align:left}
 .nationPick{min-height:64px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--text);padding:11px 12px;text-align:left;display:flex;align-items:center;gap:10px}
@@ -4976,6 +4981,23 @@ body.season-transition-active{
 .nationIdentity{color:var(--gold);font-weight:850}
 @media(max-width:430px){.nationGrid{grid-template-columns:1fr 1fr;gap:7px}.nationPick{min-height:60px;padding:10px}.nationFlag{font-size:20px}.nationPick b{font-size:12px}}
 @media(max-width:360px){.nationGrid{grid-template-columns:1fr}}
+
+
+/* ==========================================================
+   v2.10.12.2 PHASE 2 — DOMESTIC CUP ENGINE
+   64 clubs · six knockout rounds · persistent regional clubs.
+   ========================================================== */
+.cupHero{border-color:#705d25;background:linear-gradient(180deg,#18190f,#101821)}
+.cupStatusGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+.cupStatusGrid>div{border:1px solid var(--line);border-radius:12px;background:var(--card2);padding:10px;min-width:0}
+.cupStatusGrid span{display:block;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.08em}.cupStatusGrid b{display:block;margin-top:5px;font-size:15px;line-height:1.2}
+.cupRoundCard{border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,var(--card),#0e151d);margin-bottom:10px;overflow:hidden}
+.cupRoundHead{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 13px;border-bottom:1px solid var(--line)}
+.cupRoundHead b{font-size:13px}.cupRoundHead span{font-size:9px;color:var(--muted)}
+.cupFixtureRow{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);font-size:11px}
+.cupFixtureRow:last-child{border-bottom:0}.cupFixtureRow.userCupFixture{background:#d9b54a0b}.cupTeam{min-width:0;font-weight:800;line-height:1.25}.cupTeam.away{text-align:right}.cupScore{text-align:center;font-size:11px;font-weight:900;color:var(--gold)}.cupScore.pending{color:var(--muted);font-size:9px}.cupRegional{display:block;color:var(--muted);font-size:8px;font-weight:700;margin-top:2px}
+.cupHistoryRow{display:grid;grid-template-columns:54px minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.cupHistoryRow:last-child{border-bottom:0}.cupHistoryRow .yr{color:var(--gold);font-weight:900}.cupHistoryRow b{display:block;font-size:12px}.cupHistoryRow span{display:block;color:var(--muted);font-size:9px;margin-top:3px}.cupHistoryRow>div:last-child{text-align:right}
+@media(max-width:430px){.cupStatusGrid{grid-template-columns:1fr 1fr}.cupStatusGrid>div:last-child{grid-column:1/-1}.cupFixtureRow{grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr);padding:9px}.cupHistoryRow{grid-template-columns:46px 1fr}.cupHistoryRow>div:last-child{grid-column:2;text-align:left}}
 
 </style>
 </head>
@@ -5013,12 +5035,8 @@ body.season-transition-active{
 <div id="clubStep" class="careerStep hidden">
   <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span style="width:44px"></span></div>
   <h2>Choose Your Club</h2>
-  <div class="sub"><span id="clubNationLabel" class="nationIdentity"></span> · Choose a simple league structure, then tap the club you want to lead. A second division is created automatically underneath it.</div>
-  <div class="leaguePresetRow">
-    <button class="leaguePreset" data-league-size="18">18 CLUBS<span>34 league matches</span></button>
-    <button class="leaguePreset active" data-league-size="20">20 CLUBS<span>38 league matches</span></button>
-    <button class="leaguePreset" data-league-size="22">22 CLUBS<span>42 league matches</span></button>
-  </div>
+  <div class="sub"><span id="clubNationLabel" class="nationIdentity"></span> · Choose the club you want to lead. Every Mini&Me football nation uses the same 20-club Premier Division and 20-club Championship structure.</div>
+  <div class="worldFoundationNote"><b style="color:var(--text)">Standard domestic structure.</b> 20 Premier clubs · 20 Championship clubs · 38 league matches per club. This fixed structure supports the future 64-team domestic cup and international calendar.</div>
   <div id="clubs" class="clubs"></div>
   <button id="beginCareerBtn" class="btn primary full" style="display:none">BEGIN CAREER</button>
 </div>
@@ -5077,7 +5095,8 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.12.0 Phase 2 World Foundation Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.12.2 Domestic Cup Engine Alpha Mobile";
+const DOMESTIC_LEAGUE_SIZE=20;
 const WORLD_ENGINE_VERSION="2.0";
 const FOOTBALL_NATIONS=[
  {id:"AUS",name:"Australia",flag:"🇦🇺"},{id:"ENG",name:"England",flag:"🏴"},{id:"FRA",name:"France",flag:"🇫🇷"},{id:"GER",name:"Germany",flag:"🇩🇪"},
@@ -5176,7 +5195,7 @@ function seedPlayerStyle(p,legacyTeamId=null){
 }
 function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEach(p=>seedPlayerStyle(p,p.team>=0?p.team:null))}
 
-let G=null, selected=0, page="home", selectedLeagueSize=20, selectedCareerNation="AUS";
+let G=null, selected=0, page="home", selectedCareerNation="AUS";
 let clubTab="overview",leagueTab="table",squadTab="team";
 let marketPositionFilter="RECOMMENDED";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -5261,6 +5280,7 @@ function ensureWorldEngineState(){
  if(!G.worldEngine||typeof G.worldEngine!=="object")G.worldEngine={};
  G.worldEngine.version=WORLD_ENGINE_VERSION;
  G.worldEngine.homeNation=G.careerNation;
+ G.worldEngine.domesticStructure={premierClubs:DOMESTIC_LEAGUE_SIZE,championshipClubs:DOMESTIC_LEAGUE_SIZE,leagueMatches:38,cupClubs:64};
  if(!Array.isArray(G.worldEngine.nations)||!G.worldEngine.nations.length){
   G.worldEngine.nations=FOOTBALL_NATIONS.map((n,i)=>({id:n.id,name:n.name,flag:n.flag,active:n.id===G.careerNation,footballStrength:72+((i*7)%18)}));
  }else G.worldEngine.nations.forEach(n=>n.active=n.id===G.careerNation);
@@ -5269,7 +5289,7 @@ function ensureWorldEngineState(){
  let lowerName=G.leagues&&G.leagues.lower&&G.leagues.lower.name||"Championship";
  G.competitions.DOM_LEAGUE_1=Object.assign({id:"DOM_LEAGUE_1",type:"DOMESTIC_LEAGUE",tier:1,enabled:true},G.competitions.DOM_LEAGUE_1||{},{name:topName,nation:G.careerNation});
  G.competitions.DOM_LEAGUE_2=Object.assign({id:"DOM_LEAGUE_2",type:"DOMESTIC_LEAGUE",tier:2,enabled:true},G.competitions.DOM_LEAGUE_2||{},{name:lowerName,nation:G.careerNation});
- G.competitions.DOM_CUP=Object.assign({id:"DOM_CUP",type:"DOMESTIC_CUP",enabled:false,name:"National Cup",nation:G.careerNation,format:"64_TEAM_KNOCKOUT"},G.competitions.DOM_CUP||{});
+ G.competitions.DOM_CUP=Object.assign({id:"DOM_CUP",type:"DOMESTIC_CUP",enabled:true,name:"National Cup",nation:G.careerNation,format:"64_TEAM_KNOCKOUT",clubSources:{premier:20,championship:20,regional:24}},G.competitions.DOM_CUP||{});
  G.competitions.INT_CLUB=Object.assign({id:"INT_CLUB",type:"INTERNATIONAL_CLUB",enabled:false,name:"Champions Tournament",format:"32_TEAM"},G.competitions.INT_CLUB||{});
  G.competitions.INT_NATIONAL=Object.assign({id:"INT_NATIONAL",type:"INTERNATIONAL_NATIONAL",enabled:false,name:"World Championship",format:"32_TEAM"},G.competitions.INT_NATIONAL||{});
  if(Array.isArray(G.clubs))G.clubs.forEach(c=>{if(c&&!c.nation)c.nation=G.careerNation});
@@ -5307,7 +5327,7 @@ function buildClubRecord(name,i,tier){
 
 function world(){
  generatedNameRegistry=new Set();
- let size=selectedLeagueSize||20,clubs=[],players=[];
+ let size=DOMESTIC_LEAGUE_SIZE,clubs=[],players=[];
  let topNames=CLUBS.slice(0,size),lowerNames=LOWER_CLUBS.slice(0,size);
  while(topNames.length<size)topNames.push("Premier Club "+(topNames.length+1));
  while(lowerNames.length<size)lowerNames.push("Division Two Club "+(lowerNames.length+1));
@@ -5321,6 +5341,7 @@ function world(){
  g.rngState=g.seed;g.schedule=buildWorldSchedule(g);return g;
 }
 function ensureLeagueWorld(){
+ // Established legacy careers retain their existing division membership. New Phase 2 careers are fixed at 20 + 20.
  if(!Array.isArray(G.matchHistory))G.matchHistory=[];
  G.matchHistory.forEach(m=>{if(m&&m.applied==null)m.applied=true});
  if(!G.rivalries||typeof G.rivalries!=="object")G.rivalries={};
@@ -5341,6 +5362,7 @@ function ensureLeagueWorld(){
  }
  G.clubs.forEach(c=>{if(c&&!c.shortName)c.shortName=c.name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase()});
  if(!G.schedule||G.schedule.season!==G.season||!Array.isArray(G.schedule.top))G.schedule=buildWorldSchedule(G);
+ ensureCupState();
 }
 function currentLeagueKey(){ensureLeagueWorld();return G.leagues.lower.clubIds.includes(G.club)?"lower":"top"}
 function leagueInfo(key=currentLeagueKey()){ensureLeagueWorld();return G.leagues[key]}
@@ -5363,6 +5385,103 @@ function buildWorldSchedule(g){
 function nextOpp(){
  ensureLeagueWorld();let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club));
  return pair?(pair[0]===G.club?pair[1]:pair[0]):G.club;
+}
+
+
+const CUP_ROUNDS=[
+ {name:"Round of 64",anchorWeek:3,prize:250000},
+ {name:"Round of 32",anchorWeek:8,prize:400000},
+ {name:"Round of 16",anchorWeek:14,prize:750000},
+ {name:"Quarter Final",anchorWeek:20,prize:1250000},
+ {name:"Semi Final",anchorWeek:27,prize:2000000},
+ {name:"Final",anchorWeek:34,prize:6000000}
+];
+const REGIONAL_CUP_NAMES=["Meadow Park FC","Old Town Athletic","Seaside Rovers","Hillcrest United","Forest Borough","Rivergate FC","Stonebridge Town","Valley Athletic","Northfield FC","Southbank Rovers","Eastgate United","Westfield Town","Pioneer FC","Lighthouse Athletic","Cedar City","Mountain Rovers","Brookside FC","Foundry Town","Highland United","Marina Athletic","Railway FC","Garden City","Phoenix Borough","Harbour Vale"];
+function cupDomesticKey(id){return "C"+Number(id)}
+function cupIsDomestic(key){return typeof key==="string"&&key.charAt(0)==="C"}
+function cupDomesticId(key){return cupIsDomestic(key)?Number(key.slice(1)):null}
+function cupTeamRecord(key){
+ if(cupIsDomestic(key)){let c=G.clubs[cupDomesticId(key)];return c?{key,name:c.name,regional:false,clubId:c.id,rating:Math.round(strength(c.id))}:null}
+ let r=(G.cup&&Array.isArray(G.cup.regionalClubs)?G.cup.regionalClubs:[]).find(x=>x.key===key);return r||null;
+}
+function cupTeamName(key){let t=cupTeamRecord(key);return t?t.name:"Unknown Club"}
+function shuffleCup(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){let j=Math.floor(gameRandom()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function buildCupMatches(keys){let a=shuffleCup(keys),m=[];for(let i=0;i<a.length;i+=2)m.push({home:a[i],away:a[i+1],played:false,winner:null,homeGoals:null,awayGoals:null,pens:null});return m}
+function ensureCupPlayerStats(p){
+ if(!p.competitionStats||typeof p.competitionStats!=="object")p.competitionStats={};
+ if(!p.competitionStats.DOM_CUP||typeof p.competitionStats.DOM_CUP!=="object")p.competitionStats.DOM_CUP={};
+ let k=String(G.season);if(!p.competitionStats.DOM_CUP[k])p.competitionStats.DOM_CUP[k]={apps:0,goals:0,assists:0,wins:0,losses:0,cleanSheets:0};
+ return p.competitionStats.DOM_CUP[k];
+}
+function recordCupPlayerStats(teamKey,goals,against,won){
+ let id=cupDomesticId(teamKey);if(id===null)return [];
+ let xi=startingXI(id),players=[];xi.lines.forEach(line=>line.forEach(p=>{if(p)players.push(p)}));
+ if(!players.length)return [];
+ players.forEach(p=>{let st=ensureCupPlayerStats(p);st.apps++;if(won)st.wins++;else st.losses++;if(against===0&&p.pos==="GK")st.cleanSheets++});
+ let scorers=players.filter(p=>["FWD","MID"].includes(positionGroup(p.pos)));if(!scorers.length)scorers=players;
+ let creators=players.filter(p=>positionGroup(p.pos)!=="GK");if(!creators.length)creators=players;
+ let impacts={};players.forEach(p=>impacts[p.id]={id:p.id,name:p.name,pos:p.pos,rating:Number((6.0+gameRandom()*1.5+(won?.35:0)).toFixed(1)),goals:0,assists:0});
+ for(let g=0;g<goals;g++){let sc=scorers[Math.floor(gameRandom()*scorers.length)],as=creators[Math.floor(gameRandom()*creators.length)];ensureCupPlayerStats(sc).goals++;impacts[sc.id].goals++;if(as&&as.id!==sc.id&&gameRandom()<.78){ensureCupPlayerStats(as).assists++;impacts[as.id].assists++}}
+ Object.values(impacts).forEach(x=>{x.rating=Math.min(9.8,Number((x.rating+x.goals*.75+x.assists*.35).toFixed(1)))});
+ return Object.values(impacts).sort((a,b)=>b.rating-a.rating);
+}
+function ensureCupState(){
+ if(!G)return;
+ if(!G.cup||typeof G.cup!=="object")G.cup={};
+ if(!Array.isArray(G.cup.history))G.cup.history=[];
+ if(!Array.isArray(G.cup.regionalClubs)||G.cup.regionalClubs.length!==24){
+  G.cup.regionalClubs=REGIONAL_CUP_NAMES.map((name,i)=>({key:"R"+i,name,nation:G.careerNation,regional:true,rating:58+((i*7)%17)+rnd(-2,2)}));
+ }
+ if(Number(G.cup.season)!==Number(G.season)||!Array.isArray(G.cup.rounds)||!G.cup.rounds.length){
+  let entrants=[...G.leagues.top.clubIds,...G.leagues.lower.clubIds].map(cupDomesticKey).concat(G.cup.regionalClubs.map(x=>x.key));
+  G.cup.season=G.season;G.cup.name="National Cup";G.cup.currentRound=0;G.cup.eliminated=[];G.cup.champion=null;G.cup.runnerUp=null;
+  G.cup.rounds=[{name:CUP_ROUNDS[0].name,anchorWeek:CUP_ROUNDS[0].anchorWeek,matches:buildCupMatches(entrants),complete:false}];
+ }
+ if(G.competitions&&G.competitions.DOM_CUP)G.competitions.DOM_CUP.enabled=true;
+}
+function cupUserKey(){return cupDomesticKey(G.club)}
+function cupUserAlive(){ensureCupState();return !G.cup.eliminated.includes(cupUserKey())&&!G.cup.champion}
+function cupRoundDue(){ensureCupState();let i=Number(G.cup.currentRound)||0,r=G.cup.rounds[i],meta=CUP_ROUNDS[i];return !!(r&&meta&&!r.complete&&Number(G.week)>=meta.anchorWeek)}
+function cupUserFixtureDue(){if(!cupRoundDue()||!cupUserAlive())return null;let r=G.cup.rounds[G.cup.currentRound];return r.matches.find(m=>!m.played&&(m.home===cupUserKey()||m.away===cupUserKey()))||null}
+function cupTeamStrength(key){let t=cupTeamRecord(key);if(!t)return 60;return t.regional?Number(t.rating)||62:strength(t.clubId)}
+function cupSim(keyA,keyB){let sa=cupTeamStrength(keyA),sb=cupTeamStrength(keyB),diff=Math.max(-20,Math.min(20,sa-sb)),ha=Math.max(.45,Math.min(2.7,1.35+diff*.05)),aa=Math.max(.4,Math.min(2.45,1.15-diff*.045));return[Math.min(6,poissonGoals(ha*(.9+gameRandom()*.2))),Math.min(6,poissonGoals(aa*(.9+gameRandom()*.2)))]}
+function cupAwardClub(key,amount,label){let id=cupDomesticId(key);if(id===null)return;let c=G.clubs[id];if(!c)return;c.balance=(Number(c.balance)||0)+amount;c.budget=(Number(c.budget)||0)+Math.round(amount*.4);if(id===G.club)G.feed.unshift({t:"CUP PRIZE",m:label+" · "+money(amount)+" earned. "+money(Math.round(amount*.4))+" added to the transfer budget."})}
+function simulateCupRound(){
+ ensureCupState();let idx=Number(G.cup.currentRound)||0,round=G.cup.rounds[idx],meta=CUP_ROUNDS[idx];if(!round||round.complete)return null;
+ let userResult=null,winners=[];
+ round.matches.forEach(m=>{
+  if(m.played){if(m.winner)winners.push(m.winner);return}
+  let [hg,ag]=cupSim(m.home,m.away),winner,pens=null;
+  if(hg===ag){let hp=3+rnd(0,3),ap=3+rnd(0,3);while(hp===ap){if(gameRandom()<.5)hp++;else ap++}pens={home:hp,away:ap};winner=hp>ap?m.home:m.away}else winner=hg>ag?m.home:m.away;
+  m.homeGoals=hg;m.awayGoals=ag;m.pens=pens;m.winner=winner;m.played=true;winners.push(winner);
+  let loser=winner===m.home?m.away:m.home;G.cup.eliminated.push(loser);cupAwardClub(winner,meta.prize,meta.name+" win");
+  let homePerf=recordCupPlayerStats(m.home,hg,ag,winner===m.home),awayPerf=recordCupPlayerStats(m.away,ag,hg,winner===m.away),all=[...homePerf.map(x=>({...x,clubKey:m.home})),...awayPerf.map(x=>({...x,clubKey:m.away}))].sort((a,b)=>b.rating-a.rating);
+  if(m.home===cupUserKey()||m.away===cupUserKey()){
+   let homeDomestic=cupDomesticId(m.home),awayDomestic=cupDomesticId(m.away),userHome=m.home===cupUserKey(),userWon=winner===cupUserKey();
+   let statsA=teamMatchStats(hg,ag,true),statsB=teamMatchStats(ag,hg,false),poss=Math.max(30,Math.min(70,Math.round((statsA.possession+100-statsB.possession)/2)));statsA.possession=poss;statsB.possession=100-poss;
+   userResult={competition:"DOM_CUP",roundName:meta.name,a:homeDomestic,b:awayDomestic,homeKey:m.home,awayKey:m.away,homeName:cupTeamName(m.home),awayName:cupTeamName(m.away),ga:hg,gb:ag,pens,userHome,userWon,perfA:homePerf,perfB:awayPerf,statsA,statsB,potm:all[0]||null};
+   G.feed.unshift({t:"NATIONAL CUP",m:cupTeamName(m.home)+" "+hg+"–"+ag+" "+cupTeamName(m.away)+(pens?" ("+pens.home+"–"+pens.away+" pens)":"")});
+  }
+ });
+ round.complete=true;
+ if(idx===CUP_ROUNDS.length-1){
+  let final=round.matches[0],champ=final.winner,runner=champ===final.home?final.away:final.home;G.cup.champion=champ;G.cup.runnerUp=runner;
+  let rec={season:G.season,winnerKey:champ,winnerClubId:cupDomesticId(champ),winnerName:cupTeamName(champ),runnerUpKey:runner,runnerUpClubId:cupDomesticId(runner),runnerUpName:cupTeamName(runner),gmName:champ===cupUserKey()?(G.userGM&&G.userGM.name||"User GM"):null};
+  G.cup.history.unshift(rec);cupAwardClub(runner,3000000,"National Cup runner-up");
+  let cid=cupDomesticId(champ);if(cid!==null){G.players.filter(p=>p.team===cid).forEach(p=>{if(!Array.isArray(p.awards))p.awards=[];if(!p.awards.some(a=>a.name==="National Cup Winner"&&a.season===G.season))p.awards.unshift({name:"National Cup Winner",season:G.season,clubId:cid,clubNameAtTime:G.clubs[cid].name})})}
+ }else{
+  let ni=idx+1,nm=CUP_ROUNDS[ni];G.cup.rounds[ni]={name:nm.name,anchorWeek:nm.anchorWeek,matches:buildCupMatches(winners),complete:false};G.cup.currentRound=ni;
+ }
+ return userResult;
+}
+function playCupRoundIfDue(){if(!cupRoundDue())return null;return simulateCupRound()}
+function cupTeamHtml(key,away=false){let t=cupTeamRecord(key);if(!t)return'<div class="cupTeam '+(away?'away':'')+'">Unknown</div>';let name=t.regional?t.name:'<span class="aiClubLink" data-club-profile="'+t.clubId+'">'+t.name+'</span>';return'<div class="cupTeam '+(away?'away':'')+'">'+name+(t.regional?'<span class="cupRegional">REGIONAL CLUB</span>':'')+'</div>'}
+function domesticCupView(){
+ ensureCupState();let userKey=cupUserKey(),alive=cupUserAlive(),idx=Math.min(Number(G.cup.currentRound)||0,CUP_ROUNDS.length-1),meta=CUP_ROUNDS[idx],next=cupUserFixtureDue();
+ let status=G.cup.champion===userKey?"Champions":alive?"In Competition":"Eliminated",nextText=next?meta.name+" · "+cupTeamName(next.home===userKey?next.away:next.home):(G.cup.champion?"Competition complete":alive?meta.name:"Season complete");
+ let rounds=G.cup.rounds.map((r,ri)=>{let rows=r.matches.map(m=>{let score=m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')):'VS';return'<div class="cupFixtureRow '+((m.home===userKey||m.away===userKey)?'userCupFixture':'')+'">'+cupTeamHtml(m.home)+ '<div class="cupScore '+(m.played?'':'pending')+'">'+score+'</div>'+cupTeamHtml(m.away,true)+'</div>'}).join('');return'<div class="cupRoundCard"><div class="cupRoundHead"><b>'+r.name+'</b><span>'+(r.complete?'Completed':'After league week '+CUP_ROUNDS[ri].anchorWeek)+'</span></div>'+rows+'</div>'}).join('');
+ let hist=G.cup.history.map(h=>'<div class="cupHistoryRow"><div class="yr">'+h.season+'</div><div><b>'+h.winnerName+'</b><span>Champion</span></div><div><b>'+h.runnerUpName+'</b><span>Runner-up</span></div></div>').join('');
+ return'<div class="card cupHero"><div class="screenEyebrow">DOMESTIC KNOCKOUT</div><div class="title">National Cup · '+G.season+'</div><div class="sub">64 clubs · 20 Premier · 20 Championship · 24 Regional · straight knockout.</div><div class="cupStatusGrid"><div><span>YOUR CLUB</span><b>'+status+'</b></div><div><span>NEXT CUP EVENT</span><b>'+nextText+'</b></div><div><span>ROUNDS</span><b>6</b></div></div></div>'+rounds+'<div class="card"><div class="sectionHead"><div><div class="title">Cup History</div><div class="sub">Champions and finalists are retained across the career.</div></div><div class="sectionCount">'+G.cup.history.length+'</div></div>'+(hist||'<div class="profileEmpty compactEmpty">The first National Cup is in progress.</div>')+'</div>';
 }
 
 
@@ -6375,7 +6494,9 @@ function weeklyLeaguePlayerDevelopment(){
 }
 
 function advance(){let integrity=startingXIIntegrity(G.club);if(!integrity.ok){alert("You cannot play this fixture yet. "+integrity.formation+" requires 11 eligible starters. Missing roles: "+(integrity.missing.length?integrity.missing.join(" · "):"squad coverage incomplete")+".");page="squad";squadTab="team";renderSoon();return}
- ensureLeagueWorld();let weeks=leagueSeasonWeeks();
+ ensureLeagueWorld();ensureCupState();let cupResult=playCupRoundIfDue();
+ if(cupResult){save();render();showMatchResult(cupResult,G.week);return}
+ let weeks=leagueSeasonWeeks();
  if(G.week>=weeks){endSeason();return}
  let userResult=null,playedWeek=G.week+1;
  ["top","lower"].forEach(k=>{let r=simulateDivisionWeek(k);if(r)userResult=r});
@@ -6387,25 +6508,24 @@ function advance(){let integrity=startingXIIntegrity(G.club);if(!integrity.ok){a
  if(userResult)showMatchResult(userResult,playedWeek);
 }
 function showMatchResult(r,playedWeek){
- let userHome=r.a===G.club;
+ let isCup=r.competition==="DOM_CUP";
+ let userHome=isCup?!!r.userHome:r.a===G.club;
  let userGoals=userHome?r.ga:r.gb;
  let oppGoals=userHome?r.gb:r.ga;
- let state=userGoals>oppGoals?"WIN":userGoals<oppGoals?"LOSS":"DRAW";
+ let state=isCup?(r.userWon?"WIN":"LOSS"):(userGoals>oppGoals?"WIN":userGoals<oppGoals?"LOSS":"DRAW");
  let pos=standings().findIndex(c=>c.id===G.club)+1;
- let opp=G.clubs[nextOpp()];
  $("#resultState").textContent=state;
  $("#resultState").className="resultState "+state.toLowerCase();
 
- let playedOpp=userHome?r.b:r.a;
- $("#resultWeek").textContent="LEAGUE · WEEK "+playedWeek;
- $("#resultHome").textContent=G.clubs[r.a].name;
- $("#resultAway").textContent=G.clubs[r.b].name;
- $("#resultHome").dataset.clubProfile=String(r.a);
- $("#resultAway").dataset.clubProfile=String(r.b);
- $("#resultHome").classList.add("resultClubLink");
- $("#resultAway").classList.add("resultClubLink");
- $("#resultScore").textContent=r.ga+" – "+r.gb;
- $("#resultSummary").textContent=(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.");
+ $("#resultWeek").textContent=isCup?("NATIONAL CUP · "+r.roundName):("LEAGUE · WEEK "+playedWeek);
+ let homeName=isCup?r.homeName:G.clubs[r.a].name,awayName=isCup?r.awayName:G.clubs[r.b].name;
+ $("#resultHome").textContent=homeName;$("#resultAway").textContent=awayName;
+ delete $("#resultHome").dataset.clubProfile;delete $("#resultAway").dataset.clubProfile;
+ $("#resultHome").classList.remove("resultClubLink");$("#resultAway").classList.remove("resultClubLink");
+ if(!isCup||Number.isFinite(r.a)){if(Number.isFinite(r.a)){$("#resultHome").dataset.clubProfile=String(r.a);$("#resultHome").classList.add("resultClubLink")}}
+ if(!isCup||Number.isFinite(r.b)){if(Number.isFinite(r.b)){$("#resultAway").dataset.clubProfile=String(r.b);$("#resultAway").classList.add("resultClubLink")}}
+ $("#resultScore").textContent=r.ga+" – "+r.gb+(isCup&&r.pens?" ("+r.pens.home+"–"+r.pens.away+" pens)":"");
+ $("#resultSummary").textContent=isCup?(r.userWon?(r.roundName==="Final"?"National Cup champions.":"Through to the next round."):"Your National Cup run ends here."):(state==="WIN"?"Three points secured.":state==="LOSS"?"No points from this fixture.":"Points shared.");
 
  let sa=r.statsA||{},sb=r.statsB||{};
  $("#resultTeamStats").innerHTML=
@@ -6415,8 +6535,8 @@ function showMatchResult(r,playedWeek){
 
  let perfA=r.perfA||[],perfB=r.perfB||[];
  let userPerf=userHome?perfA:perfB;
- let allPerf=[...perfA.map(x=>({...x,clubId:r.a})),...perfB.map(x=>({...x,clubId:r.b}))].sort((a,b)=>b.rating-a.rating);
- let potm=r.potm?allPerf.find(x=>x.id===r.potm.id)||{...r.potm,clubId:(perfA.some(x=>x.id===r.potm.id)?r.a:r.b)}:allPerf[0]||null;
+ let allPerf=[...perfA.map(x=>({...x,clubId:isCup?r.homeKey:r.a})),...perfB.map(x=>({...x,clubId:isCup?r.awayKey:r.b}))].sort((a,b)=>b.rating-a.rating);
+ let potm=r.potm?allPerf.find(x=>x.id===r.potm.id)||{...r.potm,clubId:(perfA.some(x=>x.id===r.potm.id)?(isCup?r.homeKey:r.a):(isCup?r.awayKey:r.b))}:allPerf[0]||null;
  let keyPerformers=allPerf.filter(x=>!potm||x.id!==potm.id).slice(0,2);
 
  let contribution=x=>{
@@ -6425,7 +6545,7 @@ function showMatchResult(r,playedWeek){
    if(x.assists)parts.push(x.assists+' assist'+(x.assists>1?'s':''));
    return parts.length?parts.join(' · '):'Match performance';
  };
- let clubName=id=>(G.clubs[id]&&G.clubs[id].name)||"Unknown Club";
+ let clubName=id=>isCup?(typeof id==="string"?cupTeamName(id):((G.clubs[id]&&G.clubs[id].name)||"Regional Club")):((G.clubs[id]&&G.clubs[id].name)||"Unknown Club");
 
  let potmHtml=potm?
    '<div class="matchPotm resultPlayerLink" data-result-player="'+potm.id+'">'+
@@ -7373,7 +7493,9 @@ function ensureCoreSaveIntegrity(){
   if(!Array.isArray(p.careerHistory))p.careerHistory=[];
   if(!Array.isArray(p.clubHistory))p.clubHistory=[];
   if(!Array.isArray(p.awards))p.awards=[];
+  if(!p.competitionStats||typeof p.competitionStats!=="object")p.competitionStats={};
  });
+ if(typeof ensureCupState==="function")ensureCupState();
  return true;
 }
 function championshipArchiveRows(){
@@ -8953,6 +9075,7 @@ function beginNewSeason(){
   G.players.forEach(p=>{p.stats={season:G.season,apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0,cleanSheets:0,saves:0,tackles:0,interceptions:0,keyPasses:0,shotsOnTarget:0,wins:0,draws:0,losses:0,bestRating:null,worstRating:null}});
   G.clubs.forEach(c=>{if(c)Object.assign(c,{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0})});
   G.schedule=buildWorldSchedule(G);
+  ensureCupState();
 
   G.players.forEach(p=>{
     if(p.team===-2)return;
@@ -9684,8 +9807,15 @@ function homeFormHtml(clubId){
  return '<div class="homeFixtureForm"><span class="formLabel">FORM</span>'+form.map(r=>'<b class="formResult '+(r==="W"?"win":r==="L"?"loss":"draw")+'">'+r+'</b>').join("")+'</div>';
 }
 function home(){
- ensureLeagueWorld();ensureRivalryState();
+ ensureLeagueWorld();ensureRivalryState();ensureCupState();
  let c=G.clubs[G.club],tab=standings(),pos=tab.findIndex(x=>x.id===G.club)+1;
+ let cupFixture=cupUserFixtureDue();
+ if(cupFixture){
+  let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
+  let homeLink=homeT.regional?homeT.name:'<span class="fixtureClubLink" data-club-profile="'+homeT.clubId+'">'+homeT.name+'</span>',awayLink=awayT.regional?awayT.name:'<span class="fixtureClubLink" data-club-profile="'+awayT.clubId+'">'+awayT.name+'</span>';
+  let fixture='<div class="card homePrimaryFixture"><div class="title">Next Fixture</div><div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div><div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
+  let recent=G.feed.slice(0,4),news='<div class="card homeNewsCard"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';return fixture+news;
+ }
  let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club))||[G.club,nextOpp()];
  let homeId=pair[0],awayId=pair[1],homeClub=G.clubs[homeId],awayClub=G.clubs[awayId],opp=G.clubs[homeId===G.club?awayId:homeId];
  let homePos=tab.findIndex(x=>x.id===homeId)+1,awayPos=tab.findIndex(x=>x.id===awayId)+1;
@@ -10010,7 +10140,7 @@ function leagueRecordsView(){
 
 function normalizeSectionTabs(){
  if(["fixtures","leaders","almanac","staffhistory","worldlegacy","clubs"].includes(leagueTab))leagueTab=(leagueTab==="leaders"?"statistics":"history");
- if(!["table","statistics","records","history","halloffame"].includes(leagueTab))leagueTab="table";
+ if(!["table","cup","statistics","records","history","halloffame"].includes(leagueTab))leagueTab="table";
  if(!["team","fixtures","dna","development","staff"].includes(squadTab))squadTab="team";
 }
 
@@ -10018,8 +10148,8 @@ function league(){
  normalizeSectionTabs();
  let info=leagueInfo(),table=standings(),pos=table.findIndex(c=>c.id===G.club)+1;
  let hero=screenHeroHtml("COMPETITION",info.name,G.season+" season · table, statistics, records and football history.",'<b>'+ordinal(pos)+'</b><span>Current position</span>');
- let tabs=tabsHtml("league",leagueTab,[["table","Table"],["statistics","Statistics"],["records","Records"],["history","History"],["halloffame","Hall of Fame"]]);
- return hero+tabs+(leagueTab==="statistics"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="history"?leagueHistoryView():leagueTab==="halloffame"?hallOfFameView():leagueTableView());
+ let tabs=tabsHtml("league",leagueTab,[["table","Table"],["cup","Cup"],["statistics","Statistics"],["records","Records"],["history","History"],["halloffame","Hall of Fame"]]);
+ return hero+tabs+(leagueTab==="cup"?domesticCupView():leagueTab==="statistics"?leagueLeadersHtml():leagueTab==="records"?leagueRecordsView():leagueTab==="history"?leagueHistoryView():leagueTab==="halloffame"?hallOfFameView():leagueTableView());
 }
 function clubOverviewView(){ensureFacilityState();ensureFinanceState();let c=G.clubs[G.club],hs=Array.isArray(G.history)?G.history:[],titles=hs.filter(h=>(h.champClubId===G.club)||(!Number.isFinite(h.champClubId)&&h.champ===c.name)).length,finishes=hs.map(h=>Number(h.pos)).filter(Boolean),best=finishes.length?Math.min(...finishes):null;return '<div class="grid2 compactClubOverview">'+stat("REPUTATION",c.rep,"Club standing")+stat("COACH",c.coach,"Head Coach")+stat("TITLES",titles,"Career era")+stat("BEST FINISH",best?ordinal(best):"—","Premier Division")+'</div>';}
 function clubFacilitiesView(){
@@ -10533,10 +10663,10 @@ function showClubStepFromNation(){
  selected=0;renderClubChoices();
 }
 function renderClubChoices(){
- let names=CLUBS.slice(0,selectedLeagueSize);
+ let names=CLUBS.slice(0,DOMESTIC_LEAGUE_SIZE);
  $("#clubs").innerHTML=names.map((c,i)=>{
-  let tier=i<4?"Title Contender":i<Math.ceil(selectedLeagueSize/2)?"Established":i<selectedLeagueSize-4?"Building":"Rebuild";
-  let difficulty=i<4?"High expectations":i<Math.ceil(selectedLeagueSize/2)?"Balanced":i<selectedLeagueSize-4?"Development focus":"Underdog";
+  let tier=i<4?"Title Contender":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Established":i<DOMESTIC_LEAGUE_SIZE-4?"Building":"Rebuild";
+  let difficulty=i<4?"High expectations":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Balanced":i<DOMESTIC_LEAGUE_SIZE-4?"Development focus":"Underdog";
   return '<button class="clubpick '+(i===selected?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · Reputation '+Math.max(60,90-i)+' · '+difficulty+'</span></button>';
  }).join("");
 }
@@ -10601,7 +10731,6 @@ if(e.target.closest("[data-open-staff]")){squadTab="staff";page="squad";renderSo
 let hofPos=e.target.closest("[data-hof-position]");if(hofPos){window.hofPositionGroup=hofPos.dataset.hofPosition||"FWD";renderSoon();return}
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;renderSoon();return}
 let nationPick=e.target.closest("[data-nation]");if(nationPick){selectedCareerNation=nationPick.dataset.nation||"AUS";renderNationChoices();return}
-let preset=e.target.closest("[data-league-size]");if(preset){selectedLeagueSize=Number(preset.dataset.leagueSize)||20;selected=0;document.querySelectorAll("[data-league-size]").forEach(x=>x.classList.toggle("active",Number(x.dataset.leagueSize)===selectedLeagueSize));renderClubChoices();return}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
  if(mode==="load"){
