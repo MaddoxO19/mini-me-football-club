@@ -5240,6 +5240,23 @@ body.season-transition-active{
   .leagueCell.club .clubIdentityInline{gap:8px!important}
 }
 
+
+/* ==========================================================
+   v2.10.16.0 EXPANDED WORLD TRANSFER MARKET
+   ========================================================== */
+.marketSourceTabs.worldMarketTabs{
+ display:flex!important;grid-template-columns:none!important;gap:7px!important;
+ overflow-x:auto!important;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+ padding:1px 0 12px!important;
+}
+.marketSourceTabs.worldMarketTabs::-webkit-scrollbar{display:none}
+.marketSourceTabs.worldMarketTabs button{
+ flex:0 0 auto!important;min-width:max-content!important;padding:9px 12px!important;
+}
+.marketOrigin{display:inline-block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.3}
+.releasePanel{border-color:#71303a!important;background:#fb718508!important}
+.releaseCost{color:#f3bdc5;font-weight:850}
+@media(max-width:430px){.marketSourceTabs.worldMarketTabs{margin-right:-12px;padding-right:12px!important}}
 </style>
 </head>
 <body>
@@ -5336,7 +5353,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.15.2 League Table Polish Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.16.0 Expanded World Transfer Market Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -7126,6 +7143,89 @@ function considerRetirements(){
      if(p.team===G.club)G.feed.unshift({t:"RETIREMENT",m:p.name+" has announced he will retire at the end of the season."});
    }
  });
+}
+function externalMarketClubRecord(key){
+ ensureCupState();ensureInternationalClubState();
+ let regional=(G.cup&&G.cup.regionalClubs||[]).find(x=>x.key===key);if(regional)return Object.assign({marketType:"regional"},regional);
+ let intl=(G.intClub&&G.intClub.foreignClubs||[]).find(x=>x.key===key);if(intl)return Object.assign({marketType:"international"},intl);
+ return null;
+}
+function externalPlayerClubName(p){
+ if(!p)return "External Club";
+ let c=externalMarketClubRecord(p.externalClubKey);return c?c.name:(p.externalClubName||"External Club");
+}
+function externalPlayerMarketType(p){
+ if(!p)return null;
+ if(p.externalMarketType)return p.externalMarketType;
+ let c=externalMarketClubRecord(p.externalClubKey);return c&&c.marketType||"international";
+}
+function externalPlayerSourceLabel(p){
+ if(!p)return "External";
+ let c=externalMarketClubRecord(p.externalClubKey),type=externalPlayerMarketType(p);
+ return (c?c.name:externalPlayerClubName(p))+" · "+(type==="regional"?"Regional":"International");
+}
+function attachExternalPlayer(np,club,type){
+ np.team=-3;np.freeAgent=false;np.externalClubKey=club.key;np.externalClubName=club.name;np.externalMarketType=type;
+ np.years=rnd(1,4);np.listed=gameRandom()<.16;np.nationality=type==="international"?(club.nation||np.nationality):(np.nationality||G.careerNation);
+ syncPlayerEconomy(np,true);
+ np.clubHistory=[{clubId:-3,externalClubKey:club.key,clubNameAtStart:club.name,startSeason:G.season,endSeason:null,transferInFee:null,transferOutFee:null}];
+ return np;
+}
+function ensureExpandedWorldTransferMarket(){
+ ensureCupState();ensureInternationalClubState();
+ if(!G.worldTransferMarket||typeof G.worldTransferMarket!=="object")G.worldTransferMarket={};
+ let wm=G.worldTransferMarket;
+ if(!Array.isArray(wm.regionalPlayerIds))wm.regionalPlayerIds=[];
+ if(!Array.isArray(wm.internationalPlayerIds))wm.internationalPlayerIds=[];
+ wm.regionalPlayerIds=wm.regionalPlayerIds.filter(id=>G.players.some(p=>p.id===id));
+ wm.internationalPlayerIds=wm.internationalPlayerIds.filter(id=>G.players.some(p=>p.id===id));
+ let regional=G.cup.regionalClubs||[],foreign=G.intClub.foreignClubs||[];
+ // Three persistent players per Regional club gives those 24 Cup-only clubs a genuine recruitment purpose.
+ regional.forEach((club,ci)=>{
+   let existing=G.players.filter(p=>p.team===-3&&p.externalClubKey===club.key&&!p.retired);
+   while(existing.length<3){
+     let group=["DEF","MID","FWD"][existing.length%3],np=generateWorldPlayer(-1,rnd(-7,-1),gameRandom()<.62,group);
+     np.ovr=Math.max(54,Math.min(73,np.ovr));np.pot=Math.max(np.ovr+2,Math.min(90,np.pot));attachExternalPlayer(np,club,"regional");
+     G.players.push(np);wm.regionalPlayerIds.push(np.id);existing.push(np);
+   }
+ });
+ // International pool is deliberately larger but remains a market layer rather than a simulated foreign league.
+ let liveIntl=G.players.filter(p=>p.team===-3&&externalPlayerMarketType(p)==="international"&&!p.retired);
+ let targetIntl=90;
+ while(liveIntl.length<targetIntl&&foreign.length){
+   let club=foreign[liveIntl.length%foreign.length],group=["GK","DEF","MID","FWD"][liveIntl.length%4],np=generateWorldPlayer(-1,rnd(0,9),gameRandom()<.46,group);
+   np.ovr=Math.max(60,Math.min(88,np.ovr));np.pot=Math.max(np.ovr+1,Math.min(96,np.pot));attachExternalPlayer(np,club,"international");
+   G.players.push(np);wm.internationalPlayerIds.push(np.id);liveIntl.push(np);
+ }
+ wm.lastEnsuredSeason=G.season;
+ return wm;
+}
+function externalBuyerProfilesForPlayer(p){
+ ensureExpandedWorldTransferMarket();let buyers=[];
+ (G.cup.regionalClubs||[]).forEach(c=>{
+   if((Number(p.ovr)||0)<=76){let score=54-Math.abs((Number(p.ovr)||65)-66)*1.4+(p.age<=24?8:0)+(p.listed?10:0)+rnd(-9,9);buyers.push({type:"regional",key:c.key,name:c.name,nation:c.nation,score,maxFee:Math.max(300000,((Number(p.ovr)||60)-50)*260000)})}
+ });
+ (G.intClub.foreignClubs||[]).forEach(c=>{
+   if((Number(p.ovr)||0)>=64){let target=Number(c.rating)||76,score=48-Math.abs(target-(Number(p.ovr)||70))*1.1+(p.age<=27?7:0)+(p.listed?7:0)+rnd(-10,10);buyers.push({type:"international",key:c.key,name:c.name,nation:c.nation,score,maxFee:Math.max(1500000,(target-58)*1700000)})}
+ });
+ return buyers.sort((a,b)=>b.score-a.score);
+}
+function playerReleaseCost(p){
+ if(!p||p.team!==G.club)return 0;
+ let remaining=Math.max(1,Number(p.years)||1)*52*Math.max(0,Number(p.wage)||0);
+ return Math.max(50000,Math.min(6000000,Math.round(remaining*.25/50000)*50000));
+}
+function releasePlayer(id){
+ let p=G.players.find(x=>x.id===id);if(!p||p.team!==G.club||p.retiring)return;
+ let c=G.clubs[G.club],cost=playerReleaseCost(p);
+ if(!confirm("Release "+p.name+" by mutual termination? The club will pay "+money(cost)+" in remaining contract compensation."))return;
+ if((Number(c.balance)||0)<cost){alert("The club does not have enough cash to settle this contract.");return}
+ ensureFinanceState();c.balance=Math.max(0,(Number(c.balance)||0)-cost);
+ closePlayerClubSpell(p,null);p.team=-1;p.freeAgent=true;p.listed=false;p.years=0;p.externalClubKey=null;p.externalClubName=null;p.externalMarketType=null;
+ if(!G.freeAgents.includes(p.id))G.freeAgents.push(p.id);
+ G.transferOffers=G.transferOffers.filter(o=>o.playerId!==p.id);
+ G.feed.unshift({t:"PLAYER RELEASED",m:p.name+" left by mutual agreement. "+money(cost)+" paid in contract compensation."});
+ save();$("#sheet").classList.add("hidden");render();
 }
 function activeFreeAgents(){
  ensureLifecycleState();
@@ -9613,7 +9713,7 @@ function playerRow(p,market){
      roles=p.secondaryPositions.length?'<span class="secondaryRoleTag">'+p.secondaryPositions.join(" · ")+'</span>':'',
      style='<span class="playerStyleTag">'+p.primaryStyle+(p.secondaryStyle?' · '+p.secondaryStyle:'')+'</span>',
      retireTag=p.retiring?'<span class="retiringSquadText">Retires end of season</span>':'';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team<0)?'Free Agent':(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+retireTag+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team===-1)?'Free Agent':p.team===-3?externalPlayerSourceLabel(p):(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+retireTag+'</div><div class="rating"><div class="ovr">'+p.ovr+'</div><div class="pot">POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
@@ -10364,23 +10464,30 @@ function squad(){
  return hero+tabs+(squadTab==="fixtures"?leagueFixturesView():squadTab==="dna"?clubDNAView(G.club):squadTab==="development"?developmentView():squadTab==="staff"?staffView():squadTeamView());
 }
 function market(){
- ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();
- let source=window.marketSourceTab||"free";if(!["free","transfer","championship"].includes(source))source="free";window.marketSourceTab=source;
+ ensureLifecycleState();refreshMarketActivity();ensureFreeAgentMarketHealth();ensureExpandedWorldTransferMarket();
+ let source=window.marketSourceTab||"all";if(!["all","premier","championship","regional","international","free"].includes(source))source="all";window.marketSourceTab=source;
  let needs=squadNeeds(),needGroups=[...new Set(needs.map(n=>positionGroup(n.pos)))];
- let allFA=activeFreeAgents().filter(p=>!p.retiring),groupOrder=["GK","DEF","MID","FWD"],faBuckets={};
- groupOrder.forEach(g=>{faBuckets[g]=allFA.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr||a.age-b.age).slice(0,g==="GK"?3:6)});
- let fas=groupOrder.flatMap(g=>faBuckets[g]).slice(0,21),pool=G.players.filter(p=>p.team!==G.club&&p.team>=0&&!p.freeAgent&&!p.retiring);
- pool.forEach(p=>{p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+gameRandom()*18});
- let recommended=[...pool].sort((a,b)=>b._marketScore-a._marketScore).slice(0,40),lowerIds=new Set((G.leagues&&G.leagues.lower&&G.leagues.lower.clubIds)||[]);
- let lower=pool.filter(p=>lowerIds.has(p.team)).sort((a,b)=>{let ag=needGroups.includes(positionGroup(a.pos))?1:0,bg=needGroups.includes(positionGroup(b.pos))?1:0,av=(a.ovr*.8)+(a.pot*.35)-(a.age*.15),bv=(b.ovr*.8)+(b.pot*.35)-(b.age*.15);return bg-ag||bv-av}).slice(0,20);
+ let allFA=activeFreeAgents().filter(p=>!p.retiring),topIds=new Set((G.leagues&&G.leagues.top&&G.leagues.top.clubIds)||[]),lowerIds=new Set((G.leagues&&G.leagues.lower&&G.leagues.lower.clubIds)||[]);
+ let premier=G.players.filter(p=>p.team>=0&&p.team!==G.club&&topIds.has(p.team)&&!p.freeAgent&&!p.retiring);
+ let championship=G.players.filter(p=>p.team>=0&&p.team!==G.club&&lowerIds.has(p.team)&&!p.freeAgent&&!p.retiring);
+ let regional=G.players.filter(p=>p.team===-3&&externalPlayerMarketType(p)==="regional"&&!p.retiring);
+ let international=G.players.filter(p=>p.team===-3&&externalPlayerMarketType(p)==="international"&&!p.retiring);
+ let attached=[...premier,...championship,...regional,...international];
+ attached.forEach(p=>{p._marketScore=(p.listed?28:0)+(p.years<=1?18:0)+(needGroups.includes(positionGroup(p.pos))?16:0)+(p.ovr-65)+gameRandom()*18});
+ let groupOrder=["GK","DEF","MID","FWD"],faBuckets={};groupOrder.forEach(g=>{faBuckets[g]=allFA.filter(p=>positionGroup(p.pos)===g).sort((a,b)=>b.ovr-a.ovr||a.age-b.age).slice(0,g==="GK"?4:8)});
+ let fas=groupOrder.flatMap(g=>faBuckets[g]).slice(0,28);
+ let pool=source==="premier"?premier:source==="championship"?championship:source==="regional"?regional:source==="international"?international:attached;
+ let filtered=marketPositionFilter==="RECOMMENDED"?[...pool].sort((a,b)=>b._marketScore-a._marketScore).slice(0,50):pool.filter(p=>positionGroup(p.pos)===marketPositionFilter).sort((a,b)=>b.ovr-a.ovr||b.pot-a.pot).slice(0,50);
  let needHtml=needs.map(n=>'<div class="need productionNeed '+(n.level==="High"?"high":"")+'"><b>'+n.pos+'</b><span>'+n.level+' · '+n.rating+' OVR starter</span></div>').join("");
- let filtered=marketPositionFilter==="RECOMMENDED"?recommended:pool.filter(p=>positionGroup(p.pos)===marketPositionFilter).sort((a,b)=>b._marketScore-a._marketScore||b.ovr-a.ovr).slice(0,40);
  let filters=["RECOMMENDED","GK","DEF","MID","FWD"].map(f=>'<button data-market-position="'+f+'" class="'+(marketPositionFilter===f?'active':'')+'">'+f+'</button>').join("");
- let coach=coachProfile(),sourceTabs='<div class="marketSourceTabs">'+[["free","Free Agents"],["transfer","Transfer Market"],["championship","Championship"]].map(x=>'<button data-market-source="'+x[0]+'" class="'+(source===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>',content="";
+ let coach=coachProfile(),tabs=[["all","All Players"],["premier","Premier"],["championship","Championship"],["regional","Regional"],["international","International"],["free","Free Agents"]];
+ let sourceTabs='<div class="marketSourceTabs worldMarketTabs">'+tabs.map(x=>'<button data-market-source="'+x[0]+'" class="'+(source===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>',content="";
  if(source==="free")content='<div class="card"><div class="sectionHead"><div><div class="title">Free Agents</div><div class="sub">Available without a transfer fee.</div></div><div class="sectionCount">'+allFA.length+'</div></div>'+(fas.length?fas.map(p=>playerRow(p,true)).join(""):'<div class="profileEmpty compactEmpty">No suitable free agents are currently available.</div>')+'</div>';
- else if(source==="championship")content='<div class="card"><div class="sectionHead"><div><div class="title">Championship Opportunities</div><div class="sub">Lower-division players with value, upside or positional relevance.</div></div><div class="sectionCount">'+lower.length+'</div></div>'+(lower.length?lower.map(p=>playerRow(p,true)).join(""):'<div class="profileEmpty compactEmpty">No suitable Championship opportunities right now.</div>')+'</div>';
- else content='<div class="card"><div class="sectionHead"><div><div class="title">Transfer Market</div><div class="sub">'+(marketPositionFilter==="RECOMMENDED"?'Recommended players from both divisions.':'Showing '+marketPositionFilter+' players from both divisions.')+'</div></div><div class="sectionCount">'+filtered.length+'</div></div><div class="marketFilter">'+filters+'</div>'+(filtered.length?filtered.map(p=>playerRow(p,true)).join(""):'<div class="profileEmpty compactEmpty">No players match this filter.</div>')+'</div>';
- return screenHeroHtml("RECRUITMENT","Player Market","Build the squad around ability, positional coverage and the Head Coach’s football identity.",'<b>'+money(G.clubs[G.club].budget)+'</b><span>Transfer budget</span>')+'<div class="card recruitmentPriorityCard"><div class="sectionHead"><div><div class="title">Recruitment Priorities</div><div class="sub">'+coach.name+' · '+coach.style+'</div></div><div class="sectionCount">'+needs.length+'</div></div><div class="needs productionNeeds">'+(needHtml||'<div class="sub">No urgent recruitment needs.</div>')+'</div></div>'+sourceTabs+content;
+ else{
+   let labels={all:["World Transfer Market","Premier, Championship, Regional and international club players in one market."],premier:["Premier Division","Players currently contracted to Premier clubs."],championship:["Championship","Second-division players available for domestic recruitment."],regional:["Regional Market","Players from the 24 persistent Regional Cup clubs."],international:["International Market","Players based with clubs across the Champions Tournament world."]},meta=labels[source]||labels.all;
+   content='<div class="card"><div class="sectionHead"><div><div class="title">'+meta[0]+'</div><div class="sub">'+meta[1]+'</div></div><div class="sectionCount">'+pool.length+'</div></div><div class="marketFilter">'+filters+'</div>'+(filtered.length?filtered.map(p=>playerRow(p,true)).join(""):'<div class="profileEmpty compactEmpty">No players match this filter.</div>')+'</div>';
+ }
+ return screenHeroHtml("RECRUITMENT","Player Market","One connected market across the domestic and international football world.",'<b>'+money(G.clubs[G.club].budget)+'</b><span>Transfer budget</span>')+'<div class="card recruitmentPriorityCard"><div class="sectionHead"><div><div class="title">Recruitment Priorities</div><div class="sub">'+coach.name+' · '+coach.style+'</div></div><div class="sectionCount">'+needs.length+'</div></div><div class="needs productionNeeds">'+(needHtml||'<div class="sub">No urgent recruitment needs.</div>')+'</div></div>'+sourceTabs+content;
 }
 function leagueTableView(){
  let table=standings(),key=currentLeagueKey(),info=leagueInfo(),dropStart=table.length-3;
@@ -10757,47 +10864,39 @@ function saleDemandScore(p,club){
  return quality*.8+need+ambition+fitScore+listed+rnd(-8,8);
 }
 function generateSaleOffers(p){
- ensureTransferState();
+ ensureTransferState();ensureExpandedWorldTransferMarket();
  G.transferOffers=G.transferOffers.filter(o=>o.playerId!==p.id);
  let liveValue=playerTransferValue(p);
- let candidates=G.clubs.filter(c=>c.id!==G.club&&clubCanAffordPlayer(c,p,liveValue*.8))
-   .map(c=>({club:c,score:saleDemandScore(p,c)}))
-   .filter(x=>x.score>30)
-   .sort((a,b)=>b.score-a.score)
-   .slice(0,2);
-
+ let domestic=G.clubs.filter(c=>c.id!==G.club&&clubCanAffordPlayer(c,p,liveValue*.8)).map(c=>({type:"domestic",club:c,score:saleDemandScore(p,c)})).filter(x=>x.score>30);
+ let external=externalBuyerProfilesForPlayer(p).filter(x=>x.score>(p.listed?31:38)).slice(0,5);
+ let candidates=domestic.concat(external).sort((a,b)=>b.score-a.score).slice(0,3);
  candidates.forEach(x=>{
-   let fee=aiTransferFee(p,x.club,G.clubs[G.club]);
-   if(p.listed)fee=Math.round(fee*.92/100000)*100000;
-   fee=Math.min(fee,Math.round((Number(x.club.balance)||0)*.45/100000)*100000);
-   if(fee>=250000)G.transferOffers.push({id:uid(),playerId:p.id,clubId:x.club.id,fee});
+   if(x.type==="domestic"){
+     let fee=aiTransferFee(p,x.club,G.clubs[G.club]);if(p.listed)fee=Math.round(fee*.92/100000)*100000;fee=Math.min(fee,Math.round((Number(x.club.balance)||0)*.45/100000)*100000);
+     if(fee>=250000)G.transferOffers.push({id:uid(),playerId:p.id,buyerType:"domestic",clubId:x.club.id,fee});
+   }else{
+     let mult=x.type==="regional"?.58:.96,fee=Math.max(100000,Math.round(liveValue*mult*(.78+gameRandom()*.28)/100000)*100000);fee=Math.min(fee,Number(x.maxFee)||fee);
+     if(p.listed)fee=Math.round(fee*.94/100000)*100000;
+     G.transferOffers.push({id:uid(),playerId:p.id,buyerType:x.type,buyerKey:x.key,buyerName:x.name,buyerNation:x.nation,fee:Math.max(100000,fee)});
+   }
  });
  save();
 }
-function playerOffers(id){
- ensureTransferState();
- return G.transferOffers.filter(o=>o.playerId===id);
-}
+function playerOffers(id){ensureTransferState();return G.transferOffers.filter(o=>o.playerId===id)}
 function acceptSale(offerId){
- ensureTransferState();
- let o=G.transferOffers.find(x=>x.id===offerId);
- if(!o)return;
- let p=G.players.find(x=>x.id===o.playerId),buyer=G.clubs[o.clubId],seller=G.clubs[G.club];
- if(!p||!buyer)return;
- let oldName=p.name,fee=o.fee;
- buyer.balance=Math.max(0,buyer.balance-fee);
- ensureFinanceState();seller.balance+=fee;
- seller.budget+=Math.round(fee*.65);seller.finance.seasonTransferOut+=fee;if(!G.records.highestSale||fee>G.records.highestSale.fee)G.records.highestSale={name:p.name,fee:fee,season:G.season};
+ ensureTransferState();let o=G.transferOffers.find(x=>x.id===offerId);if(!o)return;
+ let p=G.players.find(x=>x.id===o.playerId),seller=G.clubs[G.club];if(!p||!seller)return;let oldName=p.name,fee=Number(o.fee)||0;
+ ensureFinanceState();seller.balance+=fee;seller.budget+=Math.round(fee*.65);seller.finance.seasonTransferOut+=fee;if(!G.records.highestSale||fee>G.records.highestSale.fee)G.records.highestSale={name:p.name,fee,season:G.season};
  closePlayerClubSpell(p,fee);
- p.team=buyer.id;
- openPlayerClubSpell(p,buyer.id,fee);
- p.listed=false;
- p.years=Math.max(2,p.years);
- G.transferOffers=G.transferOffers.filter(x=>x.playerId!==p.id);
- G.feed.unshift({t:"PLAYER SOLD",m:oldName+" joins "+buyer.name+" for "+money(fee)+". "+money(Math.round(fee*.65))+" added to your transfer budget."});
- save();
- $("#sheet").classList.add("hidden");
- render();
+ if((o.buyerType||"domestic")==="domestic"){
+   let buyer=G.clubs[o.clubId];if(!buyer)return;buyer.balance=Math.max(0,(Number(buyer.balance)||0)-fee);p.team=buyer.id;openPlayerClubSpell(p,buyer.id,fee);p.externalClubKey=null;p.externalClubName=null;p.externalMarketType=null;
+   G.feed.unshift({t:"PLAYER SOLD",m:oldName+" joins "+buyer.name+" for "+money(fee)+". "+money(Math.round(fee*.65))+" added to your transfer budget."});
+ }else{
+   p.team=-3;p.freeAgent=false;p.externalClubKey=o.buyerKey;p.externalClubName=o.buyerName;p.externalMarketType=o.buyerType;p.years=Math.max(2,rnd(2,4));
+   if(!Array.isArray(p.clubHistory))p.clubHistory=[];p.clubHistory.push({clubId:-3,externalClubKey:o.buyerKey,clubNameAtStart:o.buyerName,startSeason:G.season,endSeason:null,transferInFee:fee,transferOutFee:null});
+   G.feed.unshift({t:"PLAYER SOLD ABROAD",m:oldName+" joins "+o.buyerName+" for "+money(fee)+". "+money(Math.round(fee*.65))+" added to your transfer budget."});
+ }
+ p.listed=false;G.transferOffers=G.transferOffers.filter(x=>x.playerId!==p.id);save();$("#sheet").classList.add("hidden");render();
 }
 function rejectSale(offerId){
  ensureTransferState();
@@ -10908,7 +11007,7 @@ function isRetiredPlayer(p){
 }
 function playerOverviewContent(p){
  ensureTransferState();ensureLifecycleState();ensurePlayerStats();if(!p.manualEconomy)syncPlayerEconomy(p);
- let retired=isRetiredPlayer(p),own=!retired&&p.team===G.club,free=!retired&&(!!p.freeAgent||p.team<0),market=!retired&&!own&&!free,offers=retired?[]:playerOffers(p.id),body="";
+ let retired=isRetiredPlayer(p),own=!retired&&p.team===G.club,free=!retired&&(!!p.freeAgent||p.team===-1),external=!retired&&p.team===-3&&!p.freeAgent,market=!retired&&!own&&!free,offers=retired?[]:playerOffers(p.id),body="";
  if(own){
    let state=p.retiring?'<span class="statusPill danger">RETIRING</span>':
      p.renewedThisSeason?'<span class="statusPill good">RENEWED</span>':
@@ -10927,12 +11026,12 @@ function playerOverviewContent(p){
        '<button class="btn primary full" data-submit-contract="'+p.id+'" style="margin-top:10px">SUBMIT OFFER</button></div>';
    }
    let offerHtml=offers.length?'<div class="actionGroup"><div class="actionLabel">TRANSFER OFFERS</div>'+offers.map(o=>{
-     let c=G.clubs[o.clubId];
-     return'<div class="offerCard"><div class="offerTop"><div><div class="offerClub">'+c.name+'</div><div class="sub">Permanent transfer</div></div><div class="offerValue">'+money(o.fee)+'</div></div><div class="offerActions"><button class="btn primary" data-accept-sale="'+o.id+'">ACCEPT</button><button class="btn" data-reject-sale="'+o.id+'">REJECT</button></div></div>'
+     let c=(o.buyerType&&o.buyerType!=="domestic")?null:G.clubs[o.clubId],buyerName=c?c.name:(o.buyerName||"External Club"),buyerMeta=o.buyerType==="regional"?"Regional transfer":o.buyerType==="international"?"International transfer":"Permanent transfer";
+     return'<div class="offerCard"><div class="offerTop"><div><div class="offerClub">'+buyerName+'</div><div class="sub">'+buyerMeta+'</div></div><div class="offerValue">'+money(o.fee)+'</div></div><div class="offerActions"><button class="btn primary" data-accept-sale="'+o.id+'">ACCEPT</button><button class="btn" data-reject-sale="'+o.id+'">REJECT</button></div></div>'
    }).join("")+'</div>':'';
    body='<div class="gmActions"><div class="actionHeading"><div class="title">GM Actions</div>'+state+'</div>'+contract+
      '<div class="actionGroup"><div class="actionLabel">TRANSFER STATUS</div><div class="sub">Estimated market range: '+estimatedMarketRange(p)+'</div>'+
-     '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div>'+
+     '<div class="transferActions"><button class="btn" data-list-player="'+p.id+'">'+(p.listed?'REMOVE FROM LIST':'TRANSFER LIST')+'</button><button class="btn primary" data-offer-player="'+p.id+'">OFFER TO CLUBS</button></div><div class="actionGroup releasePanel"><div class="actionLabel">CONTRACT EXIT</div><div class="sub">No buyer? Release by mutual agreement for <span class="releaseCost">'+money(playerReleaseCost(p))+'</span> compensation.</div><button class="btn full" data-release-player="'+p.id+'" style="margin-top:9px">RELEASE PLAYER</button></div>'+
      (p.listed?'<div class="marketRange">This player is currently visible to other clubs as available for transfer.</div>':'')+'</div>'+offerHtml+'</div>';
  }else if(retired){
    body='';
@@ -10940,7 +11039,8 @@ function playerOverviewContent(p){
    let d=contractDemand(p);
    body='<div class="freeAgentBanner"><b>FREE AGENT</b><span class="sub">No transfer fee required · Expected terms around '+d.years+' years at '+money(d.wage)+'/week.</span></div><button class="btn primary full" data-sign-free="'+p.id+'">OFFER CONTRACT</button>';
  }else{
-   body='<div class="gmActions"><div class="actionHeading"><div class="title">Transfer Assessment</div><span class="statusPill">'+G.clubs[p.team].name+'</span></div><div class="sub">Market value '+money(p.value)+' · Estimated range '+estimatedMarketRange(p)+'</div><button class="btn primary full" data-buy="'+p.id+'" style="margin-top:12px">APPROACH CLUB</button></div>';
+   let sellingName=external?externalPlayerClubName(p):(G.clubs[p.team]?G.clubs[p.team].name:"Unknown Club"),sellingMeta=external?(externalPlayerMarketType(p)==="regional"?"Regional Club":"International Club"):"Domestic Club";
+   body='<div class="gmActions"><div class="actionHeading"><div class="title">Transfer Assessment</div><span class="statusPill">'+sellingName+'</span></div><div class="sub">'+sellingMeta+' · Market value '+money(p.value)+' · Estimated range '+estimatedMarketRange(p)+'</div><button class="btn primary full" data-buy="'+p.id+'" style="margin-top:12px">APPROACH CLUB</button></div>';
  }
 
  let ss=p.stats||{apps:0,goals:0,assists:0,ratingTotal:0,ratedApps:0,potm:0},ar=ss.ratedApps?(ss.ratingTotal/ss.ratedApps).toFixed(2):"—";
@@ -10981,7 +11081,7 @@ function showPlayer(id,tab="overview"){
  ensureTransferState();ensureLifecycleState();ensurePlayerStats();
  let p=G.players.find(x=>x.id===id);if(!p)return;
  ensurePlayerClubHistory(p);
- let retired=isRetiredPlayer(p),clubLabel=retired?"Retired":p.team>=0?playerClubNameNow(p.team):"Free Agent";
+ let retired=isRetiredPlayer(p),clubLabel=retired?"Retired":p.team>=0?playerClubNameNow(p.team):p.team===-3?externalPlayerClubName(p):"Free Agent";
  let tabs=[["overview","Overview"],["career","Career"],["story","Story"],["clubs","Clubs"],["awards","Awards"]];
  let body=tab==="career"?playerCareerView(p):tab==="story"?playerStoryView(p):tab==="clubs"?playerClubsView(p):tab==="awards"?playerAwardsView(p):playerOverviewContent(p);
  $("#sheetbox").innerHTML=
@@ -10994,26 +11094,18 @@ function showPlayer(id,tab="overview"){
  $("#sheet").classList.remove("hidden");
 }
 function buy(id){
- let p=G.players.find(x=>x.id===id),c=G.clubs[G.club];if(!p||!c||p.team<0)return;
- let seller=G.clubs[p.team],value=playerTransferValue(p);
- let leverage=Number(p.years)<=1?.92:Number(p.years)>=4?1.12:1.04;
- let importance=aiShouldSellPlayer(p,p.team)?.96:1.08;
- let ask=Math.max(250000,Math.round(value*leverage*importance/100000)*100000);
+ let p=G.players.find(x=>x.id===id),c=G.clubs[G.club];if(!p||!c||p.freeAgent||p.team===-1)return;
+ let external=p.team===-3,seller=external?externalMarketClubRecord(p.externalClubKey):G.clubs[p.team];if(!seller)return;
+ let value=playerTransferValue(p),leverage=Number(p.years)<=1?.92:Number(p.years)>=4?1.12:1.04,importance=external?1:(aiShouldSellPlayer(p,p.team)?.96:1.08);
+ let ask=Math.max(250000,Math.round(value*leverage*importance*(external?(externalPlayerMarketType(p)==="regional"?.76:1.02):1)/100000)*100000);
  if(!confirm(seller.name+" want "+money(ask)+" for "+p.name+". Accept?"))return;
  if(c.budget<ask||c.balance<ask){alert("Insufficient club funds for this transfer.");return}
- let wage=balancedPlayerWage(p);
- let projected=annualWages()+wage*52;
- if(Number(c.wageBudget)>0&&projected>c.wageBudget*1.05){
-   alert("This signing would take the club beyond its wage budget. Create wage room before completing the transfer.");return;
- }
+ let wage=balancedPlayerWage(p),projected=annualWages()+wage*52;if(Number(c.wageBudget)>0&&projected>c.wageBudget*1.05){alert("This signing would take the club beyond its wage budget. Create wage room before completing the transfer.");return}
  let old=seller.name;ensureFinanceState();c.budget-=ask;c.balance-=ask;c.finance.seasonTransferIn+=ask;
- seller.balance=(Number(seller.balance)||0)+ask;
- seller.budget=(Number(seller.budget)||0)+Math.round(ask*.60);
+ if(!external){seller.balance=(Number(seller.balance)||0)+ask;seller.budget=(Number(seller.budget)||0)+Math.round(ask*.60)}
  if(!G.records.highestBuy||ask>G.records.highestBuy.fee)G.records.highestBuy={name:p.name,fee:ask,season:G.season};
- closePlayerClubSpell(p,ask);p.team=G.club;openPlayerClubSpell(p,G.club,ask);p.years=4;
- if(!p.manualEconomy)p.wage=wage;
- G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});
- save();$("#sheet").classList.add("hidden");render()
+ closePlayerClubSpell(p,ask);p.team=G.club;p.freeAgent=false;p.externalClubKey=null;p.externalClubName=null;p.externalMarketType=null;openPlayerClubSpell(p,G.club,ask);p.years=4;if(!p.manualEconomy)p.wage=wage;
+ G.feed.unshift({t:"TRANSFER COMPLETE",m:p.name+" joins from "+old+" for "+money(ask)+"."});save();$("#sheet").classList.add("hidden");render();
 }
 function ensureRecordState(){
  if(!G.records)G.records={biggestWin:null,longestUnbeaten:0,currentUnbeaten:0,highestBuy:null,highestSale:null};
@@ -11027,6 +11119,7 @@ function ensureRuntimeState(){
  ensureLeagueWorld();
  ensureWorldEngineState();
  ensureInternationalClubState();
+ ensureExpandedWorldTransferMarket();
  ensureSimulationRNG();
  ensureMatchHistoryArchive();
  ensureRecordState();
@@ -11208,6 +11301,7 @@ let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);re
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
 let offerBtn=e.target.closest("[data-offer-player]");if(offerBtn){let p=G.players.find(x=>x.id===offerBtn.dataset.offerPlayer);if(p){generateSaleOffers(p);showPlayer(p.id)}return}
 let acceptBtn=e.target.closest("[data-accept-sale]");if(acceptBtn){acceptSale(acceptBtn.dataset.acceptSale);return}
+let releaseBtn=e.target.closest("[data-release-player]");if(releaseBtn){releasePlayer(releaseBtn.dataset.releasePlayer);return}
 
 let signFreeBtn=e.target.closest("[data-sign-free]");if(signFreeBtn){signFreeAgent(signFreeBtn.dataset.signFree);return}
  
