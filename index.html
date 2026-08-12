@@ -5381,6 +5381,15 @@ body.season-transition-active{
   .formationName{font-size:8px}
 }
 
+
+/* v2.10.17.1 Formation Board Fit Summary */
+.xiFitSummary{flex:0 0 auto;min-width:92px;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);text-align:right}
+.xiFitSummary span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.10em;line-height:1}
+.xiFitSummary b{display:block;margin-top:5px;font-size:12px;font-weight:950;line-height:1}
+.xiFitSummary.excellent{border-color:#285c3b;background:#4ade800b}.xiFitSummary.excellent b{color:var(--green)}
+.xiFitSummary.good{border-color:#705d25;background:#d9b54a0b}.xiFitSummary.good b{color:var(--gold)}
+.xiFitSummary.fair b{color:#c3ccd4}.xiFitSummary.poor{border-color:#71303a;background:#fb71850b}.xiFitSummary.poor b{color:var(--red)}
+@media(max-width:430px){.xiFitSummary{min-width:84px;padding:7px 9px}.xiFitSummary b{font-size:11px}}
 </style>
 </head>
 <body>
@@ -5477,7 +5486,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.17.0 Market + Formation Board Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.17.1 Formation Board Fit Summary Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -10574,7 +10583,12 @@ function squadTeamView(){
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
  let depth=groups.map(g=>{let ps=roster().filter(p=>positionGroup(p.pos)===g[0]).sort((a,b)=>b.ovr-a.ovr);return'<div class="depthGroup"><div class="depthHead"><b>'+g[1]+'</b><span>'+ps.length+' players</span></div>'+ps.map(p=>playerRow(p,false)).join("")+'</div>';}).join("");
  let integrity=startingXIIntegrity(G.club),integrityHtml=integrity.ok?'<div class="xiIntegrity ok">XI READY · 11/11 ELIGIBLE</div>':'<div class="xiIntegrity bad">XI INCOMPLETE · '+integrity.count+'/11 · Missing '+integrity.missing.join(" · ")+'</div>';
- return'<div class="card formationBoardCard"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Coach-selected XI shown in a compact formation board.</div></div><div class="formationBadge">'+c.formation+'</div></div>'+integrityHtml+teamCoachSummaryHtml(G.club)+
+ let xiFitScores=(xi.assignments||[]).filter(a=>a&&a.player).map(a=>Number((a.fit||coachFitAssessment(a.player,a.slot,G.club)).score)||0);
+ let xiFitAvg=xiFitScores.length?xiFitScores.reduce((sum,v)=>sum+v,0)/xiFitScores.length:0;
+ let xiFitLabel=xiFitAvg>=90?"EXCELLENT":xiFitAvg>=78?"STRONG":xiFitAvg>=60?"MIXED":"WEAK";
+ let xiFitClass=xiFitAvg>=90?"excellent":xiFitAvg>=78?"good":xiFitAvg>=60?"fair":"poor";
+ let xiFitHtml='<div class="xiFitSummary '+xiFitClass+'"><span>XI FIT</span><b>'+xiFitLabel+'</b></div>';
+ return'<div class="card formationBoardCard"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Coach-selected XI shown in a compact formation board.</div></div>'+xiFitHtml+'</div>'+integrityHtml+teamCoachSummaryHtml(G.club)+
  '<div class="formationBoard">'+boardLines+'</div><div class="formationLegend"><span><b>OVR</b> effective rating</span><span>Position · Coach Fit</span></div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural position. Tap any player for their role and Coach Fit.</div>'+depth+'</div>';
 }
