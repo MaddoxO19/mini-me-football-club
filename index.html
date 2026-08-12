@@ -5406,6 +5406,46 @@ body.season-transition-active{
 @media(max-width:430px){.homeMatchupClub .regionalFixtureName{font-size:17px!important}}
 @media(max-width:360px){.homeMatchupClub .regionalFixtureName{font-size:15px!important}}
 
+
+
+/* ==========================================================
+   v2.10.18.2 CLUB DNA EVOLUTION
+   Slow coach-led football identity change with GM approval.
+   ========================================================== */
+.identityDecisionModal{
+ position:fixed;inset:0;z-index:7600;background:rgba(3,7,11,.88);
+ display:flex;align-items:center;justify-content:center;padding:18px;
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.identityDecisionModal.hidden{display:none!important}
+body.identity-decision-open{overflow:hidden}
+.identityDecisionCard{
+ width:min(100%,520px);border:1px solid #705d25;border-radius:20px;
+ background:linear-gradient(180deg,#151912,#0d141d 48%,#0b1219);
+ box-shadow:0 24px 70px #000c;padding:18px;
+}
+.identityDecisionEyebrow{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.15em;text-transform:uppercase}
+.identityDecisionTitle{font-size:25px;font-weight:950;line-height:1.08;margin-top:7px;letter-spacing:-.025em}
+.identityDecisionText{margin-top:10px;color:#cbd4dc;font-size:12px;line-height:1.5}
+.identityDecisionCompare{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:16px 0}
+.identityDecisionStyle{border:1px solid var(--line);border-radius:14px;background:#111923;padding:12px;text-align:center;min-width:0}
+.identityDecisionStyle.proposed{border-color:#705d25;background:#d9b54a0b}
+.identityDecisionStyle span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.09em}
+.identityDecisionStyle b{display:block;margin-top:5px;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.identityDecisionArrow{color:var(--gold);font-weight:950}
+.identityDecisionFacts{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;margin:0 0 14px}
+.identityDecisionFact{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:10px}
+.identityDecisionFact span{color:var(--muted)}
+.identityDecisionFact b{text-align:right}
+.identityDecisionActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.identityDecisionActions .btn{min-height:48px!important}
+.identityInfluenceNote{margin-top:10px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:#ffffff02;font-size:10px;line-height:1.4;color:var(--muted)}
+.identityInfluenceNote b{color:var(--gold)}
+@media(max-width:430px){
+ .identityDecisionCard{padding:15px}.identityDecisionTitle{font-size:22px}.identityDecisionText{font-size:11px}
+ .identityDecisionStyle b{font-size:14px}.identityDecisionActions{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -5496,13 +5536,36 @@ body.season-transition-active{
  </div>
 </div>
 
+
+<div id="identityDecisionModal" class="identityDecisionModal hidden" role="dialog" aria-modal="true" aria-labelledby="identityDecisionTitle">
+ <div class="identityDecisionCard">
+  <div class="identityDecisionEyebrow">CLUB IDENTITY DECISION</div>
+  <div id="identityDecisionTitle" class="identityDecisionTitle">A New Football Era</div>
+  <div id="identityDecisionText" class="identityDecisionText"></div>
+  <div class="identityDecisionCompare">
+   <div class="identityDecisionStyle"><span>CURRENT DNA</span><b id="identityDecisionCurrent"></b></div>
+   <div class="identityDecisionArrow">→</div>
+   <div class="identityDecisionStyle proposed"><span>PROPOSED DNA</span><b id="identityDecisionProposed"></b></div>
+  </div>
+  <div class="identityDecisionFacts">
+   <div class="identityDecisionFact"><span>Sustained influence</span><b id="identityDecisionSeasons"></b></div>
+   <div class="identityDecisionFact"><span>Head Coach</span><b id="identityDecisionCoach"></b></div>
+   <div class="identityDecisionFact"><span>Influence score</span><b id="identityDecisionScore"></b></div>
+  </div>
+  <div class="identityDecisionActions">
+   <button id="retainIdentityBtn" class="btn">RETAIN CLUB IDENTITY</button>
+   <button id="adoptIdentityBtn" class="btn primary">ADOPT NEW IDENTITY</button>
+  </div>
+ </div>
+</div>
+
 <div id="resultScreen" class="resultScreen hidden"><div class="resultCard"><div class="card resultPanel"><div id="resultWeek" class="label"></div><div class="resultTeams"><div id="resultHome" class="resultTeam"></div><div class="resultScoreStack"><div id="resultScore" class="resultScore"></div><div id="resultState" class="resultState"></div></div><div id="resultAway" class="resultTeam"></div></div><div id="resultSummary" class="sub"></div><div id="resultTeamStats"></div></div><div id="resultPerformers" class="card"></div><div id="resultRatings" class="card"></div><button id="resultContinueBtn" class="btn primary full">BACK TO HOME</button></div></div>
 <div id="sheet" class="sheet hidden"><div id="sheetbox" class="sheetbox"></div></div>
 <script>
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.18.1 Football Identity Continuity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.18.2 Club DNA Evolution Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -6389,7 +6452,7 @@ function loadCareerSlot(slot){
  if(!g){status.textContent="That career slot is empty.";return false}
  activeSaveSlot=Number(slot)||1;G=JSON.parse(JSON.stringify(g));G._careerSlot=activeSaveSlot;G._storageMode="slot";
  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot))}catch(e){}
- $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();return true;
+ $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();setTimeout(maybeShowClubIdentityDecision,80);return true;
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
 
@@ -8402,18 +8465,21 @@ function playerStoryView(p){
  (milestones.length?milestones.map(m=>'<div class="careerTimelineRow"><div class="yr">'+m.season+'</div><div><b>'+m.title+'</b><span>'+m.detail+'</span></div></div>').join(""):'<div class="profileEmpty">Career milestones will appear over time.</div>')+'</div>';
 }
 function clubLegacyView(clubId=G.club){
- ensureClubLegacyState();let l=clubLegacy(clubId),ci=clubIntelligence(clubId);
+ ensureClubLegacyState();let l=clubLegacy(clubId),ci=clubIntelligence(clubId),ev=ensureClubDNAEvolution(clubId);
  let greats=(G.players||[]).map(p=>({p,score:clubPlayerLegacyScore(p,clubId)})).filter(x=>x.score>=110).sort((a,b)=>b.score-a.score).slice(0,10);
  let milestones=(l.milestones||[]).slice(0,12);
+ let identityHistory=(ev.history||[]).slice().reverse();
  return '<div class="card clubLegacyHero"><div class="label">CLUB IDENTITY</div><div class="legacyIdentity">'+clubIdentityLabel(clubId)+'</div><div class="sub">'+(CLUB_DNA_PROFILES[ci.philosophy]?.description||"")+'</div>'+
  '<div class="legacySummaryGrid"><div><span>Championships</span><b>'+l.championships+'</b></div><div><span>Promotions</span><b>'+l.promotions+'</b></div><div><span>Best Finish</span><b>'+(l.bestFinish?ordinal(l.bestFinish.position):"—")+'</b></div><div><span>First Title</span><b>'+(l.firstTitleSeason||"—")+'</b></div></div></div>'+
  '<div class="card"><div class="title">Club Story</div>'+
  (milestones.length?milestones.map(m=>'<div class="legacyMilestone"><div class="yr">'+m.season+'</div><div><b>'+m.title+'</b><span>'+m.detail+'</span></div></div>').join(""):'<div class="profileEmpty compactEmpty">Major milestones will appear as seasons are completed.</div>')+'</div>'+
+ '<div class="card"><div class="title">Football Identity History</div><div class="sub">Long-term coaching eras can reshape what the club stands for.</div>'+
+ (identityHistory.length?identityHistory.map(h=>'<div class="historyWideRow"><div class="historyYear">'+h.from+'</div><div class="historyIdentity"><b>'+h.style+'</b><span>'+(h.coachName?'Influenced by '+h.coachName:(h.source||'Club Football DNA'))+'</span></div><div class="historyOutcome">'+(h.to?('to '+h.to):'Current DNA')+'</div></div>').join(""):'<div class="profileEmpty compactEmpty">The club has not recorded a football identity era yet.</div>')+'</div>'+
  '<div class="card"><div class="title">Great Players</div>'+
  (greats.length?greats.map(x=>'<div class="legacyPlayerRow" data-player="'+x.p.id+'"><div><b>'+x.p.name+'</b><span>'+clubPlayerLegacyTier(x.p,clubId)+' · '+x.p.pos+'</span></div><div>'+Math.round(x.score)+'</div></div>').join(""):'<div class="profileEmpty compactEmpty">Club greats will emerge as careers develop.</div>')+'</div>';
 }
 
-const CLUB_INTELLIGENCE_VERSION="2.9.21";
+const CLUB_INTELLIGENCE_VERSION="2.10.18.2";
 
 const CLUB_DNA_PROFILES={
  "Youth Development":{
@@ -8477,6 +8543,98 @@ function clubDNAProfile(clubId){
 }
 function clubFootballIdentity(clubId){let ci=clubIntelligence(clubId),style=ci.footballIdentity||deterministicFootballIdentity(clubId);return COACH_STYLE_PROFILES[style]?style:"Balanced"}
 function coachDNAAlignment(clubId){let h=coachProfile(clubId),dna=clubFootballIdentity(clubId);return h.style===dna?{label:"Aligned",modifier:.45}:{label:"Different approach",modifier:0}}
+
+function ensureClubDNAEvolution(clubId){
+ let ci=clubIntelligence(clubId);
+ if(!ci.identityEvolution||typeof ci.identityEvolution!=="object")ci.identityEvolution={};
+ let ev=ci.identityEvolution;
+ if(typeof ev.candidate!=="string")ev.candidate=null;
+ if(!Number.isFinite(Number(ev.seasons)))ev.seasons=0;
+ if(!Number.isFinite(Number(ev.points)))ev.points=0;
+ if(!Number.isFinite(Number(ev.lastProcessedSeason)))ev.lastProcessedSeason=null;
+ if(!Number.isFinite(Number(ev.reofferAfterSeason)))ev.reofferAfterSeason=null;
+ if(!Array.isArray(ev.history))ev.history=[];
+ if(!ev.history.length){
+  let start=(G.userGM&&Number(G.userGM.createdSeason))||2026;
+  ev.history.push({style:clubFootballIdentity(clubId),from:start,to:null,source:"Original Club DNA"});
+ }
+ return ev;
+}
+function clubDNASeasonPerformance(clubId,season){
+ let pos=null,division=null;
+ ["top","lower"].some(key=>{let tb=standings(key),i=tb.findIndex(x=>x.id===clubId);if(i>=0){pos=i+1;division=key;return true}return false});
+ let bonus=0,notes=[];
+ if(division==="top"&&pos===1){bonus+=1.0;notes.push("Premier champion")}
+ else if(division==="top"&&pos&&pos<=4){bonus+=.25;notes.push("Top four")}
+ else if(division==="lower"&&pos===1){bonus+=.45;notes.push("Championship champion")}
+ let cup=(G.cup&&Array.isArray(G.cup.history))?G.cup.history.find(h=>Number(h.season)===Number(season)&&Number(h.winnerClubId)===Number(clubId)):null;
+ if(cup){bonus+=.55;notes.push("National Cup winner")}
+ let intl=(G.intClub&&Array.isArray(G.intClub.history))?G.intClub.history.find(h=>Number(h.season)===Number(season)&&Number(h.winnerClubId)===Number(clubId)):null;
+ if(intl){bonus+=.85;notes.push("Champions Tournament winner")}
+ return{pos,division,bonus,notes};
+}
+function updateClubDNAEvolutionForSeason(season){
+ ensureClubIntelligenceState();
+ G.clubs.forEach(c=>{
+  if(!c)return;
+  let ci=clubIntelligence(c.id),ev=ensureClubDNAEvolution(c.id),coach=coachProfile(c.id),current=clubFootballIdentity(c.id),style=coach.style;
+  if(Number(ev.lastProcessedSeason)===Number(season))return;
+  ev.lastProcessedSeason=Number(season);
+  if(!style||style===current){ev.candidate=null;ev.seasons=0;ev.points=0;ev.lastCoachName=coach.name;return}
+  let perf=clubDNASeasonPerformance(c.id,season);
+  if(ev.candidate!==style){ev.candidate=style;ev.seasons=1;ev.points=1+perf.bonus}else{ev.seasons+=1;ev.points+=1+perf.bonus}
+  ev.points=Number(ev.points.toFixed(2));ev.lastCoachName=coach.name;ev.lastPerformanceNotes=perf.notes;
+  let canOffer=!ev.pending&&ev.seasons>=7&&ev.points>=9&&(ev.reofferAfterSeason===null||Number(season)>=Number(ev.reofferAfterSeason));
+  if(canOffer){
+   ev.pending={clubId:c.id,fromStyle:current,toStyle:style,qualifiedSeason:Number(season),coachName:coach.name,seasons:ev.seasons,points:ev.points,performanceNotes:(perf.notes||[]).slice()};
+  }
+ });
+}
+function adoptClubFootballDNA(clubId,pending,source){
+ let ci=clubIntelligence(clubId),ev=ensureClubDNAEvolution(clubId),oldStyle=clubFootballIdentity(clubId),newStyle=pending&&pending.toStyle;
+ if(!newStyle||!COACH_STYLE_PROFILES[newStyle])return false;
+ let active=ev.history.length?ev.history[ev.history.length-1]:null;if(active&&!active.to)active.to=Number(G.season)-1;
+ ci.footballIdentity=newStyle;
+ ev.history.push({style:newStyle,from:Number(G.season),to:null,source:source||"Identity evolution",coachName:pending.coachName||null});
+ ev.candidate=null;ev.seasons=0;ev.points=0;ev.pending=null;ev.reofferAfterSeason=null;ev.lastDecisionSeason=Number(G.season);
+ clearStrengthCache();
+ return oldStyle!==newStyle;
+}
+function resolveAIClubIdentityDecisions(){
+ ensureClubIntelligenceState();
+ let changes=[];
+ G.clubs.forEach(c=>{if(!c||c.id===G.club)return;let ev=ensureClubDNAEvolution(c.id);if(!ev.pending)return;let p=ev.pending;if(adoptClubFootballDNA(c.id,p,"Board-approved coach influence"))changes.push(c.name+" adopted "+p.toStyle+" football as its Club DNA")});
+ if(changes.length)G.feed.unshift({t:"FOOTBALL IDENTITY",m:changes.slice(0,3).join(" · ")+(changes.length>3?" · and more":"")+"."});
+}
+function clubDNAEvolutionSummary(clubId){
+ let ev=ensureClubDNAEvolution(clubId),current=clubFootballIdentity(clubId);
+ if(ev.pending)return'<div class="identityInfluenceNote"><b>Identity decision ready.</b> '+ev.pending.toStyle+' football has reached the threshold for formal Club DNA consideration.</div>';
+ if(!ev.candidate||ev.candidate===current)return'<div class="identityInfluenceNote"><b>Established identity.</b> The current coaching approach is not building a competing football identity.</div>';
+ let progress=Math.min(100,Math.round((Number(ev.points)||0)/9*100));
+ return'<div class="identityInfluenceNote"><b>'+ev.candidate+' influence · '+ev.seasons+' seasons.</b> Long-term coach influence is building toward a possible future identity decision ('+progress+'% influence threshold).</div>';
+}
+function maybeShowClubIdentityDecision(){
+ if(!G||Number(G.week)!==0)return;
+ let ev=ensureClubDNAEvolution(G.club),p=ev.pending,modal=$("#identityDecisionModal");
+ if(!p||!modal||!modal.classList.contains("hidden"))return;
+ $("#identityDecisionTitle").textContent="A New Era at "+G.clubs[G.club].name;
+ $("#identityDecisionText").textContent="After "+p.seasons+" seasons of sustained "+p.toStyle+" football, the Board believes this approach has become deeply embedded in the club. As General Manager, you must decide whether it should formally replace the existing Club Football DNA.";
+ $("#identityDecisionCurrent").textContent=p.fromStyle;$("#identityDecisionProposed").textContent=p.toStyle;
+ $("#identityDecisionSeasons").textContent=p.seasons+" seasons";$("#identityDecisionCoach").textContent=p.coachName||coachProfile(G.club).name;$("#identityDecisionScore").textContent=Number(p.points).toFixed(1)+" / 9.0";
+ modal.classList.remove("hidden");document.body.classList.add("identity-decision-open");
+}
+function resolveUserClubIdentityDecision(adopt){
+ let ev=ensureClubDNAEvolution(G.club),p=ev.pending;if(!p)return;
+ if(adopt){
+  adoptClubFootballDNA(G.club,p,"GM approved after sustained coach influence");
+  G.feed.unshift({t:"CLUB IDENTITY EVOLUTION",m:G.clubs[G.club].name+" formally adopted "+p.toStyle+" football as its Club DNA after "+p.seasons+" seasons of sustained influence under "+p.coachName+"."});
+ }else{
+  ev.pending=null;ev.lastDecisionSeason=Number(G.season);ev.reofferAfterSeason=Number(G.season)+2;
+  G.feed.unshift({t:"CLUB IDENTITY",m:"The club retained its "+p.fromStyle+" Football DNA. "+p.toStyle+" influence remains part of the current era and may be reconsidered after three further seasons."});
+ }
+ let modal=$("#identityDecisionModal");if(modal)modal.classList.add("hidden");document.body.classList.remove("identity-decision-open");save();render();
+}
+
 function playerSquadRole(player,teamId){
  if(!player)return"Fringe";
  let squad=aiSquad(teamId).filter(p=>!p.retiring).sort((a,b)=>Number(b.ovr)-Number(a.ovr));
@@ -8575,6 +8733,7 @@ function clubDNAView(clubId=G.club){
  let homegrown=squad.filter(p=>Array.isArray(p.clubHistory)&&p.clubHistory.length&&p.clubHistory[0].clubId===clubId).length;
  let prospectCount=a.prospects.length,agingCount=a.aging.length;
  let needs=plan.priorityNeeds.length?plan.priorityNeeds.map(n=>'<div class="dnaNeed"><b>'+n.slot+'</b><span>Urgency '+n.urgency+' · '+n.requiredStyle+'</span></div>').join(""):'<div class="sub">No major positional recruitment need.</div>';
+ let evolution=clubDNAEvolutionSummary(clubId);
  return '<div class="card clubDNACard"><div class="sectionHead"><div><div class="title">Club DNA</div><div class="sub">'+dna.description+'</div></div></div>'+
  '<div class="grid2">'+
   stat("PHASE",plan.phase,"Strategic cycle")+
@@ -8588,7 +8747,7 @@ function clubDNAView(clubId=G.club){
   '<div class="financeRow"><span>Homegrown squad</span><b>'+homegrown+'</b></div>'+
   '<div class="financeRow"><span>Players 31+</span><b>'+agingCount+'</b></div>'+
   '<div class="financeRow"><span>Protected core</span><b>'+plan.protectIds.length+'</b></div>'+
- '</div></div>'+
+ '</div>'+evolution+'</div>'+
  '<div class="card"><div class="title">Strategic Recruitment Needs</div>'+needs+'</div>';
 }
 
@@ -9775,6 +9934,7 @@ function beginNewSeason(){
      developCoachAfterSeason(row.id,r.season,i+1,row.pts,i===0,divKey);
    });
   });
+  updateClubDNAEvolutionForSeason(r.season);
   aiCoachEmploymentReview(r.season);
   snapshotPlayerSeasonHistory();
   archiveSeasonAwardsToPlayers(r);
@@ -9826,6 +9986,7 @@ function beginNewSeason(){
   runSafeWorldEvolution();
   considerRetirements();
   ensureClubIntelligenceState();
+  resolveAIClubIdentityDecisions();
   G.clubs.forEach(c=>{if(c)buildClubStrategicPlan(c.id,true)});
   runWorldCompetitivenessReview();
   runAIClubLifecycleReview();
@@ -9836,6 +9997,7 @@ function beginNewSeason(){
   page="home";
   render();
   hideSeasonTransition();
+  setTimeout(maybeShowClubIdentityDecision,80);
  }catch(err){
   console.error("New season rollover failed",err);
   hideSeasonTransition();
@@ -11534,6 +11696,8 @@ $("#backToLaunch").addEventListener("click",function(){
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
+$("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
+$("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
 $("#resultContinueBtn").addEventListener("click",function(){
  // Close the match report immediately so the tap feels responsive.
  $("#resultScreen").classList.add("hidden");
