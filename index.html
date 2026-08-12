@@ -5189,6 +5189,7 @@ body.season-transition-active{
 .clubIdentityInline{display:inline-flex;align-items:center;gap:7px;min-width:0;max-width:100%}
 .clubIdentityInline .aiClubLink,.clubIdentityInline .fixtureClubLink{min-width:0}
 .homeMatchupClub .clubBadge{width:26px!important;height:26px!important;margin-bottom:1px}
+.fixtureBadgePlaceholder{display:inline-block;width:26px;height:26px;flex:0 0 26px;margin-bottom:1px;opacity:0;pointer-events:none}
 .homeMatchupClub .clubIdentityInline{flex-direction:column;gap:5px;align-items:center;width:100%}
 .leagueCell.club .clubIdentityInline{gap:7px}
 .fixtureClub .clubIdentityInline,.cupTeam .clubIdentityInline,.intTeam .clubIdentityInline{gap:6px}
@@ -5199,6 +5200,7 @@ body.season-transition-active{
 .clubEditRow .clubIdentityInline{gap:9px}
 @media(max-width:430px){
  .homeMatchupClub .clubBadge{width:24px!important;height:24px!important}
+ .fixtureBadgePlaceholder{width:24px;height:24px;flex-basis:24px}
  .leagueCell.club .clubBadge{width:18px!important;height:18px!important}
  .fixtureClub .clubBadge,.cupTeam .clubBadge,.intTeam .clubBadge{width:18px!important;height:18px!important}
  .clubProfileIdentity .clubBadge{width:31px!important;height:31px!important}
@@ -5409,7 +5411,7 @@ body.season-transition-active{
 
 
 /* ==========================================================
-   v2.10.18.3 REGIONAL STRENGTH CALIBRATION
+   v2.10.18.4 OVR INTEGRITY + FIXTURE ALIGNMENT
    Slow coach-led football identity change with GM approval.
    ========================================================== */
 .identityDecisionModal{
@@ -5565,7 +5567,7 @@ body.identity-decision-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.18.3 Regional Strength Calibration Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.18.4 OVR Integrity + Fixture Alignment Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -6455,6 +6457,15 @@ function loadCareerSlot(slot){
  $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();setTimeout(maybeShowClubIdentityDecision,80);return true;
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
+function liveSquadOvr(id=G.club){
+ let ps=roster(id).filter(p=>!p.retiring);
+ return ps.length?ps.reduce((sum,p)=>sum+(Number(p.ovr)||0),0)/ps.length:0;
+}
+function liveStartingXIOvr(id=G.club){
+ let opt=optimiseStartingXI(id),rows=(opt&&Array.isArray(opt.rows)?opt.rows:[]).filter(r=>r&&r.player);
+ if(!rows.length)return 0;
+ return rows.reduce((sum,r)=>sum+(Number(positionalEffectiveness(r.player,r.slot,id).effectiveOvr)||0),0)/rows.length;
+}
 
 let strengthCache=new Map();
 function strengthFingerprint(clubId){
@@ -8728,7 +8739,7 @@ function shouldProtectPlayerFromSale(player,clubId){
 }
 function clubDNAView(clubId=G.club){
  ensureClubIntelligenceState();
- let c=G.clubs[clubId],ci=clubIntelligence(clubId),dna=clubDNAProfile(clubId),plan=buildClubStrategicPlan(clubId),a=ci.squadAudit||squadAuditForClub(clubId);
+ let c=G.clubs[clubId],ci=clubIntelligence(clubId),dna=clubDNAProfile(clubId),plan=buildClubStrategicPlan(clubId),a=squadAuditForClub(clubId);
  let squad=aiSquad(clubId).filter(p=>!p.retiring);
  let homegrown=squad.filter(p=>Array.isArray(p.clubHistory)&&p.clubHistory.length&&p.clubHistory[0].clubId===clubId).length;
  let prospectCount=a.prospects.length,agingCount=a.aging.length;
@@ -8738,7 +8749,7 @@ function clubDNAView(clubId=G.club){
  '<div class="grid2">'+
   stat("PHASE",plan.phase,"Strategic cycle")+
   stat("FOOTBALL DNA",clubFootballIdentity(clubId),coachDNAAlignment(clubId).label)+
-  stat("SQUAD OVR",a.avgOvr.toFixed(1),"Average")+
+  stat("SQUAD OVR",liveSquadOvr(clubId).toFixed(1),a.size+" players · live average")+
   stat("YOUTH",plan.youthPriority,prospectCount+" prospects")+
  '</div>'+
  '<div class="financeRows dnaRows">'+
@@ -10691,14 +10702,14 @@ function home(){
  let intFixture=internationalUserFixtureDue();
  if(intFixture){
   let hk=intFixture.home,ak=intFixture.away,ht=internationalTeamRecord(hk),at=internationalTeamRecord(ak),meta=INTL_CLUB_ROUNDS[G.intClub.currentRound];
-  let homeLink=Number.isFinite(ht&&ht.clubId)?clubIdentityLinkHtml(ht.clubId,ht.name,'fixtureClubLink internationalFixtureName'):'<span class="internationalFixtureName">'+(ht?ht.name:'Unknown')+'</span>',awayLink=Number.isFinite(at&&at.clubId)?clubIdentityLinkHtml(at.clubId,at.name,'fixtureClubLink internationalFixtureName'):'<span class="internationalFixtureName">'+(at?at.name:'Unknown')+'</span>';
+  let homeLink=Number.isFinite(ht&&ht.clubId)?clubIdentityLinkHtml(ht.clubId,ht.name,'fixtureClubLink internationalFixtureName'):'<span class="clubIdentityInline"><span class="fixtureBadgePlaceholder"></span><span class="clubIdentityName internationalFixtureName">'+(ht?ht.name:'Unknown')+'</span></span>',awayLink=Number.isFinite(at&&at.clubId)?clubIdentityLinkHtml(at.clubId,at.name,'fixtureClubLink internationalFixtureName'):'<span class="clubIdentityInline"><span class="fixtureBadgePlaceholder"></span><span class="clubIdentityName internationalFixtureName">'+(at?at.name:'Unknown')+'</span></span>';
   let fixture='<div class="card homePrimaryFixture"><div class="title">Next Fixture</div><div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlag(ht.nation)+' '+nationName(ht.nation).toUpperCase()+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlag(at.nation)+' '+nationName(at.nation).toUpperCase()+'</span></div></div></div><div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL · '+meta.name.toUpperCase()+'</div></div></div>';
   let recent=G.feed.slice(0,4),news='<div class="card homeNewsCard"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';return fixture+news;
  }
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
-  let homeLink=homeT.regional?'<span class="regionalFixtureName">'+homeT.name+'</span>':clubIdentityLinkHtml(homeT.clubId,homeT.name,'fixtureClubLink'),awayLink=awayT.regional?'<span class="regionalFixtureName">'+awayT.name+'</span>':clubIdentityLinkHtml(awayT.clubId,awayT.name,'fixtureClubLink');
+  let homeLink=homeT.regional?'<span class="clubIdentityInline"><span class="fixtureBadgePlaceholder"></span><span class="clubIdentityName regionalFixtureName">'+homeT.name+'</span></span>':clubIdentityLinkHtml(homeT.clubId,homeT.name,'fixtureClubLink'),awayLink=awayT.regional?'<span class="clubIdentityInline"><span class="fixtureBadgePlaceholder"></span><span class="clubIdentityName regionalFixtureName">'+awayT.name+'</span></span>':clubIdentityLinkHtml(awayT.clubId,awayT.name,'fixtureClubLink');
   let fixture='<div class="card homePrimaryFixture"><div class="title">Next Fixture</div><div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div><div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
   let recent=G.feed.slice(0,4),news='<div class="card homeNewsCard"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';return fixture+news;
  }
@@ -10756,7 +10767,7 @@ function squadTeamView(){
  let xiFitClass=xiFitAvg>=90?"excellent":xiFitAvg>=78?"good":xiFitAvg>=60?"fair":"poor";
  let xiFitHtml='<div class="xiFitSummary '+xiFitClass+'"><span>XI FIT</span><b>'+xiFitLabel+'</b></div>';
  return'<div class="card formationBoardCard"><div class="startingXIHead"><div><div class="title" style="margin-bottom:2px">Starting XI</div><div class="sub">Coach-selected XI shown in a compact formation board.</div></div>'+xiFitHtml+'</div>'+integrityHtml+teamCoachSummaryHtml(G.club)+
- '<div class="formationBoard">'+boardLines+'</div><div class="formationLegend"><span><b>OVR</b> effective rating</span><span>Position · Coach Fit</span></div></div>'+
+ '<div class="formationBoard">'+boardLines+'</div><div class="formationLegend"><span><b>STARTING XI OVR '+liveStartingXIOvr(G.club).toFixed(1)+'</b> · effective average</span><span>Position · Coach Fit</span></div></div>'+
  '<div class="card"><div class="title">Squad Depth</div><div class="sub">Players grouped by natural position. Tap any player for their role and Coach Fit.</div>'+depth+'</div>';
 }
 function staffView(){
