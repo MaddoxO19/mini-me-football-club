@@ -5382,7 +5382,7 @@ body.season-transition-active{
 }
 
 
-/* v2.10.17.2 Player Role Refresh */
+/* v2.10.17.3 Coach Editor + Fixture Polish */
 .xiFitSummary{flex:0 0 auto;min-width:92px;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);text-align:right}
 .xiFitSummary span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.10em;line-height:1}
 .xiFitSummary b{display:block;margin-top:5px;font-size:12px;font-weight:950;line-height:1}
@@ -5390,6 +5390,22 @@ body.season-transition-active{
 .xiFitSummary.good{border-color:#705d25;background:#d9b54a0b}.xiFitSummary.good b{color:var(--gold)}
 .xiFitSummary.fair b{color:#c3ccd4}.xiFitSummary.poor{border-color:#71303a;background:#fb71850b}.xiFitSummary.poor b{color:var(--red)}
 @media(max-width:430px){.xiFitSummary{min-width:84px;padding:7px 9px}.xiFitSummary b{font-size:11px}}
+
+/* v2.10.17.3 Regional fixture balance */
+.homeMatchupClub .regionalFixtureName{
+ display:block;
+ width:100%;
+ font-size:18px!important;
+ font-weight:900!important;
+ line-height:1.16!important;
+ text-align:center;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.homeMatchupClub .homeFixtureRank{margin-top:5px!important}
+@media(max-width:430px){.homeMatchupClub .regionalFixtureName{font-size:17px!important}}
+@media(max-width:360px){.homeMatchupClub .regionalFixtureName{font-size:15px!important}}
+
 </style>
 </head>
 <body>
@@ -5486,7 +5502,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.17.2 Player Role Refresh Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.17.3 Coach Editor + Fixture Polish Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -9093,6 +9109,7 @@ function aiCoachEmploymentReview(season){
 function showCoachEditor(){
  let c=G.clubs[G.club],h=ensureClubStaff(c),box=$("#coachEditModal");if(!box)return;
  $("#coachEditName").value=h.name||"";
+ $("#coachEditOvr").value=h.ovr||75;
  $("#coachEditStyle").innerHTML=COACH_STYLES.map(s=>'<option value="'+s+'" '+(s===h.style?'selected':'')+'>'+s+'</option>').join("");
  populateCoachEditFormations(h.style,h.formation);
  box.classList.remove("hidden");
@@ -9109,14 +9126,14 @@ function hideCoachEditor(){
 }
 function saveCoachEditor(){
  let c=G.clubs[G.club],h=ensureClubStaff(c),rec=currentCoachRecord(G.club);
- let name=String($("#coachEditName").value||"").trim().slice(0,32);
+ let name=String($("#coachEditName").value||"").trim().slice(0,32),ovr=Number($("#coachEditOvr").value);
  let style=String($("#coachEditStyle").value||"Balanced"),profile=COACH_STYLE_PROFILES[style]||COACH_STYLE_PROFILES.Balanced;
  let formation=String($("#coachEditFormation").value||profile.formations[0]);
  if(!name){alert("Please enter a Head Coach name.");return}
  if(!profile.formations.includes(formation))formation=profile.formations[0];
 
  let oldStyle=h.style,oldFormation=h.formation;
- h.name=name;h.style=style;h.formation=formation;
+ h.name=name;h.ovr=Math.max(50,Math.min(99,Number.isFinite(ovr)?Math.round(ovr):h.ovr));h.style=style;h.formation=formation;
  c.coach=Number(h.ovr);c.style=style;c.formation=formation;
  if(rec){rec.name=name;rec.style=style;rec.formation=formation;rec.ovr=Number(h.ovr)}
  G.feed.unshift({t:"COACH UPDATE",m:gmNewsName()+" confirms "+name+"'s football identity as "+style+" in a "+formation+"."});
@@ -10530,7 +10547,7 @@ function home(){
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
-  let homeLink=homeT.regional?homeT.name:clubIdentityLinkHtml(homeT.clubId,homeT.name,'fixtureClubLink'),awayLink=awayT.regional?awayT.name:clubIdentityLinkHtml(awayT.clubId,awayT.name,'fixtureClubLink');
+  let homeLink=homeT.regional?'<span class="regionalFixtureName">'+homeT.name+'</span>':clubIdentityLinkHtml(homeT.clubId,homeT.name,'fixtureClubLink'),awayLink=awayT.regional?'<span class="regionalFixtureName">'+awayT.name+'</span>':clubIdentityLinkHtml(awayT.clubId,awayT.name,'fixtureClubLink');
   let fixture='<div class="card homePrimaryFixture"><div class="title">Next Fixture</div><div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div><div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
   let recent=G.feed.slice(0,4),news='<div class="card homeNewsCard"><div class="title">Club News</div>'+(recent.length?recent.map(x=>'<div class="newsItem"><b>'+x.t+'</b><span>'+x.m+'</span></div>').join(""):'<div class="sub">No major club updates this week.</div>')+'</div>';return fixture+news;
  }
@@ -11067,22 +11084,29 @@ function toggleListed(id){
 
 
 function clubEditorHtml(c){
+ let h=ensureClubStaff(c),styleOpts=COACH_STYLES.map(x=>'<option value="'+x+'" '+(x===h.style?'selected':'')+'>'+x+'</option>').join(""),profile=COACH_STYLE_PROFILES[h.style]||COACH_STYLE_PROFILES.Balanced,formationOpts=profile.formations.map(f=>'<option value="'+f+'" '+(f===h.formation?'selected':'')+'>'+f+'</option>').join("");
  return '<div class="editorPanel"><div class="actionHeading"><div><div class="label">LEAGUE CONTROL</div><div class="title" style="margin-top:5px">Edit Club</div></div><span class="editBadge">CLUB EDITOR</span></div>'+
  '<div class="editorGrid"><div class="editorField full"><label>Club Name</label><input id="editClubName" value="'+String(c.name).replace(/"/g,"&quot;")+'" maxlength="'+CLUB_NAME_MAX+'"></div>'+
  '<div class="editorField"><label>Short Name</label><input id="editClubShort" value="'+(c.shortName||"")+'" maxlength="4"></div><div class="editorField"><label>Reputation</label><input id="editClubRep" type="number" min="50" max="99" value="'+c.rep+'"></div>'+
- '<div class="editorField"><label>Coach Rating</label><input id="editClubCoach" type="number" min="50" max="99" value="'+c.coach+'"></div><div class="editorField"><label>Transfer Budget</label><input id="editClubBudget" type="number" min="0" step="1000000" value="'+c.budget+'"></div>'+
+ '<div class="editorField full"><label>Head Coach Name</label><input id="editClubCoachName" value="'+String(h.name||"").replace(/"/g,"&quot;")+'" maxlength="32"></div>'+
+ '<div class="editorField"><label>Head Coach OVR</label><input id="editClubCoachOvr" type="number" min="50" max="99" value="'+h.ovr+'"></div>'+
+ '<div class="editorField"><label>Coach Playstyle</label><select id="editClubCoachStyle">'+styleOpts+'</select></div>'+
+ '<div class="editorField full"><label>Coach Formation</label><select id="editClubCoachFormation">'+formationOpts+'</select></div>'+
+ '<div class="editorField"><label>Transfer Budget</label><input id="editClubBudget" type="number" min="0" step="1000000" value="'+c.budget+'"></div>'+
  '<div class="editorField"><label>Club Balance</label><input id="editClubBalance" type="number" min="0" step="1000000" value="'+c.balance+'"></div></div>'+
- '<div class="editorActions"><button class="btn primary" data-save-club-edit="'+c.id+'">SAVE CHANGES</button><button class="btn" data-cancel-club-edit="1">CANCEL</button></div><div class="editorHint">Changes affect this save immediately. Division membership still changes naturally through promotion and relegation.</div></div>';
+ '<div class="editorActions"><button class="btn primary" data-save-club-edit="'+c.id+'">SAVE CHANGES</button><button class="btn" data-cancel-club-edit="1">CANCEL</button></div><div class="editorHint">Club and Head Coach changes affect this save immediately. Coach OVR, playstyle and formation feed directly into Coach Fit and team selection.</div></div>';
 }
 function openClubEditor(id){let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;$("#sheetbox").innerHTML='<div class="label">CLUB PROFILE</div><h2>'+c.name+'</h2>'+clubEditorHtml(c);$("#sheet").classList.remove("hidden")}
 function saveClubEdit(id){
  let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;
- let name=($("#editClubName")||{}).value||c.name,shortName=($("#editClubShort")||{}).value||c.shortName,rep=Number(($("#editClubRep")||{}).value),coach=Number(($("#editClubCoach")||{}).value),budget=Number(($("#editClubBudget")||{}).value),balance=Number(($("#editClubBalance")||{}).value);
- c.name=String(name).trim().slice(0,CLUB_NAME_MAX)||c.name;c.shortName=String(shortName).trim().toUpperCase().slice(0,4)||c.shortName;c.rep=Math.max(50,Math.min(99,Number.isFinite(rep)?Math.round(rep):c.rep));c.coach=Math.max(50,Math.min(99,Number.isFinite(coach)?Math.round(coach):c.coach));c.budget=Math.max(0,Number.isFinite(budget)?Math.round(budget/100000)*100000:c.budget);c.balance=Math.max(0,Number.isFinite(balance)?Math.round(balance/100000)*100000:c.balance);
- G.feed.unshift({t:"CLUB EDITED",m:c.name+" updated via Club Profile."});
- save();
- render();
- showClubProfile(c.id,"overview");
+ let h=ensureClubStaff(c),name=($("#editClubName")||{}).value||c.name,shortName=($("#editClubShort")||{}).value||c.shortName,rep=Number(($("#editClubRep")||{}).value),budget=Number(($("#editClubBudget")||{}).value),balance=Number(($("#editClubBalance")||{}).value);
+ let coachName=String(($("#editClubCoachName")||{}).value||h.name).trim().slice(0,32)||h.name,coachOvr=Number(($("#editClubCoachOvr")||{}).value),coachStyle=String(($("#editClubCoachStyle")||{}).value||h.style),profile=COACH_STYLE_PROFILES[coachStyle]||COACH_STYLE_PROFILES.Balanced,coachFormation=String(($("#editClubCoachFormation")||{}).value||h.formation);
+ if(!profile.formations.includes(coachFormation))coachFormation=profile.formations[0];
+ c.name=String(name).trim().slice(0,CLUB_NAME_MAX)||c.name;c.shortName=String(shortName).trim().toUpperCase().slice(0,4)||c.shortName;c.rep=Math.max(50,Math.min(99,Number.isFinite(rep)?Math.round(rep):c.rep));c.budget=Math.max(0,Number.isFinite(budget)?Math.round(budget/100000)*100000:c.budget);c.balance=Math.max(0,Number.isFinite(balance)?Math.round(balance/100000)*100000:c.balance);
+ h.name=coachName;h.ovr=Math.max(50,Math.min(99,Number.isFinite(coachOvr)?Math.round(coachOvr):h.ovr));h.style=coachStyle;h.formation=coachFormation;c.coach=h.ovr;c.style=h.style;c.formation=h.formation;
+ let rec=currentCoachRecord(c.id);if(rec){rec.name=h.name;rec.ovr=h.ovr;rec.style=h.style;rec.formation=h.formation}
+ G.feed.unshift({t:"CLUB EDITED",m:c.name+" and Head Coach details updated via Club Profile."});
+ save();render();showClubProfile(c.id,"overview");
 }
 
 const EDIT_POSITIONS=["GK","LB","LWB","LCB","CB","RCB","RB","RWB","SW","DM","CDM","LDM","RDM","CM","LCM","RCM","AM","CAM","LAM","RAM","LM","RM","LW","RW","LF","CF","RF","SS","ST"];
@@ -11499,6 +11523,7 @@ document.addEventListener("keydown",function(e){
 
 document.addEventListener("change",function(e){
  if(e.target&&e.target.id==="coachEditStyle")populateCoachEditFormations(e.target.value,null);
+ if(e.target&&e.target.id==="editClubCoachStyle"){let p=COACH_STYLE_PROFILES[e.target.value]||COACH_STYLE_PROFILES.Balanced,sel=$("#editClubCoachFormation");if(sel)sel.innerHTML=p.formations.map(f=>'<option value="'+f+'">'+f+'</option>').join("");}
 });
 
 $("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
@@ -11567,10 +11592,11 @@ setTimeout(updateTopNavOffset,250);
   <div class="coachEditTop"><div><div class="label">HEAD COACH</div><div class="title">Edit Coach</div></div><button class="closeBtn" data-close-coach-editor="1" aria-label="Close coach editor">×</button></div>
   <div class="coachEditForm">
    <label>Coach name<input id="coachEditName" maxlength="32" autocomplete="off"></label>
+   <label>Coach OVR<input id="coachEditOvr" type="number" min="50" max="99"></label>
    <label>Football identity<select id="coachEditStyle"></select></label>
    <label>Preferred formation<select id="coachEditFormation"></select></label>
   </div>
-  <div class="coachEditNotice">Coach OVR, career record, tenure, titles and awards are simulation controlled and cannot be edited.</div>
+  <div class="coachEditNotice">Coach name, OVR, football identity and formation can be edited. Career record, tenure, titles and awards remain simulation controlled.</div>
   <button class="btn full" data-save-coach-editor="1">SAVE COACH</button>
  </div>
 </div>
