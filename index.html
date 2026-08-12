@@ -5382,7 +5382,7 @@ body.season-transition-active{
 }
 
 
-/* v2.10.17.1 Formation Board Fit Summary */
+/* v2.10.17.2 Player Role Refresh */
 .xiFitSummary{flex:0 0 auto;min-width:92px;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card2);text-align:right}
 .xiFitSummary span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.10em;line-height:1}
 .xiFitSummary b{display:block;margin-top:5px;font-size:12px;font-weight:950;line-height:1}
@@ -5486,7 +5486,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.17.1 Formation Board Fit Summary Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.17.2 Player Role Refresh Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -11124,6 +11124,7 @@ function savePlayerEdit(id){
  let years=Number(($("#editPlayerYears")||{}).value);
  let wage=Number(($("#editPlayerWage")||{}).value);
  let value=Number(($("#editPlayerValue")||{}).value);
+ let previousPos=p.pos;
 
  p.name=String(name).trim().slice(0,PLAYER_NAME_MAX)||p.name;
  p.age=Math.max(16,Math.min(45,Number.isFinite(age)?Math.round(age):p.age));
@@ -11135,6 +11136,15 @@ function savePlayerEdit(id){
  p.wage=Math.max(0,Number.isFinite(wage)?Math.round(wage/1000)*1000:p.wage);
  p.value=Math.max(0,Number.isFinite(value)?Math.round(value/100000)*100000:p.value);
  if(p.wage!==oldWage||p.value!==oldValue)p.manualEconomy=true;
+
+ if(p.pos!==previousPos){
+  p.secondaryPositions=[];
+  p._secondarySeeded=false;
+  seedSecondaryPositions(p);
+  p.primaryStyle=null;
+  p.secondaryStyle=null;
+  seedPlayerStyle(p,p.team>=0?p.team:null);
+ }
 
  if(p.years===0&&p.team>=0)p.years=1;
  G.feed.unshift({t:"PLAYER EDITED",m:p.name+" updated via Career Control."});
