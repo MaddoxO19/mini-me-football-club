@@ -5448,6 +5448,10 @@ body.identity-decision-open{overflow:hidden}
  .identityDecisionStyle b{font-size:14px}.identityDecisionActions{grid-template-columns:1fr}
 }
 
+
+/* v2.10.19.0 Season Preview + Power Rankings */
+.seasonPreview{position:fixed;inset:0;z-index:72;background:linear-gradient(180deg,#081019,#0a1118 62%);overflow:auto;padding:calc(22px + env(safe-area-inset-top)) 14px calc(36px + env(safe-area-inset-bottom));}
+.seasonPreview.hidden{display:none!important}.season-preview-active{overflow:hidden}.seasonPreviewWrap{max-width:760px;margin:0 auto}.seasonPreviewHero{padding:10px 2px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}.seasonPreviewHero .label{color:var(--gold)}.seasonPreviewHero h1{font-size:30px;line-height:1.05;margin:7px 0 5px;letter-spacing:-.03em}.seasonPreviewTabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}.seasonPreviewTabs::-webkit-scrollbar{display:none}.seasonPreviewTabs button{flex:0 0 auto;border:1px solid var(--line);background:#121c27;color:var(--muted);border-radius:999px;padding:10px 13px;font:inherit;font-size:11px;font-weight:900}.seasonPreviewTabs button.active{border-color:var(--gold);color:var(--gold);background:#d9b54a10}.seasonPreviewPanel{display:none}.seasonPreviewPanel.active{display:block}.powerList{margin-top:8px}.powerRow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.powerRank{font-weight:950;color:var(--muted);text-align:center}.powerClub{display:flex;align-items:center;gap:8px;min-width:0}.powerClubText{min-width:0}.powerClubText b,.powerClubText span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.powerClubText span{font-size:10px;color:var(--muted);margin-top:2px}.powerValue{text-align:right}.powerValue b{display:block;color:var(--gold);font-size:16px}.powerMove{font-size:9px;color:var(--muted);font-weight:900}.powerMove.up{color:var(--green)}.powerMove.down{color:var(--red)}.previewFeatureRow{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.previewFeatureRow>div{min-width:0}.previewFeatureRow b,.previewFeatureRow span{display:block}.previewFeatureRow span{font-size:10px;color:var(--muted);margin-top:3px}.previewFeatureValue{text-align:right;color:var(--gold);font-weight:900;white-space:nowrap}.previewLandscapeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.previewLandscapeCard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#111923}.previewLandscapeCard span{display:block;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.08em}.previewLandscapeCard b{display:block;margin-top:6px;font-size:15px;line-height:1.2}.seasonPreviewBegin{margin-top:18px;min-height:54px}.powerRankCard .powerRow:last-child{border-bottom:0}@media(max-width:520px){.seasonPreview{padding-left:12px;padding-right:12px}.seasonPreviewHero h1{font-size:27px}.previewLandscapeGrid{grid-template-columns:1fr 1fr}.powerRow{grid-template-columns:24px minmax(0,1fr) auto;gap:7px}}
 </style>
 </head>
 <body>
@@ -5539,6 +5543,16 @@ body.identity-decision-open{overflow:hidden}
 </div>
 
 
+
+<div id="seasonPreview" class="seasonPreview hidden" role="dialog" aria-modal="true" aria-labelledby="seasonPreviewTitle">
+ <div class="seasonPreviewWrap">
+  <div class="seasonPreviewHero"><div class="label">NEW SEASON</div><h1 id="seasonPreviewTitle">Season Preview</h1><div id="seasonPreviewSub" class="sub"></div></div>
+  <div id="seasonPreviewTabs" class="seasonPreviewTabs"></div>
+  <div id="seasonPreviewContent"></div>
+  <button id="beginSeasonBtn" class="btn primary full seasonPreviewBegin">BEGIN SEASON</button>
+ </div>
+</div>
+
 <div id="identityDecisionModal" class="identityDecisionModal hidden" role="dialog" aria-modal="true" aria-labelledby="identityDecisionTitle">
  <div class="identityDecisionCard">
   <div class="identityDecisionEyebrow">CLUB IDENTITY DECISION</div>
@@ -5567,7 +5581,7 @@ body.identity-decision-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.18.4 OVR Integrity + Fixture Alignment Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.19.0 Season Preview + Power Rankings Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -6454,7 +6468,7 @@ function loadCareerSlot(slot){
  if(!g){status.textContent="That career slot is empty.";return false}
  activeSaveSlot=Number(slot)||1;G=JSON.parse(JSON.stringify(g));G._careerSlot=activeSaveSlot;G._storageMode="slot";
  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(activeSaveSlot))}catch(e){}
- $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();setTimeout(maybeShowClubIdentityDecision,80);return true;
+ $("#start").classList.add("hidden");document.body.classList.remove("career-hub-active");page="home";render();setTimeout(maybeShowSeasonPreview,80);return true;
 }
 function roster(id=G.club){return G.players.filter(p=>p.team===id)}
 function liveSquadOvr(id=G.club){
@@ -7111,6 +7125,67 @@ function leaderCard(title,subtitle,players,valueFn){
  (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
  '</div></div>';
 }
+function teamPowerRankingData(){
+ ensureLeagueWorld();
+ let previous=G.powerRankingSnapshots&&G.powerRankingSnapshots[String((Number(G.season)||2026)-1)]||[];
+ let prevMap={};previous.forEach((x,i)=>{prevMap[String(x.clubId)]={rank:i+1,ovr:Number(x.ovr)||0}});
+ let clubs=[...leagueInfo("top").clubIds,...leagueInfo("lower").clubIds].map(id=>G.clubs.find(c=>c.id===id)).filter(Boolean);
+ let rows=clubs.map(c=>{let ovr=liveStartingXIOvr(c.id),div=leagueInfo(clubCurrentDivisionKey(c.id)).name,coach=coachProfile(c.id),prev=prevMap[String(c.id)]||null;return{clubId:c.id,name:c.name,division:div,ovr:Number(ovr.toFixed(1)),coachStyle:coach.style||"Balanced",formation:coach.formation||"",previousRank:prev?prev.rank:null,previousOvr:prev?prev.ovr:null}}).sort((a,b)=>b.ovr-a.ovr||a.name.localeCompare(b.name));
+ rows.forEach((x,i)=>x.rank=i+1);return rows;
+}
+function powerMoveHtml(row){
+ if(!row.previousRank)return'<span class="powerMove">NEW</span>';
+ let delta=row.previousRank-row.rank;if(delta>0)return'<span class="powerMove up">▲ '+delta+'</span>';if(delta<0)return'<span class="powerMove down">▼ '+Math.abs(delta)+'</span>';return'<span class="powerMove">—</span>';
+}
+function powerRankingsHtml(limit=20){
+ let rows=teamPowerRankingData().slice(0,limit);
+ return'<div class="card powerRankCard"><div class="sectionHead"><div><div class="title">Club Power Rankings</div><div class="sub">Top '+limit+' across Premier Division and Championship · ranked by live Starting XI OVR.</div></div></div><div class="powerList">'+rows.map(r=>'<div class="powerRow '+(r.clubId===G.club?'me':'')+'"><div class="powerRank">'+r.rank+'</div><div class="powerClub">'+clubBadgeHtml(r.clubId,24)+'<div class="powerClubText"><b>'+r.name+'</b><span>'+r.division+' · '+r.coachStyle+' · '+r.formation+'</span></div></div><div class="powerValue"><b>'+r.ovr.toFixed(1)+'</b>'+powerMoveHtml(r)+'</div></div>').join('')+'</div></div>';
+}
+function currentSeasonTransferHeadlines(){
+ let moves=[];
+ G.players.forEach(p=>{let h=Array.isArray(p.clubHistory)?p.clubHistory:[];h.forEach((spell,i)=>{if(Number(spell.startSeason)!==Number(G.season)||!Number(spell.transferInFee))return;let prev=i>0?h[i-1]:null;let from=prev?(prev.clubNameAtStart||(prev.clubId>=0&&G.clubs[prev.clubId]?G.clubs[prev.clubId].name:'Previous club')):'Previous club';let to=spell.clubNameAtStart||(spell.clubId>=0&&G.clubs[spell.clubId]?G.clubs[spell.clubId].name:'New club');moves.push({playerId:p.id,name:p.name,ovr:Number(p.ovr)||0,fee:Number(spell.transferInFee)||0,from,to})})});
+ return moves.sort((a,b)=>b.fee-a.fee||b.ovr-a.ovr).slice(0,5);
+}
+function seasonPlayersToWatch(){
+ let young=G.players.filter(p=>p.team>=0&&p.age<=21).sort((a,b)=>(Number(b.pot)||0)-(Number(a.pot)||0)||b.ovr-a.ovr);
+ let result=[],used=new Set();
+ function add(p,label){if(!p||used.has(p.id)||result.length>=5)return;used.add(p.id);result.push({playerId:p.id,name:p.name,club:p.team>=0&&G.clubs[p.team]?G.clubs[p.team].name:'World Football',age:p.age,ovr:p.ovr,pot:p.pot,label})}
+ let dev=(G.lastDevelopment&&Array.isArray(G.lastDevelopment.changes)?G.lastDevelopment.changes:[]).slice().sort((a,b)=>b.delta-a.delta);
+ let riser=dev.map(x=>G.players.find(p=>p.name===x.name&&p.age<=23)).find(Boolean);add(riser,'Offseason riser');
+ add(young[0],'Top young talent');add(young[1],'Elite prospect');
+ let transfers=currentSeasonTransferHeadlines();add(transfers.length?G.players.find(p=>p.id===transfers[0].playerId):null,'Headline signing');
+ for(let p of young){add(p,'Player to watch');if(result.length>=5)break}
+ return result;
+}
+function captureSeasonPreview(){
+ if(!G.powerRankingSnapshots||typeof G.powerRankingSnapshots!=="object")G.powerRankingSnapshots={};
+ let rankings=teamPowerRankingData();
+ G.powerRankingSnapshots[String(G.season)]=rankings.map(x=>({clubId:x.clubId,ovr:x.ovr}));
+ let prev=Array.isArray(G.history)&&G.history.length?G.history[0]:null;
+ G.seasonPreview={season:G.season,dismissed:false,power:rankings.slice(0,20),transfers:currentSeasonTransferHeadlines(),players:seasonPlayersToWatch(),landscape:{champion:prev&&prev.champ?prev.champ:'—',cup:prev&&prev.cup&&prev.cup.winnerName?prev.cup.winnerName:'—',international:prev&&prev.international&&prev.international.winnerName?prev.international.winnerName:'—',promoted:G.lastMovement&&Array.isArray(G.lastMovement.promoted)?G.lastMovement.promoted.map(id=>G.clubs[id]?G.clubs[id].name:'').filter(Boolean):[],relegated:G.lastMovement&&Array.isArray(G.lastMovement.relegated)?G.lastMovement.relegated.map(id=>G.clubs[id]?G.clubs[id].name:'').filter(Boolean):[],qualifiers:prev&&prev.internationalQualification&&Array.isArray(prev.internationalQualification.qualifiers)?prev.internationalQualification.qualifiers.map(q=>q.name||q.clubName||'').filter(Boolean):[]}};
+}
+function seasonPreviewPanelHtml(key){
+ let p=G.seasonPreview||{},power=Array.isArray(p.power)?p.power:[],transfers=Array.isArray(p.transfers)?p.transfers:[],players=Array.isArray(p.players)?p.players:[],l=p.landscape||{};
+ if(key==='power')return'<div class="card powerRankCard"><div class="title">Power Rankings</div><div class="sub">Top 20 clubs in your national football world · live Starting XI OVR.</div><div class="powerList">'+power.map((r,i)=>'<div class="powerRow '+(r.clubId===G.club?'me':'')+'"><div class="powerRank">'+(i+1)+'</div><div class="powerClub">'+clubBadgeHtml(r.clubId,24)+'<div class="powerClubText"><b>'+r.name+'</b><span>'+r.division+' · '+r.coachStyle+'</span></div></div><div class="powerValue"><b>'+Number(r.ovr).toFixed(1)+'</b>'+powerMoveHtml(r)+'</div></div>').join('')+'</div></div>';
+ if(key==='transfers')return'<div class="card"><div class="title">Transfer Headlines</div><div class="sub">Largest moves recorded during the new-season football-world update.</div>'+(transfers.length?transfers.map(x=>'<div class="previewFeatureRow"><div><b>'+x.name+' · '+x.ovr+' OVR</b><span>'+x.from+' → '+x.to+'</span></div><div class="previewFeatureValue">'+money(x.fee)+'</div></div>').join(''):'<div class="profileEmpty compactEmpty">No major new-season transfers were recorded.</div>')+'</div>';
+ if(key==='players')return'<div class="card"><div class="title">Players to Watch</div><div class="sub">Young talent, offseason risers and notable new arrivals.</div>'+players.map(x=>'<div class="previewFeatureRow"><div><b>'+x.name+' · Age '+x.age+'</b><span>'+x.club+' · '+x.label+'</span></div><div class="previewFeatureValue">'+x.ovr+' OVR<br><span style="font-size:9px;color:var(--muted)">POT '+x.pot+'</span></div></div>').join('')+'</div>';
+ return'<div class="card"><div class="title">Season Landscape</div><div class="sub">The football world entering '+G.season+'.</div><div class="previewLandscapeGrid"><div class="previewLandscapeCard"><span>DEFENDING CHAMPION</span><b>'+l.champion+'</b></div><div class="previewLandscapeCard"><span>NATIONAL CUP HOLDER</span><b>'+l.cup+'</b></div><div class="previewLandscapeCard"><span>CHAMPIONS TOURNAMENT</span><b>'+l.international+'</b></div><div class="previewLandscapeCard"><span>INTERNATIONAL QUALIFIERS</span><b>'+((l.qualifiers||[]).join(' · ')||'—')+'</b></div><div class="previewLandscapeCard"><span>PROMOTED</span><b>'+((l.promoted||[]).join(' · ')||'—')+'</b></div><div class="previewLandscapeCard"><span>RELEGATED</span><b>'+((l.relegated||[]).join(' · ')||'—')+'</b></div></div></div>';
+}
+function renderSeasonPreview(tab='power'){
+ let p=G&&G.seasonPreview;if(!p)return;let overlay=$("#seasonPreview");if(!overlay)return;
+ $("#seasonPreviewTitle").textContent=G.season+' Season Preview';$("#seasonPreviewSub").textContent='Power rankings, transfer headlines, emerging talent and the season landscape before Week 1.';
+ let defs=[['power','Power Rankings'],['transfers','Transfers'],['players','Players to Watch'],['landscape','Landscape']];
+ $("#seasonPreviewTabs").innerHTML=defs.map(x=>'<button type="button" data-season-preview-tab="'+x[0]+'" class="'+(x[0]===tab?'active':'')+'">'+x[1]+'</button>').join('');
+ $("#seasonPreviewContent").innerHTML='<div class="seasonPreviewPanel active">'+seasonPreviewPanelHtml(tab)+'</div>';
+}
+function maybeShowSeasonPreview(){
+ if(!G||!G.seasonPreview||G.seasonPreview.dismissed||Number(G.seasonPreview.season)!==Number(G.season)){setTimeout(maybeShowClubIdentityDecision,80);return false}
+ renderSeasonPreview('power');$("#seasonPreview").classList.remove('hidden');document.body.classList.add('season-preview-active');return true;
+}
+function closeSeasonPreview(){
+ if(G&&G.seasonPreview){G.seasonPreview.dismissed=true;save()}let o=$("#seasonPreview");if(o)o.classList.add('hidden');document.body.classList.remove('season-preview-active');setTimeout(maybeShowClubIdentityDecision,80);
+}
+
 function leagueLeadersHtml(){
  let ps=leagueStatPlayers();
  let scorers=[...ps].sort((a,b)=>b.stats.goals-a.stats.goals||b.stats.assists-a.stats.assists).slice(0,5);
@@ -7128,7 +7203,8 @@ function leagueLeadersHtml(){
    .sort((a,b)=>b.stats.cleanSheets-a.stats.cleanSheets||b.stats.saves-a.stats.saves||avgRating(b)-avgRating(a))
    .slice(0,5);
 
- return leaderCard("Golden Boot Race","League goals · "+G.season,scorers,p=>p.stats.goals+" G")+
+ return powerRankingsHtml(20)+
+        leaderCard("Golden Boot Race","League goals · "+G.season,scorers,p=>p.stats.goals+" G")+
         leaderCard("Assist Leaders","League assists · "+G.season,assists,p=>p.stats.assists+" A")+
         leaderCard("Goalkeeper Leaders","Minimum 8 appearances · clean sheets · saves",keepers,p=>p.stats.cleanSheets+" CS · "+p.stats.saves+" saves")+
         leaderCard("Highest Average Rating","Minimum 10 rated appearances",ratings,p=>avgRating(p).toFixed(2));
@@ -10001,6 +10077,7 @@ function beginNewSeason(){
   G.clubs.forEach(c=>{if(c)buildClubStrategicPlan(c.id,true)});
   runWorldCompetitivenessReview();
   runAIClubLifecycleReview();
+  captureSeasonPreview();
   save();
 
   $("#seasonReview").classList.add("hidden");
@@ -10008,7 +10085,7 @@ function beginNewSeason(){
   page="home";
   render();
   hideSeasonTransition();
-  setTimeout(maybeShowClubIdentityDecision,80);
+  setTimeout(maybeShowSeasonPreview,80);
  }catch(err){
   console.error("New season rollover failed",err);
   hideSeasonTransition();
@@ -11707,6 +11784,8 @@ $("#backToLaunch").addEventListener("click",function(){
 $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
+$("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
+$("#seasonPreviewTabs").addEventListener("click",function(e){let b=e.target.closest("[data-season-preview-tab]");if(b)renderSeasonPreview(b.dataset.seasonPreviewTab)});
 $("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
 $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
 $("#resultContinueBtn").addEventListener("click",function(){
