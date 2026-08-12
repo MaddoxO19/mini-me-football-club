@@ -5502,7 +5502,7 @@ body.season-transition-active{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.17.3 Coach Editor + Fixture Polish Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.18.0 Football Identity Engine Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -5541,38 +5541,26 @@ function generateFootballName(){
  let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)],fallback=(pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)]+" "+String(rnd(2,99))).slice(0,PLAYER_NAME_MAX);generatedNameRegistry.add(fallback);return fallback;
 }
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
-const COACH_STYLES=["Possession","Balanced","High Press","Direct","Counter Attack"];
+const COACH_STYLES=["Balanced","Possession","Tiki-Taka","High Press","Counter Attack","Direct","Attacking","Defensive"];
+const FORMATION_LIBRARY={
+ "4-3-3":[["LW","CF","RW"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]],
+ "4-2-3-1":[["ST"],["LW","CAM","RW"],["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]],
+ "4-4-2":[["ST","ST"],["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]],
+ "4-1-4-1":[["ST"],["LM","LCM","RCM","RM"],["CDM"],["LB","LCB","RCB","RB"],["GK"]],
+ "3-5-2":[["ST","ST"],["LWB","LCM","CM","RCM","RWB"],["LCB","CB","RCB"],["GK"]],
+ "3-4-3":[["LW","CF","RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]],
+ "5-3-2":[["ST","ST"],["LCM","CM","RCM"],["LWB","LCB","CB","RCB","RWB"],["GK"]],
+ "4-3-1-2":[["ST","ST"],["CAM"],["LCM","CM","RCM"],["LB","LCB","RCB","RB"],["GK"]]
+};
 const COACH_STYLE_PROFILES={
- "Possession":{
-   desc:"Control the ball, build through midfield and favour technically connected attacking roles.",
-   roles:["CF","CAM","CM","LCM","RCM","CDM","LW","RW"],
-   formations:["4-3-3","4-2-3-1"],
-   tag:"Control & combinations"
- },
- "Balanced":{
-   desc:"A flexible football identity with fewer positional extremes and broad squad compatibility.",
-   roles:["ST","CF","CAM","CM","CDM","LB","RB","LW","RW"],
-   formations:["4-3-3","4-2-3-1","4-4-2"],
-   tag:"Flexible structure"
- },
- "High Press":{
-   desc:"Front-foot football built around aggressive forwards, energetic midfielders and advanced wide roles.",
-   roles:["ST","CF","LW","RW","CAM","CM","LWB","RWB"],
-   formations:["4-3-3","4-2-3-1","3-4-3"],
-   tag:"Intensity & pressure"
- },
- "Direct":{
-   desc:"Progress the ball quickly, attack territory and favour traditional forwards and wide service.",
-   roles:["ST","CF","LM","RM","CM","CB","LB","RB"],
-   formations:["4-4-2","4-2-3-1"],
-   tag:"Vertical & physical"
- },
- "Counter Attack":{
-   desc:"Defend compactly and break quickly through pace, direct runners and disciplined midfield roles.",
-   roles:["ST","LW","RW","DM","CDM","LDM","RDM","LB","RB"],
-   formations:["4-2-3-1","4-3-3"],
-   tag:"Compact & explosive"
- }
+ "Balanced":{desc:"Flexible football that values overall quality, positional balance and adaptable player roles.",roles:["GK","CB","LB","RB","CM","CAM","LW","RW","ST","CF"],formations:["4-3-3","4-2-3-1","4-4-2","4-1-4-1","3-5-2","3-4-3","5-3-2","4-3-1-2"],tag:"Flexible structure"},
+ "Possession":{desc:"Control the ball, build patiently through midfield and favour technically secure players between the lines.",roles:["CF","CAM","CM","LCM","RCM","CDM","LW","RW","LB","RB"],formations:["4-3-3","4-2-3-1","4-1-4-1","4-3-1-2"],tag:"Control & circulation"},
+ "Tiki-Taka":{desc:"Short passing, constant support angles and technically intelligent movement built around creators and ball-playing defenders.",roles:["CF","CAM","CM","LCM","RCM","CDM","LW","RW","LB","RB","CB"],formations:["4-3-3","4-2-3-1","4-1-4-1"],tag:"Short passing & movement"},
+ "High Press":{desc:"Front-foot football built around aggressive pressure, energetic midfielders, advanced fullbacks and pressing forwards.",roles:["ST","CF","LW","RW","CAM","CM","LWB","RWB","LB","RB"],formations:["4-3-3","4-2-3-1","3-4-3","3-5-2"],tag:"Intensity & pressure"},
+ "Counter Attack":{desc:"Defend compactly and break quickly through pace, direct runners and disciplined midfield roles.",roles:["ST","LW","RW","DM","CDM","LDM","RDM","LB","RB","LWB","RWB"],formations:["4-2-3-1","4-4-2","3-5-2","5-3-2"],tag:"Compact & explosive"},
+ "Direct":{desc:"Progress the ball quickly, attack territory and favour runners, traditional forwards and decisive wide service.",roles:["ST","CF","LM","RM","CM","CB","LB","RB","LWB","RWB"],formations:["4-4-2","4-2-3-1","3-5-2","5-3-2"],tag:"Vertical & physical"},
+ "Attacking":{desc:"Commit numbers forward, favour creative and aggressive roles and accept greater risk in pursuit of goals.",roles:["ST","CF","CAM","LW","RW","CM","LWB","RWB","LB","RB"],formations:["4-3-3","4-2-3-1","3-4-3","4-3-1-2"],tag:"Front-foot & creative"},
+ "Defensive":{desc:"Protect territory, maintain compact spacing and favour disciplined defenders, ball winners and structured transitions.",roles:["GK","CB","LCB","RCB","DM","CDM","LWB","RWB","LB","RB","ST"],formations:["5-3-2","4-1-4-1","4-4-2","3-5-2"],tag:"Compact & resilient"}
 };
 
 const PLAYER_STYLE_POOLS={
@@ -6421,7 +6409,7 @@ function strength(id){
  let xiOpt=optimiseStartingXI(id),xi=xiOpt.rows.filter(r=>r.player).map(r=>r.player),slots=xiOpt.rows.filter(r=>r.player).map(r=>r.slot),fitTotal=0,effectiveTotal=0;
  xi.forEach((p,i)=>{let slot=slots[i],pe=positionalEffectiveness(p,slot,id);effectiveTotal+=pe.effectiveOvr;fitTotal+=systemFitScore(p,slot,id)});
  let coverage=formationCoverage(id),avg=xi.length?effectiveTotal/xi.length:52,fitAvg=xi.length?fitTotal/xi.length:55,fitEffect=Math.max(-1.8,Math.min(1.8,(fitAvg-65)*.055)),coveragePenalty=coverage.ok?0:Math.min(12,coverage.missing.length*4);
- let value=avg+fitEffect+coachProfile(id).ovr*.07-coveragePenalty;strengthCache.set(id,{fp,value});return value;
+ let dnaBonus=coachDNAAlignment(id).modifier;let value=avg+fitEffect+coachProfile(id).ovr*.07+dnaBonus-coveragePenalty;strengthCache.set(id,{fp,value});return value;
 
 }
 
@@ -8470,11 +8458,12 @@ function ensureClubIntelligenceState(){
   if(!ci){
    let philosophy=deterministicClubDNA(c);
    ci=G.clubIntelligence.clubs[c.id]={
-    philosophy,createdSeason:G.season,planSeason:null,phase:"Build",squadAudit:null,plan:null,
+    philosophy,footballIdentity:deterministicFootballIdentity(c.id),createdSeason:G.season,planSeason:null,phase:"Build",squadAudit:null,plan:null,
     academyGraduates:0,homegrownPlayers:0,lastMajorDecision:null
    };
   }
   if(!CLUB_DNA_PROFILES[ci.philosophy])ci.philosophy=deterministicClubDNA(c);
+  if(!COACH_STYLE_PROFILES[ci.footballIdentity])ci.footballIdentity=deterministicFootballIdentity(c.id);
  });
  G.clubIntelligence.version=CLUB_INTELLIGENCE_VERSION;
 }
@@ -8486,6 +8475,8 @@ function clubDNAProfile(clubId){
  let ci=clubIntelligence(clubId);
  return CLUB_DNA_PROFILES[ci.philosophy]||CLUB_DNA_PROFILES.Balanced;
 }
+function clubFootballIdentity(clubId){let ci=clubIntelligence(clubId),style=ci.footballIdentity||deterministicFootballIdentity(clubId);return COACH_STYLE_PROFILES[style]?style:"Balanced"}
+function coachDNAAlignment(clubId){let h=coachProfile(clubId),dna=clubFootballIdentity(clubId);return h.style===dna?{label:"Aligned",modifier:.45}:{label:"Different approach",modifier:0}}
 function playerSquadRole(player,teamId){
  if(!player)return"Fringe";
  let squad=aiSquad(teamId).filter(p=>!p.retiring).sort((a,b)=>Number(b.ovr)-Number(a.ovr));
@@ -8587,7 +8578,7 @@ function clubDNAView(clubId=G.club){
  return '<div class="card clubDNACard"><div class="sectionHead"><div><div class="title">Club DNA</div><div class="sub">'+dna.description+'</div></div></div>'+
  '<div class="grid2">'+
   stat("PHASE",plan.phase,"Strategic cycle")+
-  stat("SQUAD AGE",a.avgAge.toFixed(1),"Average")+
+  stat("FOOTBALL DNA",clubFootballIdentity(clubId),coachDNAAlignment(clubId).label)+
   stat("SQUAD OVR",a.avgOvr.toFixed(1),"Average")+
   stat("YOUTH",plan.youthPriority,prospectCount+" prospects")+
  '</div>'+
@@ -9094,7 +9085,7 @@ function aiCoachEmploymentReview(season){
     let oldName=h.name;
     releaseClubCoach(c.id,"Dismissed after "+season);
     let pool=ensureCoachMarket().filter(x=>x.id!==h.id).sort((a,b)=>{
-      let styleA=a.style===c.style?5:0,styleB=b.style===c.style?5:0;
+      let dna=clubFootballIdentity(c.id),styleA=a.style===dna?6:0,styleB=b.style===dna?6:0;
       return (b.ovr+styleB)-(a.ovr+styleA);
     });
     let pick=pool[0]||newCoachCandidate();
@@ -9142,10 +9133,10 @@ function saveCoachEditor(){
 
 function coachEmploymentView(){
  ensureStaffHistoryState();ensureCoachMarket();
- let c=G.clubs[G.club],h=ensureClubStaff(c),rec=currentCoachRecord(G.club),profile=COACH_STYLE_PROFILES[h.style]||COACH_STYLE_PROFILES.Balanced;
+ let c=G.clubs[G.club],h=ensureClubStaff(c),rec=currentCoachRecord(G.club),profile=COACH_STYLE_PROFILES[h.style]||COACH_STYLE_PROFILES.Balanced,dna=clubFootballIdentity(G.club),alignment=coachDNAAlignment(G.club);
  let status=rec&&rec.matches?rec.w+"W · "+rec.d+"D · "+rec.l+"L · "+staffWinPct(rec).toFixed(1)+"%":"No tracked matches yet";
  let current='<div class="card coachCurrentCard"><div class="sectionHead"><div><div class="title">Current Head Coach</div><div class="sub">Edit the coach identity or replace them through the coaching market.</div></div><button class="coachEditBtn" data-edit-coach="1">EDIT COACH</button></div>'+
-  '<div class="coachEmploymentHero"><div><b>'+h.name+'</b><span>'+h.ovr+' OVR · '+h.style+' · '+h.formation+'</span><small>'+profile.tag+'</small></div><div class="coachEmploymentRecord"><b>'+status+'</b><span>Appointed '+h.appointedSeason+'</span></div></div>'+
+  '<div class="coachEmploymentHero"><div><b>'+h.name+'</b><span>'+h.ovr+' OVR · '+h.style+' · '+h.formation+'</span><small>'+profile.tag+' · Club DNA: '+dna+' ('+alignment.label+')</small></div><div class="coachEmploymentRecord"><b>'+status+'</b><span>Appointed '+h.appointedSeason+'</span></div></div>'+
   '<div class="coachDevelopmentLine"><b>Coach Development</b><span>'+coachDevelopmentLabel(rec)+'</span></div>'+
   '<div class="coachIdentityText">'+profile.desc+'</div></div>';
  let pool=G.coachMarket.available.slice().sort((a,b)=>b.ovr-a.ovr).map(x=>{
@@ -9870,9 +9861,11 @@ function generatedCoachName(clubId){
  let a=FIRST[Math.abs((clubId*7+3)%FIRST.length)],b=LAST[Math.abs((clubId*11+5)%LAST.length)];
  return a+" "+b;
 }
-function defaultCoachStyle(clubId){
- return COACH_STYLES[Math.abs(Number(clubId)||0)%COACH_STYLES.length];
+function deterministicFootballIdentity(clubId){
+ let id=Math.abs(Number(clubId)||0),cycle=["Balanced","Possession","Tiki-Taka","High Press","Counter Attack","Direct","Attacking","Defensive"];
+ return cycle[id%cycle.length];
 }
+function defaultCoachStyle(clubId){return deterministicFootballIdentity(clubId)}
 function defaultCoachFormation(style,clubId){
  let profile=COACH_STYLE_PROFILES[style]||COACH_STYLE_PROFILES.Balanced;
  return profile.formations[Math.abs(Number(clubId)||0)%profile.formations.length];
@@ -9896,7 +9889,7 @@ function ensureClubStaff(c){
  if(!h.name)h.name=generatedCoachName(c.id);
  if(!Number.isFinite(Number(h.ovr)))h.ovr=Number(c.coach)||75;
  if(!COACH_STYLE_PROFILES[h.style])h.style=defaultCoachStyle(c.id);
- if(!h.formation)h.formation=defaultCoachFormation(h.style,c.id);
+ if(!h.formation||!FORMATION_LIBRARY[h.formation])h.formation=defaultCoachFormation(h.style,c.id);
  if(!Number.isFinite(Number(h.appointedSeason)))h.appointedSeason=G?G.season:2026;
 
  // Keep legacy fields synchronized for older systems while staff becomes canonical.
@@ -9924,25 +9917,9 @@ function positionGroup(pos){
  return"FWD";
 }
 function formationSlotsForCoach(teamId=G.club){
- let h=coachProfile(teamId),f=h.formation,style=h.style;
-
- if(f==="4-2-3-1"){
-   let striker=style==="Possession"?"CF":"ST";
-   let wide=style==="Direct"?["LM","CAM","RM"]:["LW","CAM","RW"];
-   return[[striker],wide,["LDM","RDM"],["LB","LCB","RCB","RB"],["GK"]];
- }
- if(f==="4-4-2"){
-   let front=style==="Possession"?["CF","CF"]:["ST","ST"];
-   return[front,["LM","LCM","RCM","RM"],["LB","LCB","RCB","RB"],["GK"]];
- }
- if(f==="3-4-3"){
-   let striker=style==="Possession"?"CF":"ST";
-   return[["LW",striker,"RW"],["LWB","LCM","RCM","RWB"],["LCB","CB","RCB"],["GK"]];
- }
- // 4-3-3
- let striker=style==="Possession"?"CF":"ST";
- let midfield=style==="Counter Attack"?["LDM","CM","RDM"]:style==="High Press"?["LCM","CAM","RCM"]:["LCM","CM","RCM"];
- return[["LW",striker,"RW"],midfield,["LB","LCB","RCB","RB"],["GK"]];
+ let h=coachProfile(teamId),formation=FORMATION_LIBRARY[h.formation];
+ if(!formation){h.formation=defaultCoachFormation(h.style,teamId);formation=FORMATION_LIBRARY[h.formation]||FORMATION_LIBRARY["4-3-3"]}
+ return formation.map(line=>line.slice());
 }
 function formationSlots(){return formationSlotsForCoach(G.club)}
 function slotFamily(slot){
@@ -10136,21 +10113,24 @@ function preferredSlotForPlayer(p,teamId=G.club){
 }
 function bestFitForPlayer(p,teamId=G.club){let slots=formationSlotsForCoach(teamId).flat().filter(s=>playerEligibleForSlot(p,s));if(!slots.length)return coachFitAssessment(p,preferredSlotForPlayer(p,teamId),teamId);return slots.map(slot=>coachFitAssessment(p,slot,teamId)).sort((a,b)=>b.score-a.score)[0]}
 function roleArchetypeForSlot(slot,style="Balanced"){
- if(slot==="GK")return style==="Possession"?"Sweeper Keeper":"Goalkeeper";
- if(["CB","LCB","RCB","SW"].includes(slot)){if(style==="Direct")return"Stopper";if(style==="Counter Attack")return"Cover Defender";return"Ball Playing Defender"}
- if(["LB","RB","LWB","RWB","WB"].includes(slot)){if(style==="Counter Attack")return"Defensive Full Back";if(style==="High Press")return"Wing Back";return"Supporting Full Back"}
- if(["DM","CDM","LDM","RDM"].includes(slot))return style==="High Press"?"Ball Winner":"Controller";
- if(["AM","CAM","LAM","RAM"].includes(slot))return"Playmaker";
- if(["CM","LCM","RCM"].includes(slot)){if(style==="High Press")return"Ball Winner";if(style==="Direct")return"Runner";if(style==="Counter Attack")return"Ball Winner";return"Controller"}
- if(["LW","RW","LM","RM","LF","RF"].includes(slot)){if(style==="Direct"||style==="Counter Attack")return"Direct Winger";if(style==="Balanced")return"Wide Creator";return"Creative Winger"}
- if(["CF","SS"].includes(slot))return style==="High Press"?"Pressing Forward":"Link Forward";
- return style==="Possession"?"Link Forward":"Striker";
+ let s=style||"Balanced";
+ if(slot==="GK")return ["Possession","Tiki-Taka","High Press","Attacking"].includes(s)?"Sweeper Keeper":"Goalkeeper";
+ if(["CB","LCB","RCB","SW"].includes(slot)){if(["Possession","Tiki-Taka","Attacking","High Press"].includes(s))return"Ball Playing Defender";if(s==="Counter Attack")return"Cover Defender";if(["Direct","Defensive"].includes(s))return"Stopper";return"Cover Defender"}
+ if(["LB","RB","LWB","RWB","WB"].includes(slot)){if(["High Press","Attacking","Tiki-Taka"].includes(s))return"Wing Back";if(["Counter Attack","Defensive"].includes(s))return"Defensive Full Back";return"Supporting Full Back"}
+ if(["DM","CDM","LDM","RDM"].includes(slot)){if(["High Press","Counter Attack","Direct","Defensive"].includes(s))return"Ball Winner";return"Controller"}
+ if(["AM","CAM","LAM","RAM"].includes(slot))return s==="High Press"?"Runner":"Playmaker";
+ if(["CM","LCM","RCM"].includes(slot)){if(s==="Tiki-Taka")return"Playmaker";if(s==="Possession")return"Controller";if(["High Press","Direct"].includes(s))return"Runner";if(["Counter Attack","Defensive"].includes(s))return"Ball Winner";if(s==="Attacking")return"Playmaker";return"Controller"}
+ if(["LW","RW","LM","RM","LF","RF"].includes(slot)){if(["Direct","Counter Attack","High Press"].includes(s))return"Direct Winger";if(s==="Defensive")return"Wide Midfielder";if(["Tiki-Taka","Attacking"].includes(s))return"Creative Winger";return"Wide Creator"}
+ if(["CF","SS"].includes(slot)){if(s==="High Press")return"Pressing Forward";if(s==="Attacking")return"Second Striker";return"Link Forward"}
+ if(s==="High Press")return"Pressing Forward";
+ if(["Possession","Tiki-Taka"].includes(s))return"Link Forward";
+ return"Striker";
 }
 function playerArchetype(p,teamId=G.club){seedPlayerStyle(p,p.team>=0?p.team:null);return p.primaryStyle||"Unprofiled"}
+function formationLineLabel(line,index=0){let groups=(line||[]).map(positionGroup);if(groups.length&&groups.every(x=>x==="GK"))return"GOALKEEPER";if(groups.length&&groups.every(x=>x==="DEF"))return line.some(x=>["LWB","RWB","WB"].includes(x))?"DEFENCE / WING BACKS":"DEFENCE";if(groups.length&&groups.every(x=>x==="MID"))return line.some(x=>["AM","CAM","LAM","RAM"].includes(x))?"ATTACKING MIDFIELD":line.some(x=>["DM","CDM","LDM","RDM"].includes(x))?"HOLDING MIDFIELD":"MIDFIELD";if(groups.length&&groups.every(x=>x==="FWD"))return"ATTACK";if(groups.includes("DEF")&&groups.includes("MID"))return"WIDE / MIDFIELD";return"LINE "+(index+1)}
 function coachBlueprint(teamId=G.club){
  let h=coachProfile(teamId),profile=coachStyleProfile(teamId),lines=formationSlotsForCoach(teamId);
- let names=["ATTACK","MIDFIELD","DEFENCE","GOALKEEPER"];
- let roleLines=lines.map((line,i)=>({label:names[i]||"LINE",roles:line.map(slot=>roleArchetypeForSlot(slot,h.style))}));
+ let roleLines=lines.map((line,i)=>({label:formationLineLabel(line,i),roles:line.map(slot=>roleArchetypeForSlot(slot,h.style))}));
  return{coach:h,profile,lines:roleLines};
 }
 function coachBlueprintHtml(teamId=G.club){
@@ -10579,7 +10559,6 @@ function teamCoachSummaryHtml(teamId=G.club){
 }
 function squadTeamView(){
  let c=coachProfile(),xi=startingXI(G.club),slots=formationSlotsForCoach(G.club),cursor=0;
- let lineNames=["ATTACK","MIDFIELD","DEFENCE","GOALKEEPER"];
  let boardLines=xi.lines.map((line,lineIndex)=>{
    let lineSlots=slots[lineIndex]||[];
    let items=line.map((p,index)=>{
@@ -10594,7 +10573,7 @@ function squadTeamView(){
        '<span class="formationMeta">'+slot+' · '+fitLabel+'</span>'+
      '</button>';
    }).join("");
-   let label=lineNames[lineIndex]||("LINE "+(lineIndex+1));
+   let label=formationLineLabel(lineSlots,lineIndex);
    return '<div class="formationLine"><div class="formationLineLabel">'+label+'</div><div class="formationPlayers formationCount'+Math.max(1,line.filter(Boolean).length)+'">'+items+'</div></div>';
  }).join("");
  let groups=[["GK","Goalkeepers"],["DEF","Defenders"],["MID","Midfielders"],["FWD","Forwards"]];
@@ -10612,7 +10591,7 @@ function squadTeamView(){
 function staffView(){
  let h=coachProfile(G.club),profile=coachStyleProfile(G.club),fits=roster().map(p=>bestFitForPlayer(p,G.club));
  let counts={Perfect:0,Good:0,Fair:0,Poor:0};fits.forEach(f=>{if(counts[f.label]===undefined)counts[f.label]=0;counts[f.label]++});
- return '<div class="card staffHero productionStaffHero"><div class="label">HEAD COACH</div><div class="staffHeadline"><div class="staffName">'+h.name+'</div><div class="staffHeadlineMeta"><b>'+h.ovr+' OVR</b><span>Appointed '+h.appointedSeason+'</span></div></div><div class="staffIdentityGrid"><div><span>PLAY STYLE</span><b>'+h.style+'</b></div><div><span>FORMATION</span><b>'+h.formation+'</b></div></div></div>'+coachBlueprintHtml(G.club)+'<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">How naturally the squad suits the Head Coach’s football identity.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Perfect+'</b><span>Perfect</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">Ability remains the primary selection factor. Coach Fit helps separate players of similar quality.</div></div>';
+ return '<div class="card staffHero productionStaffHero"><div class="label">HEAD COACH</div><div class="staffHeadline"><div class="staffName">'+h.name+'</div><div class="staffHeadlineMeta"><b>'+h.ovr+' OVR</b><span>Appointed '+h.appointedSeason+'</span></div></div><div class="staffIdentityGrid"><div><span>PLAY STYLE</span><b>'+h.style+'</b></div><div><span>FORMATION</span><b>'+h.formation+'</b></div><div><span>CLUB FOOTBALL DNA</span><b>'+clubFootballIdentity(G.club)+'</b></div><div><span>DNA ALIGNMENT</span><b>'+coachDNAAlignment(G.club).label+'</b></div></div></div>'+coachBlueprintHtml(G.club)+'<div class="card"><div class="title">Squad Coach Fit</div><div class="sub">How naturally the squad suits the Head Coach’s football identity.</div><div class="fitSummaryGrid"><div class="fitSummary excellent"><b>'+counts.Perfect+'</b><span>Perfect</span></div><div class="fitSummary good"><b>'+counts.Good+'</b><span>Good</span></div><div class="fitSummary fair"><b>'+counts.Fair+'</b><span>Fair</span></div><div class="fitSummary poor"><b>'+counts.Poor+'</b><span>Poor</span></div></div></div><div class="card"><div class="title">Selection Philosophy</div><div class="sub">Ability remains the primary selection factor. Coach Fit helps separate players of similar quality.</div></div>';
 }
 function squad(){
  normalizeSectionTabs();
