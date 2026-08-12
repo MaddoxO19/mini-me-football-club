@@ -5409,7 +5409,7 @@ body.season-transition-active{
 
 
 /* ==========================================================
-   v2.10.18.2 CLUB DNA EVOLUTION
+   v2.10.18.3 REGIONAL STRENGTH CALIBRATION
    Slow coach-led football identity change with GM approval.
    ========================================================== */
 .identityDecisionModal{
@@ -5565,7 +5565,7 @@ body.identity-decision-open{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.10.18.2 Club DNA Evolution Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.10.18.3 Regional Strength Calibration Alpha Mobile";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
@@ -5962,7 +5962,7 @@ function ensureCupState(){
  if(!G.cup||typeof G.cup!=="object")G.cup={};
  if(!Array.isArray(G.cup.history))G.cup.history=[];
  if(!Array.isArray(G.cup.regionalClubs)||G.cup.regionalClubs.length!==24){
-  G.cup.regionalClubs=REGIONAL_CUP_NAMES.map((name,i)=>({key:"R"+i,name,nation:G.careerNation,regional:true,rating:58+((i*7)%17)+rnd(-2,2)}));
+  G.cup.regionalClubs=REGIONAL_CUP_NAMES.map((name,i)=>({key:"R"+i,name,nation:G.careerNation,regional:true,rating:44+((i*7)%20)+rnd(-2,2)}));
  }
  if(Number(G.cup.season)!==Number(G.season)||!Array.isArray(G.cup.rounds)||!G.cup.rounds.length){
   let entrants=[...G.leagues.top.clubIds,...G.leagues.lower.clubIds].map(cupDomesticKey).concat(G.cup.regionalClubs.map(x=>x.key));
