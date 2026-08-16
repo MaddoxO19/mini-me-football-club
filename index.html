@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.13.0 World Cup Tournament Mode</title>
+<title>Mini&Me Football Club v2.11.13.1 National Squad Prompt Timing Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12810,7 +12810,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.13.0 World Cup Tournament Mode Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.13.1 National Squad Prompt Timing Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13332,6 +13332,12 @@ function resetManagedNationalSquad(){
 }
 
 
+
+function consumeNationalSquadConfirmation(){
+ ensureNationalGMState();
+ if(!G.nationalGM.active)return;
+ G.nationalGM.squadConfirmed=false;
+}
 function confirmManagedNationalSquad(){
  ensureNationalGMSquad();
  if(!G.nationalGM.active)return false;
@@ -13351,13 +13357,39 @@ function confirmManagedNationalSquad(){
  save();render();return true;
 }
 
+function nationalGMEventDueNow(){
+ ensureNationalGMState();
+ if(!G.nationalGM.active||!managedNationId())return false;
+
+ let week=Number(G.week);
+
+ // Standard international friendly window.
+ if(INTERNATIONAL_WINDOW_WEEKS.includes(week)){
+   let existing=(G.internationalNational&&Array.isArray(G.internationalNational.windows))
+     ?G.internationalNational.windows.find(w=>Number(w.season)===Number(G.season)&&Number(w.week)===week)
+     :null;
+   if(!existing)return true;
+ }
+
+ // World Cup qualification matchday.
+ if(WORLD_CUP_QUALIFYING_WEEKS.includes(week)){
+   let q=ensureWorldCupQualification();
+   if(q&&!q.complete)return true;
+ }
+
+ // Dedicated World Cup finals mode.
+ if(worldCupTournamentModeActive()){
+   let t=ensureWorldCupTournament();
+   if(t&&!t.complete)return true;
+ }
+
+ return false;
+}
+
 function nationalGMRequiresAttention(){
  ensureNationalGMState();
  if(!G.nationalGM.active)return false;
- let internationalWeek=INTERNATIONAL_WINDOW_WEEKS.includes(Number(G.week))||WORLD_CUP_QUALIFYING_WEEKS.includes(Number(G.week));
- let t=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.tournament;
- if(t&&Number(t.season)===Number(G.season)&&worldCupRoundDue())internationalWeek=true;
- return internationalWeek&&!G.nationalGM.squadConfirmed;
+ return nationalGMEventDueNow()&&!G.nationalGM.squadConfirmed;
 }
 function nationalSquadPlayerRowHtml(p,selected){
  let c=ensureInternationalPlayerCareer(p),club=p.team>=0?playerClubNameNow(p.team):p.team===-3?externalPlayerClubName(p):p.team===-1?"Free Agent":"Retired";
@@ -13890,6 +13922,7 @@ function simulateWorldCupTournamentWeek(){
  results.forEach(r=>r.label=label);
 
  m.tournamentWeek=Number(m.tournamentWeek||0)+1;
+ if(G.nationalGM&&G.nationalGM.active)consumeNationalSquadConfirmation();
 
  let payload={
    season:Number(G.season),
@@ -21827,6 +21860,7 @@ function simulatePendingInternationalWeek(){
 
  G.internationalWeekFlow.lastResults={season:Number(G.season),week:Number(G.week),results};
  G.internationalWeekFlow.pending=null;
+ if(G.nationalGM&&G.nationalGM.active)consumeNationalSquadConfirmation();
  save();
  showInternationalResultsScreen(G.internationalWeekFlow.lastResults);
  return results;
