@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.14.0 WCQ Review Clarity</title>
+<title>Mini&Me Football Club v2.11.14.1 H2H Empty State Cleanup</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.14.0 WCQ Review Clarity Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.14.1 H2H Empty State Cleanup Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15535,7 +15535,7 @@ function headToHead(clubId,opponentId){
  let meetings=fullMatchHistory().filter(m=>(m.competition||"LEAGUE")==="LEAGUE"&&((m.homeClubId===clubId&&m.awayClubId===opponentId)||(m.homeClubId===opponentId&&m.awayClubId===clubId)));
  return buildClubPairRecord(clubId,opponentId,meetings);
 }
-function headToHeadLabel(clubId,opponentId){let h=headToHead(clubId,opponentId);return h.played?(h.w+"W · "+h.d+"D · "+h.l+"L"):"No archived meetings"}
+function headToHeadLabel(clubId,opponentId){let h=headToHead(clubId,opponentId);return h.played?(h.w+"W · "+h.d+"D · "+h.l+"L"):""}
 function rivalryMeetings(clubId,opponentId){
  return fullMatchHistory().filter(m=>Number.isFinite(Number(m.homeClubId))&&Number.isFinite(Number(m.awayClubId))&&((Number(m.homeClubId)===Number(clubId)&&Number(m.awayClubId)===Number(opponentId))||(Number(m.homeClubId)===Number(opponentId)&&Number(m.awayClubId)===Number(clubId))));
 }
