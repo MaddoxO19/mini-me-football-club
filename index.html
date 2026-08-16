@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.4 Recent International Results Sync</title>
+<title>Mini&Me Football Club v2.11.15.5 National Review Navigation Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.4 Recent International Results Sync Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.5 National Review Navigation Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13647,6 +13647,23 @@ function nationalGMRecordLabel(){
  return total?(n.wins+"W · "+n.draws+"D · "+n.losses+"L"):"No matches managed";
 }
 
+
+
+function openNationalInternationalManagement(){
+ window.internationalSectionTab="national";
+ page="league";
+ window.leagueTab="international";
+ window.leagueInternationalTab="national";
+ render();
+
+ // After render, bring the manager controls into view where possible.
+ setTimeout(()=>{
+   let target=document.querySelector(".nationalInternationalManagerCard")||
+              document.querySelector('[data-national-gm-open-squad="1"]')||
+              document.querySelector(".internationalSectionTabs");
+   if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
+ },80);
+}
 
 function nationalGMActionRequiredHtml(){
  if(!nationalGMRequiresAttention())return"";
@@ -23732,7 +23749,7 @@ document.addEventListener("click",function(e){
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
  let worldCupModeSim=e.target.closest&&e.target.closest("[data-world-cup-mode-sim]");if(worldCupModeSim){simulateWorldCupTournamentWeek();return}
  let intSection=e.target.closest&&e.target.closest("[data-international-section]");if(intSection){window.internationalSectionTab=intSection.dataset.internationalSection||"club";render();return}
- let nationalGMOpenSquad=e.target.closest&&e.target.closest("[data-national-gm-open-squad]");if(nationalGMOpenSquad){window.gmCareerScope="national";showGMProfile();return}
+ let nationalGMOpenSquad=e.target.closest&&e.target.closest("[data-national-gm-open-squad]");if(nationalGMOpenSquad){openNationalInternationalManagement();return}
  let nationalGMConfirmSquad=e.target.closest&&e.target.closest("[data-national-gm-confirm-squad]");if(nationalGMConfirmSquad){confirmManagedNationalSquad();return}
  let nationalSquadAdd=e.target.closest&&e.target.closest("[data-national-squad-add]");if(nationalSquadAdd){addPlayerToNationalSquad(nationalSquadAdd.dataset.nationalSquadAdd);return}
  let nationalSquadRemove=e.target.closest&&e.target.closest("[data-national-squad-remove]");if(nationalSquadRemove){removePlayerFromNationalSquad(nationalSquadRemove.dataset.nationalSquadRemove);return}
