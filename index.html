@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.1 World Cup State Sync</title>
+<title>Mini&Me Football Club v2.11.15.2 WCQ Matchday Display Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.1 World Cup State Sync Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.2 WCQ Matchday Display Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15532,7 +15532,7 @@ function worldCupQualificationCardHtml(){
  if(t&&Number(t.season)===Number(G.season))return"";
  let s=worldCupQualificationSummary();if(!s)return"";
  let q=ensureWorldCupQualification(),rows=s.rows||[],table=rows.map((r,i)=>'<div class="wcqRow '+(r.id===G.careerNation?'me':'')+'"><span class="wcqPos">'+(i+1)+'</span><span class="wcqNation">'+nationFlagHtml(r.id,17)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><span><b>'+r.pts+'</b></span></div>').join("");
- let status=s.complete?(s.qualified?"QUALIFIED":"ELIMINATED"):"MATCHDAY "+(Number(q.nextMatchday)||0)+" OF 5";
+ let md=qualificationDisplayMatchday((q.confederations||{})[s.confed]);let status=s.complete?(s.qualified?"QUALIFIED":"ELIMINATED"):"MATCHDAY "+md.current+" OF "+md.total;
  return '<div class="card wcqCard"><div class="sectionHead"><div><div class="screenEyebrow">INTERNATIONAL FOOTBALL</div><div class="title">World Cup Qualifying · Group '+s.group+'</div><div class="sub">Top four qualify for the 32-team World Cup.</div></div><div class="wcqStatus '+(s.qualified?'good':'')+'">'+status+'</div></div><div class="wcqHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span></div>'+table+'</div>';
 }
 
