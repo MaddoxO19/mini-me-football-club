@@ -12621,7 +12621,7 @@ const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
 const WORLD_ENGINE_VERSION="2.0";
 const FOOTBALL_NATIONS=[
- {id:"AUS",name:"Australia",flag:"🇦🇺"},{id:"ENG",name:"England",flag:"🏴"},{id:"FRA",name:"France",flag:"🇫🇷"},{id:"GER",name:"Germany",flag:"🇩🇪"},
+ {id:"AUS",name:"Australia",flag:"🇦🇺"},{id:"ENG",name:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},{id:"FRA",name:"France",flag:"🇫🇷"},{id:"GER",name:"Germany",flag:"🇩🇪"},
  {id:"ITA",name:"Italy",flag:"🇮🇹"},{id:"JPN",name:"Japan",flag:"🇯🇵"},{id:"ESP",name:"Spain",flag:"🇪🇸"},{id:"USA",name:"United States",flag:"🇺🇸"},
  {id:"BRA",name:"Brazil",flag:"🇧🇷"},{id:"ARG",name:"Argentina",flag:"🇦🇷"},{id:"NED",name:"Netherlands",flag:"🇳🇱"},{id:"POR",name:"Portugal",flag:"🇵🇹"},
  {id:"KOR",name:"South Korea",flag:"🇰🇷"},{id:"MEX",name:"Mexico",flag:"🇲🇽"},{id:"CAN",name:"Canada",flag:"🇨🇦"},{id:"NGA",name:"Nigeria",flag:"🇳🇬"},
@@ -12635,7 +12635,7 @@ const FOOTBALL_NATIONS=[
  {id:"CIV",name:"Côte d’Ivoire",flag:"🇨🇮"},{id:"RSA",name:"South Africa",flag:"🇿🇦"},{id:"CRC",name:"Costa Rica",flag:"🇨🇷"},{id:"PAN",name:"Panama",flag:"🇵🇦"},
  {id:"PER",name:"Peru",flag:"🇵🇪"},{id:"PAR",name:"Paraguay",flag:"🇵🇾"},{id:"NZL",name:"New Zealand",flag:"🇳🇿"},{id:"KSA",name:"Saudi Arabia",flag:"🇸🇦"}
 ,
-{id:"IRL",name:"Republic of Ireland",flag:"🇮🇪"},{id:"SCO",name:"Scotland",flag:"🏴"},{id:"WAL",name:"Wales",flag:"🏴"},{id:"HUN",name:"Hungary",flag:"🇭🇺"},
+{id:"IRL",name:"Republic of Ireland",flag:"🇮🇪"},{id:"SCO",name:"Scotland",flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿"},{id:"WAL",name:"Wales",flag:"🏴󠁧󠁢󠁷󠁬󠁳󠁿"},{id:"HUN",name:"Hungary",flag:"🇭🇺"},
  {id:"SVK",name:"Slovakia",flag:"🇸🇰"},{id:"SLO",name:"Slovenia",flag:"🇸🇮"},{id:"BUL",name:"Bulgaria",flag:"🇧🇬"},{id:"FIN",name:"Finland",flag:"🇫🇮"},
  {id:"ISL",name:"Iceland",flag:"🇮🇸"},{id:"ALB",name:"Albania",flag:"🇦🇱"},{id:"BIH",name:"Bosnia & Herzegovina",flag:"🇧🇦"},{id:"MKD",name:"North Macedonia",flag:"🇲🇰"},
  {id:"TUN",name:"Tunisia",flag:"🇹🇳"},{id:"MLI",name:"Mali",flag:"🇲🇱"},{id:"BFA",name:"Burkina Faso",flag:"🇧🇫"},{id:"COD",name:"DR Congo",flag:"🇨🇩"},
@@ -12833,10 +12833,22 @@ function crestByNameHtml(name,size){
 function nationById(id){return FOOTBALL_NATIONS.find(n=>n.id===id)||FOOTBALL_NATIONS[0]}
 function nationName(id){return nationById(id).name}
 function nationFlag(id){return nationById(id).flag}
+var __subEmojiOK=null;
+function subEmojiOK(){
+ if(__subEmojiOK!==null)return __subEmojiOK;
+ try{
+  var cv=document.createElement('canvas');cv.width=cv.height=24;
+  var cx=cv.getContext('2d');cx.textBaseline='top';cx.font='20px sans-serif';
+  cx.clearRect(0,0,24,24);cx.fillText('\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F',0,0);var a=cv.toDataURL();
+  cx.clearRect(0,0,24,24);cx.fillText('\uD83C\uDFF4',0,0);var b=cv.toDataURL();
+  __subEmojiOK=(a!==b);
+ }catch(e){__subEmojiOK=false;}
+ return __subEmojiOK;
+}
 function nationFlagHtml(id,size=22){
  let n=nationById(id),w=Math.max(16,Number(size)||22);
  var SUBFLAG={"ENG": "<svg viewBox=\"0 0 30 20\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"30\" height=\"20\" fill=\"#f4f4f1\"/><rect x=\"13\" width=\"4\" height=\"20\" fill=\"#c8102e\"/><rect y=\"8\" width=\"30\" height=\"4\" fill=\"#c8102e\"/></svg>", "SCO": "<svg viewBox=\"0 0 30 20\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"30\" height=\"20\" fill=\"#0a4595\"/><path d=\"M0 0 L30 20 M30 0 L0 20\" stroke=\"#f4f4f1\" stroke-width=\"3.2\"/></svg>", "WAL": "<svg viewBox=\"0 0 30 20\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"30\" height=\"10\" fill=\"#f4f4f1\"/><rect y=\"10\" width=\"30\" height=\"10\" fill=\"#177a4a\"/><path d=\"M6 11 q2 -4 6 -3 q-1 -2 1 -3 q1 2 3 1 q2 2 5 2 q-2 2 -1 3 q2 0 3 2 q-3 0 -4 2 q-1 -1 -3 -1 q-3 1 -6 0 q1 -2 -1 -3 q-3 1 -5 -2 z\" fill=\"#c8102e\"/></svg>"};
- if(SUBFLAG[n.id]){
+ if(SUBFLAG[n.id]&&!subEmojiOK()){
    return '<span class="inlineNationFlag svgFlag '+(n.id==="ENG"?"englandSvgFlag":"")+'" style="--flag-size:'+w+'px" role="img" aria-label="'+n.name+' flag">'+SUBFLAG[n.id]+'</span>';
  }
  return '<span class="inlineNationFlag emojiFlag" style="--flag-size:'+w+'px" role="img" aria-label="'+n.name+' flag">'+n.flag+'</span>';
@@ -14982,6 +14994,7 @@ function clubInternationalContent(){
  let hist=(G.intClub.history||[]).map(h=>'<div class="intHistoryRow"><div class="yr">'+h.season+'</div><div><b>'+h.winnerName+'</b><span>'+nationFlagHtml(h.winnerNation,18)+'<span>'+nationName(h.winnerNation)+' · Champion</span>'+(h.goldenBoot?'<br>Golden Boot · '+h.goldenBoot.name+' ('+h.goldenBoot.goals+')':'')+'</span></div><div><b>'+h.runnerUpName+'</b><span>'+nationFlagHtml(h.runnerUpNation,18)+'<span>'+nationName(h.runnerUpNation)+' · Runner-up</span></span></div></div>').join('');
  return '<div class="card intHero competitionHero"><div class="screenEyebrow">INTERNATIONAL CLUB FOOTBALL · 96 NATION WORLD</div><div class="title">Champions Tournament</div><div class="sub">'+G.season+' · 32 clubs · 16 nations · Knockout Round.</div><div class="intStatusGrid competitionStatusGrid"><div><span>YOUR CLUB</span><b>'+userStatus+'</b></div><div><span>NEXT EVENT</span><b>'+nextText+'</b></div><div><span>FORMAT</span><b>5 rounds</b></div></div></div><div class="card qualificationCard competitionQualificationCard"><div class="sectionHead"><div><div class="title">'+nationName(G.careerNation)+' Representatives</div><div class="sub">Premier Champion and National Cup winner qualify. A domestic double passes the second spot to the Premier runner-up.</div></div></div>'+qrows+'</div>'+goldCard+rounds+'<div class="card competitionHistoryCard"><div class="sectionHead"><div><div class="title">International History</div><div class="sub">Champions and runners-up across your career.</div></div><div class="sectionCount">'+(G.intClub.history||[]).length+'</div></div>'+(hist||'<div class="profileEmpty compactEmpty">No Champions Tournament has been completed yet.</div>')+'</div>'; }
 
+/* v2.11.10.5: Club International and National Internationals render independent content sets. */
 function internationalClubView(){
  let tab=window.internationalSectionTab||"club";
  return internationalSectionTabsHtml()+(tab==="national"?nationalInternationalView():clubInternationalContent());
