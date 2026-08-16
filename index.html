@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.14.2 National Confirmation Placement</title>
+<title>Mini&Me Football Club v2.11.15.0 International Power Balance</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.14.2 National Confirmation Placement Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.0 International Power Balance Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13714,13 +13714,16 @@ function nationalStateById(id){
 }
 function nationalRanking(){
  ensureInternationalNationalState();
- return G.internationalNational.nations.slice().sort((a,b)=>Number(b.rating)-Number(a.rating)||nationName(a.id).localeCompare(nationName(b.id)));
+ return G.internationalNational.nations.slice().sort((a,b)=>effectiveNationalRating(b.id)-effectiveNationalRating(a.id)||nationName(a.id).localeCompare(nationName(b.id)));
 }
 function updateNationalRating(homeId,awayId,hg,ag){
  let h=nationalStateById(homeId),a=nationalStateById(awayId);if(!h||!a)return;
  let expectedH=1/(1+Math.pow(10,(Number(a.rating)-Number(h.rating))/400));
  let resultH=hg>ag?1:hg===ag?.5:0,k=14,delta=Math.round(k*(resultH-expectedH));
  h.rating+=delta;a.rating-=delta;
+ let hp=nationalPowerProfile(homeId),ap=nationalPowerProfile(awayId);
+ if(hp)h.rating=Math.max(h.rating,Number(hp.floor)-32);
+ if(ap)a.rating=Math.max(a.rating,Number(ap.floor)-32);
  h.played++;a.played++;h.gf+=hg;h.ga+=ag;a.gf+=ag;a.ga+=hg;
  if(hg>ag){h.wins++;a.losses++}else if(hg<ag){a.wins++;h.losses++}else{h.draws++;a.draws++}
 }
@@ -14295,34 +14298,97 @@ function internationalPoisson(lambda,seed,offset=0){
  do{k++;p*=Math.max(.000001,internationalRand(seed,offset+k))}while(p>L&&k<10);
  return Math.max(0,Math.min(6,k-1));
 }
+
+/* ==========================================================
+   v2.11.15.0 INTERNATIONAL POWER BALANCE
+   Traditional/current football powers retain a stable underlying
+   advantage. Upsets remain possible, but major nations should normally
+   qualify and dominate their confederations.
+   ========================================================== */
+const NATIONAL_POWER_PROFILE={
+ // AFC
+ AUS:{tier:"POWER",floor:805,base:86},
+ JPN:{tier:"POWER",floor:820,base:88},
+ KOR:{tier:"POWER",floor:815,base:87},
+ KSA:{tier:"STRONG",floor:760,base:81},
+ // CONCACAF
+ USA:{tier:"POWER",floor:810,base:86},
+ MEX:{tier:"POWER",floor:815,base:87},
+ CAN:{tier:"STRONG",floor:755,base:80},
+ CRC:{tier:"STRONG",floor:745,base:79},
+ // CONMEBOL
+ ARG:{tier:"ELITE",floor:850,base:92},
+ BRA:{tier:"ELITE",floor:850,base:92},
+ URU:{tier:"POWER",floor:805,base:86},
+ COL:{tier:"POWER",floor:795,base:85},
+ ECU:{tier:"STRONG",floor:760,base:81},
+ // UEFA
+ FRA:{tier:"ELITE",floor:845,base:91},
+ ENG:{tier:"ELITE",floor:840,base:90},
+ ESP:{tier:"ELITE",floor:840,base:90},
+ GER:{tier:"ELITE",floor:830,base:89},
+ ITA:{tier:"POWER",floor:815,base:87},
+ POR:{tier:"POWER",floor:820,base:88},
+ NED:{tier:"POWER",floor:815,base:87},
+ BEL:{tier:"POWER",floor:800,base:86},
+ CRO:{tier:"POWER",floor:795,base:85},
+ // CAF
+ MAR:{tier:"POWER",floor:800,base:85},
+ SEN:{tier:"POWER",floor:790,base:84},
+ NGA:{tier:"POWER",floor:785,base:84},
+ EGY:{tier:"STRONG",floor:760,base:81},
+ CMR:{tier:"STRONG",floor:755,base:81},
+ CIV:{tier:"STRONG",floor:755,base:81},
+ // OFC
+ NZL:{tier:"POWER",floor:770,base:82}
+};
+
+function nationalPowerProfile(nationId){
+ let id=normalizedNationId(nationId);
+ return NATIONAL_POWER_PROFILE[id]||null;
+}
+
+function effectiveNationalRating(nationId){
+ let state=nationalStateById(nationId),raw=Number(state&&state.rating)||700,p=nationalPowerProfile(nationId);
+ if(p)return Math.max(raw,Number(p.floor)||raw);
+ // Emerging nations can improve, but cannot become implausible superpowers solely
+ // through accumulated rating drift.
+ return Math.min(raw,815);
+}
+
+function effectiveNationalBase(nationId,currentBase){
+ let p=nationalPowerProfile(nationId),base=Number(currentBase)||74;
+ return p?Math.max(base,Number(p.base)||base):base;
+}
+
 function nationalTeamTier(nationId){
- let rating=Number(nationalStateById(nationId)?.rating)||700;
- if(rating>=820)return{key:"ELITE",label:"Elite",mult:1.14};
- if(rating>=770)return{key:"STRONG",label:"Strong",mult:1.08};
- if(rating>=720)return{key:"COMPETITIVE",label:"Competitive",mult:1.03};
- if(rating>=670)return{key:"DEVELOPING",label:"Developing",mult:.97};
- return{key:"LOWER",label:"Lower",mult:.91};
+ let rating=effectiveNationalRating(nationId),p=nationalPowerProfile(nationId);
+ if((p&&p.tier==="ELITE")||rating>=835)return{key:"ELITE",label:"Elite",mult:1.18};
+ if((p&&p.tier==="POWER")||rating>=795)return{key:"POWER",label:"Power",mult:1.12};
+ if((p&&p.tier==="STRONG")||rating>=755)return{key:"STRONG",label:"Strong",mult:1.07};
+ if(rating>=710)return{key:"COMPETITIVE",label:"Competitive",mult:1.015};
+ if(rating>=665)return{key:"DEVELOPING",label:"Developing",mult:.96};
+ return{key:"LOWER",label:"Lower",mult:.90};
 }
 
 function nationalTeamStrength(nationId){
  if(internationalBatchCache&&internationalBatchCache.strengths.has(nationId))return internationalBatchCache.strengths.get(nationId);
  ensureInternationalNationalState();
  let state=G.internationalNational.nations.find(n=>n.id===nationId),
-     base=Number(state&&state.baseStrength)||74,
+     base=effectiveNationalBase(nationId,Number(state&&state.baseStrength)||74),
      pool=nationalTeamSelection(nationId,23),
-     rating=Number(state&&state.rating)||700,
+     rating=effectiveNationalRating(nationId),
      tier=nationalTeamTier(nationId);
  let value;
  if(!pool.length){
-   value=base*.72+(rating/10)*.28;
+   value=base*.68+(rating/10)*.32;
  }else{
-   // Use the best balanced XI rather than merely the first 11 names.
    let sel=internationalAppearancePlayersRaw(nationId,pool),xi=sel.starters.length?sel.starters:pool.slice(0,11);
    let avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||60),0)/xi.length:base;
-   // Ratings now matter more, while squad quality remains the dominant signal.
-   value=(base*.22)+(avg*.56)+((rating/10)*.22);
+   // Squad remains the largest component, but established national strength
+   // now has enough weight to prevent implausible long-term collapse.
+   value=(base*.28)+(avg*.49)+((rating/10)*.23);
  }
- // Tier multiplier deliberately widens elite-to-lower separation.
  value*=tier.mult;
  if(internationalBatchCache)internationalBatchCache.strengths.set(nationId,value);
  return value;
@@ -14451,26 +14517,36 @@ function internationalMatchExpectations(a,b,neutral=true){
 
 function internationalUpsetGuard(a,b,hg,ag,seed){
  let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),diff=sa-sb,abs=Math.abs(diff);
- if(abs<12)return[hg,ag];
+ if(abs<11)return[hg,ag];
 
  let favourite=diff>0?"home":"away";
  let favGoals=favourite==="home"?hg:ag,undGoals=favourite==="home"?ag:hg;
  let upset=undGoals>favGoals,draw=undGoals===favGoals;
-
  if(!upset&&!draw)return[hg,ag];
 
- // Large-gap upsets remain possible, but become progressively rarer.
- let allowChance=abs>=24?.035:abs>=20?.06:abs>=16?.10:.16;
+ // A shock remains possible, but its probability falls sharply as the
+ // underlying national-team gap increases.
+ let allowChance=abs>=26?.025:abs>=22?.045:abs>=18?.075:abs>=14?.12:.18;
  let r=internationalRand(seed+"|UPSET_GUARD",1);
 
  if(upset&&r>allowChance){
    if(favourite==="home")hg=Math.max(hg,ag);
    else ag=Math.max(ag,hg);
  }
- // Very large mismatches should also draw less often.
- if(draw&&abs>=20&&internationalRand(seed+"|DRAW_GUARD",2)>.22){
+ if(draw&&abs>=18&&internationalRand(seed+"|DRAW_GUARD",2)>.20){
    if(favourite==="home")hg++;
    else ag++;
+ }
+
+ // Elite/power nations losing outright to developing/lower nations should be rare.
+ let ft=nationalTeamTier(favourite==="home"?a:b),
+     ut=nationalTeamTier(favourite==="home"?b:a);
+ if(["ELITE","POWER"].includes(ft.key)&&["DEVELOPING","LOWER"].includes(ut.key)){
+   let fav=favourite==="home"?hg:ag,und=favourite==="home"?ag:hg;
+   if(und>fav&&internationalRand(seed+"|POWER_SHOCK",3)>.06){
+     if(favourite==="home")hg=ag;
+     else ag=hg;
+   }
  }
  return[hg,ag];
 }
