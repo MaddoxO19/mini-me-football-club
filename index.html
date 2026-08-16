@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.12.1 International Results Score Fix</title>
+<title>Mini&Me Football Club v2.11.12.2 Managed Nation Result Highlight</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12514,6 +12514,43 @@ body.international-results-active{overflow:hidden}
  .internationalWeekActionHead .title{font-size:18px!important}
 }
 </style>
+
+<style id="minime-v2-11-12-2-managed-nation-result-highlight">
+/* v2.11.12.2 Managed nation emphasis within international results */
+.internationalWindowResultRow.managedNation{
+  border:1px solid #6b5b2e!important;
+  border-radius:10px!important;
+  background:linear-gradient(180deg,#d9b54a12,#d9b54a06)!important;
+  box-shadow:inset 3px 0 0 var(--gold)!important;
+  padding-left:8px!important;
+  padding-right:8px!important;
+}
+.managedNationResultBadge{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:18px!important;
+  padding:2px 5px!important;
+  margin-left:5px!important;
+  border:1px solid #6b5b2e!important;
+  border-radius:999px!important;
+  background:#d9b54a10!important;
+  color:var(--gold)!important;
+  font-size:5.8px!important;
+  font-weight:950!important;
+  letter-spacing:.07em!important;
+  white-space:nowrap!important;
+}
+.internationalWindowNation.away .managedNationResultBadge{
+  margin-left:0!important;
+  margin-right:5px!important;
+}
+@media(max-width:430px){
+  .managedNationResultBadge{
+    font-size:5.3px!important;
+    padding:2px 4px!important;
+  }
+}
+</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -12691,7 +12728,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.12.1 International Results Score Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.12.2 Managed Nation Result Highlight Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -21591,6 +21628,10 @@ function simulatePendingInternationalWeek(){
  return results;
 }
 
+
+function internationalResultIsManagedNation(r){
+ return !!(G&&G.nationalGM&&G.nationalGM.active&&G.nationalGM.nation&&(r.home===G.nationalGM.nation||r.away===G.nationalGM.nation));
+}
 function internationalResultIsRelevant(r){
  let relevant=new Set([G.careerNation]);
  if(G.nationalGM&&G.nationalGM.active&&G.nationalGM.nation)relevant.add(G.nationalGM.nation);
@@ -21628,10 +21669,16 @@ function internationalResultScore(r,payloadWeek){
 }
 
 function internationalResultRowHtml(r){
- let hot=internationalResultIsRelevant(r),score=internationalResultScore(r,window.__internationalResultsRenderWeek||G.week),
+ let managed=internationalResultIsManagedNation(r),hot=internationalResultIsRelevant(r),
+     score=internationalResultScore(r,window.__internationalResultsRenderWeek||G.week),
      scoreText=score[0]===null||score[1]===null?'—':score[0]+'–'+score[1],
-     pen=r.pens?' <small>('+r.pens.home+'–'+r.pens.away+' pens)</small>':'';
- return '<div class="internationalWindowResultRow '+(hot?'relevant':'')+'"><span class="internationalWindowNation">'+nationFlagHtml(r.home,16)+'<b>'+nationName(r.home)+'</b></span><strong>'+scoreText+pen+'</strong><span class="internationalWindowNation away">'+nationFlagHtml(r.away,16)+'<b>'+nationName(r.away)+'</b></span></div>';
+     pen=r.pens?' <small>('+r.pens.home+'–'+r.pens.away+' pens)</small>':'',
+     managedBadge=managed?'<span class="managedNationResultBadge">YOUR NATION</span>':'';
+ return '<div class="internationalWindowResultRow '+(managed?'managedNation ':'')+(hot?'relevant':'')+'">'+
+   '<span class="internationalWindowNation">'+nationFlagHtml(r.home,16)+'<b>'+nationName(r.home)+'</b>'+(managed&&r.home===G.nationalGM.nation?managedBadge:'')+'</span>'+
+   '<strong>'+scoreText+pen+'</strong>'+
+   '<span class="internationalWindowNation away">'+(managed&&r.away===G.nationalGM.nation?managedBadge:'')+nationFlagHtml(r.away,16)+'<b>'+nationName(r.away)+'</b></span>'+
+ '</div>';
 }
 
 function internationalResultsContentHtml(payload){
