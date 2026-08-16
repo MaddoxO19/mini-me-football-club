@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.12.0 International Week Flow</title>
+<title>Mini&Me Football Club v2.11.12.1 International Results Score Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12691,7 +12691,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.12.0 International Week Flow Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.12.1 International Results Score Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -21566,7 +21566,14 @@ function simulatePendingInternationalWeek(){
  let t=ensureWorldCupTournament();if(t)stageBefore=t.stage;
 
  let friendly=processInternationalWindowIfDue();
- if(friendly&&Array.isArray(friendly.matches))results.push(...friendly.matches.map(m=>({home:m.home,away:m.away,hg:m.hg,ag:m.ag,pens:m.pens||null,type:"FRIENDLY",group:"FRIENDLY",label:"INTERNATIONAL FRIENDLIES"})));
+ if(friendly&&Array.isArray(friendly.matches))results.push(...friendly.matches.map(m=>({
+  home:m.home,away:m.away,
+  hg:Number.isFinite(Number(m.hg))?Number(m.hg):Number(m.homeGoals),
+  ag:Number.isFinite(Number(m.ag))?Number(m.ag):Number(m.awayGoals),
+  homeGoals:Number.isFinite(Number(m.homeGoals))?Number(m.homeGoals):Number(m.hg),
+  awayGoals:Number.isFinite(Number(m.awayGoals))?Number(m.awayGoals):Number(m.ag),
+  pens:m.pens||null,type:"FRIENDLY",group:"FRIENDLY",label:"INTERNATIONAL FRIENDLIES"
+ })));
 
  let qual=processWorldCupQualificationIfDue();
  if(qual)results.push(...collectWCQWeekResults());
@@ -21599,12 +21606,36 @@ function internationalResultsGroupOrder(label){
  return 20;
 }
 
+
+function internationalResultScore(r,payloadWeek){
+ let hg=Number.isFinite(Number(r&&r.hg))?Number(r.hg):(Number.isFinite(Number(r&&r.homeGoals))?Number(r.homeGoals):null);
+ let ag=Number.isFinite(Number(r&&r.ag))?Number(r.ag):(Number.isFinite(Number(r&&r.awayGoals))?Number(r.awayGoals):null);
+ if(hg!==null&&ag!==null)return[hg,ag];
+
+ // Recovery path for results already saved by v2.11.12.0 with missing score fields.
+ let week=Number(payloadWeek||G.week),season=Number(G.season);
+ let windows=G&&G.internationalNational&&Array.isArray(G.internationalNational.windows)?G.internationalNational.windows:[];
+ for(let w of windows){
+  if(Number(w.season)!==season||Number(w.week)!==week)continue;
+  let m=(w.matches||[]).find(x=>x&&x.home===r.home&&x.away===r.away);
+  if(m){
+   let h=Number.isFinite(Number(m.hg))?Number(m.hg):Number(m.homeGoals);
+   let a=Number.isFinite(Number(m.ag))?Number(m.ag):Number(m.awayGoals);
+   if(Number.isFinite(h)&&Number.isFinite(a))return[h,a];
+  }
+ }
+ return[null,null];
+}
+
 function internationalResultRowHtml(r){
- let hot=internationalResultIsRelevant(r),pen=r.pens?' <small>('+r.pens.home+'–'+r.pens.away+' pens)</small>':'';
- return '<div class="internationalWindowResultRow '+(hot?'relevant':'')+'"><span class="internationalWindowNation">'+nationFlagHtml(r.home,16)+'<b>'+nationName(r.home)+'</b></span><strong>'+r.hg+'–'+r.ag+pen+'</strong><span class="internationalWindowNation away">'+nationFlagHtml(r.away,16)+'<b>'+nationName(r.away)+'</b></span></div>';
+ let hot=internationalResultIsRelevant(r),score=internationalResultScore(r,window.__internationalResultsRenderWeek||G.week),
+     scoreText=score[0]===null||score[1]===null?'—':score[0]+'–'+score[1],
+     pen=r.pens?' <small>('+r.pens.home+'–'+r.pens.away+' pens)</small>':'';
+ return '<div class="internationalWindowResultRow '+(hot?'relevant':'')+'"><span class="internationalWindowNation">'+nationFlagHtml(r.home,16)+'<b>'+nationName(r.home)+'</b></span><strong>'+scoreText+pen+'</strong><span class="internationalWindowNation away">'+nationFlagHtml(r.away,16)+'<b>'+nationName(r.away)+'</b></span></div>';
 }
 
 function internationalResultsContentHtml(payload){
+ window.__internationalResultsRenderWeek=Number(payload&&payload.week||G.week);
  let results=Array.isArray(payload&&payload.results)?payload.results:[];
  if(!results.length)return '<div class="card"><div class="title">No international fixtures</div><div class="sub">No nation v nation results were produced for this window.</div></div>';
  let groups=new Map();
