@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.13.1 National Squad Prompt Timing Fix</title>
+<title>Mini&Me Football Club v2.11.14.0 WCQ Review Clarity</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12633,6 +12633,118 @@ body.international-results-active{overflow:hidden}
  .worldCupModeStage b{font-size:8px!important}
 }
 </style>
+
+<style id="minime-v2-11-14-wcq-review-clarity">
+.reviewQualificationOverview{
+  margin:10px 0 12px;
+  padding:11px;
+  border:1px solid #6b5b2e;
+  border-radius:11px;
+  background:linear-gradient(180deg,#d9b54a0b,#101820);
+}
+.reviewQualificationOverviewHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  padding-bottom:10px;
+}
+.reviewQualificationOverviewHead>div{display:flex;flex-direction:column;gap:3px}
+.reviewQualificationOverviewHead span,
+.reviewQualifierSectionHead span,
+.reviewConfedRoute span,
+.reviewPlayoffRoute span{
+  color:var(--gold);
+  font-size:6.2px;
+  font-weight:950;
+  letter-spacing:.11em;
+}
+.reviewQualificationOverviewHead b{font-size:11px}
+.reviewQualificationOverviewHead small{color:#8f9daa;font-size:7px;line-height:1.45}
+.reviewQualificationOverviewHead>strong{color:var(--gold);font-size:17px;white-space:nowrap}
+.reviewQuotaGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+}
+.reviewQuotaTile{
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#111a24;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.reviewQuotaTile span{color:#8f9daa;font-size:6px;font-weight:900;letter-spacing:.08em}
+.reviewQuotaTile b{color:#f2f4f6;font-size:10px}
+.reviewQuotaTile small{color:#7f8e9a;font-size:5.8px}
+.reviewPlayoffRoute,.reviewConfedRoute{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  padding:7px 8px;
+  border-top:1px solid var(--line);
+}
+.reviewPlayoffRoute b,.reviewConfedRoute b{font-size:7px;text-align:right}
+.reviewConfedClarity{overflow:hidden}
+.reviewQualifierSection{
+  padding:9px 10px 10px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.reviewQualifierSectionHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:7px;
+}
+.reviewQualifierSectionHead b{color:#8f9daa;font-size:7px}
+.reviewQualifierChips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.reviewQualifierChip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 7px;
+  border:1px solid #315d43;
+  border-radius:999px;
+  background:#14302055;
+}
+.reviewQualifierChip span{font-size:7px;font-weight:850}
+.reviewQualifierChip b{color:#52dd89;font-size:5px;letter-spacing:.06em}
+.reviewQualifierEmpty{color:#8997a2;font-size:7px;line-height:1.45}
+.reviewQualificationTables{
+  padding:0 8px 8px;
+}
+.reviewQualificationTables>summary{
+  padding:9px 2px 7px;
+  color:var(--gold);
+  font-size:6.5px;
+  font-weight:950;
+  letter-spacing:.09em;
+  cursor:pointer;
+  list-style:none;
+}
+.reviewQualificationTables .reviewWCQGroup{margin-top:6px}
+.reviewWCQGroup summary>strong{
+  font-size:6px!important;
+  color:#8d9aa5!important;
+  text-align:right!important;
+  max-width:38%;
+}
+@media(max-width:430px){
+  .reviewQuotaGrid{grid-template-columns:repeat(2,1fr)}
+  .reviewQualificationOverviewHead>strong{font-size:14px}
+  .reviewPlayoffRoute,.reviewConfedRoute{align-items:flex-start;flex-direction:column}
+  .reviewPlayoffRoute b,.reviewConfedRoute b{text-align:left}
+}
+</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -12810,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.13.1 National Squad Prompt Timing Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.14.0 WCQ Review Clarity Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -19223,20 +19335,142 @@ function resolveReviewPlayerId(item){
 }
 
 
-function seasonReviewQualificationTableHtml(confId,conf){
- let meta=confederationById(confId),complete=!!conf.complete;
- let status=complete?'QUALIFYING COMPLETE':'QUALIFYING IN PROGRESS';
- let groups=[];
- if(conf.format==='GROUPS')groups=conf.groups||[];
- else groups=[Object.assign({id:'TABLE'},conf)];
- let groupHtml=groups.map((g,gi)=>{
+
+function qualificationDirectProjection(q){
+ let out={UEFA:[],CAF:[],AFC:[],CONMEBOL:[],CONCACAF:[],OFC:[]},playoffCandidates=[];
+
+ let uefa=q.confederations.UEFA,uefaRunners=[];
+ (uefa.groups||[]).forEach(g=>{
    let rows=qualificationTableRows(g);
-   let leader=rows[0];
-   let body=rows.map((r,i)=>'<div class="reviewWCQRow '+(r.id===G.careerNation?'me':'')+'"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,15)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong></div>').join('');
+   if(rows[0])out.UEFA.push(rows[0].id);
+   if(rows[1])uefaRunners.push(rows[1]);
+ });
+ uefaRunners.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||Number(nationalStateById(b.id)?.rating||0)-Number(nationalStateById(a.id)?.rating||0));
+ out.UEFA.push(...uefaRunners.slice(0,5).map(r=>r.id));
+ playoffCandidates.push(...uefaRunners.slice(5).map(r=>r.id));
+
+ let caf=q.confederations.CAF,cafRunners=[];
+ (caf.groups||[]).forEach(g=>{
+   let rows=qualificationTableRows(g);
+   if(rows[0])out.CAF.push(rows[0].id);
+   if(rows[1])cafRunners.push(rows[1]);
+ });
+ cafRunners.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+ out.CAF.push(...cafRunners.slice(0,2).map(r=>r.id));
+ playoffCandidates.push(...cafRunners.slice(2).map(r=>r.id));
+
+ let afc=q.confederations.AFC,afcRunners=[];
+ (afc.groups||[]).forEach(g=>{
+   let rows=qualificationTableRows(g);
+   if(rows[0])out.AFC.push(rows[0].id);
+   if(rows[1])afcRunners.push(rows[1]);
+ });
+ afcRunners.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+ out.AFC.push(...afcRunners.slice(0,2).map(r=>r.id));
+ playoffCandidates.push(...afcRunners.slice(2).map(r=>r.id));
+
+ let con=qualificationTableRows(q.confederations.CONMEBOL);
+ out.CONMEBOL.push(...con.slice(0,4).map(r=>r.id));
+ if(con[4])playoffCandidates.push(con[4].id);
+
+ let cac=q.confederations.CONCACAF;
+ (cac.groups||[]).forEach(g=>{
+   let rows=qualificationTableRows(g);
+   if(rows[0])out.CONCACAF.push(rows[0].id);
+   if(rows[1])playoffCandidates.push(rows[1].id);
+ });
+
+ let ofc=q.confederations.OFC;
+ (ofc.groups||[]).forEach(g=>{
+   let rows=qualificationTableRows(g);
+   if(rows[0])playoffCandidates.push(rows[0].id);
+ });
+
+ Object.keys(out).forEach(k=>out[k]=[...new Set(out[k])]);
+ return {direct:out,playoffCandidates:[...new Set(playoffCandidates)]};
+}
+
+function qualificationReviewAllocation(confId){
+ let meta=CONFEDERATIONS[confId]||{};
+ return {
+   direct:Number(meta.places)||0,
+   playoff:confId==="OFC"?"Playoff route":null
+ };
+}
+
+function qualificationConfederationProgress(conf){
+ let groups=conf.format==="GROUPS"?(conf.groups||[]):[conf];
+ let played=0,total=0,maxPlayed=0,maxTotal=0;
+ groups.forEach(g=>{
+   let matches=g.matches||[];
+   let gp=matches.filter(m=>m&&m.played).length;
+   played+=gp;total+=matches.length;
+   maxPlayed=Math.max(maxPlayed,gp);
+   maxTotal=Math.max(maxTotal,matches.length);
+ });
+ return {played,total,complete:!!conf.complete};
+}
+
+function qualificationNationChip(id,label){
+ return '<div class="reviewQualifierChip">'+nationFlagHtml(id,15)+'<span>'+nationName(id)+'</span>'+(label?'<b>'+label+'</b>':'')+'</div>';
+}
+
+function seasonReviewQualificationOverviewHtml(q){
+ let projection=qualificationDirectProjection(q),confOrder=["UEFA","CAF","AFC","CONMEBOL","CONCACAF","OFC"];
+ let directConfirmed=q.complete?31:0,playoffConfirmed=q.complete&&q.playoff&&q.playoff.winner?1:0;
+ let confirmed=q.complete?(q.qualified||[]).length:0;
+ let projected=Object.values(projection.direct).reduce((n,a)=>n+a.length,0);
+ let tiles=confOrder.map(id=>{
+   let meta=confederationById(id),alloc=qualificationReviewAllocation(id),count=projection.direct[id].length;
+   let value=alloc.direct?count+"/"+alloc.direct:(id==="OFC"?"PLAYOFF":"0");
+   return '<div class="reviewQuotaTile"><span>'+meta.short+'</span><b>'+value+'</b><small>'+(alloc.direct?alloc.direct+" direct place"+(alloc.direct===1?"":"s"):"No direct places")+'</small></div>';
+ }).join("");
+ let playoffText=q.complete&&q.playoff&&q.playoff.winner
+   ?nationFlagHtml(q.playoff.winner,15)+nationName(q.playoff.winner)+" won the final place"
+   :"1 place decided by intercontinental playoff";
+ return '<div class="reviewQualificationOverview">'+
+   '<div class="reviewQualificationOverviewHead"><div><span>32-TEAM WORLD CUP</span><b>'+(q.complete?"QUALIFICATION COMPLETE":"QUALIFICATION RACE")+'</b><small>'+(q.complete?confirmed+" of 32 places confirmed":projected+" nations currently occupy the 31 direct qualification positions")+'</small></div><strong>'+(q.complete?confirmed+"/32":"31 + 1")+'</strong></div>'+
+   '<div class="reviewQuotaGrid">'+tiles+'</div>'+
+   '<div class="reviewPlayoffRoute"><span>INTERCONTINENTAL PLAYOFF</span><b>'+playoffText+'</b></div>'+
+ '</div>';
+}
+
+function seasonReviewQualificationTableHtml(confId,conf){
+ let q=ensureWorldCupQualification(),meta=confederationById(confId),complete=!!conf.complete,
+     projection=qualificationDirectProjection(q),alloc=qualificationReviewAllocation(confId),
+     directIds=projection.direct[confId]||[],progress=qualificationConfederationProgress(conf);
+
+ let confirmedDirect=complete?directIds:[];
+ let qualifierTitle=complete?"QUALIFIED":"CURRENT DIRECT QUALIFIERS";
+ let qualifierBody=directIds.length
+   ?directIds.map(id=>qualificationNationChip(id,complete?"QUALIFIED":"PROJECTED")).join("")
+   :'<div class="reviewQualifierEmpty">'+(confId==="OFC"?"Oceania nations advance through the intercontinental playoff route.":"No direct qualifier positions available yet.")+'</div>';
+
+ let routeNote="";
+ if(confId==="OFC"){
+   let ofcCandidates=projection.playoffCandidates.filter(id=>nationConfederation(id)==="OFC");
+   routeNote='<div class="reviewConfedRoute"><span>PLAYOFF ROUTE</span><b>'+(ofcCandidates.length?ofcCandidates.map(id=>nationFlagHtml(id,14)+nationName(id)).join(" · "):"OFC group winners enter the playoff pool")+'</b></div>';
+ }else{
+   routeNote='<div class="reviewConfedRoute"><span>WORLD CUP ALLOCATION</span><b>'+alloc.direct+' direct place'+(alloc.direct===1?'':'s')+'</b></div>';
+ }
+
+ let groups=conf.format==='GROUPS'?(conf.groups||[]): [Object.assign({id:'TABLE'},conf)];
+ let groupHtml=groups.map((g,gi)=>{
+   let rows=qualificationTableRows(g),leader=rows[0],matches=g.matches||[],
+       played=matches.filter(m=>m&&m.played).length,total=matches.length,
+       body=rows.map((r,i)=>'<div class="reviewWCQRow '+((r.id===G.careerNation||r.id===managedNationId())?'me':'')+'"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,15)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong></div>').join('');
    let groupName=conf.format==='GROUPS'?'Group '+(g.id||String.fromCharCode(65+gi)):'Qualification Table';
-   return '<details class="reviewWCQGroup" '+(rivalrySafeDetailsOpen(confId,gi)?'open':'')+'><summary><div><b>'+groupName+'</b><span>'+(leader?nationFlagHtml(leader.id,14)+nationName(leader.id)+' lead · '+leader.pts+' pts':'No matches played')+'</span></div><strong>'+rows.filter(x=>x.p>0).length+'/'+rows.length+' active</strong></summary><div class="reviewWCQHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span></div>'+body+'</details>';
+   let statusText=complete?'FINAL STANDINGS':(total?played+' / '+total+' matches played':'No matches played');
+   return '<details class="reviewWCQGroup" '+(rivalrySafeDetailsOpen(confId,gi)?'open':'')+'><summary><div><b>'+groupName+'</b><span>'+(leader?nationFlagHtml(leader.id,14)+nationName(leader.id)+' lead · '+leader.pts+' pts':'No matches played')+'</span></div><strong>'+statusText+'</strong></summary><div class="reviewWCQHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span></div>'+body+'</details>';
  }).join('');
- return '<div class="reviewConfedCard"><div class="reviewConfedHead"><div><span>'+meta.short+' · '+meta.name.toUpperCase()+'</span><b>'+meta.description+'</b></div><strong class="'+(complete?'complete':'')+'">'+status+'</strong></div>'+groupHtml+'</div>';
+
+ let status=complete?'QUALIFYING COMPLETE':(progress.total?progress.played+' / '+progress.total+' MATCHES':'QUALIFYING IN PROGRESS');
+ return '<div class="reviewConfedCard reviewConfedClarity">'+
+   '<div class="reviewConfedHead"><div><span>'+meta.short+' · '+meta.name.toUpperCase()+'</span><b>'+meta.description+'</b></div><strong class="'+(complete?'complete':'')+'">'+status+'</strong></div>'+
+   routeNote+
+   '<div class="reviewQualifierSection"><div class="reviewQualifierSectionHead"><span>'+qualifierTitle+'</span><b>'+directIds.length+(alloc.direct?'/'+alloc.direct:'')+'</b></div><div class="reviewQualifierChips">'+qualifierBody+'</div></div>'+
+   '<details class="reviewQualificationTables"><summary>VIEW QUALIFICATION TABLES</summary>'+groupHtml+'</details>'+
+ '</div>';
 }
 
 function rivalrySafeDetailsOpen(confId,index){
@@ -19252,8 +19486,9 @@ function seasonReviewWorldCupStatusHtml(){
    let stage=t.complete?'COMPLETE':String(t.stage||'GROUP').replace(/_/g,' ');
    return '<div class="reviewNationalHero"><div><span>WORLD CUP</span><b>'+stage+'</b><small>'+(t.complete?(champion?nationName(champion)+' are world champions.':'Tournament complete.'):'The international finals are active this season.')+'</small></div><strong>'+((t.groups||[]).length||8)+' GROUPS</strong></div>';
  }
- let qualified=(q.qualified||[]).length;
- return '<div class="reviewNationalHero"><div><span>WORLD CUP CYCLE</span><b>'+(q.complete?'QUALIFICATION COMPLETE':'QUALIFICATION STATUS')+'</b><small>'+qualified+' of 32 World Cup places currently confirmed.</small></div><strong>'+qualified+'/32</strong></div>';
+ let qualified=q.complete?(q.qualified||[]).length:0,projection=qualificationDirectProjection(q),
+     projected=Object.values(projection.direct).reduce((n,a)=>n+a.length,0);
+ return '<div class="reviewNationalHero"><div><span>WORLD CUP CYCLE</span><b>'+(q.complete?'QUALIFICATION COMPLETE':'QUALIFICATION STATUS')+'</b><small>'+(q.complete?qualified+' of 32 World Cup places confirmed.':projected+' nations currently occupy the 31 direct qualification positions.')+'</small></div><strong>'+(q.complete?qualified+'/32':'31+1')+'</strong></div>';
 }
 
 function seasonReviewManagedNationHtml(reviewSeason){
@@ -19298,7 +19533,7 @@ function seasonReviewNationalInternationalsHtml(reviewSeason){
  let confHtml=confOrder.map(id=>q.confederations&&q.confederations[id]?seasonReviewQualificationTableHtml(id,q.confederations[id]):'').join('');
  let top=nationalRanking().slice(0,5);
  let rankings='<div class="card reviewSection"><div class="sectionHead"><div><div class="title">World Ranking Snapshot</div><div class="sub">Leading national teams entering the next season.</div></div></div>'+top.map((n,i)=>'<div class="reviewRankRow"><span>'+(i+1)+'</span><div>'+nationFlagHtml(n.id,17)+'<b>'+nationName(n.id)+'</b></div><strong>'+Math.round(Number(n.rating)||0)+'</strong></div>').join('')+'</div>';
- return '<div class="reviewPhase"><span>NATIONAL INTERNATIONALS</span><b>World Football</b></div>'+seasonReviewWorldCupStatusHtml()+seasonReviewManagedNationHtml(reviewSeason)+'<div class="card reviewSection"><div class="sectionHead"><div><div class="title">World Cup Qualification</div><div class="sub">Qualification status across all six football federations. Open a group to inspect the full table.</div></div></div><div class="reviewConfedStack">'+confHtml+'</div></div>'+rankings+seasonReviewClubInternationalsHtml(reviewSeason);
+ return '<div class="reviewPhase"><span>NATIONAL INTERNATIONALS</span><b>World Football</b></div>'+seasonReviewWorldCupStatusHtml()+seasonReviewManagedNationHtml(reviewSeason)+'<div class="card reviewSection"><div class="sectionHead"><div><div class="title">World Cup Qualification</div><div class="sub">Who is qualified, who currently occupies the direct places, and how the 32 World Cup positions are allocated.</div></div></div>'+seasonReviewQualificationOverviewHtml(q)+'<div class="reviewConfedStack">'+confHtml+'</div></div>'+rankings+seasonReviewClubInternationalsHtml(reviewSeason);
 }
 
 function showSeasonReview(){
