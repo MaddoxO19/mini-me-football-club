@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.2 WCQ Matchday Display Fix</title>
+<title>Mini&Me Football Club v2.11.15.4 Recent International Results Sync</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.2 WCQ Matchday Display Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.4 Recent International Results Sync Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13812,11 +13812,52 @@ function qualificationPairings(teams,round){
  return pairs;
 }
 
+
+function qualificationScoreGuard(homeId,awayId,hg,ag,seed){
+ let hs=nationalTeamStrength(homeId),as=nationalTeamStrength(awayId),
+     hTier=nationalTeamTier(homeId),aTier=nationalTeamTier(awayId),
+     diff=hs-as;
+
+ function protectPower(sideTier,oppTier,conceded,scored,strengthGap,tag){
+   if(!["ELITE","POWER"].includes(sideTier.key))return[conceded,scored];
+   let deficit=conceded-scored;
+   if(deficit<3)return[conceded,scored];
+
+   let weakerOpp=["COMPETITIVE","DEVELOPING","LOWER"].includes(oppTier.key);
+   let strongProtection=weakerOpp||strengthGap>=8;
+   if(strongProtection){
+     let keepHeavy=internationalRand(seed+"|HEAVY_LOSS|"+tag,1);
+     if(deficit>=5&&keepHeavy>.01)conceded=scored+2;
+     else if(deficit>=4&&keepHeavy>.025)conceded=scored+2;
+     else if(deficit>=3&&keepHeavy>.06)conceded=scored+1+(internationalRand(seed+"|MARGIN|"+tag,2)>.55?1:0);
+   }else{
+     let keepHeavy=internationalRand(seed+"|PEER_HEAVY|"+tag,3);
+     if(deficit>=5&&keepHeavy>.035)conceded=scored+3;
+     else if(deficit>=4&&keepHeavy>.08)conceded=scored+3;
+   }
+   return[conceded,scored];
+ }
+
+ let p=protectPower(hTier,aTier,ag,hg,diff,"HOME");
+ ag=p[0];hg=p[1];
+ p=protectPower(aTier,hTier,hg,ag,-diff,"AWAY");
+ hg=p[0];ag=p[1];
+
+ // Very high qualifying scores require a genuine underlying strength gap.
+ if(hg>=6&&diff<18&&internationalRand(seed+"|HOME6",4)>.035)hg=5;
+ if(ag>=6&&diff>-18&&internationalRand(seed+"|AWAY6",5)>.035)ag=5;
+ if(hg>=5&&diff<10&&internationalRand(seed+"|HOME5",6)>.08)hg=4;
+ if(ag>=5&&diff>-10&&internationalRand(seed+"|AWAY5",7)>.08)ag=4;
+
+ return[Math.max(0,hg),Math.max(0,ag)];
+}
+
 function simulateQualificationMatch(home,away,seed){
  let exp=internationalMatchExpectations(home,away,false);
- let hg=internationalPoisson(Math.min(3.55,exp.home+.08),seed,100);
- let ag=internationalPoisson(Math.max(.18,exp.away-.04),seed,120);
+ let hg=internationalPoisson(Math.min(3.20,exp.home+.03),seed,100);
+ let ag=internationalPoisson(Math.max(.20,Math.min(3.05,exp.away-.02)),seed,120);
  [hg,ag]=internationalUpsetGuard(home,away,hg,ag,seed+"|QUAL");
+ [hg,ag]=qualificationScoreGuard(home,away,hg,ag,seed+"|QUAL_SCORE");
  updateNationalRating(home,away,hg,ag);return[hg,ag];
 }
 function playQualificationPair(group,home,away,seed){
@@ -15574,17 +15615,101 @@ function nationalInternationalView(){
    internationalResultsHistoryHtml();
 }
 
+function latestCurrentSeasonInternationalResults(){
+ ensureInternationalNationalState();
+ let season=Number(G.season),candidates=[];
+
+ // Friendlies and normal international windows.
+ (G.internationalNational.windows||[]).forEach(w=>{
+   if(Number(w.season)!==season||!Array.isArray(w.matches)||!w.matches.length)return;
+   let matches=w.matches.filter(m=>m&&(Number.isFinite(Number(m.hg))||Number.isFinite(Number(m.homeGoals)))).map(m=>({
+     home:m.home,away:m.away,
+     hg:Number.isFinite(Number(m.hg))?Number(m.hg):Number(m.homeGoals),
+     ag:Number.isFinite(Number(m.ag))?Number(m.ag):Number(m.awayGoals),
+     type:m.type||"FRIENDLY"
+   }));
+   if(matches.length)candidates.push({week:Number(w.week)||0,priority:1,label:"International Window",matches});
+ });
+
+ // World Cup qualifying rounds, sourced from the qualification competition itself.
+ try{
+   let q=ensureWorldCupQualification();
+   if(q&&q.confederations){
+     let byWeek=new Map();
+     Object.values(q.confederations).forEach(conf=>{
+       let groups=conf.format==="GROUPS"?(conf.groups||[]):[conf];
+       groups.forEach(g=>(g.matches||[]).forEach(m=>{
+         if(!m||!m.played||Number(m.season)!==season)return;
+         let week=Number(m.week)||0;
+         if(!byWeek.has(week))byWeek.set(week,[]);
+         byWeek.get(week).push({
+           home:m.home,away:m.away,hg:Number(m.hg),ag:Number(m.ag),
+           type:"WCQ",confed:conf.id
+         });
+       }));
+     });
+     byWeek.forEach((matches,week)=>{
+       if(matches.length)candidates.push({week,priority:3,label:"World Cup Qualifying",matches});
+     });
+   }
+ }catch(e){}
+
+ // Current-season World Cup finals.
+ try{
+   let t=ensureWorldCupTournament();
+   if(t&&Number(t.season)===season){
+     let byWeek=new Map();
+     (t.groups||[]).forEach(g=>(g.matches||[]).forEach(m=>{
+       if(!m||!m.played||Number(m.season)!==season)return;
+       let week=Number(m.week)||0;
+       if(!byWeek.has(week))byWeek.set(week,[]);
+       byWeek.get(week).push({home:m.home,away:m.away,hg:Number(m.hg),ag:Number(m.ag),type:"WORLD_CUP",pens:m.pens||null});
+     }));
+     Object.values(t.rounds||{}).forEach(round=>(round||[]).forEach(m=>{
+       if(!m||!m.played||Number(m.season)!==season)return;
+       let week=Number(m.week)||0;
+       if(!byWeek.has(week))byWeek.set(week,[]);
+       byWeek.get(week).push({home:m.home,away:m.away,hg:Number(m.hg),ag:Number(m.ag),type:"WORLD_CUP",pens:m.pens||null});
+     }));
+     byWeek.forEach((matches,week)=>{
+       if(matches.length)candidates.push({week,priority:4,label:"World Cup",matches});
+     });
+   }
+ }catch(e){}
+
+ // Explicit International Week flow results, where present.
+ let last=G.internationalWeekFlow&&G.internationalWeekFlow.lastResults;
+ if(last&&Number(last.season)===season&&Array.isArray(last.results)&&last.results.length){
+   candidates.push({
+     week:Number(last.week)||0,priority:2,label:"International Results",
+     matches:last.results.map(m=>({
+       home:m.home,away:m.away,
+       hg:Number.isFinite(Number(m.hg))?Number(m.hg):Number(m.homeGoals),
+       ag:Number.isFinite(Number(m.ag))?Number(m.ag):Number(m.awayGoals),
+       type:m.type||"INTERNATIONAL",pens:m.pens||null
+     }))
+   });
+ }
+
+ if(!candidates.length)return null;
+ candidates.sort((a,b)=>b.week-a.week||b.priority-a.priority);
+ return candidates[0];
+}
+
 function internationalResultsHistoryHtml(){
  ensureInternationalNationalState();
- let windows=(G.internationalNational.windows||[]).slice(0,6);
- if(!windows.length)return '<div class="card"><div class="title">National Internationals</div><div class="sub">No recent national-team windows recorded yet.</div></div>';
- let rows=[];
- windows.forEach(w=>{
-   (w.matches||[]).slice(0,8).forEach(m=>{
-     rows.push('<div class="nationalHistoryFixture"><span>'+nationFlagHtml(m.home,15)+'<b>'+nationName(m.home)+'</b></span><strong>'+m.homeGoals+'–'+m.awayGoals+'</strong><span class="away">'+nationFlagHtml(m.away,15)+'<b>'+nationName(m.away)+'</b></span></div>');
-   });
- });
- return '<div class="card nationalInternationalHistory"><div class="sectionHead"><div><div class="screenEyebrow">NATIONAL INTERNATIONALS</div><div class="title">Recent International Results</div><div class="sub">Latest friendly and national-team results from around the world.</div></div></div>'+rows.slice(0,12).join("")+'</div>';
+ let latest=latestCurrentSeasonInternationalResults();
+ if(!latest||!latest.matches.length)return '<div class="card"><div class="title">National Internationals</div><div class="sub">No international results recorded this season.</div></div>';
+
+ let managed=managedNationId();
+ let rows=latest.matches.slice(0,14).map(m=>{
+   let relevant=managed&&(normalizedNationId(m.home)===managed||normalizedNationId(m.away)===managed);
+   let score=(Number.isFinite(Number(m.hg))&&Number.isFinite(Number(m.ag)))?Number(m.hg)+'–'+Number(m.ag):'—';
+   let pens=m.pens?' <small>('+m.pens.home+'–'+m.pens.away+' pens)</small>':'';
+   return '<div class="nationalHistoryFixture '+(relevant?'managedNation':'')+'"><span>'+nationFlagHtml(m.home,15)+'<b>'+nationName(m.home)+'</b></span><strong>'+score+pens+'</strong><span class="away">'+nationFlagHtml(m.away,15)+'<b>'+nationName(m.away)+'</b></span></div>';
+ }).join("");
+
+ return '<div class="card nationalInternationalHistory"><div class="sectionHead"><div><div class="screenEyebrow">NATIONAL INTERNATIONALS</div><div class="title">Recent International Results</div><div class="sub">'+latest.label+' · Week '+latest.week+' · latest completed results this season.</div></div></div>'+rows+'</div>';
 }
 function clubInternationalContent(){
  ensureInternationalClubState();let q=G.intClub.nextQualification,active=G.intClub.active,userStatus=active?internationalFinishForKey(internationalUserKey()):"Qualification pending",next=internationalUserFixtureDue(),nextText=next?INTL_CLUB_ROUNDS[G.intClub.currentRound].name+" · "+internationalTeamName(next.home===internationalUserKey()?next.away:next.home):(active?(G.intClub.champion?"Tournament complete":internationalUserAlive()?INTL_CLUB_ROUNDS[G.intClub.currentRound].name:"Following tournament"):"First tournament begins after qualification");
