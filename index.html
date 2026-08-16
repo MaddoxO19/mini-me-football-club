@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.6 National Duty Routing Fix</title>
+<title>Mini&Me Football Club v2.11.15.7 National Squad & Legacy WC Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.6 National Duty Routing Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.7 National Squad & Legacy WC Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13649,6 +13649,30 @@ function nationalGMRecordLabel(){
 
 
 
+
+function openManagedNationalSquadPanel(){
+ window.internationalSectionTab="national";
+ page="league";
+ leagueTab="international";
+ render();
+
+ setTimeout(()=>{
+   let nationalTab=document.querySelector('[data-international-section="national"]');
+   if(nationalTab&&nationalTab.click)nationalTab.click();
+
+   setTimeout(()=>{
+     let host=document.querySelector(".nationalInternationalManagerCard");
+     if(!host)return;
+     let existing=document.querySelector(".nationalSquadManagerCard");
+     if(!existing){
+       host.insertAdjacentHTML("afterend",managedNationalSquadHtml());
+       existing=document.querySelector(".nationalSquadManagerCard");
+     }
+     if(existing&&existing.scrollIntoView)existing.scrollIntoView({behavior:"smooth",block:"start"});
+   },60);
+ },60);
+}
+
 function openNationalInternationalManagement(){
  page="league";
  render();
@@ -13675,7 +13699,7 @@ function openNationalInternationalManagement(){
 
 function nationalGMActionRequiredHtml(){
  if(!nationalGMRequiresAttention())return"";
- return '<div class="card nationalGMActionCard"><div><div class="screenEyebrow">NATIONAL TEAM DUTY</div><div class="title">National squad requires confirmation</div><div class="sub">'+nationName(G.nationalGM.nation)+' have an international fixture approaching. Review and confirm the 23-player squad before the match.</div></div><button data-national-gm-open-squad="1">REVIEW NATIONAL TEAM</button></div>';
+ return '<div class="card nationalGMActionCard"><div><div class="screenEyebrow">NATIONAL TEAM DUTY</div><div class="title">National squad requires confirmation</div><div class="sub">'+nationName(G.nationalGM.nation)+' have an international fixture approaching. Review and confirm the 23-player squad before the match.</div></div><button data-national-gm-review-duty="1">REVIEW NATIONAL TEAM</button></div>';
 }
 function nationalGMOfferCardHtml(){
  ensureNationalGMState();let o=G.nationalGM.pendingOffer;if(!o)return"";
@@ -14147,8 +14171,43 @@ function worldCupFinalsCompleteCurrentSeason(){
  return !!(t&&t.complete&&Number(t.season)===Number(G.season));
 }
 
+
+const WORLD_CUP_LEGACY_MIGRATION_VERSION="2.11.15.7";
+
+function migrateLegacyWorldCupState(){
+ if(!G||!G.internationalNational)return;
+ let state=G.internationalNational;
+ if(!state.worldCup)state.worldCup={};
+ let wc=state.worldCup;
+ if(wc.legacyMigrationVersion===WORLD_CUP_LEGACY_MIGRATION_VERSION)return;
+
+ let q=wc.qualification||null,t=wc.tournament||null,currentSeason=Number(G.season);
+
+ if(t){
+   let tournamentSeason=Number(t.season);
+   let staleByAge=Number.isFinite(tournamentSeason)&&tournamentSeason<currentSeason;
+   let staleAgainstQualifying=q&&!q.complete&&(!Number.isFinite(tournamentSeason)||tournamentSeason!==currentSeason);
+
+   if(staleByAge||staleAgainstQualifying){
+     t.complete=true;
+     t.legacyArchived=true;
+     if(!t.stage||t.stage!=="COMPLETE")t.stage="COMPLETE";
+   }
+ }
+
+ if(G.worldCupTournamentMode&&G.worldCupTournamentMode.active){
+   let modeSeason=Number(G.worldCupTournamentMode.season);
+   if((q&&!q.complete)||(!Number.isFinite(modeSeason)||modeSeason!==currentSeason)){
+     G.worldCupTournamentMode.active=false;
+   }
+ }
+
+ wc.legacyMigrationVersion=WORLD_CUP_LEGACY_MIGRATION_VERSION;
+}
+
 function syncWorldCupLifecycleState(){
  ensureInternationalNationalState();
+ migrateLegacyWorldCupState();
  let wc=G.internationalNational.worldCup||(G.internationalNational.worldCup={});
  let q=ensureWorldCupQualification();
  let t=wc.tournament;
@@ -14392,6 +14451,10 @@ function worldCupTournamentSummary(){
  return{active:!!t.active,complete:!!t.complete,stage:t.stage,cycle:t.cycle,group,champion:t.champion,runnerUp:t.runnerUp};
 }
 function worldCupTournamentCardHtml(){
+ syncWorldCupLifecycleState();
+ let legacyTournament=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.tournament;
+ if(legacyTournament&&legacyTournament.legacyArchived)return "";
+
  syncWorldCupLifecycleState();
  if(worldCupQualificationActive())return "";
  let s=worldCupTournamentSummary();if(!s)return"";
@@ -23757,7 +23820,8 @@ document.addEventListener("click",function(e){
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
  let worldCupModeSim=e.target.closest&&e.target.closest("[data-world-cup-mode-sim]");if(worldCupModeSim){simulateWorldCupTournamentWeek();return}
  let intSection=e.target.closest&&e.target.closest("[data-international-section]");if(intSection){window.internationalSectionTab=intSection.dataset.internationalSection||"club";render();return}
- let nationalGMOpenSquad=e.target.closest&&e.target.closest("[data-national-gm-open-squad]");if(nationalGMOpenSquad){openNationalInternationalManagement();return}
+ let nationalGMReviewDuty=e.target.closest&&e.target.closest("[data-national-gm-review-duty]");if(nationalGMReviewDuty){openNationalInternationalManagement();return}
+ let nationalGMOpenSquad=e.target.closest&&e.target.closest("[data-national-gm-open-squad]");if(nationalGMOpenSquad){openManagedNationalSquadPanel();return}
  let nationalGMConfirmSquad=e.target.closest&&e.target.closest("[data-national-gm-confirm-squad]");if(nationalGMConfirmSquad){confirmManagedNationalSquad();return}
  let nationalSquadAdd=e.target.closest&&e.target.closest("[data-national-squad-add]");if(nationalSquadAdd){addPlayerToNationalSquad(nationalSquadAdd.dataset.nationalSquadAdd);return}
  let nationalSquadRemove=e.target.closest&&e.target.closest("[data-national-squad-remove]");if(nationalSquadRemove){removePlayerFromNationalSquad(nationalSquadRemove.dataset.nationalSquadRemove);return}
