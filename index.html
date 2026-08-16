@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.0 International Power Balance</title>
+<title>Mini&Me Football Club v2.11.15.1 World Cup State Sync</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.0 International Power Balance Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.1 World Cup State Sync Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13957,6 +13957,8 @@ function ensureWorldCupTournamentMode(){
 }
 
 function worldCupFinalsReadyForBreak(){
+ syncWorldCupLifecycleState();
+ if(worldCupQualificationActive())return false;
  let t=ensureWorldCupTournament();
  return !!(t&&!t.complete&&Number(t.season)===Number(G.season)&&Number(G.week)>=WORLD_CUP_BREAK_START_WEEK);
 }
@@ -14059,6 +14061,65 @@ function simulateWorldCupTournamentWeek(){
  return results;
 }
 
+
+/* ==========================================================
+   v2.11.15.1 WORLD CUP STATE SYNCHRONISATION
+   Qualification, finals and completed-tournament states are mutually exclusive.
+   ========================================================== */
+function worldCupQualificationActive(){
+ let q=ensureWorldCupQualification();
+ return !!(q&&!q.complete);
+}
+
+function worldCupFinalsActive(){
+ let t=ensureWorldCupTournament();
+ return !!(t&&!t.complete&&Number(t.season)===Number(G.season));
+}
+
+function worldCupFinalsCompleteCurrentSeason(){
+ let t=ensureWorldCupTournament();
+ return !!(t&&t.complete&&Number(t.season)===Number(G.season));
+}
+
+function syncWorldCupLifecycleState(){
+ ensureInternationalNationalState();
+ let wc=G.internationalNational.worldCup||(G.internationalNational.worldCup={});
+ let q=ensureWorldCupQualification();
+ let t=wc.tournament;
+
+ // If a fresh qualification cycle is active, an older tournament must never remain "live".
+ if(q&&!q.complete&&t&&Number(t.season)!==Number(G.season)){
+   if(!t.complete)t.complete=true;
+ }
+
+ // A tournament from a previous cycle can remain as history, but must not be surfaced as current.
+ if(t&&Number(t.season)<Number(G.season)&&!t.complete){
+   t.complete=true;
+ }
+
+ // Do not carry active tournament mode into a qualification-only season.
+ if(q&&!q.complete&&G.worldCupTournamentMode&&G.worldCupTournamentMode.active){
+   G.worldCupTournamentMode.active=false;
+ }
+
+ return {qualification:q,tournament:t};
+}
+
+function qualificationDisplayMatchday(conf){
+ if(!conf)return{current:0,total:0};
+ let groups=conf.format==="GROUPS"?(conf.groups||[]):[conf];
+ let total=0,current=0;
+ groups.forEach(g=>{
+   let teams=(g.teams||[]).length;
+   let rounds=Math.max(0,teams-1);
+   total=Math.max(total,rounds);
+   let maxPlayed=0;
+   Object.values(g.table||{}).forEach(r=>{maxPlayed=Math.max(maxPlayed,Number(r.p)||0)});
+   current=Math.max(current,maxPlayed);
+ });
+ return {current:Math.min(current,total),total};
+}
+
 function worldCupTournamentDue(){
  let q=ensureWorldCupQualification(),cycle=Number(q.cycle)||worldCupCycleForSeason();
  return q.complete && Number(G.season)===worldCupFinalsSeason(cycle);
@@ -14068,6 +14129,7 @@ function seededWorldCupTeams(){
  return nationalRanking().filter(n=>qualified.includes(n.id)).map(n=>n.id);
 }
 function buildWorldCupTournament(){
+ // Tournament state is created only after qualification has completed for this cycle.
  ensureInternationalNationalState();
  let q=ensureWorldCupQualification(),seeded=seededWorldCupTeams();
  if(seeded.length<32)return null;
@@ -14264,6 +14326,8 @@ function worldCupTournamentSummary(){
  return{active:!!t.active,complete:!!t.complete,stage:t.stage,cycle:t.cycle,group,champion:t.champion,runnerUp:t.runnerUp};
 }
 function worldCupTournamentCardHtml(){
+ syncWorldCupLifecycleState();
+ if(worldCupQualificationActive())return "";
  let s=worldCupTournamentSummary();if(!s)return"";
  let t=G.internationalNational.worldCup.tournament;
  if(s.stage==="GROUP"){
