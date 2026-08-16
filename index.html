@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.10.5 International Tab Content Fix</title>
+<title>Mini&Me Football Club v2.11.11.0 Season Review National Internationals</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12447,6 +12447,31 @@ div.h2hStrip > div > span{font-size:9px!important;font-weight:400!important;line
 }
 </style>
 
+
+<style id="minime-v2-11-11-season-review-national">
+/* ==========================================================
+   v2.11.11.0 SEASON REVIEW · NATIONAL INTERNATIONALS
+   ========================================================== */
+.reviewTabs{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.reviewNationalHero{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;align-items:center!important;
+ margin:4px 0 12px!important;padding:14px!important;border:1px solid #705d25!important;border-radius:15px!important;
+ background:linear-gradient(180deg,#171910,#101821)!important;
+}
+.reviewNationalHero span,.reviewConfedHead span{display:block;color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.11em}
+.reviewNationalHero b{display:block;margin-top:5px;font-size:19px}.reviewNationalHero small{display:block;margin-top:5px;color:var(--muted);font-size:10px;line-height:1.4}
+.reviewNationalHero>strong{color:var(--gold);font-size:17px;white-space:nowrap}
+.reviewManagedNation{border-color:#705d25!important}.reviewManagedNation .title{display:flex!important;align-items:center!important;gap:7px!important}.reviewNationRank{font-size:19px;font-weight:950;color:var(--gold)}
+.reviewConfedStack{display:grid;gap:8px;margin-top:10px}.reviewConfedCard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0d151d}
+.reviewConfedHead{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid var(--line)}
+.reviewConfedHead b{display:block;margin-top:3px;font-size:10px}.reviewConfedHead strong{font-size:7px;color:var(--gold);text-align:right}.reviewConfedHead strong.complete{color:var(--green)}
+.reviewWCQGroup{border-bottom:1px solid #ffffff09}.reviewWCQGroup:last-child{border-bottom:0}.reviewWCQGroup summary{list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 11px;cursor:pointer}.reviewWCQGroup summary::-webkit-details-marker{display:none}.reviewWCQGroup summary b{font-size:10px}.reviewWCQGroup summary span{display:flex;align-items:center;gap:5px;margin-top:3px;color:var(--muted);font-size:8px}.reviewWCQGroup summary>strong{font-size:7px;color:var(--muted)}
+.reviewWCQHead,.reviewWCQRow{display:grid;grid-template-columns:28px minmax(0,1fr) 34px 38px 42px;gap:4px;align-items:center;padding:7px 10px}.reviewWCQHead{background:#081019;color:var(--muted);font-size:7px;font-weight:950}.reviewWCQRow{border-top:1px solid #ffffff08;font-size:8px}.reviewWCQRow>span:nth-child(2){display:flex;align-items:center;gap:5px;min-width:0}.reviewWCQRow>span:nth-child(2) b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.reviewWCQRow strong{text-align:right}.reviewWCQRow.me{background:#d9b54a0b;color:#f3d66e}
+.reviewRankRow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:40px;border-bottom:1px solid var(--line)}.reviewRankRow:last-child{border-bottom:0}.reviewRankRow>span{color:var(--gold);font-weight:950}.reviewRankRow>div{display:flex;align-items:center;gap:6px}.reviewRankRow strong{font-size:9px}
+.reviewInternationalPlayer{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(54px,.7fr));gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}.reviewInternationalPlayer:last-child{border-bottom:0}.reviewInternationalPlayer>div:first-child{display:flex;align-items:center;gap:7px;min-width:0}.reviewInternationalPlayer b{display:block;font-size:9px}.reviewInternationalPlayer span{display:block;margin-top:2px;color:var(--muted);font-size:7px}.reviewInternationalPlayer>div:not(:first-child){text-align:right}
+@media(max-width:620px){.reviewTabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}.reviewTabs button:last-child{grid-column:auto}.reviewNationalHero{padding:12px!important}.reviewInternationalPlayer{grid-template-columns:minmax(0,1fr) repeat(2,54px)}.reviewInternationalPlayer>div:last-child{display:none}}
+</style>
+
 </head>
 <body>
 <section id="start" class="start">
@@ -12613,7 +12638,7 @@ div.h2hStrip > div > span{font-size:9px!important;font-weight:400!important;line
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.10.5 International Tab Content Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.11.0 Season Review National Internationals Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -18844,6 +18869,85 @@ function resolveReviewPlayerId(item){
  return p?p.id:null;
 }
 
+
+function seasonReviewQualificationTableHtml(confId,conf){
+ let meta=confederationById(confId),complete=!!conf.complete;
+ let status=complete?'QUALIFYING COMPLETE':'QUALIFYING IN PROGRESS';
+ let groups=[];
+ if(conf.format==='GROUPS')groups=conf.groups||[];
+ else groups=[Object.assign({id:'TABLE'},conf)];
+ let groupHtml=groups.map((g,gi)=>{
+   let rows=qualificationTableRows(g);
+   let leader=rows[0];
+   let body=rows.map((r,i)=>'<div class="reviewWCQRow '+(r.id===G.careerNation?'me':'')+'"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,15)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong></div>').join('');
+   let groupName=conf.format==='GROUPS'?'Group '+(g.id||String.fromCharCode(65+gi)):'Qualification Table';
+   return '<details class="reviewWCQGroup" '+(rivalrySafeDetailsOpen(confId,gi)?'open':'')+'><summary><div><b>'+groupName+'</b><span>'+(leader?nationFlagHtml(leader.id,14)+nationName(leader.id)+' lead · '+leader.pts+' pts':'No matches played')+'</span></div><strong>'+rows.filter(x=>x.p>0).length+'/'+rows.length+' active</strong></summary><div class="reviewWCQHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span></div>'+body+'</details>';
+ }).join('');
+ return '<div class="reviewConfedCard"><div class="reviewConfedHead"><div><span>'+meta.short+' · '+meta.name.toUpperCase()+'</span><b>'+meta.description+'</b></div><strong class="'+(complete?'complete':'')+'">'+status+'</strong></div>'+groupHtml+'</div>';
+}
+
+function rivalrySafeDetailsOpen(confId,index){
+ // Keep the user's own federation open by default; all others remain compact.
+ return nationConfederation(G.careerNation)===confId&&index===0;
+}
+
+function seasonReviewWorldCupStatusHtml(){
+ ensureInternationalNationalState();
+ let wc=G.internationalNational.worldCup||{},t=wc.tournament,q=ensureWorldCupQualification();
+ if(t&&Number(t.season)===Number(G.season)){
+   let champion=t.champion||t.winner||null;
+   let stage=t.complete?'COMPLETE':String(t.stage||'GROUP').replace(/_/g,' ');
+   return '<div class="reviewNationalHero"><div><span>WORLD CUP</span><b>'+stage+'</b><small>'+(t.complete?(champion?nationName(champion)+' are world champions.':'Tournament complete.'):'The international finals are active this season.')+'</small></div><strong>'+((t.groups||[]).length||8)+' GROUPS</strong></div>';
+ }
+ let qualified=(q.qualified||[]).length;
+ return '<div class="reviewNationalHero"><div><span>WORLD CUP CYCLE</span><b>'+(q.complete?'QUALIFICATION COMPLETE':'QUALIFICATION STATUS')+'</b><small>'+qualified+' of 32 World Cup places currently confirmed.</small></div><strong>'+qualified+'/32</strong></div>';
+}
+
+function seasonReviewManagedNationHtml(reviewSeason){
+ ensureNationalGMState();
+ if(!G.nationalGM.active||!G.nationalGM.nation)return'';
+ let id=G.nationalGM.nation,state=nationalStateById(id),rank=nationalRanking().findIndex(n=>n.id===id)+1;
+ let q=ensureWorldCupQualification(),confId=nationConfederation(id),conf=q.confederations&&q.confederations[confId];
+ let qStatus='Qualification underway';
+ if(q.complete)qStatus=(q.qualified||[]).includes(id)?'World Cup qualified':'Qualification ended';
+ let seasonMatches=[];
+ (G.internationalNational.windows||[]).forEach(w=>(w.matches||[]).forEach(m=>{
+   if(Number(w.season)===Number(reviewSeason)&&(m.home===id||m.away===id))seasonMatches.push(m);
+ }));
+ if(conf){
+   let gs=conf.format==='GROUPS'?(conf.groups||[]): [conf];
+   gs.forEach(g=>(g.matches||[]).forEach(m=>{
+     if(m.played&&Number(m.season)===Number(reviewSeason)&&(m.home===id||m.away===id))seasonMatches.push(m);
+   }));
+ }
+ let w=0,d=0,l=0;
+ seasonMatches.forEach(m=>{
+   let hg=Number(m.hg??m.homeGoals),ag=Number(m.ag??m.awayGoals),home=m.home===id;
+   let gf=home?hg:ag,ga=home?ag:hg;if(gf>ga)w++;else if(gf<ga)l++;else d++;
+ });
+ return '<div class="card reviewSection reviewManagedNation"><div class="sectionHead"><div><div class="screenEyebrow">YOUR NATIONAL TEAM</div><div class="title">'+nationFlagHtml(id,22)+nationName(id)+'</div><div class="sub">Season '+reviewSeason+' national-team management recap.</div></div><div class="reviewNationRank">#'+(rank||'—')+'</div></div><div class="reviewGrid">'+stat('RECORD',w+'-'+d+'-'+l,seasonMatches.length+' internationals')+stat('WORLD RANK',rank?'#'+rank:'—',Math.round(Number(state&&state.rating)||0)+' rating')+stat('QUALIFYING',qStatus,confederationById(confId).name)+stat('SQUAD',managedNationalSquadPlayers().length+'/23',G.nationalGM.squadConfirmed?'Confirmed':'Review required')+'</div></div>';
+}
+
+function seasonReviewClubInternationalsHtml(reviewSeason){
+ let players=(G.players||[]).filter(p=>p&&p.team===G.club).map(p=>{
+   let c=ensureInternationalPlayerCareer(p),apps=(c.matchHistory||[]).filter(h=>Number(h.season)===Number(reviewSeason)).length;
+   return{p,c,apps};
+ }).filter(x=>x.apps>0).sort((a,b)=>b.apps-a.apps||Number(b.c.goals)-Number(a.c.goals)||Number(b.p.ovr)-Number(a.p.ovr));
+ if(!players.length)return '<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Club Players on International Duty</div><div class="sub">No players from your club recorded a national-team appearance this season.</div></div></div></div>';
+ let rows=players.slice(0,12).map(x=>'<div class="reviewInternationalPlayer" data-review-player="'+x.p.id+'"><div>'+nationFlagHtml(x.p.nationality,17)+'<div><b>'+x.p.name+'</b><span>'+nationName(x.p.nationality)+' · '+x.p.pos+'</span></div></div><div><b>'+x.apps+'</b><span>season apps</span></div><div><b>'+x.c.caps+'</b><span>career caps</span></div><div><b>'+x.c.goals+'</b><span>career goals</span></div></div>').join('');
+ return '<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Club Players on International Duty</div><div class="sub">National-team activity from your '+G.clubs[G.club].name+' squad during '+reviewSeason+'.</div></div><div class="sectionCount">'+players.length+'</div></div>'+rows+'</div>';
+}
+
+function seasonReviewNationalInternationalsHtml(reviewSeason){
+ ensureInternationalNationalState();
+ let q=ensureWorldCupQualification();
+ let confOrder=['UEFA','CAF','AFC','CONMEBOL','CONCACAF','OFC'];
+ let confHtml=confOrder.map(id=>q.confederations&&q.confederations[id]?seasonReviewQualificationTableHtml(id,q.confederations[id]):'').join('');
+ let top=nationalRanking().slice(0,5);
+ let rankings='<div class="card reviewSection"><div class="sectionHead"><div><div class="title">World Ranking Snapshot</div><div class="sub">Leading national teams entering the next season.</div></div></div>'+top.map((n,i)=>'<div class="reviewRankRow"><span>'+(i+1)+'</span><div>'+nationFlagHtml(n.id,17)+'<b>'+nationName(n.id)+'</b></div><strong>'+Math.round(Number(n.rating)||0)+'</strong></div>').join('')+'</div>';
+ return '<div class="reviewPhase"><span>NATIONAL INTERNATIONALS</span><b>World Football</b></div>'+seasonReviewWorldCupStatusHtml()+seasonReviewManagedNationHtml(reviewSeason)+'<div class="card reviewSection"><div class="sectionHead"><div><div class="title">World Cup Qualification</div><div class="sub">Qualification status across all six football federations. Open a group to inspect the full table.</div></div></div><div class="reviewConfedStack">'+confHtml+'</div></div>'+rankings+seasonReviewClubInternationalsHtml(reviewSeason);
+}
+
 function showSeasonReview(){
  ensureSeasonState();ensureCupState();
  let r=G.pendingSeasonReview;if(!r)return;
@@ -18912,6 +19016,7 @@ function showSeasonReview(){
  (r.awards&&r.awards.gm?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.gm.club)+'><div class="label">GM OF THE YEAR</div><div class="awardName">'+r.awards.gm.club+'</div><div class="awardMeta">General Manager · Premier Division</div><div class="awardValue">'+(r.awards.gm.overperformance>0?("+"+r.awards.gm.overperformance+" vs expectation"):ordinal(r.awards.gm.position)+" finish")+'</div></div>':'')+
  '</div>'+
  (r.awards&&r.awards.teamOfSeason&&r.awards.teamOfSeason.length?'<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Team of the Season</div><div class="sub">Best XI selected from league performance and positional contribution.</div></div><div class="sectionCount">XI</div></div><div class="totsGrid">'+r.awards.teamOfSeason.map(p=>'<div class="totsPlayer worldAwardCard" '+worldPlayerAttrs(p)+'><b>'+p.name+' · '+p.pos+'</b><span>'+p.club+' · '+p.avg+' AVG · '+p.apps+' apps</span></div>').join("")+'</div></div>':'')+
+ seasonReviewNationalInternationalsHtml(r.season)+
  '<div class="reviewPhase"><span>CLUB DECISIONS</span><b>Offseason</b></div>'+
 '<div class="card reviewSection"><div class="label">BOARD EXPECTATION</div><div class="title" style="margin-top:7px">'+boardExpectationText(r.target)+'</div><div class="boardOutcome '+(r.met?"pass":"fail")+'">'+(r.met?"OBJECTIVE ACHIEVED":"OBJECTIVE MISSED")+'</div><div class="sub">'+(r.met?"The board is satisfied with the club’s league performance.":"The board expected a stronger league finish.")+'</div></div>'+
  '<div class="card reviewSection"><div class="title">Contract Expiries</div>'+exp+'</div>'+
@@ -18930,6 +19035,7 @@ function applySeasonReviewTabs(){
   {key:"league",match:"SEASON OUTCOME",label:"League Outcomes"},
   {key:"cup",match:"DOMESTIC CUP",label:"Cup Outcomes"},
   {key:"honours",match:"LEAGUE HONOURS",label:"League Honours"},
+  {key:"national",match:"NATIONAL INTERNATIONALS",label:"National Internationals"},
   {key:"club",match:"CLUB DECISIONS",label:"Club Decisions"}
  ];
  let active=window.seasonReviewTab||"league";
