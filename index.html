@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.15.5 National Review Navigation Fix</title>
+<title>Mini&Me Football Club v2.11.15.6 National Duty Routing Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12922,7 +12922,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.15.5 National Review Navigation Fix Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.15.6 National Duty Routing Fix Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13650,18 +13650,26 @@ function nationalGMRecordLabel(){
 
 
 function openNationalInternationalManagement(){
- window.internationalSectionTab="national";
  page="league";
- window.leagueTab="international";
- window.leagueInternationalTab="national";
  render();
 
- // After render, bring the manager controls into view where possible.
  setTimeout(()=>{
-   let target=document.querySelector(".nationalInternationalManagerCard")||
-              document.querySelector('[data-national-gm-open-squad="1"]')||
-              document.querySelector(".internationalSectionTabs");
-   if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
+   // Drive the real League UI controls so this remains aligned with whatever
+   // internal tab state the League renderer currently uses.
+   let internationalTab=document.querySelector('[data-tab="international"],[data-league-tab="international"],[data-league-section="international"]');
+   if(internationalTab&&internationalTab.click)internationalTab.click();
+
+   setTimeout(()=>{
+     let nationalTab=document.querySelector('[data-international-section="national"]');
+     if(nationalTab&&nationalTab.click)nationalTab.click();
+
+     setTimeout(()=>{
+       let target=document.querySelector(".nationalInternationalManagerCard")||
+                  document.querySelector('[data-national-gm-open-squad="1"]')||
+                  document.querySelector(".nationalSquadManagerCard");
+       if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
+     },80);
+   },80);
  },80);
 }
 
@@ -22539,19 +22547,19 @@ function home(){
   let hk=intFixture.home,ak=intFixture.away,ht=internationalTeamRecord(hk),at=internationalTeamRecord(ak),meta=INTL_CLUB_ROUNDS[G.intClub.currentRound];
   let homeLink=fixtureClubIdentityHtml(ht&&ht.clubId,ht?ht.name:'Unknown','fixtureClubLink internationalFixtureName'),awayLink=fixtureClubIdentityHtml(at&&at.clubId,at?at.name:'Unknown','fixtureClubLink internationalFixtureName');
   let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL · '+meta.name.toUpperCase()+'</div></div></div>';
-  let news=homeNewsHtml(3);return fixture+executiveBriefingHtml()+nationalGMOfferCardHtml()+nationalGMActionRequiredHtml()+news;
+  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
  }
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
   let homeLink=fixtureClubIdentityHtml(homeT.clubId,homeT.name,homeT.regional?'regionalFixtureName':'fixtureClubLink'),awayLink=fixtureClubIdentityHtml(awayT.clubId,awayT.name,awayT.regional?'regionalFixtureName':'fixtureClubLink');
   let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
-  let news=homeNewsHtml(3);return fixture+executiveBriefingHtml()+nationalGMOfferCardHtml()+nationalGMActionRequiredHtml()+news;
+  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
  }
  let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club))||[G.club,nextOpp()];let homeId=pair[0],awayId=pair[1],homeClub=G.clubs[homeId],awayClub=G.clubs[awayId],opp=G.clubs[homeId===G.club?awayId:homeId];
  let homePos=tab.findIndex(x=>x.id===homeId)+1,awayPos=tab.findIndex(x=>x.id===awayId)+1,info=leagueInfo(),h2h=headToHead(G.club,opp.id);
  let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
- let news=homeNewsHtml(3);return fixture+executiveBriefingHtml()+nationalGMOfferCardHtml()+nationalGMActionRequiredHtml()+news;
+ let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
 }
 
 
