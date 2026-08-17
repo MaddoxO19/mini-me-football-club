@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.12.0 Stable Baseline</title>
+<title>Mini&Me Football Club v2.12.1 Hide Player IDs</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -13020,7 +13020,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.12.0 Stable Baseline";
+const BUILD_VERSION="Mini&Me Football Club v2.12.1 Hide Player IDs";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -17683,7 +17683,7 @@ function seasonAwards(){
 }
 function leaderCard(title,subtitle,players,valueFn){
  return'<div class="card"><div class="sectionHead"><div><div class="title">'+title+'</div><div class="sub">'+subtitle+'</div></div></div><div class="leadersList">'+
- (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+p.name+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
+ (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+marketDisplayPlayerName(p.name)+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
  '</div></div>';
 }
 function teamPowerRankingData(){
@@ -18523,6 +18523,11 @@ function signFreeAgent(id){
  save();$("#sheet").classList.add("hidden");
  if(document.body.classList.contains("season-review-active")&&G.pendingSeasonReview)showSeasonReview();else render();
 }
+
+function marketDisplayPlayerName(name){
+ return String(name||"").replace(/\s+\d+$/,"").trim();
+}
+
 const MARKET_ROLE_POSITIONS={
  GK:["GK"],
  DEF:["LB","CB","CB","RB","LWB","RWB"],
@@ -22080,7 +22085,7 @@ function playerRow(p,market){
  let ratingText=own?String(p.ovr):(intel.known?intel.ovrText:'—');
  let potText=own?('POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)):(intel.known?'POT '+intel.potText:'UNSCOUTED');
  let scoutMeta=market&&!own?'<span class="scoutEstimate"><strong>'+intel.classLabel+'</strong> · '+intel.confidence+' · '+marketRecommendationLabel(G.club,p,squadNeeds().map(n=>positionGroup(n.pos)))+'</span>':'';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+p.name+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team===-1)?'Free Agent':p.team===-3?externalPlayerSourceLabel(p):(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+scoutMeta+medicalTag+retireTag+'</div><div class="rating"><div class="ovr">'+ratingText+'</div><div class="pot">'+potText+'</div></div></div>'
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+marketDisplayPlayerName(p.name)+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team===-1)?'Free Agent':p.team===-3?externalPlayerSourceLabel(p):(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+scoutMeta+medicalTag+retireTag+'</div><div class="rating"><div class="ovr">'+ratingText+'</div><div class="pot">'+potText+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
