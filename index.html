@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.12.3 Group-Specific Qualification Schedules</title>
+<title>Mini&Me Football Club v2.12.4 Player Name & World Cup Results Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -13076,7 +13076,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.12.3 Group-Specific Qualification Schedules";
+const BUILD_VERSION="Mini&Me Football Club v2.12.4 Player Name & World Cup Results Fix";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -16504,7 +16504,7 @@ function nationalInternationalView(){
    let balance=nationalSquadBalanceStatus(),confirmed=!!G.nationalGM.squadConfirmed,nation=G.nationalGM.nation;
    gmBlock='<div class="card nationalInternationalManagerCard"><div class="sectionHead"><div><div class="screenEyebrow">NATIONAL TEAM MANAGER</div><div class="title">'+nationFlagHtml(nation,24)+nationName(nation)+'</div><div class="sub">Your national team responsibilities are active alongside your club role.</div></div><div class="nationalGMReadyState '+(confirmed&&balance.ready?'ready':'attention')+'">'+(confirmed&&balance.ready?'READY':'ACTION REQUIRED')+'</div></div><div class="nationalGMControlGrid"><div><span>SQUAD</span><b>'+managedNationalSquadPlayers().length+' / '+NATIONAL_SQUAD_SIZE+'</b></div><div><span>AVERAGE OVR</span><b>'+nationalSquadAverageOVR().toFixed(1)+'</b></div><div><span>BALANCE</span><b>'+(balance.ready?'Ready':'Review')+'</b></div><div><span>CONFIRMATION</span><b>'+(confirmed?'Confirmed':'Pending')+'</b></div></div><div class="nationalGMControlActions"><button data-national-gm-open-squad="1">MANAGE SQUAD</button><button data-national-gm-confirm-squad="1" class="'+(confirmed?'confirmed':'')+'">'+(G.nationalGM.manualSquadOverride?(confirmed?'OVERRIDE CONFIRMED':'CONFIRM OVERRIDE'):'AI SQUAD READY')+'</button></div>'+(!balance.ready?'<div class="nationalGMControlNote">The squad still needs positional balance before it should be confirmed for international duty.</div>':'')+'</div>';
  }
- return gmBlock+worldCupHubHtml()+internationalResultsHistoryHtml();
+ return gmBlock+worldCupHubHtml()+(window.worldCupHubTab==='finals'?worldCupFinalsResultsHistoryHtml():internationalResultsHistoryHtml());
 }
 
 function latestCurrentSeasonInternationalResults(){
@@ -16586,6 +16586,38 @@ function latestCurrentSeasonInternationalResults(){
  if(!candidates.length)return null;
  candidates.sort((a,b)=>b.week-a.week||b.priority-a.priority);
  return candidates[0];
+}
+
+
+function latestWorldCupFinalsResults(){
+ let t=ensureWorldCupTournament();
+ if(!t||Number(t.season)!==Number(G.season))return null;
+
+ let played=[];
+ (t.groups||[]).forEach(g=>(g.matches||[]).forEach(m=>{
+   if(m&&m.played)played.push({week:Number(m.week)||0,home:m.home,away:m.away,hg:Number(m.hg),ag:Number(m.ag),pens:m.pens||null});
+ }));
+ Object.values(t.rounds||{}).forEach(round=>(round||[]).forEach(m=>{
+   if(m&&m.played)played.push({week:Number(m.week)||0,home:m.home,away:m.away,hg:Number(m.hg),ag:Number(m.ag),pens:m.pens||null});
+ }));
+
+ if(!played.length)return null;
+ let latestWeek=Math.max(...played.map(m=>m.week));
+ return{week:latestWeek,matches:played.filter(m=>m.week===latestWeek)};
+}
+
+function worldCupFinalsResultsHistoryHtml(){
+ let latest=latestWorldCupFinalsResults();
+ if(!latest){
+   return '<div class="card nationalInternationalHistory"><div class="sectionHead"><div><div class="screenEyebrow">WORLD CUP FINALS</div><div class="title">Recent World Cup Results</div><div class="sub">World Cup finals results will appear here once the tournament begins.</div></div></div></div>';
+ }
+
+ let rows=latest.matches.slice(0,16).map(m=>{
+   let score=m.hg+'–'+m.ag+(m.pens?' <small>('+m.pens.home+'–'+m.pens.away+' pens)</small>':'');
+   return '<div class="nationalHistoryFixture"><span>'+nationFlagHtml(m.home,15)+'<b>'+nationName(m.home)+'</b></span><strong>'+score+'</strong><span class="away">'+nationFlagHtml(m.away,15)+'<b>'+nationName(m.away)+'</b></span></div>';
+ }).join("");
+
+ return '<div class="card nationalInternationalHistory"><div class="sectionHead"><div><div class="screenEyebrow">WORLD CUP FINALS</div><div class="title">Recent World Cup Results</div><div class="sub">Latest completed World Cup finals fixtures · Week '+latest.week+'.</div></div></div>'+rows+'</div>';
 }
 
 function internationalResultsHistoryHtml(){
@@ -17857,7 +17889,7 @@ function seasonAwards(){
 }
 function leaderCard(title,subtitle,players,valueFn){
  return'<div class="card"><div class="sectionHead"><div><div class="title">'+title+'</div><div class="sub">'+subtitle+'</div></div></div><div class="leadersList">'+
- (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+marketDisplayPlayerName(p.name)+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
+ (players.length?players.map((p,i)=>'<div class="leaderRow interactiveRow" data-player="'+p.id+'"><div class="leaderRank">'+(i+1)+'</div><div class="leaderName"><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>'+G.clubs[p.team].name+' · '+p.stats.apps+' apps</span></div><div class="leaderValue">'+valueFn(p)+'</div></div>').join(""):'<div class="sub">Statistics appear after the first fixtures.</div>')+
  '</div></div>';
 }
 function teamPowerRankingData(){
@@ -18347,7 +18379,7 @@ function resultScorerSummary(perf){
    if(b.minute==null)return-1;
    return goalMinuteSortValue(a.minute)-goalMinuteSortValue(b.minute);
  });
- return events.map(e=>'<span class="broadcastScorerName"><i class="broadcastGoalBall" aria-hidden="true">⚽</i><b>'+e.name+'</b>'+(e.minute?'<em>'+formatGoalMinute(e.minute)+'</em>':'')+'</span>').join('');
+ return events.map(e=>'<span class="broadcastScorerName"><i class="broadcastGoalBall" aria-hidden="true">⚽</i><b>'+displayPlayerName(e.name)+'</b>'+(e.minute?'<em>'+formatGoalMinute(e.minute)+'</em>':'')+'</span>').join('');
 }
 
 function showMatchResult(r,playedWeek){
@@ -18420,7 +18452,7 @@ function showMatchResult(r,playedWeek){
    :allPerf[0]||null;
 
  let potmInsideRatings=potm
-   ?'<div class="ratingsAwardLine resultPlayerLink" data-result-player="'+potm.id+'"><div><span>PLAYER OF THE MATCH</span><b>'+potm.name+' · '+potm.pos+'</b></div><strong>'+potm.rating.toFixed(1)+'</strong></div>'
+   ?'<div class="ratingsAwardLine resultPlayerLink" data-result-player="'+potm.id+'"><div><span>PLAYER OF THE MATCH</span><b>'+displayPlayerName(potm.name)+' · '+potm.pos+'</b></div><strong>'+potm.rating.toFixed(1)+'</strong></div>'
    :'';
 
  $("#resultRatings").innerHTML=
@@ -18698,7 +18730,7 @@ function signFreeAgent(id){
  if(document.body.classList.contains("season-review-active")&&G.pendingSeasonReview)showSeasonReview();else render();
 }
 
-function marketDisplayPlayerName(name){
+function displayPlayerName(name){
  return String(name||"").replace(/\s+\d+$/,"").trim();
 }
 
@@ -22259,7 +22291,7 @@ function playerRow(p,market){
  let ratingText=own?String(p.ovr):(intel.known?intel.ovrText:'—');
  let potText=own?('POT '+Math.max(p.ovr,p.pot-4)+'–'+Math.min(96,p.pot+2)):(intel.known?'POT '+intel.potText:'UNSCOUTED');
  let scoutMeta=market&&!own?'<span class="scoutEstimate"><strong>'+intel.classLabel+'</strong> · '+intel.confidence+' · '+marketRecommendationLabel(G.club,p,squadNeeds().map(n=>positionGroup(n.pos)))+'</span>':'';
- return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+marketDisplayPlayerName(p.name)+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team===-1)?'Free Agent':p.team===-3?externalPlayerSourceLabel(p):(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+scoutMeta+medicalTag+retireTag+'</div><div class="rating"><div class="ovr">'+ratingText+'</div><div class="pot">'+potText+'</div></div></div>'
+ return'<div class="player" data-player="'+p.id+'"><div class="pos">'+p.pos+'</div><div><div class="pname">'+displayPlayerName(p.name)+'</div><div class="meta">Age '+p.age+' · '+p.years+' yr · '+money(p.wage)+'/wk'+(market?' · '+((p.freeAgent||p.team===-1)?'Free Agent':p.team===-3?externalPlayerSourceLabel(p):(G.clubs[p.team]?G.clubs[p.team].name:'Unknown Club')):'')+'</div>'+roles+style+fitHtml+scoutMeta+medicalTag+retireTag+'</div><div class="rating"><div class="ovr">'+ratingText+'</div><div class="pot">'+potText+'</div></div></div>'
 }
 
 function generatedCoachName(clubId){
@@ -23596,8 +23628,8 @@ function developmentView(){
  '<div class="card"><div class="sectionHead"><div><div class="title">Training Report</div><div class="sub">Live development produced by your current training environment during '+G.season+'.</div></div><span class="trainingLevelPill">LV '+tInfo.level+' · '+tInfo.label+'</span></div><div class="trainingImpactGrid"><div class="trainingImpactTile"><span>OVR GAIN</span><b>'+(tm.gain>0?'+':'')+tm.gain+'</b></div><div class="trainingImpactTile"><span>PLAYERS IMPROVED</span><b>'+tm.improved+'</b></div><div class="trainingImpactTile"><span>U25 WEEKLY CHANCE</span><b>'+weeklyChance+'%</b></div></div><div class="trainingNote">'+tInfo.note+' Head Coach OVR also influences young-player development. Training does not guarantee growth and players remain capped by potential.</div>'+(topGrowth.length?'<div class="developmentRows">'+topGrowth.map(x=>'<div class="devCardRow"><div class="devPlayerMain"><b>'+x.name+'</b><span class="devPlayerMeta">Current-season training growth</span></div><div class="devMetric productionDevMetric"><b>+'+x.gain+' OVR</b></div></div>').join('')+'</div>':'')+'</div>'+ 
  '<div class="card"><div class="sectionHead"><div><div class="title">Academy Report</div><div class="sub">Youth players produced by your academy during '+G.season+'.</div></div><span class="trainingLevelPill">LV '+yInfo.level+' · '+yInfo.label+'</span></div><div class="trainingImpactGrid"><div class="trainingImpactTile"><span>INTAKE</span><b>'+ym.intake+'</b></div><div class="trainingImpactTile"><span>AVG OVR</span><b>'+(ym.intake?ym.avgOvr.toFixed(1):'—')+'</b></div><div class="trainingImpactTile"><span>AVG POT</span><b>'+(ym.intake?ym.avgPot.toFixed(1):'—')+'</b></div></div><div class="trainingNote">'+yInfo.note+' Academy level improves promotion frequency and prospect quality, while elite potential remains rare.</div>'+(academyRows?'<div class="developmentRows">'+academyRows+'</div>':'<div class="profileEmpty compactEmpty">The next academy promotion will be recorded here.</div>')+'</div>'+ 
  '<div class="card developmentListCard"><div class="sectionHead"><div><div class="title">Recent Development</div><div class="sub">Changes recorded at the most recent offseason.</div></div></div>'+recent+'</div>'+ 
- '<div class="card developmentListCard"><div class="sectionHead"><div><div class="title">High Potential</div><div class="sub">Young first-team players ranked by remaining development ceiling.</div></div><div class="sectionCount">'+youth.length+'</div></div>'+youth.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+' · Current '+p.ovr+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' → '+p.pot+'</b></div></div>').join("")+'</div>'+ 
- '<div class="card developmentListCard"><div class="sectionHead"><div><div class="title">Veteran Watch</div><div class="sub">Senior players approaching decline or retirement decisions.</div></div><div class="sectionCount">'+veterans.length+'</div></div>'+(veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+p.name+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' OVR</b></div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
+ '<div class="card developmentListCard"><div class="sectionHead"><div><div class="title">High Potential</div><div class="sub">Young first-team players ranked by remaining development ceiling.</div></div><div class="sectionCount">'+youth.length+'</div></div>'+youth.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+displayPlayerName(p.name)+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+' · Current '+p.ovr+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' → '+p.pot+'</b></div></div>').join("")+'</div>'+ 
+ '<div class="card developmentListCard"><div class="sectionHead"><div><div class="title">Veteran Watch</div><div class="sub">Senior players approaching decline or retirement decisions.</div></div><div class="sectionCount">'+veterans.length+'</div></div>'+(veterans.length?veterans.map(p=>'<div class="devCardRow" data-player="'+p.id+'"><div class="devPlayerMain"><b>'+displayPlayerName(p.name)+'</b><span class="devPlayerMeta">'+p.pos+' · Age '+p.age+'</span></div><div class="devMetric productionDevMetric"><b>'+p.ovr+' OVR</b></div></div>').join(""):'<div class="sub">No senior players currently require monitoring.</div>')+'</div>';
 }
 
 function teamCoachSummaryHtml(teamId=G.club,integrity=null){
@@ -23620,7 +23652,7 @@ function squadTeamView(){
      if(!p)return "";
      let slot=assignment&&assignment.slot?assignment.slot:(lineSlots[index]||p.pos);
      let fit=systemFitScore(p,slot,G.club),fitLabel=systemFitLabel(fit),pe=positionalEffectiveness(p,slot,G.club);
-     let shortName=p.name.split(" ").slice(-1)[0];
+     let shortName=displayPlayerName(p.name).split(" ").slice(-1)[0];
      return '<button class="formationPlayer fit-'+systemFitClass(fit)+'" data-player="'+p.id+'">'+
        '<span class="formationOvr">'+pe.effectiveOvr+'</span>'+
        '<span class="formationName">'+shortName+'</span>'+
