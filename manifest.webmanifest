@@ -1,9 +1,0 @@
-{
-  "name": "Mini&Me Football Club",
-  "short_name": "M&M Football",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#080d12",
-  "theme_color": "#080d12",
-  "description": "Build the Club. Shape the Legacy."
-}
