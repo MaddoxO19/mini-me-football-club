@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.12.5 Global Player Display Name Fix</title>
+<title>Mini&Me Football Club v2.13.0 Federation Career Setup</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12899,6 +12899,97 @@ body.international-results-active{overflow:hidden}
  .worldCupConfirmedQualifiers{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 </style>
+
+<style id="minime-v2-13-0-federation-career-setup">
+#federationStep{
+ padding:calc(18px + env(safe-area-inset-top)) 14px calc(26px + env(safe-area-inset-bottom))!important;
+}
+#launchStep.hidden,#saveSlotStep.hidden,#federationStep.hidden,#nationStep.hidden,#clubStep.hidden{display:none!important}
+#federationStep:not(.hidden),#saveSlotStep:not(.hidden),#nationStep:not(.hidden),#clubStep:not(.hidden){display:block!important}
+#federationStep{position:relative!important;z-index:2!important}
+.federationGrid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;
+ max-width:520px;
+ margin:14px auto 4px;
+ text-align:left;
+}
+.federationPick{
+ min-height:78px;
+ border:1px solid var(--line);
+ border-radius:13px;
+ background:linear-gradient(180deg,#121b24,#0e161d);
+ color:var(--text);
+ padding:12px;
+ text-align:left;
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.federationPick:active{transform:scale(.99)}
+.federationPick b{
+ display:block;
+ color:var(--gold);
+ font-size:15px;
+ font-weight:950;
+ letter-spacing:.035em;
+}
+.federationPick strong{
+ display:block;
+ margin-top:4px;
+ color:var(--text);
+ font-size:11px;
+ font-weight:850;
+}
+.federationPick span{
+ display:block;
+ margin-top:4px;
+ color:var(--muted);
+ font-size:8.5px;
+ line-height:1.35;
+}
+.nationPick{cursor:pointer;touch-action:manipulation}
+.careerConfirmSummary{
+ margin-top:12px;
+ padding:12px 13px;
+ border:1px solid #6f5b24;
+ border-radius:13px;
+ background:#d9b54a0a;
+ text-align:left;
+}
+.careerConfirmSummary.hidden{display:none!important}
+.careerConfirmHeading{
+ color:var(--gold);
+ font-size:8px;
+ font-weight:950;
+ letter-spacing:.11em;
+}
+.careerConfirmClub{
+ display:flex;
+ align-items:center;
+ gap:9px;
+ margin-top:7px;
+}
+.careerConfirmClub b{font-size:15px;line-height:1.2}
+.careerConfirmMeta{
+ margin-top:5px;
+ color:var(--muted);
+ font-size:9px;
+ line-height:1.4;
+}
+#beginCareerBtn{margin-top:9px!important}
+#continueNationBtn{display:none!important}
+@media(max-width:430px){
+ #federationStep{padding-left:10px!important;padding-right:10px!important}
+ .federationGrid{grid-template-columns:1fr 1fr;gap:7px}
+ .federationPick{min-height:72px;padding:10px}
+ .federationPick b{font-size:13px}
+ .federationPick strong{font-size:10px}
+}
+@media(max-width:360px){
+ .federationGrid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -12923,21 +13014,28 @@ body.international-results-active{overflow:hidden}
   <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
   <div id="careerSlots" class="careerSlots"></div>
 </div>
+<div id="federationStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToSlotsFromFederation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
+  <h2>Choose Your Federation</h2>
+  <div class="sub">Start with the football region you want your domestic career to belong to.</div>
+  <div class="worldFoundationNote careerSetupNote"><b>Football world.</b> Choose a federation, then a country, then the club you want to manage.</div>
+  <div id="federations" class="federationGrid"></div>
+</div>
 <div id="nationStep" class="careerStep hidden">
-  <div class="careerTop"><button id="backToSlotsFromNation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
-  <h2>Choose Your Football Nation</h2>
-  <div class="sub">Your nation gives this career its football identity. The Mini&Me clubs and domestic competitions will belong to this country, while the core game remains unchanged.</div>
-  <div class="worldFoundationNote careerSetupNote"><b>Your football nation.</b> Domestic league, National Cup and Champions Tournament qualification are tied to this career identity.</div>
+  <div class="careerTop"><button id="backToFederationsFromNation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
+  <h2>Choose Your Country</h2>
+  <div class="sub"><span id="nationFederationLabel" class="nationIdentity"></span> · Choose the domestic football nation for this career.</div>
+  <div class="worldFoundationNote careerSetupNote"><b>Career identity.</b> Your selected country defines the domestic league, National Cup and Champions Tournament qualification pathway.</div>
   <div id="nations" class="nationGrid"></div>
-  <button id="continueNationBtn" class="btn primary full">CONTINUE TO CLUBS</button>
 </div>
 <div id="clubStep" class="careerStep hidden">
-  <div class="careerTop"><button id="backToLaunch" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
+  <div class="careerTop"><button id="backToNationFromClub" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
   <h2>Choose Your Club</h2>
-  <div class="sub"><span id="clubNationLabel" class="nationIdentity"></span> · Choose the club you want to lead. Every Mini&Me football nation uses the same 20-club Premier Division and 20-club Championship structure.</div>
-  <div class="worldFoundationNote careerSetupNote"><b>Domestic structure.</b> 20 Premier clubs · 20 Championship clubs · 38 league matches · 64-team National Cup.</div>
+  <div class="sub"><span id="clubNationLabel" class="nationIdentity"></span> · Choose the club you want to lead.</div>
+  <div class="worldFoundationNote careerSetupNote"><b>Final step.</b> Select a club to review your choice, then confirm to begin the career.</div>
   <div id="clubs" class="clubs"></div>
-  <button id="beginCareerBtn" class="btn primary full beginCareerBtn" style="display:none">BEGIN CAREER</button>
+  <div id="careerConfirmSummary" class="careerConfirmSummary hidden"></div>
+  <button id="beginCareerBtn" class="btn primary full beginCareerBtn" style="display:none">START CAREER</button>
 </div>
 </section>
 
@@ -13076,7 +13174,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.12.5 Global Player Display Name Fix";
+const BUILD_VERSION="Mini&Me Football Club v2.13.0 Federation Career Setup";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15517,7 +15615,7 @@ function seedPlayerStyle(p,legacyTeamId=null){
 }
 function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEach(p=>seedPlayerStyle(p,p.team>=0?p.team:null))}
 
-let G=null, selected=0, page="home", selectedCareerNation="AUS";
+let G=null, selected=0, page="home", selectedCareerNation="AUS", selectedCareerFederation="AFC";
 let clubTab="overview",leagueTab="table",squadTab="team",statisticsTab="leaders";
 let marketPositionFilter="RECOMMENDED";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -17148,7 +17246,7 @@ function renderCareerSlots(mode=careerSlotMode){
 }
 
 function showCareerHubStep(stepId){
- ["launchStep","saveSlotStep","nationStep","clubStep"].forEach(id=>{
+ ["launchStep","saveSlotStep","federationStep","nationStep","clubStep"].forEach(id=>{
    let el=$("#"+id);
    if(el)el.classList.toggle("hidden",id!==stepId);
  });
@@ -24694,31 +24792,97 @@ function navigateTo(nextPage){
 validateCoreRuntime();
 renderBuildVersion();
 
+const CAREER_FEDERATION_ORDER=["AFC","CAF","CONCACAF","CONMEBOL","OFC","UEFA"];
+const CAREER_FEDERATION_META={
+ AFC:{name:"Asian Football Confederation",region:"Asia"},
+ CAF:{name:"Confederation of African Football",region:"Africa"},
+ CONCACAF:{name:"North & Central America",region:"CONCACAF"},
+ CONMEBOL:{name:"South American Football",region:"South America"},
+ OFC:{name:"Oceania Football Confederation",region:"Oceania"},
+ UEFA:{name:"European Football",region:"Europe"}
+};
+
+function careerFederationNationIds(confedId){
+ return FOOTBALL_NATIONS.filter(n=>nationConfederation(n.id)===confedId).map(n=>n.id);
+}
+
+function renderFederationChoices(){
+ let host=$("#federations");if(!host)return;
+ host.innerHTML=CAREER_FEDERATION_ORDER.map(id=>{
+   let meta=CAREER_FEDERATION_META[id],count=careerFederationNationIds(id).length;
+   return '<button class="federationPick" data-career-federation="'+id+'">'+
+     '<b>'+id+'</b><strong>'+meta.region+'</strong><span>'+meta.name+' · '+count+' available countr'+(count===1?'y':'ies')+'</span>'+
+   '</button>';
+ }).join("");
+}
+
+function showFederationStep(){
+ $("#saveSlotStep").classList.add("hidden");
+ $("#nationStep").classList.add("hidden");
+ $("#clubStep").classList.add("hidden");
+ $("#federationStep").classList.remove("hidden");
+ selected=0;
+ renderFederationChoices();
+}
+
 function renderNationChoices(){
  let host=$("#nations");if(!host)return;
- host.innerHTML=FOOTBALL_NATIONS.map(n=>'<button class="nationPick '+(n.id===selectedCareerNation?'selected':'')+'" data-nation="'+n.id+'"><span class="nationFlag">'+nationFlagHtml(n.id,26)+'</span><span><b>'+displayPlayerName(n.name)+'</b><span>Domestic football identity</span></span></button>').join("");
+ let nations=FOOTBALL_NATIONS.filter(n=>nationConfederation(n.id)===selectedCareerFederation);
+ host.innerHTML=nations.map(n=>
+   '<button class="nationPick" data-nation="'+n.id+'">'+
+     '<span class="nationFlag">'+nationFlagHtml(n.id,26)+'</span>'+
+     '<span><b>'+n.name+'</b><span>'+selectedCareerFederation+' domestic career</span></span>'+
+   '</button>'
+ ).join("");
+ let label=$("#nationFederationLabel"),meta=CAREER_FEDERATION_META[selectedCareerFederation];
+ if(label)label.textContent=selectedCareerFederation+' · '+(meta?meta.region:selectedCareerFederation);
 }
+
 function showNationStep(){
+ $("#federationStep").classList.add("hidden");
  $("#saveSlotStep").classList.add("hidden");
  $("#clubStep").classList.add("hidden");
  $("#nationStep").classList.remove("hidden");
  renderNationChoices();
 }
+
 function showClubStepFromNation(){
  $("#nationStep").classList.add("hidden");
  $("#clubStep").classList.remove("hidden");
- let label=$("#clubNationLabel");if(label)label.innerHTML=nationFlagHtml(selectedCareerNation,20)+'<span>'+nationName(selectedCareerNation)+'</span>';
- selected=0;renderClubChoices();
+ let label=$("#clubNationLabel");
+ if(label)label.innerHTML=nationFlagHtml(selectedCareerNation,20)+'<span>'+nationName(selectedCareerNation)+'</span>';
+ selected=-1;
+ renderClubChoices();
+ let summary=$("#careerConfirmSummary"),begin=$("#beginCareerBtn");
+ if(summary){summary.classList.add("hidden");summary.innerHTML=""}
+ if(begin)begin.style.display="none";
 }
+
 function renderClubChoices(){
  let names=CLUBS.slice(0,DOMESTIC_LEAGUE_SIZE);
  $("#clubs").innerHTML=names.map((c,i)=>{
-  let tier=i<4?"Title Contender":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Established":i<DOMESTIC_LEAGUE_SIZE-4?"Building":"Rebuild";
-  let difficulty=i<4?"High expectations":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Balanced":i<DOMESTIC_LEAGUE_SIZE-4?"Development focus":"Underdog";
-  return '<button class="clubpick '+(i===selected?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · Reputation '+Math.max(60,90-i)+' · '+difficulty+'</span></button>';
+   let tier=i<4?"Title Contender":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Established":i<DOMESTIC_LEAGUE_SIZE-4?"Building":"Rebuild";
+   let difficulty=i<4?"High expectations":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Balanced":i<DOMESTIC_LEAGUE_SIZE-4?"Development focus":"Underdog";
+   return '<button class="clubpick '+(i===selected?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · Reputation '+Math.max(60,90-i)+' · '+difficulty+'</span></button>';
  }).join("");
 }
-renderClubChoices();
+
+function showCareerConfirmation(){
+ let summary=$("#careerConfirmSummary"),begin=$("#beginCareerBtn");
+ if(!summary||!begin||selected<0)return;
+ let clubName=CLUBS[selected]||("Club "+(selected+1)),
+     meta=CAREER_FEDERATION_META[selectedCareerFederation];
+ summary.innerHTML=
+   '<div class="careerConfirmHeading">CAREER SELECTION</div>'+
+   '<div class="careerConfirmClub">'+nationFlagHtml(selectedCareerNation,24)+'<div><b>'+clubName+'</b><div class="careerConfirmMeta">'+
+     nationName(selectedCareerNation)+' · '+selectedCareerFederation+' · Premier Division<br>'+
+     (meta?meta.region+' football world':'Domestic football career')+
+   '</div></div></div>';
+ summary.classList.remove("hidden");
+ begin.style.display="";
+ begin.scrollIntoView&&begin.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
 function startSelectedCareer(){
  var status=$("#startStatus");
  try{
@@ -24790,7 +24954,18 @@ if(e.target.closest("[data-open-staff]")){squadTab="staff";page="squad";renderSo
 
 let hofPos=e.target.closest("[data-hof-position]");if(hofPos){window.hofPositionGroup=hofPos.dataset.hofPosition||"FWD";renderSoon();return}
 let st=e.target.closest("[data-section-tab]");if(st){let scope=st.dataset.sectionTab,val=st.dataset.tab;if(scope==="club")clubTab=val;if(scope==="league")leagueTab=val;if(scope==="squad")squadTab=val;if(scope==="statistics")statisticsTab=val;renderSoon();return}
-let nationPick=e.target.closest("[data-nation]");if(nationPick){selectedCareerNation=nationPick.dataset.nation||"AUS";renderNationChoices();return}
+let federationPick=e.target.closest("[data-career-federation]");if(federationPick){
+ selectedCareerFederation=federationPick.dataset.careerFederation||"AFC";
+ let ids=careerFederationNationIds(selectedCareerFederation);
+ selectedCareerNation=ids[0]||"AUS";
+ showNationStep();
+ return;
+}
+let nationPick=e.target.closest("[data-nation]");if(nationPick){
+ selectedCareerNation=nationPick.dataset.nation||"AUS";
+ showClubStepFromNation();
+ return;
+}
 let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  let slot=Number(slotBtn.dataset.careerSlot)||1,mode=slotBtn.dataset.slotMode||careerSlotMode,existing=careerSlotData(slot);
  if(mode==="load"){
@@ -24800,10 +24975,16 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  if(existing&&!confirm("Career "+slot+" already contains "+(careerSlotSummary(slot)?.club||"a saved career")+". Replace it with a new career?"))return;
  activeSaveSlot=slot;
  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(slot))}catch(e){}
- showNationStep();
+ showFederationStep();
  return;
 }
-let cp=e.target.closest("[data-club]");if(cp){selected=+cp.dataset.club;document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));cp.classList.add("selected");startSelectedCareer();return}
+let cp=e.target.closest("[data-club]");if(cp){
+ selected=+cp.dataset.club;
+ document.querySelectorAll(".clubpick").forEach(x=>x.classList.remove("selected"));
+ cp.classList.add("selected");
+ showCareerConfirmation();
+ return;
+}
 let simInternational=e.target.closest("[data-sim-international-week]");if(simInternational){e.preventDefault();simulatePendingInternationalWeek();return} let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
 let nav=e.target.closest("#nav [data-page]");if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
 let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
@@ -24859,13 +25040,17 @@ $("#backToLaunchFromSlots").addEventListener("click",function(){
  $("#saveSlotStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
 });
-$("#backToSlotsFromNation").addEventListener("click",function(){
- $("#nationStep").classList.add("hidden");
+$("#backToSlotsFromFederation").addEventListener("click",function(){
+ $("#federationStep").classList.add("hidden");
  $("#saveSlotStep").classList.remove("hidden");
  renderCareerSlots("new");
 });
-$("#continueNationBtn").addEventListener("click",showClubStepFromNation);
-$("#backToLaunch").addEventListener("click",function(){
+$("#backToFederationsFromNation").addEventListener("click",function(){
+ $("#nationStep").classList.add("hidden");
+ $("#federationStep").classList.remove("hidden");
+ renderFederationChoices();
+});
+$("#backToNationFromClub").addEventListener("click",function(){
  $("#clubStep").classList.add("hidden");
  $("#nationStep").classList.remove("hidden");
  renderNationChoices();
@@ -24898,7 +25083,7 @@ $("#resultContinueBtn").addEventListener("click",function(){
 $("#internationalResultsContinueBtn").addEventListener("click",closeInternationalResultsScreen);
 
 const RELEASE_CANDIDATE_CHECKS=[
- {name:"Career Hub buttons",test:()=>!!$("#newBtn")&&!!$("#loadBtn")},
+ {name:"Career Hub buttons",test:()=>!!$("#newBtn")&&!!$("#loadBtn")&&!!$("#federationStep")&&!!$("#nationStep")&&!!$("#clubStep")},
  {name:"Career storage",test:()=>typeof initialiseCareerStorage==="function"&&typeof loadCareerSlot==="function"&&typeof save==="function"},
  {name:"Save integrity",test:()=>typeof SAVE_INTEGRITY_VERSION==="string"&&typeof validateCareerSnapshot==="function"},
  {name:"Season progression",test:()=>typeof startSeasonTransition==="function"&&typeof prepareSeasonReview==="function"},
