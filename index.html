@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.12.1 Hide Player IDs</title>
+<title>Mini&Me Football Club v2.12.2 Seeded Qualification Draws</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12843,6 +12843,62 @@ body.international-results-active{overflow:hidden}
 .reviewQualificationHistory>.reviewSection{margin:0;border:0;border-top:1px solid var(--line);border-radius:0}
 </style>
 
+
+<style id="minime-v2-12-2-qualified-race-ui">
+.worldCupConfirmedQualifiers{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:6px;
+}
+.worldCupQualifiedChip{
+ display:flex;
+ align-items:center;
+ gap:6px;
+ min-height:32px;
+ padding:7px 9px;
+ border:1px solid #315d43;
+ border-radius:8px;
+ background:#12241c;
+ color:#eef3f6;
+ overflow:hidden;
+}
+.worldCupQualifiedChip span{
+ min-width:0;
+ flex:1;
+ font-size:6.7px!important;
+ font-weight:850;
+ letter-spacing:0!important;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+.worldCupQualifiedChip b{
+ flex:0 0 auto;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-width:22px;
+ height:18px;
+ padding:0 5px;
+ border-radius:999px;
+ background:#183727;
+ color:#52dd89;
+ font-size:5.5px!important;
+ font-weight:950;
+ letter-spacing:.05em;
+}
+.worldCupHubEmpty{
+ grid-column:1/-1;
+ padding:9px;
+ border:1px dashed var(--line);
+ border-radius:8px;
+ color:#8997a2;
+ font-size:6.5px;
+}
+@media(max-width:700px){
+ .worldCupConfirmedQualifiers{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -13020,7 +13076,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.12.1 Hide Player IDs";
+const BUILD_VERSION="Mini&Me Football Club v2.12.2 Seeded Qualification Draws";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13929,6 +13985,7 @@ function nationalGMProfileHtml(){
 
 
 const WORLD_CUP_QUALIFICATION_VERSION="2.11.16.0";
+const WORLD_CUP_DRAW_VERSION="2.12.2";
 
 const CONFEDERATIONS={
  UEFA:{id:"UEFA",name:"Europe",short:"UEFA",places:13,format:"GROUPS",description:"European qualifying groups"},
@@ -13987,12 +14044,40 @@ function worldCupCycleForSeason(season=G.season){
 function makeQualificationTable(ids){
  let table={};ids.forEach(id=>table[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});return table;
 }
-function seededSplit(ids,groupCount){
- let ranked=nationalRanking().filter(n=>ids.includes(n.id)).map(n=>n.id),groups=Array.from({length:groupCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false}));
- ranked.forEach((id,i)=>{
-   let row=Math.floor(i/groupCount),col=i%groupCount,gi=row%2===0?col:(groupCount-1-col);
-   groups[gi].teams.push(id);
+function qualificationSeedingScore(id){
+ let tier=typeof worldCupNationTier==="function"?worldCupNationTier(id):"D",
+     tierValue={S:500,A:400,B:300,C:200,D:100}[tier]||100,
+     power=nationalPowerProfile(id),
+     pedigree=power?Math.max(0,Number(power.floor)||0):0,
+     rating=Number(effectiveNationalRating(id))||700;
+ // Stable pedigree dominates. Dynamic ranking is only a secondary separator.
+ return tierValue+(pedigree*.35)+(rating*.08);
+}
+function deterministicQualificationOrder(ids,seed){
+ return ids.slice().sort((a,b)=>{
+   let ha=0,hb=0,sa=String(seed)+"|"+a,sb=String(seed)+"|"+b;
+   for(let i=0;i<sa.length;i++)ha=((ha*31)+sa.charCodeAt(i))>>>0;
+   for(let i=0;i<sb.length;i++)hb=((hb*31)+sb.charCodeAt(i))>>>0;
+   return ha-hb;
  });
+}
+function seededSplit(ids,groupCount,confedId="GEN",cycle=worldCupCycleForSeason()){
+ let ranked=ids.slice().sort((a,b)=>qualificationSeedingScore(b)-qualificationSeedingScore(a)||nationName(a).localeCompare(nationName(b))),
+     groups=Array.from({length:groupCount},(_,i)=>({id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false})),
+     potCount=Math.ceil(ranked.length/groupCount);
+
+ // Create pots by seeding strength. Every group receives at most one nation from
+ // each pot, preventing the strongest federation teams being stacked together.
+ for(let pot=0;pot<potCount;pot++){
+   let slice=ranked.slice(pot*groupCount,(pot+1)*groupCount),
+       ordered=deterministicQualificationOrder(slice,cycle+"|"+confedId+"|POT"+pot);
+
+   ordered.forEach((id,index)=>{
+     let gi=index%groupCount;
+     groups[gi].teams.push(id);
+   });
+ }
+
  groups.forEach(g=>{g.table=makeQualificationTable(g.teams)});
  return groups;
 }
@@ -14008,14 +14093,15 @@ function confederationLeague(ids,id){
  return {id,name:confederationById(id).name,format:"LEAGUE",teams:ids.slice(),table:makeQualificationTable(ids),matches:[],matchday:0,complete:false};
 }
 function buildWorldCupQualification(cycle=worldCupCycleForSeason()){
+ // v2.12.2: federation groups use internal seeded pots. Existing active save groups are preserved.
  ensureInternationalNationalState();
  let by={};Object.keys(CONFEDERATIONS).filter(x=>x!=="PLAYOFF").forEach(c=>by[c]=FOOTBALL_NATIONS.filter(n=>nationConfederation(n.id)===c).map(n=>n.id));
 
- let europe=seededSplit(by.UEFA,8);europe.forEach(groupRoundRobinMatches);
- let africa=seededSplit(by.CAF,4);africa.forEach(groupRoundRobinMatches);
- let asia=seededSplit(by.AFC,3);asia.forEach(groupRoundRobinMatches);
- let concacaf=seededSplit(by.CONCACAF,3);concacaf.forEach(groupRoundRobinMatches);
- let ofc=seededSplit(by.OFC,2);ofc.forEach(groupRoundRobinMatches);
+ let europe=seededSplit(by.UEFA,8,"UEFA",cycle);europe.forEach(groupRoundRobinMatches);
+ let africa=seededSplit(by.CAF,4,"CAF",cycle);africa.forEach(groupRoundRobinMatches);
+ let asia=seededSplit(by.AFC,3,"AFC",cycle);asia.forEach(groupRoundRobinMatches);
+ let concacaf=seededSplit(by.CONCACAF,3,"CONCACAF",cycle);concacaf.forEach(groupRoundRobinMatches);
+ let ofc=seededSplit(by.OFC,2,"OFC",cycle);ofc.forEach(groupRoundRobinMatches);
 
  let confeds={
    UEFA:{id:"UEFA",format:"GROUPS",groups:europe,places:13,complete:false},
@@ -14027,7 +14113,7 @@ function buildWorldCupQualification(cycle=worldCupCycleForSeason()){
  };
  groupRoundRobinMatches(confeds.CONMEBOL);
 
- let q={version:WORLD_CUP_QUALIFICATION_VERSION,cycle,confederations:confeds,complete:false,qualified:[],playoffCandidates:[],playoff:null,started:true,round:0};
+ let q={version:WORLD_CUP_QUALIFICATION_VERSION,drawVersion:WORLD_CUP_DRAW_VERSION,cycle,confederations:confeds,complete:false,qualified:[],playoffCandidates:[],playoff:null,started:true,round:0};
  G.internationalNational.worldCup.qualification=q;
  return q;
 }
