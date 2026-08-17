@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.1.1 International Fixture Conflict Fix</title>
+<title>Mini&Me Football Club v2.13.4 Domestic & Foreign Population Weighting</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -13174,7 +13174,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.1.1 International Fixture Conflict Fix";
+const BUILD_VERSION="Mini&Me Football Club v2.13.4 Domestic & Foreign Population Weighting";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15668,8 +15668,127 @@ const DOMESTIC_CLUB_NAMES_BY_NATION={
  }
 };
 
+
+/* ==========================================================
+   v2.13.2 COMPLETE CAREER-NATION CLUB IDENTITY COVERAGE
+   Every selectable nation maps to a domestic naming culture.
+   Existing hand-crafted nation sets remain authoritative.
+   Other nations use a culturally aligned 40-club profile.
+   Underlying club IDs and crest bindings never change.
+   ========================================================== */
+
+const DOMESTIC_CLUB_PROFILE_BY_NATION={
+ AUS:"ENGLISH",ENG:"ENGLISH",USA:"ENGLISH",CAN:"ENGLISH",NZL:"ENGLISH",IRL:"ENGLISH",SCO:"ENGLISH",WAL:"ENGLISH",
+ ARG:"LATAM",MEX:"LATAM",URU:"LATAM",COL:"LATAM",ECU:"LATAM",CHI:"LATAM",CRC:"LATAM",PAN:"LATAM",PER:"LATAM",PAR:"LATAM",VEN:"LATAM",BOL:"LATAM",HON:"LATAM",SLV:"LATAM",GUA:"LATAM",
+ POR:"LUSO",ANG:"LUSO",CPV:"LUSO",
+ NED:"DUTCH",
+ BEL:"BENELUX",SUI:"CENTRAL_EUROPE",AUT:"CENTRAL_EUROPE",
+ DEN:"NORDIC",NOR:"NORDIC",SWE:"NORDIC",FIN:"NORDIC",ISL:"NORDIC",
+ CRO:"SLAVIC",POL:"SLAVIC",SRB:"SLAVIC",CZE:"SLAVIC",UKR:"SLAVIC",ROU:"SLAVIC",HUN:"SLAVIC",SVK:"SLAVIC",SLO:"SLAVIC",BUL:"SLAVIC",BIH:"SLAVIC",MKD:"SLAVIC",MNE:"SLAVIC",
+ GRE:"BALKAN",ALB:"BALKAN",
+ TUR:"TURKIC",UZB:"TURKIC",AZE:"TURKIC",KAZ:"TURKIC",
+ EGY:"ARABIC",MAR:"ARABIC",ALG:"ARABIC",TUN:"ARABIC",KSA:"ARABIC",IRQ:"ARABIC",QAT:"ARABIC",UAE:"ARABIC",JOR:"ARABIC",
+ KOR:"KOREAN",CHN:"CHINESE",THA:"SEA",VIE:"SEA",
+ NGA:"AFRICA_ANGLO",GHA:"AFRICA_ANGLO",RSA:"AFRICA_ANGLO",ZAM:"AFRICA_ANGLO",
+ SEN:"AFRICA_FRANCO",CMR:"AFRICA_FRANCO",CIV:"AFRICA_FRANCO",MLI:"AFRICA_FRANCO",BFA:"AFRICA_FRANCO",COD:"AFRICA_FRANCO",GUI:"AFRICA_FRANCO",
+ JAM:"CARIBBEAN",TRI:"CARIBBEAN",HAI:"CARIBBEAN",
+ FIJ:"PACIFIC",SOL:"PACIFIC",PNG:"PACIFIC",TAH:"PACIFIC",NCL:"PACIFIC",VAN:"PACIFIC",
+ ISR:"LEVANT",GEO:"CAUCASUS",ARM:"CAUCASUS"
+};
+
+const DOMESTIC_CLUB_PROFILE_NAMES={
+ ENGLISH:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ },
+ LATAM:{
+  top:["Club Puerto","Atlético Puente Norte","Unión Ribereña","Deportivo Puerto Real","Rovers del Oeste","Capital FC","Bosque Rojo CF","Leones del Este","Sporting Albion","Atlético Costa Sur","Ferroviario del Puente","Deportivo Victoria","Ciudad del Lago","Unión Central","Club Barrio Real","Rovers del Prado","Estrellas Metropolitanas","Atlético Litoral","Deportivo Caminantes","Olímpico Ciudad"],
+  lower:["Atlético Corona","Unión Parque","Deportivo Ashford","Club de la Bahía","Puente Unido","Rovers Carlton","Atlético del Puerto","Ciudad del Olmo","Unión Bella Vista","Deportivo Gran Ciudad","Club Alto Cerro","Atlético del Norte","Unión Junction","Deportivo Kingston","Parque del Prado","Nuevo Borough FC","Club Robledal","Unión Portuaria","Ciudad Parque Real","Atlético Rosewood"]
+ },
+ LUSO:{
+  top:["Clube do Porto","Atlético Ponte Norte","União Ribeirinha","FC Porto Real","Rovers do Oeste","Capital Clube","EC Mata Vermelha","Leões do Leste","Sporting Albion","SC Costa Sul","Ferroviário da Ponte","Atlético Vitória","Cidade dos Lagos","União Central","Bairro Real FC","Rovers do Prado","Estrelas Metropolitanas","Atlético Litoral","Clube Viajante","Olímpico da Cidade"],
+  lower:["Atlético Coroa","União Parque","SC Ashford","Clube da Baía","Ponte Unida","Rovers Carlton","Atlético das Docas","Cidade do Olmo","União Bela Vista","Grand Cidade FC","Clube Alto da Serra","Atlético do Norte","União Junction","Kingston Atlético","Parque dos Campos","Novo Bairro FC","Clube Serra do Carvalho","União Portuária","Cidade Parque Real","Atlético Roseira"]
+ },
+ DUTCH:{
+  top:["Havenstad FC","Noordbrug Athletic","Rivier United","Koningshaven FC","Westhaven Rovers","Hoofdstad SC","Roodwoud FC","Oost Leeuwen","Albion Sportclub","Zuidkust FC","IJzerbrug SV","Victoria Athletic","Meer City","Union Club","Koninklijk Borough","Greenwich Rovers","Metro Sterren","Kust Athletic","Wanderers Club","Olympia Stad"],
+  lower:["Kroon Athletic","Parkzijde United","Ashford Town","Baai FC","Brugwater","Carlton Rovers","Dokland Athletic","Olmstad FC","Fairview United","Grootstad SC","Heuvelkam FC","Noordland Town","Junction City","Kingston Athletic","Weidepark","Nieuw Borough","Eikenrug FC","Havenzijde United","Koningspark City","Rozenhout Athletic"]
+ },
+ BENELUX:{
+  top:["Port City FC","Athlétique du Nord","Union Rivière","Royal Port FC","Westhaven Rovers","Capital Sporting","Redwood Club","Lions de l'Est","Albion Sporting","South Coast FC","Ironbridge Club","Victoria Athletic","Lakeside City","Union Centrale","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers Club","Olympic City"],
+  lower:["Crown Athletic","Union du Parc","Ashford Town","Bayside Club","Bridgewater FC","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City Club","Hillcrest FC","Northland Town","Junction City","Kingston Athletic","Meadow Park","New Borough","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ CENTRAL_EUROPE:{
+  top:["Hafenstadt FC","Nordbrücke Athletic","Fluss Union","Königshafen FC","Westhafen Rovers","Hauptstadt Club","Rotwald FC","Ostlöwen","Albion Sportverein","Südküste FC","Eisenbrücke","Victoria Athletic","Seestadt FC","Union Stadt","Königsviertel","Greenwich Rovers","Metro Sterne","Küsten Athletic","Wanderer FC","Olympia Stadt"],
+  lower:["Kronen Athletic","Parkseite Union","Aschfurt FC","Buchtstadt","Brückenwasser","Carlton Rovers","Hafenwerke Athletic","Ulmenstadt","Schönblick Union","Großstadt FC","Höhenkamm","Nordland FC","Knotenpunkt City","Kingston Athletic","Wiesenpark","Neustadt Borough","Eichenkamm FC","Hafen Union","Königspark City","Rosenholz Athletic"]
+ },
+ NORDIC:{
+  top:["Havnby FK","Nordbro Athletic","Elv United","Kongehavn FK","Vesthavn Rovers","Hovedstad IF","Rødskog FK","Østløver","Albion Sport","Sydkyst FK","Jernbro IF","Victoria Athletic","Sjøby FK","Union IF","Kongeby","Greenwich Rovers","Metro Stjerner","Kyst Athletic","Vandrere FK","Olympia By"],
+  lower:["Krone Athletic","Parkside IF","Askeby FK","Bukt FC","Broelv IF","Carlton Rovers","Havneland Athletic","Almby FK","Fairview United","Storby IF","Høydekam FK","Nordland IF","Knutepunkt FK","Kingston Athletic","Engpark","Nyby Borough","Eikerygg FK","Havnside United","Kongepark City","Rosewood Athletic"]
+ },
+ SLAVIC:{
+  top:["Port Grad FK","Severni Most","Rijeka United","Kraljevski Port","Zapad Rovers","Glavni Grad","Crvena Šuma","Istočni Lavovi","Albion Sport","Južna Obala","Željezni Most","Victoria Athletic","Jezero Grad","Union FK","Kraljevski Kvart","Greenwich Rovers","Metro Zvezde","Obalni Athletic","Putnici FK","Olimpik Grad"],
+  lower:["Kruna Athletic","Park United","Jasen Grad","Zaliv FK","Most Voda","Carlton Rovers","Luka Athletic","Brijest Grad","Fairview United","Veliki Grad","Visoki Greben","Sever Grad","Čvor FK","Kingston Athletic","Livada Park","Novi Borough","Hrast Greben","Luka United","Kraljevski Park","Rosewood Athletic"]
+ },
+ BALKAN:{
+  top:["Limen City","Athlitikos Vorras","Enosi Potamou","Vasiliko Limani","Dytiki Rovers","Protevousa FC","Kokkino Dasos","Anatoli Lions","Albion Sport","Notia Akti","Sidera Gefyra","Victoria Athletic","Limni City","Enosi FC","Vasiliko Borough","Greenwich Rovers","Metro Stars","Akti Athletic","Periplanomenoi FC","Olympiakos City"],
+  lower:["Stefani Athletic","Enosi Park","Ashford Town","Kolpos FC","Gefyra United","Carlton Rovers","Limani Athletic","Elm City","Fairview United","Megali Poli","Psilos Lofos","Voreia Town","Kombos FC","Kingston Athletic","Livadi Park","Nea Poli","Oakridge FC","Limani United","Vasiliko Park","Rosewood Athletic"]
+ },
+ TURKIC:{
+  top:["Liman Şehir FK","Kuzey Köprü SK","Nehir Birliği","Kraliyet Limanı","Batı Rovers","Başkent FK","Kızıl Orman","Doğu Aslanları","Albion Spor","Güney Sahil","Demir Köprü SK","Victoria Atletik","Göl Şehir","Birlik FK","Kraliyet Mahallesi","Greenwich Rovers","Metro Yıldızları","Sahil Atletik","Gezginler FK","Olimpik Şehir"],
+  lower:["Taç Atletik","Park Birliği","Ashford FK","Körfez SK","Köprü Su","Carlton Rovers","Rıhtım Atletik","Karaağaç Şehir","Fairview Birliği","Büyükşehir FK","Yüksek Tepe","Kuzeykent","Kavşak FK","Kingston Atletik","Çayır Park","Yeni Borough","Meşe Tepe FK","Liman Birliği","Kraliyet Parkı","Rosewood Atletik"]
+ },
+ ARABIC:{
+  top:["Al Mina City","Al Jisr Al Shamali","Ittihad Al Nahr","Al Mina Al Malaki","Rovers Al Gharb","Al Asima FC","Al Ghaba Al Hamra","Usud Al Sharq","Albion Sporting","Al Sahel Al Janubi","Al Jisr Al Hadidi","Victoria Athletic","Madinat Al Buhaira","Al Ittihad","Al Hayy Al Malaki","Greenwich Rovers","Nujoom Al Metro","Al Sahel Athletic","Al Rahhala FC","Olympic City"],
+  lower:["Al Taj Athletic","Ittihad Al Hadiqa","Ashford FC","Al Khalij Club","Al Jisr United","Carlton Rovers","Al Marsa Athletic","Elm City","Fairview United","Al Madina Al Kubra","Al Talla FC","Al Shamal Town","Junction FC","Kingston Athletic","Al Marj Park","New Borough FC","Oakridge Club","Ittihad Al Mina","Royal Park City","Rosewood Athletic"]
+ },
+ KOREAN:{
+  top:["Hangang Harbor FC","Bukgyo Athletic","Gangbyeon United","Wangpo City","Seohae Rovers","Jungang FC","Jeoksup Forest","Dongbu Lions","Albion Sporting Korea","Namhae FC","Cheolgyo SC","Victoria Athletic Korea","Hosui City","Union Seoul","Royal District FC","Greenwich Rovers Korea","Metro Stars Seoul","Haebyeon Athletic","Wanderers Korea","Olympic City Korea"],
+  lower:["Crown Athletic Korea","Parkside United Korea","Ashford Town Korea","Bayside Busan","Bridgewater Korea","Carlton Rovers Korea","Docklands Incheon","Elm City Korea","Fairview United Korea","Grand City Korea","Hillcrest Korea","Northland Korea","Junction Daegu","Kingston Athletic Korea","Meadow Park Korea","New Borough Korea","Oakridge Korea","Portside United Korea","Royal Park Korea","Rosewood Athletic Korea"]
+ },
+ CHINESE:{
+  top:["Haigang City FC","Beiqiao Athletic","Jiangbin United","Wanggang FC","Xigang Rovers","Shoudu FC","Honglin Town","Dongfang Lions","Albion Sporting China","Nanhai FC","Tieqiao Athletic","Victoria Athletic China","Hucheng FC","Union City China","Wangcheng District","Greenwich Rovers China","Metro Stars China","Haibin Athletic","Wanderers China","Olympic City China"],
+  lower:["Crown Athletic China","Parkside United China","Ashford Town China","Bayside China","Bridgewater China","Carlton Rovers China","Docklands China","Elm City China","Fairview United China","Grand City China","Hillcrest China","Northland China","Junction City China","Kingston Athletic China","Meadow Park China","New Borough China","Oakridge China","Portside United China","Royal Park China","Rosewood Athletic China"]
+ },
+ SEA:{
+  top:["Port City FC","North Bridge Athletic","River United","Royal Port FC","West Bay Rovers","Capital FC","Red Forest Club","Eastern Lions","Albion Sporting","South Coast FC","Iron Bridge Club","Victoria Athletic","Lake City FC","Union Central","Royal District","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bay City FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City FC","Hillcrest Club","Northland Town","Junction City","Kingston Athletic","Meadow Park","New Borough","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ AFRICA_ANGLO:{
+  top:["Harbour Stars","Northbridge Athletic","River United","Kingsport FC","Westside Rovers","Capital Stars","Redwood City","Eastern Lions","Albion Sporting","South Coast United","Ironbridge FC","Victoria Athletic","Lakeside Stars","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside Stars","Bridgewater FC","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City Stars","Hillcrest FC","Northern Town","Junction United","Kingston Athletic","Meadow Park","New Borough FC","Oakridge Stars","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ AFRICA_FRANCO:{
+  top:["Étoiles du Port","Athlétique du Nord","Union du Fleuve","FC Port Royal","Rovers de l'Ouest","Capital Sport","Ville Rouge","Lions de l'Est","Albion Sportif","Union Côte Sud","Pont de Fer FC","Athlétique Victoria","Ville du Lac","Union Centrale","Quartier Royal","Greenwich Rovers","Étoiles Métro","Athlétique du Littoral","FC Voyageurs","Olympique de la Ville"],
+  lower:["Athlétique de la Couronne","Union du Parc","AS Ashford","Étoiles de la Baie","Pontville FC","Rovers de Carlton","Athlétique des Docks","Ville de l'Orme","Union Belle Vue","Grand Ville Sport","FC Haute Crête","Ville du Nord","Union Junction","Athlétique Kingston","Parc des Prés","Nouveau Borough FC","FC Crête du Chêne","Union Portuaire","Ville du Parc Royal","Athlétique Rosewood"]
+ },
+ CARIBBEAN:{
+  top:["Harbour Stars","Northbridge Athletic","Riverside United","Kingsport FC","West Bay Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast Stars","Ironbridge FC","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside Stars","Bridgewater FC","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City","Hillcrest FC","Northside Town","Junction City","Kingston Athletic","Meadow Park","New Borough FC","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ PACIFIC:{
+  top:["Harbour Islands FC","North Shore Athletic","River United","King's Harbour FC","West Bay Rovers","Capital Island FC","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge United","Victoria Athletic","Lagoon City","Island Union","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic Islands"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside Islands","Bridgewater FC","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand Island FC","Hillcrest FC","North Island Town","Junction City","Kingston Athletic","Meadow Park","New Borough FC","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ LEVANT:{
+  top:["Namal City FC","Gesher North Athletic","Nahal United","Royal Port FC","West Bay Rovers","Capital FC","Red Forest Club","Eastern Lions","Albion Sporting","South Coast FC","Iron Bridge Club","Victoria Athletic","Lake City FC","Union Central","Royal District","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bay City FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City FC","Hillcrest Club","Northland Town","Junction City","Kingston Athletic","Meadow Park","New Borough","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ },
+ CAUCASUS:{
+  top:["Port City FC","North Bridge Athletic","River United","Royal Port FC","West Rovers","Capital FC","Red Forest Club","Eastern Lions","Albion Sporting","South Coast FC","Iron Bridge Club","Victoria Athletic","Lake City FC","Union Central","Royal District","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grand City FC","Hillcrest Club","Northland Town","Junction City","Kingston Athletic","Meadow Park","New Borough","Oakridge FC","Portside United","Royal Park City","Rosewood Athletic"]
+ }
+};
+
+function domesticClubProfileForNation(nationId){
+ return DOMESTIC_CLUB_PROFILE_BY_NATION[nationId]||"ENGLISH";
+}
+
+function domesticClubProfileSet(nationId){
+ return DOMESTIC_CLUB_PROFILE_NAMES[domesticClubProfileForNation(nationId)]||DOMESTIC_CLUB_PROFILE_NAMES.ENGLISH;
+}
+
 function domesticClubIdentitySet(nationId){
- return DOMESTIC_CLUB_NAMES_BY_NATION[nationId]||DOMESTIC_CLUB_NAMES_BY_NATION.AUS;
+ return DOMESTIC_CLUB_NAMES_BY_NATION[nationId]||domesticClubProfileSet(nationId);
 }
 
 function domesticClubNamesForNation(nationId,tier="top"){
@@ -15695,27 +15814,419 @@ function applyDomesticClubHeritageIdentity(club,nationId){
 }
 
 
-const NAME_POOLS=[
- {first:["James","Oliver","Harry","George","Jack","Charlie","Thomas","Oscar","William","Henry","Theo","Leo","Finn","Callum","Lewis","Jamie","Ewan","Rory","Declan","Conor","Liam","Ryan","Kieran","Nathan"],last:["Smith","Jones","Williams","Taylor","Brown","Davies","Wilson","Evans","Roberts","Walker","Wright","White","Hughes","Edwards","Green","Hall","Lewis","Clarke","Morgan","Murphy","Kelly","Doyle","Campbell","Reid"]},
- {first:["Mateo","Hugo","Lucas","Martin","Daniel","Pablo","Alejandro","Diego","Adrian","Sergio","Nico","Rafael","Tiago","Joao","Bruno","Miguel","Diogo","Pedro","Tomas","Enzo","Iker","Marco","Rodrigo","Antonio"],last:["Garcia","Rodriguez","Gonzalez","Fernandez","Lopez","Martinez","Sanchez","Perez","Gomez","Silva","Santos","Costa","Oliveira","Pereira","Ferreira","Carvalho","Ribeiro","Mendes","Rocha","Nunes","Correia","Teixeira","Navarro","Ramos"]},
- {first:["Luca","Marco","Matteo","Alessandro","Lorenzo","Davide","Federico","Nicolo","Andrea","Simone","Francesco","Riccardo","Gabriele","Tommaso","Leonardo","Giovanni","Filippo","Stefano","Daniele","Mattia"],last:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","Mancini","Lombardi","Moretti","Barbieri","Rinaldi","Caruso","Ferrara"]},
- {first:["Lucas","Hugo","Louis","Theo","Jules","Arthur","Nathan","Maxime","Alexandre","Antoine","Mathis","Raphael","Baptiste","Benjamin","Victor","Noah","Enzo","Romain","Loic","Sacha"],last:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefevre","Michel","Bertrand","Roux","Vincent","Fournier","Lambert","Leclerc"]},
- {first:["Leon","Lukas","Finn","Jonas","Felix","Paul","Julian","Niklas","David","Florian","Timo","Moritz","Mats","Kai","Jan","Nico","Lars","Emil","Jakub","Mateusz","Dominik","Marek","Luka","Ivan"],last:["Muller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Hoffmann","Kovac","Horvat","Novak","Kral","Nowak","Kowalski","Mazur","Jensen","Nielsen","Larsen","Andersen","Berg","Eriksen","Jovic","Markovic"]},
- {first:["Samuel","Daniel","Victor","Emmanuel","David","Isaac","Joseph","Michael","Ibrahim","Musa","Amadou","Ousmane","Kofi","Kwame","Chinedu","Tunde","Femi","Ayoub","Youssef","Hakim","Rayan","Bilal","Achraf","Karim"],last:["Mensah","Boateng","Owusu","Agyemang","Asante","Kamara","Conteh","Diallo","Traore","Keita","Camara","Toure","Kone","Diop","Ndiaye","Sarr","Okafor","Eze","Nwosu","Adebayo","Balogun","Amrabat","Bamba","Mendy"]},
- {first:["Gabriel","Matias","Thiago","Nicolas","Santiago","Joaquin","Franco","Valentin","Lautaro","Facundo","Bruno","Enzo","Lucas","Juan","Tomas","Sebastian","Emiliano","Cristian","Diego","Andres","Caio","Vinicius","Pedro","Rafael"],last:["Alvarez","Fernandez","Romero","Gimenez","Suarez","Pereira","Acosta","Benitez","Cabrera","Medina","Torres","Vargas","Rojas","Mendoza","Barrios","Souza","Oliveira","Lima","Costa","Alves","Rocha","Moura","Araujo","Freitas"]},
- {first:["Ethan","Noah","Liam","Mason","Logan","Owen","Caleb","Cameron","Jordan","Tyler","Connor","Dylan","Austin","Cole","Blake","Cooper","Mitchell","Jackson","Benjamin","Levi","Max","Flynn","Lachlan","Angus"],last:["Anderson","Miller","Davis","Moore","Jackson","Martin","Lee","Harris","Clark","Robinson","Young","Allen","King","Wright","Scott","Baker","Nelson","Carter","Mitchell","Cooper","Parker","Collins","Fletcher","Kennedy"]},
- {first:["Minjun","Jiho","Hyunwoo","Seojun","Taeyang","Junho","Yuto","Haruto","Ren","Kaito","Sota","Riku","Daichi","Takumi","Wei","Jun","Hao","Chen","Tao","Jian"],last:["Kim","Lee","Park","Choi","Jung","Kang","Cho","Yoon","Jang","Lim","Sato","Suzuki","Takahashi","Tanaka","Watanabe","Ito","Yamamoto","Nakamura","Wang","Zhang"]},
- {first:["Omar","Ali","Youssef","Ahmed","Mohamed","Karim","Amir","Sami","Rami","Tariq","Nabil","Hassan","Hamza","Bilal","Mehdi","Farid","Reza","Arman","Emre","Kerem"],last:["Haddad","Khalil","Mansour","Nasser","Saleh","Rahman","Farah","Hamdan","Aziz","Darwish","Hussein","Mahmoud","Karimi","Hosseini","Rahimi","Jafari","Demir","Yilmaz","Kaya","Aydin"]}
-];
-const FIRST=[...new Set(NAME_POOLS.flatMap(x=>x.first))];
-const LAST=[...new Set(NAME_POOLS.flatMap(x=>x.last))];
-let generatedNameRegistry=new Set();
-function resetGeneratedNameRegistry(){generatedNameRegistry=new Set();if(G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)})}
-function generateFootballName(){
- if(!generatedNameRegistry.size&&G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
- for(let attempt=0;attempt<30;attempt++){let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)],name=pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)];name=name.slice(0,PLAYER_NAME_MAX);if(!generatedNameRegistry.has(name)){generatedNameRegistry.add(name);return name}}
- let pool=NAME_POOLS[rnd(0,NAME_POOLS.length-1)],fallback=(pool.first[rnd(0,pool.first.length-1)]+" "+pool.last[rnd(0,pool.last.length-1)]+" "+String(rnd(2,99))).slice(0,PLAYER_NAME_MAX);generatedNameRegistry.add(fallback);return fallback;
+
+/* ==========================================================
+   v2.13.3 NATIONALITY-AWARE PLAYER NAME ENGINE
+
+   Nationality is selected first, then the culturally aligned name
+   pool is used. This is independent from v2.13.4 league-population
+   weighting: v2.13.3 fixes identity, not nationality proportions.
+
+   Pools are intentionally much larger than the legacy global pools.
+   Existing saved player names are not rewritten.
+   ========================================================== */
+
+const PLAYER_NAME_PROFILE_BY_NATION={
+ AUS:"ANGLO",ENG:"ANGLO",SCO:"ANGLO",WAL:"ANGLO",IRL:"ANGLO",USA:"ANGLO",CAN:"ANGLO",NZL:"ANGLO",
+ BRA:"BRAZIL",POR:"PORTUGUESE",CPV:"PORTUGUESE",ANG:"PORTUGUESE",
+ ARG:"SPANISH_LATAM",URU:"SPANISH_LATAM",COL:"SPANISH_LATAM",ECU:"SPANISH_LATAM",CHI:"SPANISH_LATAM",PER:"SPANISH_LATAM",PAR:"SPANISH_LATAM",VEN:"SPANISH_LATAM",BOL:"SPANISH_LATAM",
+ ESP:"SPANISH",MEX:"SPANISH_LATAM",CRC:"SPANISH_LATAM",PAN:"SPANISH_LATAM",HON:"SPANISH_LATAM",SLV:"SPANISH_LATAM",GUA:"SPANISH_LATAM",
+ ITA:"ITALIAN",FRA:"FRENCH",BEL:"FRENCH",SUI:"CENTRAL_EURO",GER:"GERMAN",AUT:"GERMAN",NED:"DUTCH",
+ DEN:"NORDIC",NOR:"NORDIC",SWE:"NORDIC",FIN:"NORDIC",ISL:"NORDIC",
+ POL:"SLAVIC",CRO:"SLAVIC",SRB:"SLAVIC",CZE:"SLAVIC",UKR:"SLAVIC",ROU:"SLAVIC",HUN:"SLAVIC",SVK:"SLAVIC",SLO:"SLAVIC",BUL:"SLAVIC",BIH:"SLAVIC",MKD:"SLAVIC",MNE:"SLAVIC",
+ GRE:"GREEK_BALKAN",ALB:"GREEK_BALKAN",
+ TUR:"TURKISH",AZE:"TURKISH",KAZ:"TURKISH",UZB:"TURKISH",
+ JPN:"JAPANESE",KOR:"KOREAN",CHN:"CHINESE",THA:"SOUTHEAST_ASIA",VIE:"SOUTHEAST_ASIA",
+ KSA:"ARABIC",IRQ:"ARABIC",QAT:"ARABIC",UAE:"ARABIC",JOR:"ARABIC",EGY:"ARABIC",MAR:"ARABIC",ALG:"ARABIC",TUN:"ARABIC",
+ NGA:"WEST_AFRICA",GHA:"WEST_AFRICA",SEN:"WEST_AFRICA",MLI:"WEST_AFRICA",BFA:"WEST_AFRICA",GUI:"WEST_AFRICA",CIV:"WEST_AFRICA",
+ CMR:"CENTRAL_AFRICA",COD:"CENTRAL_AFRICA",ZAM:"CENTRAL_AFRICA",RSA:"SOUTHERN_AFRICA",
+ JAM:"CARIBBEAN",TRI:"CARIBBEAN",HAI:"CARIBBEAN",
+ FIJ:"PACIFIC",SOL:"PACIFIC",PNG:"PACIFIC",TAH:"PACIFIC",NCL:"PACIFIC",VAN:"PACIFIC",
+ ISR:"HEBREW",GEO:"CAUCASUS",ARM:"CAUCASUS"
+};
+
+
+/* ==========================================================
+   v2.13.4 DOMESTIC / FOREIGN PLAYER POPULATION MODEL
+
+   Nationality determines eligibility and football identity.
+   Name heritage determines naming culture only.
+
+   Multicultural countries can therefore generate domestic players
+   with diverse culturally plausible names without changing nationality.
+   ========================================================== */
+
+const DOMESTIC_PLAYER_SHARE_BY_NATION={
+ AUS:.68,CAN:.62,USA:.60,NZL:.66,ENG:.64,SCO:.67,WAL:.69,IRL:.72,
+ JPN:.82,KOR:.80,CHN:.84,THA:.80,VIE:.82,
+ BRA:.78,ARG:.77,URU:.78,COL:.76,ECU:.78,CHI:.76,PER:.78,PAR:.80,VEN:.80,BOL:.82,
+ ITA:.72,ESP:.70,FRA:.66,GER:.68,POR:.70,NED:.66,BEL:.64,SUI:.58,AUT:.70,
+ DEN:.72,NOR:.74,SWE:.72,FIN:.76,ISL:.82,
+ POL:.78,CRO:.76,SRB:.78,CZE:.76,UKR:.78,ROU:.80,HUN:.78,SVK:.80,SLO:.78,BUL:.82,BIH:.82,MKD:.84,MNE:.84,
+ GRE:.80,ALB:.84,TUR:.82,AZE:.86,KAZ:.84,UZB:.88,
+ KSA:.76,QAT:.48,UAE:.42,IRQ:.86,JOR:.84,EGY:.88,MAR:.84,ALG:.86,TUN:.86,
+ NGA:.86,GHA:.84,SEN:.88,MLI:.90,BFA:.90,GUI:.90,CIV:.88,CMR:.88,COD:.90,ZAM:.88,RSA:.72,
+ MEX:.78,CRC:.80,PAN:.76,HON:.84,SLV:.86,GUA:.86,JAM:.74,TRI:.68,HAI:.82,
+ FIJ:.86,SOL:.92,PNG:.92,TAH:.88,NCL:.84,VAN:.92,
+ ISR:.78,GEO:.86,ARM:.88,CPV:.72,ANG:.84
+};
+
+const FOREIGN_REGION_WEIGHTS_BY_NATION={
+ AUS:{AFC:.34,UEFA:.32,CONMEBOL:.14,CAF:.10,CONCACAF:.07,OFC:.03},
+ NZL:{AFC:.24,UEFA:.35,CONMEBOL:.12,CAF:.08,CONCACAF:.06,OFC:.15},
+ ENG:{UEFA:.52,CAF:.16,CONMEBOL:.13,CONCACAF:.08,AFC:.07,OFC:.04},
+ SCO:{UEFA:.58,CAF:.12,CONMEBOL:.10,CONCACAF:.08,AFC:.07,OFC:.05},
+ WAL:{UEFA:.58,CAF:.12,CONMEBOL:.10,CONCACAF:.08,AFC:.07,OFC:.05},
+ IRL:{UEFA:.60,CAF:.10,CONMEBOL:.10,CONCACAF:.08,AFC:.07,OFC:.05},
+ CAN:{CONCACAF:.32,UEFA:.28,CAF:.14,CONMEBOL:.12,AFC:.10,OFC:.04},
+ USA:{CONCACAF:.30,UEFA:.24,CONMEBOL:.18,CAF:.12,AFC:.12,OFC:.04},
+ JPN:{AFC:.42,CONMEBOL:.22,UEFA:.20,CAF:.08,CONCACAF:.05,OFC:.03},
+ KOR:{AFC:.45,UEFA:.24,CONMEBOL:.16,CAF:.08,CONCACAF:.05,OFC:.02},
+ CHN:{AFC:.46,CONMEBOL:.18,UEFA:.20,CAF:.09,CONCACAF:.05,OFC:.02},
+ BRA:{CONMEBOL:.38,UEFA:.30,CAF:.12,CONCACAF:.08,AFC:.08,OFC:.04},
+ ARG:{CONMEBOL:.40,UEFA:.32,CAF:.08,CONCACAF:.08,AFC:.08,OFC:.04},
+ ITA:{UEFA:.58,CONMEBOL:.18,CAF:.12,AFC:.06,CONCACAF:.04,OFC:.02},
+ ESP:{UEFA:.56,CONMEBOL:.22,CAF:.10,AFC:.06,CONCACAF:.04,OFC:.02},
+ FRA:{UEFA:.50,CAF:.24,CONMEBOL:.10,AFC:.07,CONCACAF:.06,OFC:.03},
+ GER:{UEFA:.58,CAF:.14,CONMEBOL:.10,AFC:.08,CONCACAF:.06,OFC:.04},
+ POR:{UEFA:.50,CONMEBOL:.20,CAF:.18,AFC:.05,CONCACAF:.04,OFC:.03},
+ NED:{UEFA:.56,CAF:.16,CONMEBOL:.12,AFC:.07,CONCACAF:.06,OFC:.03},
+ BEL:{UEFA:.54,CAF:.20,CONMEBOL:.10,AFC:.06,CONCACAF:.06,OFC:.04},
+ SUI:{UEFA:.64,CAF:.12,CONMEBOL:.08,AFC:.06,CONCACAF:.06,OFC:.04},
+ KSA:{AFC:.40,CAF:.22,UEFA:.18,CONMEBOL:.10,CONCACAF:.06,OFC:.04},
+ QAT:{AFC:.38,CAF:.22,UEFA:.18,CONMEBOL:.12,CONCACAF:.06,OFC:.04},
+ UAE:{AFC:.38,CAF:.22,UEFA:.18,CONMEBOL:.12,CONCACAF:.06,OFC:.04},
+ RSA:{CAF:.40,UEFA:.28,CONMEBOL:.10,AFC:.08,CONCACAF:.08,OFC:.06}
+};
+
+const MULTICULTURAL_NAME_HERITAGE_BY_NATION={
+ AUS:[
+  ["ANGLO",.55],["ITALIAN",.07],["GREEK_BALKAN",.05],["JAPANESE",.035],["KOREAN",.025],
+  ["CHINESE",.07],["SOUTHEAST_ASIA",.05],["ARABIC",.06],["WEST_AFRICA",.035],["SOUTHERN_AFRICA",.025],
+  ["SPANISH_LATAM",.04],["PACIFIC",.03],["PORTUGUESE",.02]
+ ],
+ CAN:[
+  ["ANGLO",.46],["FRENCH",.17],["ITALIAN",.05],["CHINESE",.08],["SOUTHEAST_ASIA",.035],
+  ["ARABIC",.05],["WEST_AFRICA",.05],["CARIBBEAN",.05],["SPANISH_LATAM",.045],["PORTUGUESE",.025],
+  ["KOREAN",.02],["JAPANESE",.01]
+ ],
+ USA:[
+  ["ANGLO",.48],["SPANISH_LATAM",.19],["WEST_AFRICA",.08],["CARIBBEAN",.055],["ITALIAN",.035],
+  ["GERMAN",.025],["CHINESE",.04],["KOREAN",.025],["JAPANESE",.015],["SOUTHEAST_ASIA",.03],
+  ["ARABIC",.035],["PORTUGUESE",.01],["HEBREW",.01]
+ ],
+ ENG:[
+  ["ANGLO",.67],["WEST_AFRICA",.07],["CARIBBEAN",.045],["SOUTHERN_AFRICA",.025],["ARABIC",.035],
+  ["SOUTHEAST_ASIA",.025],["SPANISH_LATAM",.02],["ITALIAN",.02],["PORTUGUESE",.015],["FRENCH",.02],
+  ["SLAVIC",.02],["CHINESE",.015],["KOREAN",.005],["JAPANESE",.005]
+ ],
+ SCO:[
+  ["ANGLO",.78],["WEST_AFRICA",.04],["CARIBBEAN",.025],["ARABIC",.025],["ITALIAN",.025],
+  ["SLAVIC",.025],["SOUTHEAST_ASIA",.015],["CHINESE",.015],["SPANISH_LATAM",.015],["FRENCH",.015],
+  ["NORDIC",.01],["PORTUGUESE",.005],["KOREAN",.005]
+ ],
+ WAL:[
+  ["ANGLO",.80],["WEST_AFRICA",.04],["CARIBBEAN",.02],["ARABIC",.025],["ITALIAN",.02],
+  ["SLAVIC",.02],["SOUTHEAST_ASIA",.015],["CHINESE",.015],["SPANISH_LATAM",.015],["FRENCH",.015],
+  ["PORTUGUESE",.01],["NORDIC",.005]
+ ],
+ IRL:[
+  ["ANGLO",.83],["SLAVIC",.035],["WEST_AFRICA",.025],["FRENCH",.015],["ITALIAN",.015],
+  ["SPANISH_LATAM",.02],["PORTUGUESE",.015],["ARABIC",.015],["CHINESE",.01],["SOUTHEAST_ASIA",.01],
+  ["CARIBBEAN",.01],["NORDIC",.01]
+ ],
+ NZL:[
+  ["ANGLO",.61],["PACIFIC",.16],["CHINESE",.05],["SOUTHEAST_ASIA",.04],["JAPANESE",.02],
+  ["KOREAN",.015],["WEST_AFRICA",.02],["SOUTHERN_AFRICA",.025],["SPANISH_LATAM",.02],
+  ["ARABIC",.02],["ITALIAN",.01],["PORTUGUESE",.01],["FRENCH",.01]
+ ],
+ FRA:[
+  ["FRENCH",.68],["ARABIC",.10],["WEST_AFRICA",.09],["CENTRAL_AFRICA",.05],["PORTUGUESE",.025],
+  ["SPANISH_LATAM",.015],["ITALIAN",.015],["SLAVIC",.015],["CARIBBEAN",.01],["SOUTHEAST_ASIA",.005]
+ ],
+ BEL:[
+  ["FRENCH",.55],["DUTCH",.25],["ARABIC",.055],["WEST_AFRICA",.045],["CENTRAL_AFRICA",.035],
+  ["ITALIAN",.02],["PORTUGUESE",.015],["SLAVIC",.015],["SPANISH_LATAM",.01],["ANGLO",.005]
+ ],
+ SUI:[
+  ["CENTRAL_EURO",.54],["GERMAN",.15],["FRENCH",.11],["ITALIAN",.08],["SLAVIC",.035],
+  ["PORTUGUESE",.025],["SPANISH_LATAM",.015],["ARABIC",.015],["WEST_AFRICA",.015],["ANGLO",.01]
+ ],
+ BRA:[
+  ["BRAZIL",.76],["PORTUGUESE",.06],["WEST_AFRICA",.05],["ITALIAN",.035],["JAPANESE",.025],
+  ["ARABIC",.025],["GERMAN",.02],["SPANISH_LATAM",.015],["CENTRAL_EURO",.01],["ANGLO",.01]
+ ],
+ RSA:[
+  ["SOUTHERN_AFRICA",.57],["ANGLO",.19],["WEST_AFRICA",.045],["PORTUGUESE",.025],["ARABIC",.035],
+  ["CENTRAL_AFRICA",.025],["SOUTHEAST_ASIA",.02],["INDIAN",.0],["FRENCH",.01],["DUTCH",.08]
+ ]
+};
+
+function domesticPlayerShare(nationId){
+ let v=DOMESTIC_PLAYER_SHARE_BY_NATION[nationId];
+ return Number.isFinite(v)?v:.80;
 }
+
+function weightedChoice(entries){
+ let rows=(entries||[]).filter(x=>Array.isArray(x)&&Number(x[1])>0);
+ if(!rows.length)return null;
+ let total=rows.reduce((s,x)=>s+Number(x[1]),0),r=gameRandom()*total,acc=0;
+ for(let x of rows){acc+=Number(x[1]);if(r<=acc)return x[0]}
+ return rows[rows.length-1][0];
+}
+
+function weightedRegionChoice(weightMap){
+ let rows=Object.entries(weightMap||{}).map(([k,v])=>[k,Number(v)||0]).filter(x=>x[1]>0);
+ return weightedChoice(rows);
+}
+
+function foreignNationalityPool(homeNation,confedId){
+ return FOOTBALL_NATIONS
+   .filter(n=>n.id!==homeNation&&nationConfederation(n.id)===confedId)
+   .map(n=>n.id);
+}
+
+function randomForeignNationality(homeNation){
+ let profile=FOREIGN_REGION_WEIGHTS_BY_NATION[homeNation],
+     homeConf=nationConfederation(homeNation);
+
+ if(!profile){
+   // Default: nearby football region first, then wider world.
+   profile={};
+   profile[homeConf]=.48;
+   ["UEFA","AFC","CAF","CONMEBOL","CONCACAF","OFC"].filter(x=>x!==homeConf).forEach(x=>profile[x]=.52/5);
+ }
+
+ for(let tries=0;tries<12;tries++){
+   let conf=weightedRegionChoice(profile),
+       pool=foreignNationalityPool(homeNation,conf);
+   if(pool.length)return pool[rnd(0,pool.length-1)];
+ }
+ let all=FOOTBALL_NATIONS.filter(n=>n.id!==homeNation);
+ return all.length?all[rnd(0,all.length-1)].id:homeNation;
+}
+
+function weightedPlayerNationality(homeNation){
+ let home=FOOTBALL_NATIONS.some(n=>n.id===homeNation)?homeNation:"AUS";
+ if(gameRandom()<domesticPlayerShare(home))return home;
+ return randomForeignNationality(home);
+}
+
+function nameHeritageProfileForNationality(nationality){
+ let mix=MULTICULTURAL_NAME_HERITAGE_BY_NATION[nationality];
+ if(mix&&mix.length){
+   let picked=weightedChoice(mix);
+   if(picked&&PLAYER_NAME_PROFILES[picked])return picked;
+ }
+ return playerNameProfile(nationality);
+}
+
+function generateFootballNameForPlayerNationality(nationality){
+ let profile=nameHeritageProfileForNationality(nationality),
+     pool=PLAYER_NAME_PROFILES[profile]||playerNamePool(nationality);
+
+ if(!generatedNameRegistry.size&&G&&Array.isArray(G.players)){
+   G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+ }
+
+ for(let attempt=0;attempt<90;attempt++){
+   let first=pool.first[rnd(0,pool.first.length-1)],
+       last=pool.last[rnd(0,pool.last.length-1)],
+       found=registerGeneratedName(first+" "+last);
+   if(found)return {name:found,heritageProfile:profile};
+ }
+
+ for(let attempt=0;attempt<80;attempt++){
+   let first=pool.first[rnd(0,pool.first.length-1)],
+       last1=pool.last[rnd(0,pool.last.length-1)],
+       last2=pool.last[rnd(0,pool.last.length-1)];
+   if(last1===last2)continue;
+   let found=registerGeneratedName(first+" "+last1+" "+last2);
+   if(found)return {name:found,heritageProfile:profile};
+ }
+
+ let first=pool.first[rnd(0,pool.first.length-1)],
+     last=pool.last[rnd(0,pool.last.length-1)],
+     fallback=(first+" "+last+" "+String(rnd(1000,9999))).slice(0,PLAYER_NAME_MAX);
+ generatedNameRegistry.add(fallback);
+ return {name:fallback,heritageProfile:profile};
+}
+
+const PLAYER_NAME_PROFILES={
+ ANGLO:{
+  first:["James","Oliver","Harry","George","Jack","Charlie","Thomas","Oscar","William","Henry","Theo","Leo","Finn","Callum","Lewis","Jamie","Ewan","Rory","Declan","Conor","Liam","Ryan","Kieran","Nathan","Ethan","Noah","Mason","Logan","Owen","Caleb","Cameron","Jordan","Tyler","Dylan","Austin","Cole","Blake","Cooper","Mitchell","Jackson","Benjamin","Levi","Max","Flynn","Lachlan","Angus","Archie","Alfie","Harrison","Reece","Connor","Aidan","Patrick","Samuel","Daniel","Luke","Adam","Jacob","Isaac"],
+  last:["Smith","Jones","Williams","Taylor","Brown","Davies","Wilson","Evans","Roberts","Walker","Wright","White","Hughes","Edwards","Green","Hall","Lewis","Clarke","Morgan","Murphy","Kelly","Doyle","Campbell","Reid","Anderson","Miller","Davis","Moore","Jackson","Martin","Lee","Harris","Clark","Robinson","Young","Allen","King","Scott","Baker","Nelson","Carter","Mitchell","Cooper","Parker","Collins","Fletcher","Kennedy","Turner","Phillips","Thompson","Cook","Bailey","Ward","Morris","Bell","Gray","Stewart","Murray","Grant"]
+ },
+ BRAZIL:{
+  first:["Bruno","Thiago","Vinícius","Douglas","Fábio","Maicon","Leandro","Gabriel","Rafael","Lucas","Matheus","Guilherme","Felipe","Gustavo","André","Caio","Pedro","João","Murilo","Danilo","Rodrigo","Renato","Everton","Wagner","Kléber","Marcos","Paulo","Diego","Henrique","Eduardo","Marcelo","Alexandre","Vitor","Igor","Ruan","Alan","Júnior","Juninho","Paulinho","Rafinha","Dudu","Ney","Anderson","Adriano","Cristiano","Luciano","Emerson","Rômulo","Wesley","Nathan"],
+  last:["Silva","Santos","Oliveira","Souza","Costa","Pereira","Rodrigues","Almeida","Nascimento","Lima","Araújo","Fernandes","Carvalho","Gomes","Martins","Rocha","Ribeiro","Alves","Monteiro","Mendes","Barbosa","Freitas","Cardoso","Correia","Teixeira","Moreira","Moura","Cavalcanti","Machado","Vieira","Rezende","Duarte","Castro","Coelho","Nunes","Campos","Fonseca","Melo","Batista","Tavares","Amaral","Farias","Pinto","Moraes","Borges","Neves","Ramos","Guimarães","Paiva","Lopes","Xavier","Assis","Sales","Macedo","Barros","Vasconcelos","Queiroz","Motta","Peixoto","Cunha"]
+ },
+ PORTUGUESE:{
+  first:["João","Tiago","Diogo","Pedro","Miguel","Bruno","Rui","Gonçalo","André","Ricardo","Bernardo","Francisco","Tomás","Nuno","Fábio","Hugo","Vasco","Afonso","Duarte","Martim","Rafael","Rodrigo","Daniel","David","Luís","Paulo","Renato","Sérgio","Marco","Rúben","Nelson","Simão","Ivo","Gil","Leandro","Carlos","Jorge","Mário","Alexandre","Vítor"],
+  last:["Silva","Santos","Ferreira","Pereira","Oliveira","Costa","Rodrigues","Martins","Jesus","Sousa","Fernandes","Gonçalves","Gomes","Lopes","Marques","Alves","Almeida","Ribeiro","Pinto","Carvalho","Teixeira","Moreira","Correia","Mendes","Nunes","Soares","Vieira","Monteiro","Cardoso","Rocha","Neves","Coelho","Cruz","Cunha","Pires","Ramos","Reis","Figueiredo","Mota","Tavares","Barros","Amorim","Moura","Brito","Leite","Fonseca","Melo","Paiva","Lima","Azevedo"]
+ },
+ SPANISH:{
+  first:["Alejandro","Álvaro","Andrés","Antonio","Carlos","Dani","Daniel","David","Diego","Eduardo","Fernando","Francisco","Gonzalo","Héctor","Hugo","Iker","Javier","Jesús","Jorge","José","Juan","Lucas","Manuel","Marco","Marcos","Mario","Martín","Mateo","Miguel","Nico","Óscar","Pablo","Rafael","Raúl","Rodrigo","Rubén","Samuel","Sergio","Tomás","Víctor"],
+  last:["García","Rodríguez","González","Fernández","López","Martínez","Sánchez","Pérez","Gómez","Martín","Jiménez","Ruiz","Hernández","Díaz","Moreno","Muñoz","Álvarez","Romero","Alonso","Gutiérrez","Navarro","Torres","Domínguez","Vázquez","Ramos","Gil","Ramírez","Serrano","Blanco","Molina","Morales","Suárez","Ortega","Delgado","Castro","Ortiz","Rubio","Marín","Sanz","Iglesias","Medina","Cortés","Castillo","Santos","Lozano","Guerrero","Cano","Prieto","Méndez","Cruz"]
+ },
+ SPANISH_LATAM:{
+  first:["Santiago","Mateo","Sebastián","Nicolás","Joaquín","Franco","Valentín","Lautaro","Facundo","Emiliano","Cristian","Diego","Andrés","Juan","Tomás","Bruno","Enzo","Lucas","Gabriel","Matías","Thiago","Martín","Agustín","Federico","Ignacio","Ramiro","Gonzalo","Leandro","Mauricio","Esteban","Camilo","Julián","Felipe","Kevin","Jonathan","Ángel","Carlos","Manuel","Rafael","Rodrigo","Adrián","Sergio","Luis","Miguel","Pablo","Damián","Ezequiel","Alan","Brian","Maximiliano"],
+  last:["González","Rodríguez","Fernández","López","Martínez","Pérez","García","Sánchez","Romero","Díaz","Álvarez","Torres","Ramírez","Flores","Rivera","Gómez","Vargas","Rojas","Mendoza","Medina","Castro","Silva","Suárez","Acosta","Benítez","Cabrera","Herrera","Navarro","Ortiz","Morales","Vega","Reyes","Salazar","Paredes","Molina","Valencia","Cárdenas","Quintero","Arias","Bustos","Figueroa","Espinoza","Villalba","Correa","Vera","Godoy","Méndez","Barrios","Cardozo","Sosa","Ponce","Escobar","Peralta","Chávez","Aguilar","Maldonado","Ríos","Montoya","Mejía","Córdoba"]
+ },
+ ITALIAN:{
+  first:["Luca","Marco","Matteo","Alessandro","Lorenzo","Davide","Federico","Nicolò","Andrea","Simone","Francesco","Riccardo","Gabriele","Tommaso","Leonardo","Giovanni","Filippo","Stefano","Daniele","Mattia","Alessio","Gianluca","Michele","Salvatore","Antonio","Fabio","Emanuele","Pietro","Nicola","Vincenzo","Manuel","Christian","Samuele","Marco","Edoardo","Elia","Giacomo","Jacopo","Cristian","Dario","Raffaele","Massimo","Roberto","Loris","Mirko","Paolo","Enrico","Carlo","Claudio","Sandro"],
+  last:["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","Mancini","Lombardi","Moretti","Barbieri","Rinaldi","Caruso","Ferrara","Galli","Martini","Leone","Longo","Gentile","Martinelli","Vitale","Lombardo","Serra","Coppola","De Luca","D'Angelo","Marchetti","Parisi","Villa","Conte","Ferraro","Fabbri","Santoro","Fiore","Pellegrini","Grassi","Costa","Bernardi","Fontana","Testa","Sanna","Messina","Riva","Donati","Bellini","Basile","Monti","Orlando","Palmieri","Bianco","Mariani","Amato","Sala","Valentini"]
+ },
+ FRENCH:{
+  first:["Lucas","Hugo","Louis","Théo","Jules","Arthur","Nathan","Maxime","Alexandre","Antoine","Mathis","Raphaël","Baptiste","Benjamin","Victor","Noah","Enzo","Romain","Loïc","Sacha","Clément","Nicolas","Adrien","Thomas","Julien","Florian","Quentin","Paul","Mathieu","Damien","Yanis","Ilyes","Mehdi","Karim","Rayan","Kylian","Olivier","Samuel","Gabriel","Axel","Léo","Valentin","Martin","Rémi","Cédric","Pierre","Jonathan","Malo","Ethan","Nolan"],
+  last:["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefèvre","Michel","Bertrand","Roux","Vincent","Fournier","Lambert","Leclerc","Faure","Girard","Bonnet","Dupont","François","Martinez","Legrand","Garnier","Chevalier","Gauthier","Perrin","Robin","Clément","Morin","Nicolas","Henry","Roussel","Mathieu","Gautier","Masson","Marchand","Duval","Denis","Dumont","Marie","Lemaire","Noël","Meyer","Dufour","Meunier","Brun","Blanchard","Giraud","Joly","Roche","Lacroix","Colin","Picard","Renard","Schmitt"]
+ },
+ GERMAN:{
+  first:["Leon","Lukas","Finn","Jonas","Felix","Paul","Julian","Niklas","David","Florian","Timo","Moritz","Mats","Kai","Jan","Nico","Lars","Emil","Maximilian","Johannes","Anton","Noah","Tim","Fabian","Benjamin","Simon","Philipp","Sebastian","Patrick","Kevin","Dennis","Marcel","Robin","Marco","Daniel","Jonathan","Christoph","Matthias","Dominik","Alexander","Nils","Henrik","Jannik","Frederik","Oliver","Tobias","Michael","Samuel","Levin","Malte"],
+  last:["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Hoffmann","Schäfer","Koch","Bauer","Richter","Klein","Wolf","Schröder","Neumann","Schwarz","Zimmermann","Braun","Krüger","Hofmann","Hartmann","Lange","Schmitt","Werner","Schmitz","Krause","Meier","Lehmann","Schmid","Schulz","Maier","Köhler","Herrmann","Walter","König","Mayer","Huber","Kaiser","Fuchs","Peters","Lang","Scholz","Möller","Vogel","Jung","Hahn","Keller","Franke","Berger","Winter","Brandt","Otto","Seidel","Busch","Horn","Berg","Voigt","Lorenz"]
+ },
+ DUTCH:{
+  first:["Daan","Sem","Lucas","Finn","Milan","Bram","Luuk","Jesse","Thijs","Sven","Joris","Niels","Koen","Wout","Teun","Mees","Gijs","Stijn","Ruben","Timo","Lars","Jasper","Bas","Pim","Joost","Martijn","Sander","Rick","Tom","Max","Noah","Mats","Levi","Julian","Floris","Cas","Siem","Dylan","Jurgen","Robin"],
+  last:["De Jong","Jansen","De Vries","Van den Berg","Van Dijk","Bakker","Janssen","Visser","Smit","Meijer","De Boer","Mulder","De Groot","Bos","Vos","Peters","Hendriks","Dekker","Brouwer","Dijkstra","De Wit","Smits","De Graaf","Van Leeuwen","Van der Meer","Kok","Jacobs","Verhoeven","Van Dam","Prins","Kuiper","Vink","Koster","Schouten","Van Beek","Hoekstra","Post","Martens","Van Loon","Willems","Van der Linden","Kramer","Koning","Scholten","Maas"]
+ },
+ CENTRAL_EURO:{
+  first:["Lukas","David","Simon","Daniel","Marco","Fabian","Noah","Jonas","Matteo","Jan","Nico","Adrian","Roman","Samuel","Leon","Tim","Florian","Patrick","Dominik","Julian","Milan","Martin","Peter","Andreas","Michael","Stefan","Thomas","Raphael","Kevin","Benjamin","Oliver","Philipp","Marcel","Rene","Christian","Pascal","Robin","Max","Felix","Alexander"],
+  last:["Müller","Meier","Schmid","Keller","Frei","Huber","Moser","Steiner","Mayer","Baumann","Koch","Berger","Hofer","Gruber","Schneider","Weber","Fischer","Brunner","Bühler","Graf","Ammann","Sutter","Wenger","Kunz","Marti","Widmer","Roth","Egger","Stalder","Ziegler","Bader","Maurer","Arnold","Gasser","Frey","Hauser","Kaufmann","Schenk","Reiter","Haas","Vogel","Lang","Wirth","Bachmann","Koller"]
+ },
+ NORDIC:{
+  first:["Lars","Johan","Erik","Anders","Mikkel","Emil","Magnus","Søren","Kristian","Henrik","Martin","Jonas","Nikolaj","Frederik","Mathias","Oliver","William","Oscar","Noah","Elias","Anton","Viktor","Gustav","Linus","Albin","Hugo","Axel","Isak","Oskar","Mats","Sander","Eirik","Bjørn","Kasper","Jesper","Rasmus","Mikael","Teemu","Jari","Ville","Eero","Aleksi","Aron","Einar","Sven","Nils","Kalle","Lauri","Joakim","Morten"],
+  last:["Jensen","Nielsen","Hansen","Pedersen","Andersen","Christensen","Larsen","Sørensen","Rasmussen","Johansen","Olsen","Eriksen","Berg","Lund","Dahl","Haugen","Solberg","Nygård","Moen","Kristiansen","Svensson","Johansson","Karlsson","Andersson","Nilsson","Larsson","Eriksson","Persson","Björk","Lindberg","Virtanen","Korhonen","Mäkinen","Nieminen","Hämäläinen","Laine","Heikkinen","Koskinen","Järvinen","Lehtonen","Einarsson","Jónsson","Sigurðsson","Gunnarsson","Magnússon","Ólafsson","Helgason","Thorsen","Holm","Nyström"]
+ },
+ SLAVIC:{
+  first:["Jakub","Mateusz","Dominik","Marek","Luka","Ivan","Nikola","Marko","Stefan","Milan","Petar","Filip","Tomas","Adam","Martin","Michal","Jan","Pavel","David","Ondřej","Kamil","Patrik","Robert","Bartosz","Krzysztof","Piotr","Aleksandar","Nemanja","Dušan","Ante","Josip","Lovro","Andrej","Matej","Bojan","Gregor","Miha","Lukáš","Tomáš","Viktor","Oleksandr","Andriy","Mykola","Taras","Bogdan","Denys","Vlad","Radu","Ionuț","Dávid"],
+  last:["Nowak","Kowalski","Wiśniewski","Wójcik","Kowalczyk","Kamiński","Lewandowski","Zieliński","Szymański","Novak","Horvat","Kovač","Jurić","Babić","Marić","Petrović","Jovanović","Nikolić","Marković","Pavlović","Popović","Stojanović","Dvořák","Černý","Procházka","Kučera","Veselý","Németh","Horváth","Kovács","Nagy","Szabó","Tóth","Popa","Ionescu","Dumitru","Stan","Rusu","Shevchenko","Bondarenko","Kovalenko","Melnyk","Tkachenko","Kravchenko","Petrenko","Ivanov","Georgiev","Dimitrov","Stoyanov","Petrov","Mladenov","Janković","Kostić","Vuković","Radić","Perić","Knežević","Božić","Matić","Stanić"]
+ },
+ GREEK_BALKAN:{
+  first:["Giorgos","Nikos","Dimitris","Kostas","Giannis","Andreas","Christos","Panagiotis","Vasilis","Michalis","Alexis","Petros","Stavros","Manolis","Thanasis","Sotiris","Antonis","Spyros","Aris","Leonidas","Arben","Erion","Altin","Besnik","Ilir","Klevis","Endri","Lorik","Armando","Kristi","Edon","Valon","Ardian","Florian","Gentian","Marin","Marios","Pavlos","Theodoros","Alexandros"],
+  last:["Papadopoulos","Nikolaidis","Georgiou","Pappas","Vlachos","Kostas","Dimitriou","Ioannidis","Karagiannis","Makris","Samaras","Kouris","Giannakopoulos","Christou","Petridis","Theodorou","Markou","Andreou","Spiropoulos","Lazaridis","Hoxha","Shehu","Kola","Dervishi","Leka","Berisha","Gashi","Krasniqi","Hasani","Shala","Rama","Meta","Basha","Duka","Mema","Vata","Gjoka","Muça","Kodra","Aliaj"]
+ },
+ TURKISH:{
+  first:["Emre","Kerem","Arda","Burak","Hakan","Oğuz","Mert","Can","Eren","Yusuf","Ahmet","Mehmet","Kaan","Onur","Barış","Berk","Tolga","Serkan","Volkan","Umut","Furkan","Salih","Cenk","Deniz","İsmail","Orkun","Altay","Çağlar","Halil","Enes","Rauf","Tural","Elvin","Kamran","Murad","Rashad","Nurlan","Eldar","Aziz","Bekzod","Timur","Sardor","Jasur","Rustam","Daniyar","Alisher","Bakhodir","Erlan","Adilet","Askar"],
+  last:["Yılmaz","Kaya","Demir","Şahin","Çelik","Yıldız","Yıldırım","Öztürk","Aydın","Özdemir","Arslan","Doğan","Kılıç","Aslan","Çetin","Kara","Koç","Kurt","Özkan","Şimşek","Güler","Aksoy","Polat","Tekin","Kaplan","Huseynov","Mammadov","Aliyev","Hasanov","Karimov","Rahimov","Ismayilov","Nabiyev","Akhmedov","Karimov","Rashidov","Tursunov","Yusupov","Khamidov","Abdullaev","Sadykov","Nazarov","Aitbayev","Suleimenov","Bekov","Omarov","Kassenov","Zhaksybek","Tulegenov","Serikov"]
+ },
+ JAPANESE:{
+  first:["Haruto","Yuto","Ren","Kaito","Sota","Riku","Daichi","Takumi","Yuki","Ryota","Shota","Kenta","Hiroto","Yuma","Koki","Hayato","Naoki","Tsubasa","Keita","Masato","Kazuya","Ryo","Sho","Kohei","Yusuke","Akira","Shun","Itsuki","Minato","Hinata","Sora","Yamato","Taiga","Reo","Kosei","Kenshin","Toma","Rui","Ryusei","Kazuki","Shingo","Yuya","Genki","Atsuki","Kota","Takahiro","Hikaru","Tomoya","Daisuke","Jun"],
+  last:["Sato","Suzuki","Takahashi","Tanaka","Watanabe","Ito","Yamamoto","Nakamura","Kobayashi","Kato","Yoshida","Yamada","Sasaki","Yamaguchi","Matsumoto","Inoue","Kimura","Hayashi","Shimizu","Yamazaki","Mori","Abe","Ikeda","Hashimoto","Yamashita","Ishikawa","Nakajima","Maeda","Fujita","Ogawa","Goto","Okada","Hasegawa","Murakami","Kondo","Ishii","Saito","Sakamoto","Endo","Aoki","Fujii","Nishimura","Fukuda","Ota","Miura","Fujiwara","Okamoto","Matsuda","Nakagawa","Kaneko","Harada","Takagi","Ueda","Morita","Hara","Shibata","Sakai","Kudo","Yokoyama","Miyazaki"]
+ },
+ KOREAN:{
+  first:["Minjun","Jiho","Hyunwoo","Seojun","Taeyang","Junho","Jisung","Donghyun","Sungmin","Jaeho","Minho","Joon","Youngho","Seungwoo","Jinwoo","Taehyun","Kyungmin","Jaemin","Woojin","Hyunseok","Junseok","Sangwoo","Jongmin","Seunghyun","Dohyun","Yunho","Jihun","Minseok","Dongjun","Jaejun","Seongho","Kangmin","Hyunmin","Joonho","Wonjun","Taemin","Seungmin","Gunwoo","Yejun","Hojun"],
+  last:["Kim","Lee","Park","Choi","Jung","Kang","Cho","Yoon","Jang","Lim","Han","Oh","Seo","Shin","Kwon","Hwang","Ahn","Song","Ryu","Hong","Jeon","Ko","Moon","Yang","Son","Bae","Baek","Heo","Nam","Shim","No","Ha","Kwak","Sung","Cha","Joo","Woo","Min","Byun","Do"]
+ },
+ CHINESE:{
+  first:["Wei","Jun","Hao","Chen","Tao","Jian","Ming","Lei","Bo","Yang","Kai","Peng","Qiang","Long","Bin","Chao","Feng","Gang","Hong","Jie","Kang","Liang","Lin","Nan","Rui","Sheng","Tian","Xiang","Xin","Yong","Yu","Zhen","Zhi","Zhiyuan","Haoran","Yichen","Junxi","Yuxuan","Zixuan","Chenxi"],
+  last:["Wang","Li","Zhang","Liu","Chen","Yang","Huang","Zhao","Wu","Zhou","Xu","Sun","Ma","Zhu","Hu","Guo","He","Gao","Lin","Luo","Zheng","Liang","Xie","Song","Tang","Deng","Han","Feng","Cao","Peng","Zeng","Xiao","Tian","Dong","Pan","Yuan","Cai","Jiang","Yu","Du"]
+ },
+ SOUTHEAST_ASIA:{
+  first:["An","Bao","Binh","Duc","Hai","Hieu","Hoang","Hung","Khanh","Long","Minh","Nam","Phuc","Quang","Son","Tuan","Viet","Thanh","Anh","Duy","Arthit","Chai","Kiet","Narin","Preecha","Somchai","Thanawat","Theerathon","Worachit","Supachai","Surasak","Krit","Nattapong","Phanupong","Chanathip","Adisak","Sarach","Peerapat","Ekanit","Suphanat"],
+  last:["Nguyen","Tran","Le","Pham","Hoang","Huynh","Phan","Vu","Vo","Dang","Bui","Do","Ho","Ngo","Duong","Ly","Srisai","Boonmee","Thongchai","Kerdkaew","Chantarangsu","Phromrak","Inpaen","Wongsa","Sukha","Kraisorn","Mueanta","Bureerat","Bordin","Songkrasin","Dangda","Puangchan","Yooyen","Bunmathan","Hemviboon","Promsupa","Jaroensak","Panya","Kaman","Saman"]
+ },
+ ARABIC:{
+  first:["Omar","Ali","Youssef","Ahmed","Mohamed","Karim","Amir","Sami","Rami","Tariq","Nabil","Hassan","Hamza","Bilal","Mehdi","Farid","Khalid","Fahad","Saad","Salem","Nasser","Abdullah","Abdulrahman","Faisal","Majed","Mansour","Ibrahim","Mustafa","Mahmoud","Hussein","Adel","Walid","Anas","Ayman","Ziad","Marwan","Tamer","Hatem","Islam","Yahya","Badr","Ayoub","Zakaria","Achraf","Rayan","Ismail","Adnan","Nawaf","Talal","Khalifa"],
+  last:["Haddad","Khalil","Mansour","Nasser","Saleh","Rahman","Farah","Hamdan","Aziz","Darwish","Hussein","Mahmoud","Hassan","Ibrahim","Mustafa","Ali","Omar","Khaled","Salman","Saeed","Abbas","Hariri","Najjar","Khatib","Bakri","Shami","Masri","Fahmy","Sayed","Gamal","Hamdi","Fawzi","Abdelrahman","Mubarak","Qasim","Sharif","Jaber","Rashid","Hakim","Nasr","Amrani","Bennani","El Idrissi","Alaoui","Bouzid","Mansouri","Brahimi","Cherif","Ben Salah","Trabelsi","Gharbi","Al Harbi","Al Qahtani","Al Dosari","Al Shammari","Al Mansoori","Al Nuaimi","Al Kuwari","Al Suwaidi","Al Jabri"]
+ },
+ WEST_AFRICA:{
+  first:["Samuel","Daniel","Victor","Emmanuel","David","Isaac","Joseph","Michael","Ibrahim","Musa","Amadou","Ousmane","Kofi","Kwame","Chinedu","Tunde","Femi","Abdul","Mamadou","Seydou","Moussa","Ibrahima","Cheikh","Babacar","Sadio","Ismaila","Adama","Alpha","Sekou","Lamine","Modou","Yaya","Souleymane","Mohamed","Abdoulaye","Boubacar","Issa","Francis","Patrick","Kelvin","Godwin","Emeka","Chukwu","Ahmed","Mustapha","Suleiman","Abdulrahman","Nana","Kojo","Yaw"],
+  last:["Mensah","Boateng","Owusu","Agyemang","Asante","Kamara","Conteh","Diallo","Traore","Keita","Camara","Toure","Kone","Diop","Ndiaye","Sarr","Okafor","Eze","Nwosu","Adebayo","Balogun","Bamba","Mendy","Cisse","Ba","Fofana","Coulibaly","Diarra","Sissoko","Kante","Sanogo","Konate","Sow","Gueye","Sy","Fall","Thiam","Barry","Bangura","Koroma","Sesay","Kanu","Obi","Okoro","Umeh","Osei","Appiah","Acheampong","Antwi","Gyasi","Ayew","Abubakar","Yakubu","Sule","Garba","Lawal","Bello","Musa","Sani","Iheanacho"]
+ },
+ CENTRAL_AFRICA:{
+  first:["Junior","Christian","Patrick","Samuel","Eric","Franck","Cedric","Joel","Fabrice","Yannick","Arnaud","Alain","Jean","Kevin","Serge","Dylan","Bryan","Emmanuel","David","Victor","Michel","Prince","Dieumerci","Merveille","Gael","Boris","Stephane","Cedrick","Tresor","Jonathan","Joseph","Isaac","Andre","Loic","Thierry","Olivier","Wilfried","Clinton","Karl","Nicolas"],
+  last:["Mbuyi","Mwamba","Kabongo","Ilunga","Kasongo","Kalala","Mbemba","Bakambu","Bolasie","Mputu","Mpoku","Kabasele","Kakuta","Kitenge","Musonda","Mulumba","N'Sakala","Banza","Matondo","Kayembe","Moukoko","Ngamaleu","Tchamba","Onana","Abanda","Manga","Essomba","Epassy","Ngadeu","Fai","Nsame","Bassogog","Mbaizo","Njouon","Kouam","Mbida","Nlend","Etoa","Manga","Bikoko"]
+ },
+ SOUTHERN_AFRICA:{
+  first:["Thabo","Sipho","Sibusiso","Bongani","Kagiso","Lebo","Teboho","Themba","Tshepo","Mandla","Siyabonga","Lunga","Khaya","Nkosinathi","Mpho","Neo","Karabo","Aubrey","Bradley","Ryan","Luke","Keagan","Grant","Ethan","Jayden","Junior","Emmanuel","Patson","Fashion","Enock","Lubambo","Clatous","Kennedy","Benson","Evans","Nathan","Kelvin","Moses","Collins","George"],
+  last:["Mokoena","Dlamini","Nkosi","Khumalo","Ndlovu","Mthembu","Mabena","Zulu","Mahlangu","Molefe","Modise","Vilakazi","Mabaso","Cele","Mkhize","Maseko","Mokoena","Tau","Lorch","Zwane","Hlatshwayo","Parker","Williams","Adams","Morris","Banda","Sakala","Daka","Mwepu","Mulenga","Kangwa","Musonda","Phiri","Chanda","Tembo","Mwila","Lungu","Bwalya","Chisala","Kalaba"]
+ },
+ CARIBBEAN:{
+  first:["Andre","Dwayne","Ricardo","Jamal","Omar","Shamar","Kemar","Darren","Damion","Jermaine","Romaine","Kevon","Akeem","Sheldon","Tristan","Micah","Isaiah","Jordan","Malik","Nathaniel","Tyrese","Devon","Marcus","Jason","Elijah","Daniel","Joshua","Samuel","Kadeem","Tariq","Jean","Michel","Wilde","Duckens","Frantzdy","Carl","Kevin","Levi","Noah","Ryan"],
+  last:["Brown","Williams","Johnson","Campbell","Thomas","Morgan","Grant","Reid","Lewis","Stewart","Robinson","Clarke","Bailey","Taylor","Wilson","Francis","Watson","Miller","King","Richards","Henry","Joseph","Pierre","Jean","Louis","Charles","Augustin","Etienne","Baptiste","Desir","Guerrier","Lafrance","Dorsinville","Altidore","Lamy","Paul","Noel","George","Samuel","Alexis"]
+ },
+ PACIFIC:{
+  first:["Jone","Samuela","Tevita","Peni","Kini","Apenisa","Meli","Savenaca","Setareki","Viliame","Iliesa","Mosese","Waisea","Timoci","Manasa","Ben","David","Michael","John","Peter","Joseph","Samuel","Daniel","Joshua","Nathan","Kori","Tomasi","Tama","Tane","Mika","Latu","Sione","Tui","Pita","Semi","Niko","Mako","Ratu","Josua","Kaleb"],
+  last:["Naivalu","Ravouvou","Tuisova","Nayacalevu","Vakatawa","Dakuwaqa","Nakarawa","Mata","Yato","Radradra","Volavola","Botia","Waqa","Cokanasiga","Ratuniyarawa","Smith","Brown","Williams","Thomas","Johnson","Kumar","Prasad","Singh","Chand","Reddy","Taufa","Fekitoa","Latu","Tupou","Fifita","Manu","Tuilagi","Savea","Ioane","Nanai","Pulu","Moli","Fotuaika","Koloamatangi","Taukolo"]
+ },
+ HEBREW:{
+  first:["Daniel","Noam","Yonatan","Omer","Itay","Ariel","Eyal","Lior","Tal","Ben","Guy","Idan","Dor","Shahar","Niv","Yarden","Aviv","Roi","Gal","Or","Matan","Eli","Amit","Yoni","Nadav","Tomer","Bar","Gil","Alon","Yuval","Ran","Eran","Moshe","David","Adam","Roy","Dean","Omri","Ofir","Ram"],
+  last:["Cohen","Levi","Mizrahi","Peretz","Biton","Dahan","Avraham","Friedman","Azulai","Malka","Katz","David","Ohayon","Amar","Ben David","Shapiro","Dayan","Baruch","Sasson","Sharabi","Mor","Golan","Tal","Shahar","Levy","Aharon","Ben Haim","Atar","Melamed","Koren","Saban","Revivo","Turgeman","Yehezkel","Haziza","Arad","Nachmias","Glazer","Abada","Kanichowsky"]
+ },
+ CAUCASUS:{
+  first:["Giorgi","Nika","Luka","Levan","Zurab","Saba","Tornike","Irakli","Davit","Beka","Guram","Otar","Vakhtang","Aleksandre","Mikheil","Khvicha","Zviad","Artem","Arman","Tigran","Gevorg","Narek","Vahan","Hayk","Karen","Artur","Levon","Samvel","Hovhannes","Suren","Andranik","Ashot","Mher","Ruben","Gagik","Edgar","Giorgi","Temur","Dato","Nikoloz"],
+  last:["Kapanadze","Beridze","Gelashvili","Mchedlidze","Lomidze","Kvaratskhelia","Kashia","Kvirkvelia","Chakvetadze","Dvali","Kochorashvili","Mikautadze","Tsitaishvili","Lobzhanidze","Goglichidze","Petrosyan","Sargsyan","Grigoryan","Harutyunyan","Hakobyan","Hovhannisyan","Karapetyan","Mkrtchyan","Avetisyan","Manukyan","Ghazaryan","Martirosyan","Vardanyan","Arakelyan","Poghosyan","Stepanyan","Melkonyan","Asatryan","Davtyan","Babayan","Khachatryan","Margaryan","Minasyan","Nersisyan","Aghajanyan"]
+ }
+};
+
+function playerNameProfile(nationId){
+ return PLAYER_NAME_PROFILE_BY_NATION[nationId]||"ANGLO";
+}
+function playerNamePool(nationId){
+ return PLAYER_NAME_PROFILES[playerNameProfile(nationId)]||PLAYER_NAME_PROFILES.ANGLO;
+}
+
+const FIRST=[...new Set(Object.values(PLAYER_NAME_PROFILES).flatMap(x=>x.first))];
+const LAST=[...new Set(Object.values(PLAYER_NAME_PROFILES).flatMap(x=>x.last))];
+
+let generatedNameRegistry=new Set();
+function resetGeneratedNameRegistry(){
+ generatedNameRegistry=new Set();
+ if(G&&Array.isArray(G.players))G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+}
+
+function registerGeneratedName(name){
+ let clean=String(name||"").slice(0,PLAYER_NAME_MAX).trim();
+ if(!clean)return null;
+ if(generatedNameRegistry.has(clean))return null;
+ generatedNameRegistry.add(clean);
+ return clean;
+}
+
+function generateFootballName(nationId){
+ if(!generatedNameRegistry.size&&G&&Array.isArray(G.players)){
+   G.players.forEach(p=>{if(p&&p.name)generatedNameRegistry.add(p.name)});
+ }
+ let pool=playerNamePool(nationId);
+
+ // Thousands of single first/surname combinations exist for the major profiles.
+ for(let attempt=0;attempt<90;attempt++){
+   let first=pool.first[rnd(0,pool.first.length-1)],
+       last=pool.last[rnd(0,pool.last.length-1)],
+       found=registerGeneratedName(first+" "+last);
+   if(found)return found;
+ }
+
+ // If a long-running save exhausts familiar combinations, prefer a natural
+ // second surname rather than exposing an internal numeric uniqueness suffix.
+ for(let attempt=0;attempt<80;attempt++){
+   let first=pool.first[rnd(0,pool.first.length-1)],
+       last1=pool.last[rnd(0,pool.last.length-1)],
+       last2=pool.last[rnd(0,pool.last.length-1)];
+   if(last1===last2)continue;
+   let found=registerGeneratedName(first+" "+last1+" "+last2);
+   if(found)return found;
+ }
+
+ // Cross-pool fallback remains culturally adjacent before any technical suffix.
+ let adjacent=PLAYER_NAME_PROFILES[playerNameProfile(nationId)]||PLAYER_NAME_PROFILES.ANGLO;
+ for(let attempt=0;attempt<80;attempt++){
+   let first=adjacent.first[rnd(0,adjacent.first.length-1)],
+       last=adjacent.last[rnd(0,adjacent.last.length-1)],
+       found=registerGeneratedName(first+" "+last);
+   if(found)return found;
+ }
+
+ // Last-resort uniqueness is kept internal-looking and should be practically
+ // unreachable with the expanded pools. The display cleaner still protects
+ // legacy saves generated by older versions.
+ let first=pool.first[rnd(0,pool.first.length-1)],
+     last=pool.last[rnd(0,pool.last.length-1)],
+     fallback=(first+" "+last+" "+String(rnd(1000,9999))).slice(0,PLAYER_NAME_MAX);
+ generatedNameRegistry.add(fallback);
+ return fallback;
+}
+
 const POS=["GK","LB","CB","CB","RB","LWB","RWB","DM","CDM","CM","CM","AM","CAM","LM","RM","LW","RW","CF","SS","ST","ST"];
 const COACH_STYLES=["Balanced","Possession","Tiki-Taka","High Press","Counter Attack","Direct","Attacking","Defensive"];
 const FORMATION_LIBRARY={
@@ -16146,10 +16657,8 @@ function applyGenerationalTalent(p,context="world"){
 
 
 function randomPlayerNationality(domesticId){
- let home=FOOTBALL_NATIONS.some(n=>n.id===domesticId)?domesticId:"AUS";
- if(gameRandom()<.55)return home;
- let pool=FOOTBALL_NATIONS.filter(n=>n.id!==home);
- return pool[rnd(0,pool.length-1)].id;
+ // v2.13.4 compatibility wrapper: all new generation uses country-aware weighting.
+ return weightedPlayerNationality(domesticId);
 }
 function ensureWorldEngineState(){
  if(!G)return;
@@ -16177,15 +16686,28 @@ function ensureWorldEngineState(){
    c.identityIndex=((Number(c.id)%40)+40)%40;
    if(!c.heritageTheme)c.heritageTheme=CLUB_HERITAGE_THEMES[Number(c.id)]||"Local Football Club";
    if(!c.heritageNation)c.heritageNation=c.nation||G.careerNation;
+   if(!c.heritageProfile)c.heritageProfile=domesticClubProfileForNation(c.heritageNation||c.nation||G.careerNation);
   }
  });
- if(Array.isArray(G.players))G.players.forEach(p=>{if(p&&!p.nationality)p.nationality=randomPlayerNationality(G.careerNation)});
+ if(Array.isArray(G.players))G.players.forEach(p=>{
+  if(p&&!p.nationality)p.nationality=weightedPlayerNationality(G.careerNation);
+  if(p&&!p.nameHeritage)p.nameHeritage=playerNameProfile(p.nationality||G.careerNation);
+ });
  if(G.userGM&&typeof G.userGM==="object"&&!G.userGM.nation)G.userGM.nation=G.careerNation;
  ensureInternationalNationalState();}
+
+function domesticPopulationSnapshot(players,homeNation){
+ let list=Array.isArray(players)?players:[],
+     domestic=list.filter(p=>p&&p.nationality===homeNation).length,
+     foreign=list.length-domestic;
+ return{total:list.length,domestic,foreign,domesticPct:list.length?Math.round(domestic/list.length*100):0};
+}
 function playerNationality(p){return nationById(p&&p.nationality||G&&G.careerNation||"AUS")}
 function player(team,i){
  let age=rnd(18,34),base=rnd(59,80)+(team<5?5:0);if(age<22)base-=rnd(1,4);
- let p={id:uid(),name:generateFootballName(),pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,nationality:randomPlayerNationality(selectedCareerNation),secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ let nationality=weightedPlayerNationality(selectedCareerNation),
+     generatedIdentity=generateFootballNameForPlayerNationality(nationality);
+ let p={id:uid(),name:generatedIdentity.name,pos:POS[i%POS.length],age,ovr:Math.min(91,base),pot:Math.min(94,base+rnd(age<23?6:2,age<23?17:7)),wage:rnd(15,170)*1000,value:base*base*rnd(5000,9000),years:rnd(1,5),team,morale:rnd(65,95),listed:false,retiring:false,renewedThisSeason:false,freeAgent:false,nationality,nameHeritage:generatedIdentity.heritageProfile,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
  applyGenerationalTalent(p,"initial");
  syncPlayerEconomy(p,true);seedSecondaryPositions(p);p.primaryStyle=independentStyleForPosition(p.pos);let opts=stylePoolForPosition(p.pos).filter(x=>x!==p.primaryStyle);if(opts.length&&gameRandom()<(age<=24?.38:.25))p.secondaryStyle=opts[rnd(0,opts.length-1)];return p;
 }
@@ -16197,6 +16719,7 @@ function buildClubRecord(name,i,tier){
   nation:selectedCareerNation,
   heritageTheme:CLUB_HERITAGE_THEMES[i]||"Local Football Club",
   heritageNation:selectedCareerNation,
+  heritageProfile:domesticClubProfileForNation(selectedCareerNation),
   shortName:name.split(" ").map(x=>x[0]).join("").replace(/[^A-Za-z0-9]/g,"").slice(0,4).toUpperCase(),
   rep:Math.max(56,baseRep+rnd(-2,2)),
   balance:rnd(tier==="top"?50:18,tier==="top"?180:75)*1e6,
@@ -16446,7 +16969,7 @@ function ensureInternationalClubState(){
   let rows=[];
   FOOTBALL_NATIONS.filter(n=>n.id!==G.careerNation).forEach((n,ni)=>{
    let names=INTERNATIONAL_CLUB_NAMES[n.id]||[n.name+" Champions",n.name+" Cup Winners"];
-   for(let slot=0;slot<2;slot++){let key=internationalForeignKey(n.id,slot+1);rows.push({key,name:names[slot],nation:n.id,foreign:true,rating:72+((ni*5+slot*7)%16)+rnd(-2,2),virtualPlayers:[generateFootballName(),generateFootballName(),generateFootballName()]})}
+   for(let slot=0;slot<2;slot++){let key=internationalForeignKey(n.id,slot+1);rows.push({key,name:names[slot],nation:n.id,foreign:true,rating:72+((ni*5+slot*7)%16)+rnd(-2,2),virtualPlayers:[generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name]})}
   });
   G.intClub.foreignClubs=rows;
  }
@@ -19085,7 +19608,10 @@ function generateWorldPlayer(team=-1,qualityBias=0,young=false,forcedGroup=null)
  if(young)qualityBias+=dynamicYouthQualityBias(team);
  let age=young?rnd(17,22):rnd(18,31),base=rnd(58+qualityBias,74+qualityBias);if(young&&gameRandom()<.18)base+=rnd(3,8);base=Math.max(50,Math.min(86,base));
  let pos=forcedGroup?randomPositionForGroup(forcedGroup):POS[rnd(0,POS.length-1)],pot=Math.min(94,base+rnd(young?5:2,young?16:8));
- let np={id:uid(),name:generateFootballName(),pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,nationality:randomPlayerNationality(G&&G.careerNation||selectedCareerNation),secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
+ let homeNation=G&&G.careerNation||selectedCareerNation,
+     nationality=weightedPlayerNationality(homeNation),
+     generatedIdentity=generateFootballNameForPlayerNationality(nationality);
+ let np={id:uid(),name:generatedIdentity.name,pos,age,ovr:base,pot,wage:rnd(12,95)*1000,value:base*base*rnd(4200,7600),years:team>=0?rnd(2,5):0,team,morale:rnd(62,90),listed:false,retiring:false,renewedThisSeason:false,freeAgent:team<0,nationality,nameHeritage:generatedIdentity.heritageProfile,secondaryPositions:[],primaryStyle:null,secondaryStyle:null};
  if(young)applyGenerationalTalent(np,"world");
  syncPlayerEconomy(np,true);
  seedSecondaryPositions(np);np.primaryStyle=independentStyleForPosition(np.pos);let opts=stylePoolForPosition(np.pos).filter(x=>x!==np.primaryStyle);if(opts.length&&gameRandom()<(young?.42:.28))np.secondaryStyle=opts[rnd(0,opts.length-1)];return np;
@@ -21279,7 +21805,7 @@ function newCoachCandidate(source="Available Coach"){
  ensureStaffHistoryState();
  let style=COACH_STYLES[rnd(0,COACH_STYLES.length-1)],profile=COACH_STYLE_PROFILES[style],formation=profile.formations[rnd(0,profile.formations.length-1)];
  let coach={
-  id:"HC-MKT-"+uid(),name:generateFootballName(),ovr:rnd(62,86),style,formation,appointedSeason:null,
+  id:"HC-MKT-"+uid(),name:generateFootballNameForPlayerNationality(G&&G.careerNation||selectedCareerNation).name,ovr:rnd(62,86),style,formation,appointedSeason:null,
   source,availableSince:G.season
  };
  if(!G.staffHistory.coaches[coach.id]){
@@ -21607,7 +22133,7 @@ function clubBoardTargetFor(clubId){
 function ensureAIGMForClub(clubId){
  ensureStaffHistoryState();let c=G.clubs[clubId];if(!c)return null;
  if(c.gm&&c.gm.id&&c.gm.id!==G.userGM.id)return c.gm;
- let gm={id:"GM-AI-"+clubId+"-"+uid(),name:generateFootballName(),ovr:clampCareerValue((Number(c.rep)||70)+rnd(-8,5),55,92),appointedSeason:G.season};
+ let gm={id:"GM-AI-"+clubId+"-"+uid(),name:generateFootballNameForPlayerNationality((c&&c.nation)||G.careerNation).name,ovr:clampCareerValue((Number(c.rep)||70)+rnd(-8,5),55,92),appointedSeason:G.season};
  c.gm=gm;
  G.staffHistory.gms[gm.id]={id:gm.id,name:gm.name,ovr:gm.ovr,currentClubId:clubId,appointedSeason:G.season,clubs:[{clubId,from:G.season,to:null}],matches:0,w:0,d:0,l:0,seasons:0,titles:0,bestFinish:null,bestPoints:null,awards:0,gf:0,ga:0};
  return gm;
