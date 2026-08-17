@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.20.1 Hidden Nation Tiers</title>
+<title>Mini&Me Football Club v2.12.0 Stable Baseline</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12804,31 +12804,6 @@ body.international-results-active{overflow:hidden}
 }
 </style>
 
-<style id="minime-v2-11-18-quick-sim">
-.quickSimCard{border-style:dashed!important}
-.quickSimActions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.quickSimActions button{min-height:34px;padding:6px;border:1px solid var(--line);border-radius:8px;background:#111a24;color:#cfd8df;font-size:6px;font-weight:900}
-.quickSimActions button.primary{border-color:#6b5b2e;color:var(--gold);background:#d9b54a0b}
-.worldCupConfirmedQualifiers{display:flex;flex-wrap:wrap;gap:5px}
-.worldCupQualifiedChip{display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #315d43;border-radius:999px;background:#14302055}
-.worldCupQualifiedChip span{font-size:6.5px;font-weight:850}.worldCupQualifiedChip b{color:#52dd89;font-size:6px}
-.worldCupHubEmpty{color:#8997a2;font-size:6.5px;padding:5px 0}
-@media(max-width:430px){.quickSimActions{grid-template-columns:repeat(2,1fr)}}
-</style>
-
-<style id="minime-v2-11-18-1-quick-sim-fix">
-.quickSimFeedback{
- margin-top:7px;
- padding:6px 8px;
- border:1px solid var(--line);
- border-radius:7px;
- color:#8f9daa;
- font-size:6px;
- font-weight:800;
-}
-.quickSimFeedback.error{color:#dc7070;border-color:#633c43}
-</style>
-
 <style id="minime-v2-11-18-2-qualification-status-cleanup">
 .worldCupHubTableRow em.playoff{
  color:#d7ba67;
@@ -13045,7 +13020,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.20.1 Hidden Nation Tiers Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.12.0 Stable Baseline";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -13484,10 +13459,82 @@ function ensureNationalGMSquad(){
  return n.squad;
 }
 
+
+function aiRecommendedNationalSquad(nationId){
+ let eligible=nationalTeamPool(nationId).slice();
+ if(!eligible.length)return[];
+
+ const pick=(arr,count,test)=>{
+   arr.filter(test).sort((a,b)=>nationalSelectionScore(b)-nationalSelectionScore(a)).slice(0,count).forEach(p=>{
+     if(!selected.some(x=>x.id===p.id))selected.push(p);
+   });
+ };
+
+ let selected=[];
+ pick(eligible,3,p=>p.pos==="GK");
+ pick(eligible,8,p=>["LB","RB","CB","LWB","RWB"].includes(p.pos));
+ pick(eligible,7,p=>["DM","CDM","CM","AM","CAM","LM","RM"].includes(p.pos));
+ pick(eligible,5,p=>["LW","RW","CF","SS","ST"].includes(p.pos));
+
+ eligible.sort((a,b)=>nationalSelectionScore(b)-nationalSelectionScore(a)).forEach(p=>{
+   if(selected.length<NATIONAL_SQUAD_SIZE&&!selected.some(x=>x.id===p.id))selected.push(p);
+ });
+ return selected.slice(0,NATIONAL_SQUAD_SIZE);
+}
+
+function aiRecommendedNationalXI(nationId,squad){
+ let pool=(Array.isArray(squad)&&squad.length?squad:aiRecommendedNationalSquad(nationId)).slice();
+ if(!pool.length)return[];
+
+ let used=new Set(),xi=[];
+ const add=(need,test)=>{
+   pool.filter(test).sort((a,b)=>nationalSelectionScore(b)-nationalSelectionScore(a)).slice(0,need).forEach(p=>{
+     if(!used.has(p.id)){xi.push(p);used.add(p.id)}
+   });
+ };
+
+ add(1,p=>p.pos==="GK");
+ add(4,p=>["LB","RB","CB","LWB","RWB"].includes(p.pos));
+ add(3,p=>["DM","CDM","CM","AM","CAM","LM","RM"].includes(p.pos));
+ add(3,p=>["LW","RW","CF","SS","ST"].includes(p.pos));
+
+ pool.filter(p=>!used.has(p.id)).sort((a,b)=>nationalSelectionScore(b)-nationalSelectionScore(a)).forEach(p=>{
+   if(xi.length<11){xi.push(p);used.add(p.id)}
+ });
+ return xi.slice(0,11);
+}
+
+function ensureManagedNationalAISquad(force=false){
+ ensureNationalGMState();
+ if(!G.nationalGM.active||!G.nationalGM.nation)return[];
+ let nation=G.nationalGM.nation,
+     squad=aiRecommendedNationalSquad(nation),
+     currentIds=Array.isArray(G.nationalGM.squad)?G.nationalGM.squad:[],
+     validCurrent=currentIds.map(id=>G.players.find(p=>p.id===id)).filter(Boolean);
+
+ // AI selection is the default. Preserve a manual override only after the GM has edited it.
+ if(force||!G.nationalGM.manualSquadOverride||validCurrent.length!==NATIONAL_SQUAD_SIZE){
+   G.nationalGM.squad=squad.map(p=>p.id);
+   G.nationalGM.startingXI=aiRecommendedNationalXI(nation,squad).map(p=>p.id);
+   G.nationalGM.squadConfirmed=true;
+   G.nationalGM.aiSelected=true;
+   if(force)G.nationalGM.manualSquadOverride=false;
+ }
+ return (G.nationalGM.squad||[]).map(id=>G.players.find(p=>p.id===id)).filter(Boolean);
+}
+
+function autoPrepareManagedNationForFixture(){
+ if(!G.nationalGM||!G.nationalGM.active)return;
+ if(!managedNationUpcomingFixture())return;
+ ensureManagedNationalAISquad(false);
+ // No mandatory confirmation barrier: the AI squad is valid unless the GM chooses to edit it.
+ G.nationalGM.squadConfirmed=true;
+}
+
 function managedNationalSquadPlayers(){
- ensureNationalGMSquad();
- let ids=new Set(G.nationalGM.squad||[]);
- return (G.players||[]).filter(p=>ids.has(p.id));
+ ensureNationalGMState();
+ if(!G.nationalGM.active)return[];
+ return ensureManagedNationalAISquad(false);
 }
 
 function managedNationEligiblePool(){
@@ -13536,6 +13583,8 @@ function addPlayerToNationalSquad(playerId){
    return false;
  }
  n.squad.push(playerId);
+ n.manualSquadOverride=true;
+ n.aiSelected=false;
  n.squadConfirmed=false;
  save();showGMProfile();return true;
 }
@@ -13545,25 +13594,19 @@ function removePlayerFromNationalSquad(playerId){
  ensureNationalGMSquad();
  let n=G.nationalGM;if(!n.active)return false;
  n.squad=n.squad.filter(id=>id!==playerId);
+ n.manualSquadOverride=true;
+ n.aiSelected=false;
  n.squadConfirmed=false;
  save();showGMProfile();return true;
 }
 
 function resetManagedNationalSquad(){
- internationalBatchCache=null;
  ensureNationalGMState();
- if(!G.nationalGM.active||!G.nationalGM.nation)return false;
-
- let best=automaticNationalTeamSelection(G.nationalGM.nation,NATIONAL_SQUAD_SIZE);
- if(!best.length){
-   alert("No eligible players are available for this national team.");
-   return false;
- }
-
- G.nationalGM.squad=best.map(p=>p.id);
- G.nationalGM.squadConfirmed=false;
- G.feed.unshift({t:"NATIONAL TEAM",m:nationName(G.nationalGM.nation)+" squad auto-selected from the best available eligible players."});
- save();showGMProfile();return true;
+ if(!G.nationalGM.active)return;
+ G.nationalGM.manualSquadOverride=false;
+ ensureManagedNationalAISquad(true);
+ save();
+ render();
 }
 
 
@@ -13571,7 +13614,13 @@ function resetManagedNationalSquad(){
 function consumeNationalSquadConfirmation(){
  ensureNationalGMState();
  if(!G.nationalGM.active)return;
- G.nationalGM.squadConfirmed=false;
+ // Each new fixture/window gets a fresh AI recommendation unless the GM
+ // deliberately keeps a manual override.
+ if(!G.nationalGM.manualSquadOverride){
+   ensureManagedNationalAISquad(true);
+ }else{
+   G.nationalGM.squadConfirmed=true;
+ }
 }
 function confirmManagedNationalSquad(){
  ensureNationalGMSquad();
@@ -13586,6 +13635,7 @@ function confirmManagedNationalSquad(){
    return false;
  }
  G.nationalGM.squadConfirmed=true;
+ if(G.nationalGM.manualSquadOverride)G.nationalGM.aiSelected=false;
  G.nationalGM.lastConfirmedSeason=G.season;
  G.nationalGM.lastConfirmedWeek=G.week;
  G.feed.unshift({t:"NATIONAL TEAM",m:nationName(G.nationalGM.nation)+" squad confirmed for international duty."});
@@ -13643,9 +13693,8 @@ function nationalGMEventDueNow(){
 }
 
 function nationalGMRequiresAttention(){
- ensureNationalGMState();
- if(!G.nationalGM.active)return false;
- return nationalGMEventDueNow()&&!G.nationalGM.squadConfirmed;
+ // National duty is advisory only. AI always prepares a valid default squad.
+ return false;
 }
 function nationalSquadPlayerRowHtml(p,selected){
  let c=ensureInternationalPlayerCareer(p),club=p.team>=0?playerClubNameNow(p.team):p.team===-3?externalPlayerClubName(p):p.team===-1?"Free Agent":"Retired";
@@ -13842,8 +13891,19 @@ function openNationalInternationalManagement(){
 }
 
 function nationalGMActionRequiredHtml(){
- if(!nationalGMRequiresAttention())return"";
- return '<div class="card nationalGMActionCard"><div><div class="screenEyebrow">NATIONAL TEAM DUTY</div><div class="title">National squad requires confirmation</div><div class="sub">'+nationName(G.nationalGM.nation)+' have an international fixture approaching. Review and confirm the 23-player squad before the match.</div></div><button data-national-gm-review-duty="1">REVIEW NATIONAL TEAM</button></div>';
+ ensureNationalGMState();
+ if(!G.nationalGM.active)return"";
+ let fixture=managedNationUpcomingFixture();
+ if(!fixture)return"";
+
+ ensureManagedNationalAISquad(false);
+ let nation=G.nationalGM.nation;
+ return '<div class="card nationalGMActionCard">'+
+   '<div class="screenEyebrow">NATIONAL TEAM DUTY</div>'+
+   '<div class="title">National squad selected</div>'+
+   '<div class="sub">'+nationName(nation)+' squad has been selected automatically for the upcoming international fixture. Review the 23-player squad if you want to make changes.</div>'+
+   '<button data-national-gm-review-duty="1">REVIEW NATIONAL TEAM</button>'+
+ '</div>';
 }
 function nationalGMOfferCardHtml(){
  ensureNationalGMState();let o=G.nationalGM.pendingOffer;if(!o)return"";
@@ -15040,8 +15100,10 @@ function internationalAppearancePlayersRaw(nationId,squad){
 }
 
 function internationalAppearancePlayers(nationId,seed){
- if(G&&G.nationalGM&&G.nationalGM.active&&G.nationalGM.nation===nationId&&!G.nationalGM.squadConfirmed){
-   return {squad:[],starters:[],bench:[],subs:[],appearances:[]};
+ if(G&&G.nationalGM&&G.nationalGM.active&&G.nationalGM.nation===nationId){
+   autoPrepareManagedNationForFixture();
+   let squad=managedNationalSquadPlayers();
+   if(squad.length)return internationalAppearancePlayersRaw(nationId,squad);
  }
  let squad=nationalTeamSelection(nationId,23);
  return internationalAppearancePlayersRaw(nationId,squad);
@@ -16262,10 +16324,11 @@ function worldCupHubHtml(){return '<div class="worldCupHub">'+worldCupHubTabsHtm
 
 function nationalInternationalView(){
  ensureInternationalNationalState();ensureNationalGMState();syncWorldCupLifecycleState();
+ if(G.nationalGM&&G.nationalGM.active)ensureManagedNationalAISquad(false);
  let gmBlock="",managed=G.nationalGM&&G.nationalGM.active;
  if(managed){
    let balance=nationalSquadBalanceStatus(),confirmed=!!G.nationalGM.squadConfirmed,nation=G.nationalGM.nation;
-   gmBlock='<div class="card nationalInternationalManagerCard"><div class="sectionHead"><div><div class="screenEyebrow">NATIONAL TEAM MANAGER</div><div class="title">'+nationFlagHtml(nation,24)+nationName(nation)+'</div><div class="sub">Your national team responsibilities are active alongside your club role.</div></div><div class="nationalGMReadyState '+(confirmed&&balance.ready?'ready':'attention')+'">'+(confirmed&&balance.ready?'READY':'ACTION REQUIRED')+'</div></div><div class="nationalGMControlGrid"><div><span>SQUAD</span><b>'+managedNationalSquadPlayers().length+' / '+NATIONAL_SQUAD_SIZE+'</b></div><div><span>AVERAGE OVR</span><b>'+nationalSquadAverageOVR().toFixed(1)+'</b></div><div><span>BALANCE</span><b>'+(balance.ready?'Ready':'Review')+'</b></div><div><span>CONFIRMATION</span><b>'+(confirmed?'Confirmed':'Pending')+'</b></div></div><div class="nationalGMControlActions"><button data-national-gm-open-squad="1">MANAGE SQUAD</button><button data-national-gm-confirm-squad="1" class="'+(confirmed?'confirmed':'')+'">'+(confirmed?'SQUAD CONFIRMED':'CONFIRM NATIONAL SQUAD')+'</button></div>'+(!balance.ready?'<div class="nationalGMControlNote">The squad still needs positional balance before it should be confirmed for international duty.</div>':'')+'</div>';
+   gmBlock='<div class="card nationalInternationalManagerCard"><div class="sectionHead"><div><div class="screenEyebrow">NATIONAL TEAM MANAGER</div><div class="title">'+nationFlagHtml(nation,24)+nationName(nation)+'</div><div class="sub">Your national team responsibilities are active alongside your club role.</div></div><div class="nationalGMReadyState '+(confirmed&&balance.ready?'ready':'attention')+'">'+(confirmed&&balance.ready?'READY':'ACTION REQUIRED')+'</div></div><div class="nationalGMControlGrid"><div><span>SQUAD</span><b>'+managedNationalSquadPlayers().length+' / '+NATIONAL_SQUAD_SIZE+'</b></div><div><span>AVERAGE OVR</span><b>'+nationalSquadAverageOVR().toFixed(1)+'</b></div><div><span>BALANCE</span><b>'+(balance.ready?'Ready':'Review')+'</b></div><div><span>CONFIRMATION</span><b>'+(confirmed?'Confirmed':'Pending')+'</b></div></div><div class="nationalGMControlActions"><button data-national-gm-open-squad="1">MANAGE SQUAD</button><button data-national-gm-confirm-squad="1" class="'+(confirmed?'confirmed':'')+'">'+(G.nationalGM.manualSquadOverride?(confirmed?'OVERRIDE CONFIRMED':'CONFIRM OVERRIDE'):'AI SQUAD READY')+'</button></div>'+(!balance.ready?'<div class="nationalGMControlNote">The squad still needs positional balance before it should be confirmed for international duty.</div>':'')+'</div>';
  }
  return gmBlock+worldCupHubHtml()+internationalResultsHistoryHtml();
 }
@@ -23271,136 +23334,11 @@ function internationalHomeSpotlightHtml(){
 }
 
 
-/* ==========================================================
-   v2.11.18.0 QUICK SIM
-   Development-focused fast progression in controlled chunks.
-   ========================================================== */
-function quickSimAvailable(){
- return !!(G&&!G.seasonReviewPending&&!worldCupTournamentModeActive());
-}
-
-function quickSimAdvanceOne(){
- if(!quickSimAvailable())return false;
-
- let beforeWeek=Number(G.week),beforeSeason=Number(G.season),
-     beforeCup=G.cup&&Number(G.cup.currentRound),
-     beforeIntl=G.intClub&&Number(G.intClub.currentRound);
-
- // Complete a queued international window first.
- if(pendingInternationalWeek()){
-   simulatePendingInternationalWeek();
-   let screen=$("#internationalResultsScreen");if(screen)screen.classList.add("hidden");
-   document.body.classList.remove("international-results-active");
-   page="home";
-   return true;
- }
-
- // For development simulation, automatically prepare the managed national side
- // only when that nation actually has a fixture requiring confirmation.
- if(nationalGMRequiresAttention()){
-   resetManagedNationalSquad();
-   confirmManagedNationalSquad();
- }
-
- try{
-   // This is the same core progression function used by the normal Continue action.
-   advance();
- }catch(err){
-   console.error("Quick Sim progression failed",err);
-   window.__quickSimLastError=String(err&&err.message||err);
-   return false;
- }
-
- // Result overlays should not halt a developer fast-forward.
- let result=$("#resultScreen");if(result)result.classList.add("hidden");
- let intl=$("#internationalResultsScreen");if(intl)intl.classList.add("hidden");
- document.body.classList.remove("result-active","international-results-active");
-
- let changed=
-   Number(G.week)!==beforeWeek||
-   Number(G.season)!==beforeSeason||
-   Number(G.cup&&G.cup.currentRound)!==beforeCup||
-   Number(G.intClub&&G.intClub.currentRound)!==beforeIntl||
-   pendingInternationalWeek()||
-   worldCupTournamentModeActive();
-
- return !!changed;
-}
-
-function quickSimRun(mode){
- if(!quickSimAvailable())return;
- let targetWeek=null,maxSteps=140,startWeek=Number(G.week);
-
- if(mode==="4")targetWeek=Math.min(leagueSeasonWeeks(),Number(G.week)+4);
- else if(mode==="8")targetWeek=Math.min(leagueSeasonWeeks(),Number(G.week)+8);
- else if(mode==="half")targetWeek=Math.min(leagueSeasonWeeks(),Math.max(Number(G.week)+1,Math.ceil(leagueSeasonWeeks()/2)));
- else if(mode==="season")targetWeek=leagueSeasonWeeks();
- else targetWeek=Math.min(leagueSeasonWeeks(),Number(G.week)+4);
-
- let startSeason=Number(G.season),guard=0;
- window.__quickSimActive=true;
- window.__quickSimLastError=null;
-
- while(guard++<maxSteps){
-   if(Number(G.season)!==startSeason)break;
-   if(G.seasonReviewPending)break;
-
-   // During a World Cup break, progress each WC stage rather than club football.
-   if(worldCupTournamentModeActive()){
-     let t=ensureWorldCupTournament();
-     if(t&&!t.complete){
-       simulateWorldCupTournamentWeek();
-       let intl=$("#internationalResultsScreen");if(intl)intl.classList.add("hidden");
-       document.body.classList.remove("international-results-active");
-       continue;
-     }
-   }
-
-   if(Number(G.week)>=targetWeek&&!pendingInternationalWeek())break;
-
-   let progressed=quickSimAdvanceOne();
-   if(!progressed){
-     // Do not spin forever on an invalid development state.
-     break;
-   }
- }
-
- window.__quickSimActive=false;
- page="home";
- render();
-
- setTimeout(()=>{
-   let card=document.querySelector(".quickSimCard");
-   if(!card)return;
-   let old=card.querySelector(".quickSimFeedback");
-   if(old)old.remove();
-   let msg=document.createElement("div");
-   msg.className="quickSimFeedback "+(window.__quickSimLastError?"error":"");
-   msg.textContent=window.__quickSimLastError
-     ?"Quick Sim stopped: "+window.__quickSimLastError
-     :"Quick Sim complete · Week "+startWeek+" → Week "+G.week;
-   card.appendChild(msg);
- },30);
-}
-
-function quickSimHomeHtml(){
- if(!quickSimAvailable())return"";
- return '<div class="card quickSimCard">'+
-   '<div class="sectionHead"><div><div class="screenEyebrow">DEVELOPER TOOL</div><div class="title">Quick Sim</div><div class="sub">Fast-forward the career while preserving league, cup and international simulation.</div></div><div class="sectionCount">DEV</div></div>'+
-   '<div class="quickSimActions">'+
-     '<button data-quick-sim="4">+4 WEEKS</button>'+
-     '<button data-quick-sim="8">+8 WEEKS</button>'+
-     '<button data-quick-sim="half">MID-SEASON</button>'+
-     '<button data-quick-sim="season" class="primary">END OF SEASON</button>'+
-   '</div>'+
- '</div>';
-}
-
 function home(){
  ensureInternationalWeekFlowState();ensureWorldCupTournamentMode();
  let worldCupMode=worldCupTournamentModeHomeCardHtml();
- if(worldCupMode){let news=homeNewsHtml(3);return worldCupMode+nationalGMActionRequiredHtml()+executiveBriefingHtml()+quickSimHomeHtml()+news;}
- let pendingInternational=internationalWeekHomeCardHtml();if(pendingInternational){let news=homeNewsHtml(3);return pendingInternational+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+quickSimHomeHtml()+news;}
+ if(worldCupMode){let news=homeNewsHtml(3);return worldCupMode+nationalGMActionRequiredHtml()+executiveBriefingHtml()+news;}
+ let pendingInternational=internationalWeekHomeCardHtml();if(pendingInternational){let news=homeNewsHtml(3);return pendingInternational+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;}
  ensureLeagueWorld();ensureRivalryState();ensureCupState();ensureInternationalClubState();
  let tab=standings();
  let intFixture=internationalUserFixtureDue();
@@ -23408,19 +23346,19 @@ function home(){
   let hk=intFixture.home,ak=intFixture.away,ht=internationalTeamRecord(hk),at=internationalTeamRecord(ak),meta=INTL_CLUB_ROUNDS[G.intClub.currentRound];
   let homeLink=fixtureClubIdentityHtml(ht&&ht.clubId,ht?ht.name:'Unknown','fixtureClubLink internationalFixtureName'),awayLink=fixtureClubIdentityHtml(at&&at.clubId,at?at.name:'Unknown','fixtureClubLink internationalFixtureName');
   let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL · '+meta.name.toUpperCase()+'</div></div></div>';
-  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+quickSimHomeHtml()+news;
+  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
  }
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
   let homeLink=fixtureClubIdentityHtml(homeT.clubId,homeT.name,homeT.regional?'regionalFixtureName':'fixtureClubLink'),awayLink=fixtureClubIdentityHtml(awayT.clubId,awayT.name,awayT.regional?'regionalFixtureName':'fixtureClubLink');
   let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
-  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+quickSimHomeHtml()+news;
+  let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
  }
  let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club))||[G.club,nextOpp()];let homeId=pair[0],awayId=pair[1],homeClub=G.clubs[homeId],awayClub=G.clubs[awayId],opp=G.clubs[homeId===G.club?awayId:homeId];
  let homePos=tab.findIndex(x=>x.id===homeId)+1,awayPos=tab.findIndex(x=>x.id===awayId)+1,info=leagueInfo(),h2h=headToHead(G.club,opp.id);
  let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
- let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+quickSimHomeHtml()+news;
+ let news=homeNewsHtml(3);return fixture+nationalGMActionRequiredHtml()+executiveBriefingHtml()+nationalGMOfferCardHtml()+news;
 }
 
 
@@ -24617,7 +24555,6 @@ document.addEventListener("click",function(e){
  let marketSource=e.target.closest&&e.target.closest("[data-market-source]");if(marketSource){window.marketSourceTab=marketSource.dataset.marketSource||"free";page="market";renderSoon();return}
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
  let worldCupModeSim=e.target.closest&&e.target.closest("[data-world-cup-mode-sim]");if(worldCupModeSim){simulateWorldCupTournamentWeek();return}
- let quickSim=e.target.closest&&e.target.closest("[data-quick-sim]");if(quickSim){quickSimRun(quickSim.dataset.quickSim||"4");return}
  let wcHubTab=e.target.closest&&e.target.closest("[data-wc-hub-tab]");if(wcHubTab){window.worldCupHubTab=wcHubTab.dataset.wcHubTab||"qualification";render();return}
  let wcHubConf=e.target.closest&&e.target.closest("[data-wc-hub-conf]");if(wcHubConf){window.worldCupHubConf=wcHubConf.dataset.wcHubConf||"AFC";window.worldCupHubTab="qualification";render();return}
  let intSection=e.target.closest&&e.target.closest("[data-international-section]");if(intSection){window.internationalSectionTab=intSection.dataset.internationalSection||"club";render();return}
