@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.0 Federation Career Setup</title>
+<title>Mini&Me Football Club v2.13.1 Domestic Club Identities</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -13174,7 +13174,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.0 Federation Career Setup";
+const BUILD_VERSION="Mini&Me Football Club v2.13.1 Domestic Club Identities";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15542,6 +15542,98 @@ function processInternationalWindowIfDue(){
 
 const CLUBS=["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City","Crown Athletic","Parkside United"];
 const LOWER_CLUBS=["Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic","Stonebridge","Trinity Rovers","Uplands FC","Valley United","Westport City","York Athletic"];
+
+/* ==========================================================
+   v2.13.1 DOMESTIC CLUB HERITAGE IDENTITY
+   The domestic club ID remains canonical. Only the player-facing
+   name changes with the selected career nation. Official crests
+   remain permanently bound to the original club ID.
+   ========================================================== */
+const CLUB_HERITAGE_THEMES=[
+ "Harbour / Maritime","North / Athletic","River / United","Royal Port / City","West / Rovers",
+ "Capital / Civic","Forest / Redwood","Lions / East","Traditional Sporting","South Coast / Seaside",
+ "Industry / Iron","State / Athletic","Lake / City","Union / Community","Royal / Borough",
+ "Historic District / Rovers","Metropolitan / Stars","Coastal / Athletic","Wanderers / Nomadic","Olympic / City",
+ "Crown / Athletic","Park / United","Ash / Town","Bay / Seaside","Bridge / River Crossing",
+ "Carlton / District","Docklands / Port Industry","Elm / City","Fairview / United","Grand City",
+ "Hill / Crest","Northern Highlands","Junction / Rail","Kingston / Royal District","Meadow / Park",
+ "New City / Borough","Oak / Ridge","Port / United","Queen's Park / Civic","Rosewood / Athletic"
+];
+
+const DOMESTIC_CLUB_NAMES_BY_NATION={
+ AUS:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ },
+ JPN:{
+  top:["Minato Marinos","Kita Athletic","Kawasaki United","Kōwan City","Nishi Rovers","Miyako FC","Akamori Town","Higashi Lions","Albion Sporting Japan","Minami Coast","Tetsubashi SC","Victoria Athletic Japan","Mizumi City","Union Tokyo","Royal Saitama","Midori Rovers","Metro Stars Tokyo","Kaigan Athletic","Tabibito FC","Olympic Yokohama"],
+  lower:["Crown Osaka","Parkside United Japan","Ashikawa Town","Bayside Kobe","Hashimoto FC","Karuton Rovers","Docklands Yokohama","Nire City","Fairview United Japan","Daijo FC","Takamine FC","Kita Highlands","Junction Nagoya","Kingston Athletic Japan","Meadow Park Kyoto","Shinmachi Borough","Kashiwa Ridge","Minato United","Queen's Park Sapporo","Bara Athletic"]
+ },
+ BRA:{
+  top:["Regatas Cidade do Porto","Atlético Norte","União Ribeirinha","EC Porto Real","Rovers do Oeste","Capital Brasília","EC Mata Vermelha","Leões do Leste","Albion Esporte Clube","SC Costa Sul","Ferroviário da Ponte","Atlético Vitória","Cidade dos Lagos","União FC","Real Bairro AC","Rovers de Greenwich","Estrelas Metropolitanas","Atlético Litoral","Andarilhos FC","Olímpico Cidade"],
+  lower:["Atlético Coroa","União Parque","EC Vale das Cinzas","Bayside Brasil","Ponte FC","Carlton Rovers Brasil","Atlético Docas","Cidade do Olmo","União Bela Vista","Grandchester EC","EC Alto da Serra","Inverness Brasil","Junction Ferroviário","Kingston Atlético","Parque dos Campos","Novo Borough EC","EC Serra do Carvalho","União Portuária","Cidade Parque da Rainha","Atlético Roseira"]
+ },
+ FRA:{
+  top:["Havre Athletic Club","Athlétique du Nord","Union de la Rivière","FC Port-Royal","Rovers de l'Ouest","Capital FC","Ville Rouge","Lions de l'Est","Albion Sportif","AS Côte Sud","Pont de Fer FC","Athlétique Victoria","Lac City FC","Union Sportive","Royal Borough FC","Rovers de Greenwich","Étoiles Métropolitaines","Athlétique du Littoral","FC Voyageurs","Olympique de la Cité"],
+  lower:["Athlétique de la Couronne","Union du Parc","AS Ashford","FC de la Baie","Pontville FC","Rovers de Carlton","Athlétique des Docks","Ville de l'Orme","Union Belle-Vue","Grandchester Sport","FC Haute-Crête","AS Inverness","Junction FC France","Athlétique Kingston","Parc des Prés","Borough Nouveau","FC Crête du Chêne","Union Portuaire","Cité du Parc Royal","Athlétique Rosewood"]
+ },
+ GER:{
+  top:["Hafen City SV","Nordbrücke Athletik","Flussstadt Union","Königshafen FC","Westhafen Rovers","Hauptstadt 04","Rotwald SV","Ostlöwen FC","Albion Sportverein","Südküste FC","Eisenbrücke SV","Victoria Athletik","Seestadt 05","Union Stadt","Königsviertel FC","Greenwich Rovers","Metro Sterne","Küsten Athletik","Wanderer FC","Olympia Stadt"],
+  lower:["Kronen Athletik","Parkseite Union","Aschfurt SV","Buchtstadt FC","Brückenstadt","Carlton Rovers","Hafenwerke SV","Ulmenstadt","Schönblick Union","Großstadt FC","Höhenkamm SV","Nordland FC","Knotenpunkt 04","Kingston Athletik","Wiesenpark","Neustadt Borough","Eichenkamm FC","Hafen Union","Königspark Stadt","Rosenholz Athletik"]
+ },
+ ITA:{
+  top:["AC Portuale","Atletico Nord","Unione Fluviale","FC Porto Reale","Rovers Ovest","Capitale Calcio","Città della Sequoia","Leoni d'Oriente","Albion Sporting Italia","Costa Sud Calcio","Ponte di Ferro FC","Atletico Vittoria","Città del Lago","Unione Calcio","Borgo Reale","Greenwich Rovers Italia","Stelle Metropolitane","Atletico Costiero","Viandanti FC","Olimpico Città"],
+  lower:["Atletico Corona","Unione Parco","AS Ashford","Baia Calcio","Ponteverde FC","Carlton Rovers Italia","Atletico Darsena","Città dell'Olmo","Unione Belvedere","Grandchester Calcio","FC Alta Collina","Inverness Italia","Junction Calcio","Atletico Kingston","Parco dei Prati","Nuovo Borgo FC","Quercia Alta","Unione Porto","Città Parco Regina","Atletico Rosewood"]
+ },
+ ESP:{
+  top:["CD Puerto","Atlético Norte","Unión del Río","CF Puerto Real","Rovers del Oeste","Capital CF","Ciudad del Bosque Rojo","Leones del Este","Albion Deportivo","CD Costa Sur","Puente de Hierro CF","Atlético Victoria","Ciudad del Lago","Unión FC","Real Borough CF","Greenwich Rovers España","Estrellas Metropolitanas","Atlético Costero","FC Caminantes","Olímpico Ciudad"],
+  lower:["Atlético Corona","Unión Parque","CD Ashford","Bahía FC","Puente Unido","Carlton Rovers España","Atlético Muelles","Ciudad del Olmo","Unión Vista Clara","Grandchester CF","CD Alto Cerro","Inverness España","Junction CF","Atlético Kingston","Parque Prado","Nuevo Borough CF","CD Robledal","Unión Puerto","Ciudad Parque Reina","Atlético Rosewood"]
+ },
+ ENG:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ },
+ SCO:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ },
+ CAN:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ },
+ NZL:{
+  top:["Harbour City FC","Northbridge Athletic","Riverside United","Kingsport FC","Westhaven Rovers","Capital City","Redwood Town","Eastern Lions","Albion Sporting","South Coast FC","Ironbridge","Victoria Athletic","Lakeside City","Union FC","Royal Borough","Greenwich Rovers","Metro Stars","Coastal Athletic","Wanderers FC","Olympic City"],
+  lower:["Crown Athletic","Parkside United","Ashford Town","Bayside FC","Bridgewater","Carlton Rovers","Docklands Athletic","Elm City","Fairview United","Grandchester","Hillcrest FC","Inverness Town","Junction City","Kingston Athletic","Meadow Park","Newcastle Borough","Oakridge FC","Portside United","Queens Park City","Rosewood Athletic"]
+ }
+};
+
+function domesticClubIdentitySet(nationId){
+ return DOMESTIC_CLUB_NAMES_BY_NATION[nationId]||DOMESTIC_CLUB_NAMES_BY_NATION.AUS;
+}
+
+function domesticClubNamesForNation(nationId,tier="top"){
+ let set=domesticClubIdentitySet(nationId),src=tier==="lower"?set.lower:set.top;
+ return Array.isArray(src)?src.slice():[];
+}
+
+function domesticClubDisplayNameForSlot(nationId,clubId){
+ let id=Number(clubId),tier=id>=DOMESTIC_LEAGUE_SIZE?"lower":"top",
+     index=tier==="lower"?id-DOMESTIC_LEAGUE_SIZE:id,
+     names=domesticClubNamesForNation(nationId,tier);
+ return names[index]||(tier==="lower"?LOWER_CLUBS[index]:CLUBS[index])||("Club "+(id+1));
+}
+
+function applyDomesticClubHeritageIdentity(club,nationId){
+ if(!club||!Number.isFinite(Number(club.id)))return club;
+ let id=Number(club.id),name=domesticClubDisplayNameForSlot(nationId,id);
+ club.name=name;
+ club.shortName=name.split(/\s+/).map(x=>x[0]).join("").replace(/[^A-Za-z0-9]/g,"").slice(0,4).toUpperCase();
+ club.heritageTheme=CLUB_HERITAGE_THEMES[id]||"Local Football Club";
+ club.heritageNation=nationId;
+ return club;
+}
+
+
 const NAME_POOLS=[
  {first:["James","Oliver","Harry","George","Jack","Charlie","Thomas","Oscar","William","Henry","Theo","Leo","Finn","Callum","Lewis","Jamie","Ewan","Rory","Declan","Conor","Liam","Ryan","Kieran","Nathan"],last:["Smith","Jones","Williams","Taylor","Brown","Davies","Wilson","Evans","Roberts","Walker","Wright","White","Hughes","Edwards","Green","Hall","Lewis","Clarke","Morgan","Murphy","Kelly","Doyle","Campbell","Reid"]},
  {first:["Mateo","Hugo","Lucas","Martin","Daniel","Pablo","Alejandro","Diego","Adrian","Sergio","Nico","Rafael","Tiago","Joao","Bruno","Miguel","Diogo","Pedro","Tomas","Enzo","Iker","Marco","Rodrigo","Antonio"],last:["Garcia","Rodriguez","Gonzalez","Fernandez","Lopez","Martinez","Sanchez","Perez","Gomez","Silva","Santos","Costa","Oliveira","Pereira","Ferreira","Carvalho","Ribeiro","Mendes","Rocha","Nunes","Correia","Teixeira","Navarro","Ramos"]},
@@ -15733,6 +15825,7 @@ function teamCrestSvgByName(name){
  return safe&&TEAM_CRESTS[safe]?TEAM_CRESTS[safe]:"";
 }
 
+/* v2.13.1: crest artwork remains bound to original club ID even when the domestic display name is localised. */
 const CLUB_CREST_NAME_BY_ID=["Harbour City FC", "Northbridge Athletic", "Riverside United", "Kingsport FC", "Westhaven Rovers", "Capital City", "Redwood Town", "Eastern Lions", "Albion Sporting", "South Coast FC", "Ironbridge", "Victoria Athletic", "Lakeside City", "Union FC", "Royal Borough", "Greenwich Rovers", "Metro Stars", "Coastal Athletic", "Wanderers FC", "Olympic City", "Crown Athletic", "Parkside United", "Ashford Town", "Bayside FC", "Bridgewater", "Carlton Rovers", "Docklands Athletic", "Elm City", "Fairview United", "Grandchester", "Hillcrest FC", "Inverness Town", "Junction City", "Kingston Athletic", "Meadow Park", "Newcastle Borough", "Oakridge FC", "Portside United", "Queens Park City", "Rosewood Athletic"];
 function clubCrestHtml(clubId,size){
   size=size||22;
@@ -16017,7 +16110,14 @@ function ensureWorldEngineState(){
  G.competitions.DOM_CUP=Object.assign({id:"DOM_CUP",type:"DOMESTIC_CUP",enabled:true,name:"National Cup",nation:G.careerNation,format:"64_TEAM_KNOCKOUT",clubSources:{premier:20,championship:20,regional:24}},G.competitions.DOM_CUP||{});
  G.competitions.INT_CLUB=Object.assign({id:"INT_CLUB",type:"INTERNATIONAL_CLUB",enabled:true,name:"Champions Tournament",format:"32_TEAM_KNOCKOUT",clubSources:{nations:16,clubsPerNation:2}},G.competitions.INT_CLUB||{});
  G.competitions.INT_NATIONAL=Object.assign({id:"INT_NATIONAL",type:"INTERNATIONAL_NATIONAL",enabled:false,name:"World Cup",format:"32_TEAM",nationSources:32},G.competitions.INT_NATIONAL||{});
- if(Array.isArray(G.clubs))G.clubs.forEach(c=>{if(c&&!c.nation)c.nation=G.careerNation;if(c&&Number.isFinite(Number(c.id)))c.identityIndex=((Number(c.id)%40)+40)%40});
+ if(Array.isArray(G.clubs))G.clubs.forEach(c=>{
+  if(c&&!c.nation)c.nation=G.careerNation;
+  if(c&&Number.isFinite(Number(c.id))){
+   c.identityIndex=((Number(c.id)%40)+40)%40;
+   if(!c.heritageTheme)c.heritageTheme=CLUB_HERITAGE_THEMES[Number(c.id)]||"Local Football Club";
+   if(!c.heritageNation)c.heritageNation=c.nation||G.careerNation;
+  }
+ });
  if(Array.isArray(G.players))G.players.forEach(p=>{if(p&&!p.nationality)p.nationality=randomPlayerNationality(G.careerNation)});
  if(G.userGM&&typeof G.userGM==="object"&&!G.userGM.nation)G.userGM.nation=G.careerNation;
  ensureInternationalNationalState();}
@@ -16034,7 +16134,9 @@ function buildClubRecord(name,i,tier){
   id:i,
   name:name,
   nation:selectedCareerNation,
-  shortName:name.split(" ").map(x=>x[0]).join("").slice(0,4).toUpperCase(),
+  heritageTheme:CLUB_HERITAGE_THEMES[i]||"Local Football Club",
+  heritageNation:selectedCareerNation,
+  shortName:name.split(" ").map(x=>x[0]).join("").replace(/[^A-Za-z0-9]/g,"").slice(0,4).toUpperCase(),
   rep:Math.max(56,baseRep+rnd(-2,2)),
   balance:rnd(tier==="top"?50:18,tier==="top"?180:75)*1e6,
   budget:rnd(tier==="top"?18:5,tier==="top"?65:22)*1e6,
@@ -16053,7 +16155,8 @@ function buildClubRecord(name,i,tier){
 function world(){
  generatedNameRegistry=new Set();
  let size=DOMESTIC_LEAGUE_SIZE,clubs=[],players=[];
- let topNames=CLUBS.slice(0,size),lowerNames=LOWER_CLUBS.slice(0,size);
+ let topNames=domesticClubNamesForNation(selectedCareerNation,"top").slice(0,size),
+     lowerNames=domesticClubNamesForNation(selectedCareerNation,"lower").slice(0,size);
  while(topNames.length<size)topNames.push("Premier Club "+(topNames.length+1));
  while(lowerNames.length<size)lowerNames.push("Division Two Club "+(lowerNames.length+1));
  topNames.forEach((name,i)=>clubs.push(buildClubRecord(name,i,"top")));
@@ -16079,7 +16182,7 @@ function ensureLeagueWorld(){
  if(!G.leagues.lower.clubIds.length){
   let base=G.clubs.length;
   for(let i=0;i<G.leagueSize;i++){
-   let c=buildClubRecord(LOWER_CLUBS[i]||("Division Two Club "+(i+1)),base+i,"lower");
+   let c=buildClubRecord(domesticClubDisplayNameForSlot(G.careerNation,base+i)||("Division Two Club "+(i+1)),base+i,"lower");
    G.clubs.push(c);
    for(let j=0;j<28;j++)G.players.push(player(c.id,j));
    G.leagues.lower.clubIds.push(c.id);
@@ -24859,18 +24962,18 @@ function showClubStepFromNation(){
 }
 
 function renderClubChoices(){
- let names=CLUBS.slice(0,DOMESTIC_LEAGUE_SIZE);
+ let names=domesticClubNamesForNation(selectedCareerNation,"top").slice(0,DOMESTIC_LEAGUE_SIZE);
  $("#clubs").innerHTML=names.map((c,i)=>{
    let tier=i<4?"Title Contender":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Established":i<DOMESTIC_LEAGUE_SIZE-4?"Building":"Rebuild";
    let difficulty=i<4?"High expectations":i<Math.ceil(DOMESTIC_LEAGUE_SIZE/2)?"Balanced":i<DOMESTIC_LEAGUE_SIZE-4?"Development focus":"Underdog";
-   return '<button class="clubpick '+(i===selected?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · Reputation '+Math.max(60,90-i)+' · '+difficulty+'</span></button>';
+   return '<button class="clubpick '+(i===selected?'selected':'')+'" data-club="'+i+'"><b>'+c+'</b><span>'+tier+' · '+(CLUB_HERITAGE_THEMES[i]||'Club identity')+' · '+difficulty+'</span></button>';
  }).join("");
 }
 
 function showCareerConfirmation(){
  let summary=$("#careerConfirmSummary"),begin=$("#beginCareerBtn");
  if(!summary||!begin||selected<0)return;
- let clubName=CLUBS[selected]||("Club "+(selected+1)),
+ let clubName=domesticClubDisplayNameForSlot(selectedCareerNation,selected),
      meta=CAREER_FEDERATION_META[selectedCareerFederation];
  summary.innerHTML=
    '<div class="careerConfirmHeading">CAREER SELECTION</div>'+
