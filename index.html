@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.11.20.0 World Cup Nation Tier Engine</title>
+<title>Mini&Me Football Club v2.11.20.1 Hidden Nation Tiers</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12868,23 +12868,6 @@ body.international-results-active{overflow:hidden}
 .reviewQualificationHistory>.reviewSection{margin:0;border:0;border-top:1px solid var(--line);border-radius:0}
 </style>
 
-<style id="minime-v2-11-20-world-cup-tier-engine">
-.wcNationTier{
- display:inline-flex;
- align-items:center;
- justify-content:center;
- min-width:15px;
- height:13px;
- padding:0 3px;
- margin-left:3px;
- border:1px solid var(--line);
- border-radius:4px;
- color:#8795a0;
- font-size:5px;
- font-style:normal;
- font-weight:950;
-}
-</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -13062,7 +13045,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.11.20.0 World Cup Nation Tier Engine Alpha Mobile";
+const BUILD_VERSION="Mini&Me Football Club v2.11.20.1 Hidden Nation Tiers Alpha Mobile";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -16241,7 +16224,7 @@ function worldCupQualificationFullHtml(){
    let rows=qualificationTableRows(g);
    let body=rows.map((r,i)=>{
      let st=qualificationFormalStatus(q,r.id);
-     return '<div class="worldCupHubTableRow '+((r.id===managedNationId()||r.id===G.careerNation)?'me':'')+'"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b><i class="wcNationTier">'+worldCupNationTier(r.id)+'</i></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong><em class="'+st.cls+'">'+st.label+'</em></div>';
+     return '<div class="worldCupHubTableRow '+((r.id===managedNationId()||r.id===G.careerNation)?'me':'')+'"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong><em class="'+st.cls+'">'+st.label+'</em></div>';
    }).join("");
    let title=conf.format==="GROUPS"?"Group "+(g.id||String.fromCharCode(65+gi)):"Qualification Table";
    return '<div class="worldCupHubGroup"><div class="worldCupHubGroupHead"><b>'+title+'</b><span>'+qualificationDisplayMatchday(conf).current+' / '+qualificationDisplayMatchday(conf).total+' matchdays</span></div><div class="worldCupHubTableHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span><span>Status</span></div>'+body+'</div>';
