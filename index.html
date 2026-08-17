@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.1 Domestic Club Identities</title>
+<title>Mini&Me Football Club v2.13.1.1 International Fixture Conflict Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -13174,7 +13174,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.1 Domestic Club Identities";
+const BUILD_VERSION="Mini&Me Football Club v2.13.1.1 International Fixture Conflict Fix";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -15328,8 +15328,65 @@ function internationalFriendlyPreferenceFast(a,b,season,week,ctx){
  score+=internationalRand("FRIENDLY_PAIR|"+season+"|"+week+"|"+a+"|"+b,1)*34;
  return score;
 }
-function internationalPairingsForWindow(season,week){
- let available=FOOTBALL_NATIONS.map(n=>n.id),pairs=[],ctx=buildFriendlyPairingContext();
+/* v2.13.1.1
+   A nation may play only one senior international fixture in an international
+   window. Competitive fixtures always take priority over friendlies. */
+function competitiveInternationalNationsDue(){
+ let busy=new Set();
+
+ // World Cup qualifying: inspect the pairings for the round that is about to play.
+ if(qualificationRoundDue()){
+   let q=ensureWorldCupQualification(),round=Number(q.round)||0;
+   Object.values(q.confederations||{}).forEach(conf=>{
+     if(!conf||conf.complete)return;
+     if(conf.format==="GROUPS"){
+       (conf.groups||[]).forEach(g=>{
+         if(!g||g.complete)return;
+         let cap=qualificationRoundCapacityForTeams(g.teams||[]);
+         if(round>=cap)return;
+         qualificationPairings(g.teams||[],round).forEach(pair=>{
+           if(pair&&pair[0])busy.add(pair[0]);
+           if(pair&&pair[1])busy.add(pair[1]);
+         });
+       });
+     }else{
+       let cap=qualificationRoundCapacityForTeams(conf.teams||[]);
+       if(round<cap)qualificationPairings(conf.teams||[],round).forEach(pair=>{
+         if(pair&&pair[0])busy.add(pair[0]);
+         if(pair&&pair[1])busy.add(pair[1]);
+       });
+     }
+   });
+ }
+
+ // World Cup finals: all nations scheduled in the current tournament round are busy.
+ if(worldCupRoundDue()){
+   let t=ensureWorldCupTournament();
+   if(t){
+     if(t.stage==="GROUP"){
+       let md=Number(t.groupMatchday)||0;
+       (t.groups||[]).forEach(g=>{
+         let rounds=roundRobinRounds(g.teams||[]);
+         let round=rounds[md]||rounds[Math.max(0,md-1)]||[];
+         round.forEach(pair=>{
+           if(pair&&pair[0])busy.add(pair[0]);
+           if(pair&&pair[1])busy.add(pair[1]);
+         });
+       });
+     }else{
+       (t.rounds&&t.rounds[t.stage]||[]).filter(m=>m&&!m.played).forEach(m=>{
+         if(m.home)busy.add(m.home);
+         if(m.away)busy.add(m.away);
+       });
+     }
+   }
+ }
+ return busy;
+}
+
+function internationalPairingsForWindow(season,week,excludedNations){
+ let excluded=excludedNations instanceof Set?excludedNations:new Set(excludedNations||[]);
+ let available=FOOTBALL_NATIONS.map(n=>n.id).filter(id=>!excluded.has(id)),pairs=[],ctx=buildFriendlyPairingContext();
  let order=available.slice().map(id=>({id,r:internationalRand("PAIR_ORDER|"+season+"|"+week+"|"+id,1)})).sort((a,b)=>b.r-a.r).map(x=>x.id);
  let unused=new Set(order);
  for(let a of order){
@@ -15507,8 +15564,11 @@ function processInternationalWindowIfDue(){
  ensureInternationalNationalState();
  if(!internationalWindowDue())return null;
  return withInternationalBatch(()=>{
-   let windowKey="W"+G.week,called=recordInternationalCallUps(windowKey);
-   let pairings=internationalPairingsForWindow(G.season,G.week),matches=new Array(pairings.length);
+   let windowKey="W"+G.week,busy=competitiveInternationalNationsDue(),
+       pairings=internationalPairingsForWindow(G.season,G.week,busy),
+       friendlyNations=new Set(pairings.flat()),
+       called=recordInternationalCallUps(windowKey);
+   let matches=new Array(pairings.length);
    for(let i=0;i<pairings.length;i++)matches[i]=simulateNationalFriendly(pairings[i][0],pairings[i][1],windowKey);
 
    // Build scorer counts once instead of flattening/filtering every match for every club player.
@@ -15532,7 +15592,8 @@ function processInternationalWindowIfDue(){
      if(others.length)parts.push(others.map(p=>displayPlayerName(p.name)+" featured for "+nationName(p.nationality)).join(", "));
      G.feed.unshift({t:"INTERNATIONAL ROUND-UP",m:parts.join(". ")+". "+featured.length+" "+G.clubs[G.club].name+" player"+(featured.length===1?"":"s")+" featured during the international window."});
    }
-   let rec={season:G.season,week:G.week,type:"FRIENDLY_WINDOW",matches,clubCallUps:called.map(p=>p.id)};
+   let rec={season:G.season,week:G.week,type:"FRIENDLY_WINDOW",matches,clubCallUps:called.map(p=>p.id),
+     excludedCompetitiveNations:[...busy],friendlyNations:[...friendlyNations]};
    G.internationalNational.windows.unshift(rec);
    if(G.internationalNational.windows.length>20)G.internationalNational.windows.length=20;
    return rec;
