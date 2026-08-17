@@ -1,0 +1,53 @@
+MINI&ME FOOTBALL CLUB CHANGELOG
+
+Current Stable Baseline: v2.12.0 Last Updated: 17 August 2026
+
+v2.12.0 — STABLE BASELINE 17 August 2026
+
+• Declared the current game the formal stable development baseline. •
+Removed and disabled the temporary developer Quick Sim feature. •
+Changed managed national teams to use an AI-selected default 23-player
+squad. • Added AI best-fit starting XI behaviour for managed nations. •
+GM national-team involvement is now optional rather than mandatory. •
+Manual call-ups and squad changes are retained as GM overrides. •
+National squad alerts are advisory rather than a mandatory simulation
+barrier. • Retained hidden nation-strength tiers for international
+simulation. • Retained World Cup and qualification systems developed
+through the v2.11 series. • Future development emphasis changed to bug
+fixing, AI, gameplay logic, UX, UI, GUI, performance and displayed-data
+improvements.
+
+RECENT v2.11 DEVELOPMENT THEMES
+
+International Football • Expanded World Cup qualification across the six
+federations. • Added qualification tables, federation views and
+qualification statuses. • Improved qualification-cycle state handling
+and legacy-save safeguards. • Added wider Global Qualification Race
+visibility. • Improved international result recency and presentation. •
+Added national-team management and squad confirmation workflows. • Added
+World Cup group-stage and knockout-round progression. • Added World Cup
+snapshots to Season Review. • Paused domestic league progression during
+active World Cup tournament periods.
+
+Simulation Realism • Introduced an internal national-team power model. •
+Added nation tiers to support more credible international results. •
+Removed nation-tier labels from the player-facing interface. • Tuned
+major football nations to remain appropriately competitive. • Reduced
+implausible high-margin upsets involving established powers. •
+Maintained the possibility of credible upsets and emerging nations.
+
+UX and Presentation • Improved International section navigation. •
+Separated club international and national international information. •
+Improved World Cup qualification visibility. • Added managed-nation
+highlighting. • Improved national-team action routing. • Improved Season
+Review international reporting. • Removed stale or duplicated World Cup
+information where identified. • Refined Home-screen international action
+placement.
+
+NOTE
+
+The v2.11 series contained many iterative test builds. This changelog
+records the principal systems that now form the v2.12.0 stable baseline
+rather than attempting to reproduce every experimental patch number.
+
+From v2.12.0 onward, each release should be recorded individually.
