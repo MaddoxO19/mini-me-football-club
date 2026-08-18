@@ -9914,7 +9914,7 @@ body:not(.career-hub-active) #app .aboutGameView{
 @media(max-width:430px){.intTeamPrimary{gap:4px}.intTeamPrimary>.inlineNationFlag{--flag-size:13px!important}.intTeam .intNationTag{font-size:7.5px!important}}
 
 /* ==========================================================
-   v2.13.5.15 MANAGER SETUP + GAME GUIDE
+   v2.13.5.16 MANAGER SETUP + GAME GUIDE
    ========================================================== */
 .managerSetupCard{margin:16px 0 12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:left}
 .managerSetupField{display:block;margin-bottom:14px}.managerSetupField:last-child{margin-bottom:0}.managerSetupField>span{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.10em}
@@ -9928,7 +9928,7 @@ body:not(.career-hub-active) #app .aboutGameView{
 .gameGuideStart{min-height:50px!important}.gameGuideFoot{text-align:center;margin-top:9px;color:var(--muted);font-size:9px}.gmGuideBtn{margin:-1px 0 12px!important}
 @media(max-width:600px){.gameGuideModal{padding:10px}.gameGuidePlacemat{padding:14px;max-height:calc(100dvh - 20px)}.gameGuideTitle{font-size:21px}.gameGuideGrid{grid-template-columns:1fr;gap:8px}.gameGuideItem{padding:11px}.gameGuideItem>b{font-size:13px}.gameGuideItem>p{font-size:10px}}
 
-/* v2.13.5.15 PROFILE MOBILE & SHEET RESET */
+/* v2.13.5.16 PROFILE MOBILE & SHEET RESET */
 @media(max-width:600px){
  .playerProfileNameRow,
  .clubProfileNameRow{
@@ -14164,7 +14164,7 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.15 Profile Mobile & Sheet Reset";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.16 Global Navigation Reset";
  const RELEASE_CANDIDATE_VERSION="2.13.5.13";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -26996,11 +26996,42 @@ function renderSoon(){
  renderQueued=false;
  return render();
 }
-function navigateTo(nextPage){
- if(!nextPage||nextPage===page)return;
- let previous=page;
+function resetMainWorkspaceScroll(){
+ // Global navigation always opens a section at its real beginning.
+ // iOS Safari may retain scroll state on the document, body or a rendered host,
+ // so reset every relevant scroll container and repeat after layout settles.
+ const reset=()=>{
+  try{
+   let scroller=document.scrollingElement||document.documentElement;
+   if(scroller){scroller.scrollTop=0;scroller.scrollLeft=0}
+   if(document.documentElement){document.documentElement.scrollTop=0;document.documentElement.scrollLeft=0}
+   if(document.body){document.body.scrollTop=0;document.body.scrollLeft=0}
+   let main=document.querySelector("main"),app=document.getElementById("app");
+   if(main){main.scrollTop=0;main.scrollLeft=0}
+   if(app){app.scrollTop=0;app.scrollLeft=0}
+   window.scrollTo({top:0,left:0,behavior:"auto"});
+  }catch(e){
+   try{window.scrollTo(0,0)}catch(_){ }
+  }
+ };
+ reset();
+ requestAnimationFrame(()=>{reset();requestAnimationFrame(reset)});
+ setTimeout(reset,80);
+}
+function resetTopMenuSection(nextPage){
  hideContextMore();
  if(nextPage==="home")window.homeContextKey="overview";
+ else if(nextPage==="squad")squadTab="team";
+ else if(nextPage==="market"){
+  window.marketSourceTab="all";
+  marketPositionFilter="RECOMMENDED";
+ }else if(nextPage==="league")leagueTab="table";
+ else if(nextPage==="club")clubTab="overview";
+}
+function navigateTo(nextPage){
+ if(!nextPage)return;
+ let previous=page;
+ resetTopMenuSection(nextPage);
  page=nextPage;
  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  let ok=render();
@@ -27008,7 +27039,9 @@ function navigateTo(nextPage){
   page=previous;
   renderQueued=false;
   render();
+  return;
  }
+ resetMainWorkspaceScroll();
 }
 
 document.addEventListener("click",function(e){
