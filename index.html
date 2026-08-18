@@ -14164,8 +14164,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.16 Global Navigation Reset";
- const RELEASE_CANDIDATE_VERSION="2.13.5.13";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.17 Milestones & Historic Firsts";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.17";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -14420,6 +14420,8 @@ function ensureInternationalPlayerCareer(p){
  let c=p.internationalCareer;c.nation=p.nationality||c.nation||"AUS";
  ["caps","goals","assists","cleanSheets","starts","wins","draws","losses","worldCupApps","worldCupGoals"].forEach(k=>{if(!Number.isFinite(Number(c[k])))c[k]=0});
  if(!Array.isArray(c.tournaments))c.tournaments=[];if(!Array.isArray(c.callUps))c.callUps=[];if(!Array.isArray(c.matchHistory))c.matchHistory=[];
+ if(c.debutSeason!==null&&!Number.isFinite(Number(c.debutSeason)))c.debutSeason=null;
+ if(c.firstWorldCupSeason!==null&&!Number.isFinite(Number(c.firstWorldCupSeason)))c.firstWorldCupSeason=null;
  if(typeof c.captain!=="boolean")c.captain=false;return c;
 }
 
@@ -15991,6 +15993,7 @@ function buildWorldCupTournament(){
  G.internationalNational.worldCup.enabled=true;
  G.internationalNational.worldCup.tournament=t;
  G.competitions.INT_NATIONAL.enabled=true;
+ registerWorldCupFirstAppearances(t);
  return t;
 }
 function ensureWorldCupTournament(){
@@ -16175,6 +16178,11 @@ function recordWorldCupPlayerMatch(nationId,opponent,gf,ga,stage){
    let c=ensureInternationalPlayerCareer(p),started=selection.starters.some(x=>x.id===p.id);
    recordInternationalAppearance(p,nationId,{opponent,home:true,gf,ga},started,won,drawn);
    c.worldCupApps++;
+   if(c.worldCupApps===1){
+     c.firstWorldCupSeason=Number(G.season);
+     if(!c.tournaments.some(x=>x&&x.type==="WORLD_CUP"&&Number(x.season)===Number(G.season)))c.tournaments.unshift({type:"WORLD_CUP",season:Number(G.season),nation:nationId});
+     playerNarrativeMilestone(p,"FIRST_WORLD_CUP",p.name+" makes first World Cup appearance",p.name+" represents "+nationName(nationId)+" at the World Cup Finals for the first time.",4,Number(p.team)>=0?Number(p.team):null);
+   }
  });
  return selection;
 }
@@ -16581,6 +16589,11 @@ function weightedInternationalPick(items,seed,index){
 }
 function recordInternationalAppearance(p,nationId,match,started,won,drawn){
  let c=ensureInternationalPlayerCareer(p);c.nation=nationId;c.caps++;if(started)c.starts++;
+ if(c.caps===1){
+   c.debutSeason=Number(G.season);
+   playerNarrativeMilestone(p,"INT_DEBUT",p.name+" makes international debut",p.name+" earns a first senior cap for "+nationName(nationId)+".",3,Number(p.team)>=0?Number(p.team):null);
+   registerClubInternationalRepresentative(p,nationId);
+ }
  if(won)c.wins++;else if(drawn)c.draws++;else c.losses++;
  c.matchHistory.unshift({season:G.season,week:G.week,type:"FRIENDLY",opponent:match.opponent,home:match.home,scoreFor:match.gf,scoreAgainst:match.ga,started:!!started});
  if(c.matchHistory.length>60)c.matchHistory.length=60;
@@ -20001,6 +20014,105 @@ function currentWorldStories(season=G.season,limit=5){
  ensureWorldStoriesState();
  return G.worldStories.filter(x=>Number(x.season)===Number(season)).sort((a,b)=>b.importance-a.importance||b.week-a.week).slice(0,limit);
 }
+
+/* ==========================================================
+   v2.13.5.17 MILESTONES & HISTORIC FIRSTS
+   Narrative/history only. No match-engine changes.
+   ========================================================== */
+function ensureHistoricFirstsState(){
+ if(!G)return null;
+ if(!G.historicFirsts||typeof G.historicFirsts!=="object")G.historicFirsts={};
+ let h=G.historicFirsts;
+ if(!h.clubs||typeof h.clubs!=="object")h.clubs={};
+ if(!h.nations||typeof h.nations!=="object")h.nations={};
+ if(!h.processedClubSeasons||typeof h.processedClubSeasons!=="object")h.processedClubSeasons={};
+ return h;
+}
+function historicClubState(clubId){
+ let h=ensureHistoricFirstsState(),k=String(Number(clubId));
+ if(!h.clubs[k]||typeof h.clubs[k]!=="object")h.clubs[k]={events:[],firstInternationalRepresentative:null};
+ if(!Array.isArray(h.clubs[k].events))h.clubs[k].events=[];
+ return h.clubs[k];
+}
+function historicNationState(nationId){
+ let h=ensureHistoricFirstsState(),k=String(nationId);
+ if(!h.nations[k]||typeof h.nations[k]!=="object")h.nations[k]={firstWorldCup:null};
+ return h.nations[k];
+}
+function addClubHistoricEvent(clubId,season,key,title,detail,importance=3){
+ let st=historicClubState(clubId);
+ if(st.events.some(e=>e&&e.key===key))return false;
+ st.events.unshift({season:Number(season),key,title,detail});
+ if(st.events.length>40)st.events.length=40;
+ addWorldStory(season,"HISTORIC MILESTONE",title,detail,clubId,importance);
+ return true;
+}
+function priorLeagueTitleSeasons(clubId,beforeSeason){
+ let c=G.clubs&&G.clubs[clubId],out=[];
+ (c&&Array.isArray(c.history)?c.history:[]).forEach(h=>{if(h&&h.champion&&h.division==="top"&&Number(h.season)<Number(beforeSeason))out.push(Number(h.season))});
+ (G.leagueAlmanac&&Array.isArray(G.leagueAlmanac.seasons)?G.leagueAlmanac.seasons:[]).forEach(h=>{if(h&&h.champion&&Number(h.champion.id)===Number(clubId)&&Number(h.season)<Number(beforeSeason))out.push(Number(h.season))});
+ return [...new Set(out)].sort((a,b)=>a-b);
+}
+function priorCupTitleSeasons(clubId,beforeSeason){
+ return [...new Set((G.cup&&Array.isArray(G.cup.history)?G.cup.history:[]).filter(h=>h&&Number(h.winnerClubId)===Number(clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
+}
+function priorInternationalTitleSeasons(clubId,beforeSeason){
+ return [...new Set((G.intClub&&Array.isArray(G.intClub.history)?G.intClub.history:[]).filter(h=>h&&Number(h.winnerClubId)===Number(clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
+}
+function competitionThreePeat(prior,currentSeason){
+ let s=Number(currentSeason);return prior.includes(s-1)&&prior.includes(s-2);
+}
+function registerClubTitleHistoricFirsts(clubId,competition,season){
+ if(!Number.isFinite(Number(clubId))||!G.clubs||!G.clubs[clubId])return;
+ let c=G.clubs[clubId],league=priorLeagueTitleSeasons(clubId,season),cup=priorCupTitleSeasons(clubId,season),intl=priorInternationalTitleSeasons(clubId,season),priorAll=[...league,...cup,...intl];
+ let specific=competition==="LEAGUE"?league:competition==="CUP"?cup:intl;
+ let label=competition==="LEAGUE"?"Premier Division championship":competition==="CUP"?"National Cup":"Champions Tournament";
+ if(!priorAll.length)addClubHistoricEvent(clubId,season,"FIRST_TROPHY",c.name+" win their first major trophy",label+" becomes the first major trophy in club history.",clubId===G.club?5:3);
+ if(!specific.length){
+   let key=competition==="LEAGUE"?"FIRST_CHAMPIONSHIP":competition==="CUP"?"FIRST_CUP":"FIRST_INTERNATIONAL";
+   let title=competition==="LEAGUE"?c.name+" are champions for the first time":competition==="CUP"?c.name+" lift their first National Cup":c.name+" win their first international trophy";
+   addClubHistoricEvent(clubId,season,key,title,"The "+season+" "+label+" is a new landmark in "+c.name+" history.",clubId===G.club?5:3);
+ }
+ if(competitionThreePeat(specific,season)){
+   let key="THREEPEAT_"+competition;
+   let title=c.name+" complete a historic three-peat";
+   addClubHistoricEvent(clubId,season,key,title,"Three consecutive "+label+" victories place this side in rare company.",clubId===G.club?5:4);
+ }
+}
+function processHistoricFirstsForSeason(season){
+ let h=ensureHistoricFirstsState(),key=String(Number(season));if(h.processedClubSeasons[key])return;
+ let top=standings("top"),leagueChamp=top&&top[0]?Number(top[0].id):null,
+     cupChamp=G.cup&&G.cup.champion?cupDomesticId(G.cup.champion):null,
+     intChamp=G.intClub&&G.intClub.champion?cupDomesticId(G.intClub.champion):null;
+ if(Number.isFinite(leagueChamp))registerClubTitleHistoricFirsts(leagueChamp,"LEAGUE",season);
+ if(Number.isFinite(cupChamp))registerClubTitleHistoricFirsts(cupChamp,"CUP",season);
+ if(Number.isFinite(intChamp))registerClubTitleHistoricFirsts(intChamp,"INT",season);
+ if(Number.isFinite(leagueChamp)&&leagueChamp===cupChamp&&leagueChamp===intChamp){
+   let c=G.clubs[leagueChamp];
+   addClubHistoricEvent(leagueChamp,season,"TREBLE",c.name+" complete the treble","Premier Division, National Cup and Champions Tournament are all won in the same season.",leagueChamp===G.club?6:5);
+ }
+ h.processedClubSeasons[key]=true;
+}
+function registerClubInternationalRepresentative(p,nationId){
+ if(!p||!Number.isFinite(Number(p.team))||Number(p.team)<0)return;
+ let st=historicClubState(p.team);if(st.firstInternationalRepresentative)return;
+ st.firstInternationalRepresentative={playerId:p.id,playerName:p.name,nation:nationId,season:Number(G.season)};
+ let c=G.clubs[p.team];
+ if(c)addWorldStory(G.season,"CLUB MILESTONE",c.name+" produce their first international representative",p.name+" becomes the first player recorded from the club to represent "+nationName(nationId)+".",p.team,p.team===G.club?4:2);
+}
+function registerWorldCupFirstAppearances(t){
+ if(!t||!Array.isArray(t.groups))return;
+ let firstTimers=[];
+ [...new Set(t.groups.flatMap(g=>g.teams||[]))].forEach(id=>{
+   let st=historicNationState(id);if(st.firstWorldCup)return;
+   st.firstWorldCup={season:Number(t.season),cycle:t.cycle};firstTimers.push(id);
+   addWorldStory(t.season,"WORLD CUP HISTORY",nationName(id)+" reach their first World Cup",nationName(id)+" make their first recorded appearance at the World Cup Finals.",null,id===G.careerNation?5:2);
+ });
+ if(firstTimers.length){
+   let names=firstTimers.slice(0,4).map(nationName).join(", "),more=firstTimers.length>4?" and "+(firstTimers.length-4)+" more":"";
+   G.feed.unshift({t:"WORLD CUP HISTORY",m:names+more+" will make their first recorded World Cup Finals appearance."});
+ }
+}
 function identityShiftStoryForClub(clubId){
  let c=G.clubs[clubId],hs=c&&Array.isArray(c.identityHistory)?c.identityHistory:[];
  if(hs.length<2)return null;
@@ -21794,6 +21906,9 @@ function playerCareerStory(p){
 function playerCareerMilestones(p){
  let out=[],hs=(p.careerHistory||[]).slice().sort((a,b)=>a.season-b.season);
  if(hs[0])out.push({season:hs[0].season,title:"Senior Debut",detail:hs[0].clubNameAtTime});
+ let ic=ensureInternationalPlayerCareer(p);
+ if(ic&&ic.debutSeason)out.push({season:Number(ic.debutSeason),title:"International Debut",detail:nationName(ic.nation||p.nationality)});
+ if(ic&&ic.firstWorldCupSeason)out.push({season:Number(ic.firstWorldCupSeason),title:"First World Cup",detail:nationName(ic.nation||p.nationality)});
 
  let spells=(p.clubHistory||[]).slice().sort((a,b)=>a.startSeason-b.startSeason);
  spells.forEach((h,i)=>{
@@ -22540,6 +22655,7 @@ function prepareSeasonReview(){
  let relegated=key==="top"?table.slice(-3).map((x,i)=>({pos:table.length-2+i,name:x.name,pts:x.pts})):[];
  let promoted=key==="lower"?table.slice(0,3).map((x,i)=>({pos:i+1,name:x.name,pts:x.pts})):[];
  let awards=seasonAwards();
+ processHistoricFirstsForSeason(G.season);
  let international=internationalSeasonSummaryForClub(G.club);
  let internationalQualification=internationalQualificationSummary(champion.id,table);
  let retirementSnapshot=G.players.filter(p=>p.retiring&&p.team>=0).map(p=>({
