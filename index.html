@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.10 Home Workspace Scroll Fix</title>
+<title>Mini&Me Football Club v2.13.5.13 International Round & Flag Polish</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -2097,11 +2097,11 @@ select,input,textarea{
 .fixtureClubLink,.recordPlayerLink{cursor:pointer;color:inherit;text-decoration:none;touch-action:manipulation}.fixtureClubLink:active,.recordPlayerLink:active{color:var(--gold)}.fixtureClubLink{border-bottom:1px solid transparent}.fixtureClubLink:hover{border-color:rgba(217,181,74,.45)}
 .interactiveRow{cursor:pointer;border-radius:10px;padding-left:5px!important;padding-right:5px!important;margin-left:-5px;margin-right:-5px}.interactiveRow:active{background:var(--ui-focus)}.compactEmpty{min-height:90px!important;padding:14px!important}
 .needs{grid-template-columns:repeat(2,minmax(0,1fr))!important}.need{min-width:0}.need b{font-size:12px;line-height:1.25}
-.marketFilter{position:sticky;top:calc(var(--nav-top,104px) + 62px);z-index:4;margin:0 -4px 5px;padding:6px 4px 10px!important;background:linear-gradient(180deg,#111923 78%,rgba(17,25,35,0))}
-.depthHead{position:sticky;top:calc(var(--nav-top,104px) + 62px);z-index:3;background:#111923f5;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin:0 -4px;padding-left:4px!important;padding-right:4px!important}.teamCoachSummary{margin-top:2px!important}.teamCoachLink{min-height:34px;touch-action:manipulation}
+.marketFilter{position:sticky;top:calc(var(--nav-top,104px) + var(--global-nav-height,62px));z-index:4;margin:0 -4px 5px;padding:6px 4px 10px!important;background:linear-gradient(180deg,#111923 78%,rgba(17,25,35,0))}
+.depthHead{position:sticky;top:calc(var(--nav-top,104px) + var(--global-nav-height,62px));z-index:3;background:#111923f5;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin:0 -4px;padding-left:4px!important;padding-right:4px!important}.teamCoachSummary{margin-top:2px!important}.teamCoachLink{min-height:34px;touch-action:manipulation}
 .leaderRow.interactiveRow .leaderName{min-width:0}.leaderRow.interactiveRow .leaderName b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fixtureScheduleRow{min-height:44px}.fixtureClub.aiClubLink,.aiClubLink{touch-action:manipulation}
 .recordPlayerLink{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.profileEmpty,.worldNote,.marketPoolNote{line-height:1.45!important}.teamCoachLink,.clubProfileTabs button,.sectionTabs button,.marketFilter button{touch-action:manipulation}
-@media(max-width:430px){.screenHero{padding:12px 13px;gap:10px}.screenTitle{font-size:18px}.screenSubtitle{font-size:9px}.screenMeta{min-width:66px;padding-left:9px}.screenMeta b{font-size:14px}.needs{grid-template-columns:1fr 1fr!important}.marketFilter{top:calc(var(--nav-top,104px) + 56px)}.depthHead{top:calc(var(--nav-top,104px) + 56px)}}
+@media(max-width:430px){.screenHero{padding:12px 13px;gap:10px}.screenTitle{font-size:18px}.screenSubtitle{font-size:9px}.screenMeta{min-width:66px;padding-left:9px}.screenMeta b{font-size:14px}.needs{grid-template-columns:1fr 1fr!important}.marketFilter{top:calc(var(--nav-top,104px) + var(--global-nav-height,56px))}.depthHead{top:calc(var(--nav-top,104px) + var(--global-nav-height,56px))}}
 @media(max-width:360px){.screenHero{grid-template-columns:1fr}.screenMeta{display:flex;gap:7px;align-items:baseline;padding:8px 0 0;border-left:0;border-top:1px solid var(--line);text-align:left}.screenMeta b{font-size:13px}.needs{grid-template-columns:1fr!important}}
 
 
@@ -9890,11 +9890,28 @@ body:not(.career-hub-active) #app .aboutGameView{
    v2.13.5.10 HOME WORKSPACE SCROLL FIX
    Independent Home pages start below the fixed global navigation.
    ========================================================== */
+/* v2.13.5.11 PRE-PRODUCTION STABLE BASELINE
+   Preserves the verified v2.13.5.10 feature/fix set.
+   Sticky Market and Squad depth offsets now derive from the measured global nav height.
+   Legacy !important declarations intentionally retained pending controlled screen-by-screen cleanup. */
 .homeExpandedView,
 .aboutGameView{
   scroll-margin-top:calc(var(--nav-top,104px) + 78px);
 }
 
+
+/* v2.13.5.12 INTERNATIONAL CHAMPION IDENTITY FIX
+   Champions Tournament: 32 top-ranked nations, one league champion each.
+   Expanded foreign club naming and deterministic procedural crest fallback. */
+
+/* v2.13.5.13 INTERNATIONAL ROUND + FLAG POLISH
+   Round labels render from authoritative competition metadata.
+   Club fixtures show the representing nation flag directly beside the club identity. */
+.intTeamPrimary{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%}
+.intTeam.away .intTeamPrimary{justify-content:flex-end}
+.intTeamPrimary>.inlineNationFlag{flex:0 0 auto}
+.intTeam .intNationTag{margin-top:2px!important;font-size:8px!important}
+@media(max-width:430px){.intTeamPrimary{gap:4px}.intTeamPrimary>.inlineNationFlag{--flag-size:13px!important}.intTeam .intNationTag{font-size:7.5px!important}}
 </style>
 <!-- MINI&ME DEVTOOLS PATCH START -->
 <style id="minime-devtools-overrides">
@@ -14080,8 +14097,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.8 National Squad Review";
- const RELEASE_CANDIDATE_VERSION="2.10.60.0";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.13 International Round & Flag Polish";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.13";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -17440,9 +17457,29 @@ const TEAM_CRESTS=Object.freeze({
  ...(typeof EXTRA_TEAM_CRESTS!=="undefined"&&EXTRA_TEAM_CRESTS?EXTRA_TEAM_CRESTS:{})
 });
 
+function generatedTeamCrestSvg(name){
+ let safe=String(name||"Club").trim()||"Club",hash=2166136261;
+ for(let i=0;i<safe.length;i++){hash^=safe.charCodeAt(i);hash=Math.imul(hash,16777619)>>>0}
+ const palettes=[
+  ["#173f73","#d9b54a","#f4f1e8"],["#8f2936","#e7c44d","#f3f2ed"],["#176b3a","#f0d36a","#f4f2ec"],
+  ["#17191d","#d9b54a","#eef2f6"],["#5b347a","#d9b54a","#f1e8f6"],["#0c6a72","#d9b54a","#eef8f8"],
+  ["#9a4a21","#f0c35a","#f5eee7"],["#334a62","#d9b54a","#edf2f6"]
+ ],pal=palettes[hash%palettes.length],shape=hash%4;
+ let words=safe.replace(/[^A-Za-z0-9 ]/g," ").split(/\s+/).filter(Boolean),mono=(words[0]?.[0]||"C")+(words[1]?.[0]||words[0]?.[1]||"F");
+ mono=mono.toUpperCase().slice(0,2);
+ let outline=shape===0?'M14 12 H86 V60 C86 90 66 106 50 114 C34 106 14 90 14 60 Z':shape===1?'M50 8 L88 30 L88 88 L50 114 L12 88 L12 30 Z':shape===2?'M18 12 H82 L90 54 L76 98 L50 114 L24 98 L10 54 Z':'M50 8 C72 8 86 18 86 18 C86 64 76 98 50 114 C24 98 14 64 14 18 C14 18 28 8 50 8 Z';
+ let stripe=(hash>>>4)%3;
+ let pattern=stripe===0?'<rect x="0" y="0" width="50" height="120" fill="'+pal[0]+'"/><rect x="50" y="0" width="50" height="120" fill="'+pal[1]+'"/>':stripe===1?'<rect x="0" y="0" width="100" height="120" fill="'+pal[0]+'"/><rect x="0" y="48" width="100" height="22" fill="'+pal[1]+'"/>':'<rect x="0" y="0" width="100" height="120" fill="'+pal[0]+'"/><path d="M0 26 L100 70 L100 94 L0 50 Z" fill="'+pal[1]+'"/>';
+ return '<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block" role="img">'+
+  '<defs><clipPath id="gc'+hash+'"><path d="'+outline+'"/></clipPath></defs><g clip-path="url(#gc'+hash+')">'+pattern+'</g>'+
+  '<circle cx="50" cy="57" r="20" fill="'+pal[2]+'" fill-opacity=".94" stroke="'+pal[1]+'" stroke-width="2.4"/>'+ 
+  '<text x="50" y="63" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="18" font-weight="900" fill="'+pal[0]+'">'+mono+'</text>'+ 
+  '<path d="'+outline+'" fill="none" stroke="'+pal[1]+'" stroke-width="3" stroke-linejoin="round"/><path d="'+outline+'" fill="none" stroke="#000" stroke-width="1" opacity=".18" stroke-linejoin="round"/></svg>';
+}
 function teamCrestSvgByName(name){
  let safe=String(name||"").trim();
- return safe&&TEAM_CRESTS[safe]?TEAM_CRESTS[safe]:"";
+ if(!safe)return"";
+ return TEAM_CRESTS[safe]||generatedTeamCrestSvg(safe);
 }
 
 /* v2.13.1: crest artwork remains bound to original club ID even when the domestic display name is localised. */
@@ -17726,7 +17763,7 @@ function ensureWorldEngineState(){
  G.competitions.DOM_LEAGUE_1=Object.assign({id:"DOM_LEAGUE_1",type:"DOMESTIC_LEAGUE",tier:1,enabled:true},G.competitions.DOM_LEAGUE_1||{},{name:topName,nation:G.careerNation});
  G.competitions.DOM_LEAGUE_2=Object.assign({id:"DOM_LEAGUE_2",type:"DOMESTIC_LEAGUE",tier:2,enabled:true},G.competitions.DOM_LEAGUE_2||{},{name:lowerName,nation:G.careerNation});
  G.competitions.DOM_CUP=Object.assign({id:"DOM_CUP",type:"DOMESTIC_CUP",enabled:true,name:"National Cup",nation:G.careerNation,format:"64_TEAM_KNOCKOUT",clubSources:{premier:20,championship:20,regional:24}},G.competitions.DOM_CUP||{});
- G.competitions.INT_CLUB=Object.assign({id:"INT_CLUB",type:"INTERNATIONAL_CLUB",enabled:true,name:"Champions Tournament",format:"32_TEAM_KNOCKOUT",clubSources:{nations:16,clubsPerNation:2}},G.competitions.INT_CLUB||{});
+ G.competitions.INT_CLUB=Object.assign({id:"INT_CLUB",type:"INTERNATIONAL_CLUB",enabled:true,name:"Champions Tournament",format:"32_TEAM_KNOCKOUT",clubSources:{nations:32,clubsPerNation:1}},G.competitions.INT_CLUB||{});
  G.competitions.INT_NATIONAL=Object.assign({id:"INT_NATIONAL",type:"INTERNATIONAL_NATIONAL",enabled:false,name:"World Cup",format:"32_TEAM",nationSources:32},G.competitions.INT_NATIONAL||{});
  if(Array.isArray(G.clubs))G.clubs.forEach(c=>{
   if(c&&!c.nation)c.nation=G.careerNation;
@@ -17878,6 +17915,29 @@ const INTERNATIONAL_CLUB_NAMES={
  BRA:["Rio Athletic","Sao Paulo Union"],ARG:["Buenos Aires Sporting","Cordoba Athletic"],NED:["Amsterdam United","Rotterdam Sporting"],POR:["Lisbon Athletic","Porto Union"],
  KOR:["Seoul United","Busan Athletic"],MEX:["Mexico City Sporting","Monterrey Union"],CAN:["Toronto Athletic","Vancouver United"],NGA:["Lagos Sporting","Abuja Athletic"]
 };
+const INTERNATIONAL_CHAMPION_CITIES={
+ BEL:"Brussels",CRO:"Zagreb",URU:"Montevideo",COL:"Bogota",MAR:"Casablanca",SEN:"Dakar",DEN:"Copenhagen",SUI:"Zurich",
+ AUT:"Vienna",POL:"Warsaw",TUR:"Istanbul",SRB:"Belgrade",ECU:"Quito",CHI:"Santiago",EGY:"Cairo",GHA:"Accra",
+ NOR:"Oslo",SWE:"Stockholm",CZE:"Prague",GRE:"Athens",UKR:"Kyiv",ROU:"Bucharest",ALG:"Algiers",CMR:"Yaounde",
+ CIV:"Abidjan",RSA:"Johannesburg",CRC:"San Jose",PAN:"Panama City",PER:"Lima",PAR:"Asuncion",NZL:"Auckland",KSA:"Riyadh",
+ IRL:"Dublin",SCO:"Glasgow",WAL:"Cardiff",HUN:"Budapest",SVK:"Bratislava",SLO:"Ljubljana",BUL:"Sofia",FIN:"Helsinki",
+ ISL:"Reykjavik",ALB:"Tirana",BIH:"Sarajevo",MKD:"Skopje",TUN:"Tunis",MLI:"Bamako",BFA:"Ouagadougou",COD:"Kinshasa",
+ ZAM:"Lusaka",ANG:"Luanda",GUI:"Conakry",CPV:"Praia",IRQ:"Baghdad",QAT:"Doha",UAE:"Dubai",UZB:"Tashkent",
+ JOR:"Amman",CHN:"Shanghai",THA:"Bangkok",VIE:"Hanoi",VEN:"Caracas",BOL:"La Paz",JAM:"Kingston",HON:"Tegucigalpa",
+ SLV:"San Salvador",GUA:"Guatemala City",TRI:"Port of Spain",HAI:"Port-au-Prince",FIJ:"Suva",SOL:"Honiara",PNG:"Port Moresby",TAH:"Papeete",
+ NCL:"Noumea",VAN:"Port Vila",ISR:"Tel Aviv",GEO:"Tbilisi",ARM:"Yerevan",AZE:"Baku",KAZ:"Almaty",MNE:"Podgorica"
+};
+const INTERNATIONAL_CHAMPION_SUFFIXES=["Athletic","United","Sporting","City","FC","Union","Rovers","Olympic"];
+function internationalGeneratedClubNames(nationId){
+ let n=nationById(nationId),city=INTERNATIONAL_CHAMPION_CITIES[nationId]||n.name.replace(/[^A-Za-zÀ-ž ]/g,"").trim()||"Capital";
+ let seed=0;for(let i=0;i<nationId.length;i++)seed=(seed*33+nationId.charCodeAt(i))>>>0;
+ let a=INTERNATIONAL_CHAMPION_SUFFIXES[seed%INTERNATIONAL_CHAMPION_SUFFIXES.length],b=INTERNATIONAL_CHAMPION_SUFFIXES[(seed+3)%INTERNATIONAL_CHAMPION_SUFFIXES.length];
+ return [city+" "+a,city+" "+b];
+}
+function internationalClubNamesForNation(nationId){return INTERNATIONAL_CLUB_NAMES[nationId]||internationalGeneratedClubNames(nationId)}
+function internationalTop32NationIds(){
+ try{return nationalRanking().slice(0,32).map(n=>n.id)}catch(e){return FOOTBALL_NATIONS.slice(0,32).map(n=>n.id)}
+}
 const REGIONAL_CUP_NAMES=["Meadow Park FC","Old Town Athletic","Seaside Rovers","Hillcrest United","Forest Borough","Rivergate FC","Stonebridge Town","Valley Athletic","Northfield FC","Southbank Rovers","Eastgate United","Westfield Town","Pioneer FC","Lighthouse Athletic","Cedar City","Mountain Rovers","Brookside FC","Foundry Town","Highland United","Marina Athletic","Railway FC","Garden City","Phoenix Borough","Harbour Vale"];
 function cupDomesticKey(id){return "C"+Number(id)}
 function cupIsDomestic(key){return typeof key==="string"&&key.charAt(0)==="C"}
@@ -18013,23 +18073,37 @@ function ensureInternationalClubState(){
  if(!G.intClub||typeof G.intClub!=="object")G.intClub={};
  if(!Array.isArray(G.intClub.history))G.intClub.history=[];
  if(!Array.isArray(G.intClub.scoringLedger))G.intClub.scoringLedger=[];
- if(!Array.isArray(G.intClub.foreignClubs)||G.intClub.foreignClubs.length!==30){
+ let expectedForeign=Math.max(0,(FOOTBALL_NATIONS.length-1)*2);
+ if(!Array.isArray(G.intClub.foreignClubs)||G.intClub.foreignClubs.length!==expectedForeign||G.intClub.foreignClubIdentityVersion!=="2.13.5.12"){
   let rows=[];
   FOOTBALL_NATIONS.filter(n=>n.id!==G.careerNation).forEach((n,ni)=>{
-   let names=INTERNATIONAL_CLUB_NAMES[n.id]||[n.name+" Champions",n.name+" Cup Winners"];
-   for(let slot=0;slot<2;slot++){let key=internationalForeignKey(n.id,slot+1);rows.push({key,name:names[slot],nation:n.id,foreign:true,rating:72+((ni*5+slot*7)%16)+rnd(-2,2),virtualPlayers:[generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name]})}
+   let names=internationalClubNamesForNation(n.id);
+   for(let slot=0;slot<2;slot++){
+    let key=internationalForeignKey(n.id,slot+1),base=Math.max(62,Math.min(90,Math.round(nationalTeamStrength(n.id)+(slot===0?0:-2)+rnd(-2,2))));
+    rows.push({key,name:names[slot],nation:n.id,foreign:true,championClub:slot===0,rating:base,virtualPlayers:[generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name]});
+   }
   });
-  G.intClub.foreignClubs=rows;
+  G.intClub.foreignClubs=rows;G.intClub.foreignClubIdentityVersion="2.13.5.12";
  }
- if(G.competitions&&G.competitions.INT_CLUB)G.competitions.INT_CLUB.enabled=true;
+ if(G.competitions&&G.competitions.INT_CLUB){G.competitions.INT_CLUB.enabled=true;G.competitions.INT_CLUB.clubSources={nations:32,clubsPerNation:1}}
  let q=G.intClub.nextQualification;
  if(Number(G.intClub.season)!==Number(G.season)){
   G.intClub.season=G.season;G.intClub.rounds=[];G.intClub.currentRound=0;G.intClub.eliminated=[];G.intClub.champion=null;G.intClub.runnerUp=null;G.intClub.homeQualifiers=[];G.intClub.active=false;G.intClub.scoringLedger=[];
-  if(q&&Number(q.season)===Number(G.season)&&Array.isArray(q.qualifiers)&&q.qualifiers.length===2){
-   G.intClub.homeQualifiers=q.qualifiers.map(x=>Object.assign({},x));
-   let entrants=G.intClub.homeQualifiers.map(x=>x.key).concat(G.intClub.foreignClubs.map(x=>x.key));
-   G.intClub.rounds=[{name:INTL_CLUB_ROUNDS[0].name,anchorWeek:INTL_CLUB_ROUNDS[0].anchorWeek,matches:buildInternationalMatches(entrants),complete:false}];
-   G.intClub.active=true;G.intClub.qualificationSourceSeason=q.sourceSeason;
+  if(q&&Number(q.season)===Number(G.season)){
+   let topIds=Array.isArray(q.topNationIds)&&q.topNationIds.length===32?q.topNationIds.slice(0,32):internationalTop32NationIds();
+   G.intClub.topNationIds=topIds.slice();
+   let homeEligible=topIds.includes(G.careerNation),homeChampion=(Array.isArray(q.qualifiers)&&q.qualifiers.length)?Object.assign({},q.qualifiers[0]):null;
+   if(homeEligible&&homeChampion)G.intClub.homeQualifiers=[homeChampion];
+   let entrants=[];
+   topIds.forEach(nid=>{
+    if(nid===G.careerNation&&homeEligible&&homeChampion)entrants.push(homeChampion.key);
+    else{let club=(G.intClub.foreignClubs||[]).find(x=>x.nation===nid&&x.championClub);if(club)entrants.push(club.key)}
+   });
+   entrants=[...new Set(entrants)].slice(0,32);
+   if(entrants.length===32){
+    G.intClub.rounds=[{name:INTL_CLUB_ROUNDS[0].name,anchorWeek:INTL_CLUB_ROUNDS[0].anchorWeek,matches:buildInternationalMatches(entrants),complete:false}];
+    G.intClub.active=true;G.intClub.qualificationSourceSeason=q.sourceSeason;G.intClub.formatVersion="32_NATIONS_ONE_CHAMPION";
+   }
   }
  }
 }
@@ -18101,12 +18175,12 @@ function internationalFinishForKey(key){
 }
 function internationalSeasonSummaryForClub(clubId){ensureInternationalClubState();let key=cupDomesticKey(clubId),h=(G.intClub.history||[]).find(x=>Number(x.season)===Number(G.season)),gold=h&&h.goldenBoot?h.goldenBoot:internationalGoldenBoot(G.season);return{competition:"INT_CLUB",name:"Champions Tournament",active:!!G.intClub.active,finish:internationalFinishForKey(key),winnerName:h?h.winnerName:(G.intClub.champion?internationalTeamName(G.intClub.champion):"—"),runnerUpName:h?h.runnerUpName:(G.intClub.runnerUp?internationalTeamName(G.intClub.runnerUp):"—"),goldenBoot:gold||null}}
 function internationalQualificationSummary(championId,table){
- ensureCupState();let leagueKey=cupDomesticKey(championId),cupKey=G.cup.champion||null,secondKey=cupKey&&cupKey!==leagueKey?cupKey:(table[1]?cupDomesticKey(table[1].id):null);if(!secondKey)secondKey=table[1]?cupDomesticKey(table[1].id):leagueKey;
- let qualifiers=[{key:leagueKey,name:internationalTeamName(leagueKey),source:"Premier Champion"},{key:secondKey,name:internationalTeamName(secondKey),source:(cupKey&&cupKey!==leagueKey)?"National Cup Winner":"Premier Runner-up"}];
- return{season:Number(G.season)+1,sourceSeason:G.season,qualifiers,userQualified:qualifiers.some(x=>x.key===internationalUserKey())};
+ let leagueKey=cupDomesticKey(championId),topNationIds=internationalTop32NationIds(),eligible=topNationIds.includes(G.careerNation);
+ let qualifiers=[{key:leagueKey,name:internationalTeamName(leagueKey),source:"National League Champion"}];
+ return{season:Number(G.season)+1,sourceSeason:G.season,qualifiers,topNationIds,userQualified:eligible&&leagueKey===internationalUserKey(),nationEligible:eligible};
 }
-function queueInternationalClubSeason(q){if(!q)return;ensureInternationalClubState();G.intClub.nextQualification={season:q.season,sourceSeason:q.sourceSeason,qualifiers:q.qualifiers.map(x=>Object.assign({},x))}}
-function internationalTeamHtml(key,away=false){let t=internationalTeamRecord(key);if(!t)return'<div class="intTeam '+(away?'away':'')+'">Unknown</div>';let main=Number.isFinite(t.clubId)&&t.clubId!==null?clubIdentityLinkHtml(t.clubId,t.name,'aiClubLink internationalTeamName'):('<span class="clubIdentityInline cupCompetitionIdentity">'+clubCrestByNameHtml(t.name,20)+'<span class="clubIdentityName internationalTeamName">'+displayPlayerName(t.name)+'</span></span>');return'<div class="intTeam '+(away?'away':'')+'">'+main+'<span class="intNationTag">'+nationFlagHtml(t.nation,16)+'<span>'+nationName(t.nation)+'</span></span></div>'}
+function queueInternationalClubSeason(q){if(!q)return;ensureInternationalClubState();G.intClub.nextQualification={season:q.season,sourceSeason:q.sourceSeason,qualifiers:(q.qualifiers||[]).map(x=>Object.assign({},x)),topNationIds:Array.isArray(q.topNationIds)?q.topNationIds.slice(0,32):internationalTop32NationIds()}}
+function internationalTeamHtml(key,away=false){let t=internationalTeamRecord(key);if(!t)return'<div class="intTeam '+(away?'away':'')+'">Unknown</div>';let main=Number.isFinite(t.clubId)&&t.clubId!==null?clubIdentityLinkHtml(t.clubId,t.name,'aiClubLink internationalTeamName'):('<span class="clubIdentityInline cupCompetitionIdentity">'+clubCrestByNameHtml(t.name,20)+'<span class="clubIdentityName internationalTeamName">'+displayPlayerName(t.name)+'</span></span>');return'<div class="intTeam '+(away?'away':'')+'"><span class="intTeamPrimary">'+main+nationFlagHtml(t.nation,15)+'</span><span class="intNationTag"><span>'+nationName(t.nation)+'</span></span></div>'}
 function worldCupQualificationCardHtml(){
  let wc=G.internationalNational&&G.internationalNational.worldCup,t=wc&&wc.tournament;
  if(t&&Number(t.season)===Number(G.season))return"";
@@ -18544,12 +18618,14 @@ function internationalResultsHistoryHtml(){
 }
 function clubInternationalContent(){
  ensureInternationalClubState();let q=G.intClub.nextQualification,active=G.intClub.active,userStatus=active?internationalFinishForKey(internationalUserKey()):"Qualification pending",next=internationalUserFixtureDue(),nextText=next?INTL_CLUB_ROUNDS[G.intClub.currentRound].name+" · "+internationalTeamName(next.home===internationalUserKey()?next.away:next.home):(active?(G.intClub.champion?"Tournament complete":internationalUserAlive()?INTL_CLUB_ROUNDS[G.intClub.currentRound].name:"Following tournament"):"First tournament begins after qualification");
- let qualification=(active&&G.intClub.homeQualifiers.length?G.intClub.homeQualifiers:(q&&q.qualifiers||[]));let qrows=qualification.map(x=>'<div class="qualificationRow"><div><b>'+displayPlayerName(x.name)+'</b><span>'+x.source+'</span></div><div class="nationInline">'+nationFlagHtml(G.careerNation,18)+'<span>'+nationName(G.careerNation)+'</span></div></div>').join('');
- let rounds=active?(G.intClub.rounds||[]).map((r,ri)=>'<div class="intRoundCard"><div class="intRoundHead"><b>'+displayPlayerName(r.name)+'</b><span>'+(r.complete?'Completed':'After league week '+INTL_CLUB_ROUNDS[ri].anchorWeek)+'</span></div>'+r.matches.map(m=>'<div class="fixtureScheduleRow '+((m.home===internationalUserKey()||m.away===internationalUserKey())?'userFixture intFixtureIntegrated':'')+'">'+internationalTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+(m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?'<span class=\"shootoutNote\">'+m.pens.home+'–'+m.pens.away+' pens</span>':'')):'VS')+'</div>'+internationalTeamHtml(m.away,true)+'</div>').join('')+'</div>').join(''):'<div class="card"><div class="profileEmpty compactEmpty">The inaugural Champions Tournament will begin next season after the first domestic qualification places are decided.</div></div>';
+ let qualification=(active&&G.intClub.homeQualifiers.length?G.intClub.homeQualifiers:(q&&q.qualifiers||[])),topIds=active&&Array.isArray(G.intClub.topNationIds)?G.intClub.topNationIds:(q&&Array.isArray(q.topNationIds)?q.topNationIds:internationalTop32NationIds()),nationEligible=topIds.includes(G.careerNation);
+ let qrows=qualification.map(x=>'<div class="qualificationRow"><div><b>'+displayPlayerName(x.name)+'</b><span>'+x.source+'</span></div><div class="nationInline">'+nationFlagHtml(G.careerNation,18)+'<span>'+nationName(G.careerNation)+'</span></div></div>').join('');
+ if(!nationEligible)qrows+='<div class="profileEmpty compactEmpty">'+nationName(G.careerNation)+' is currently outside the top 32 nations, so its domestic champion does not enter this season.</div>';
+ let rounds=active?(G.intClub.rounds||[]).map((r,ri)=>'<div class="intRoundCard"><div class="intRoundHead"><b>'+displayPlayerName(INTL_CLUB_ROUNDS[ri].name)+'</b><span>'+(r.complete?'Completed':'After league week '+INTL_CLUB_ROUNDS[ri].anchorWeek)+'</span></div>'+r.matches.map(m=>'<div class="fixtureScheduleRow '+((m.home===internationalUserKey()||m.away===internationalUserKey())?'userFixture intFixtureIntegrated':'')+'">'+internationalTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+(m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?'<span class="shootoutNote">'+m.pens.home+'–'+m.pens.away+' pens</span>':'')):'VS')+'</div>'+internationalTeamHtml(m.away,true)+'</div>').join('')+'</div>').join(''):'<div class="card"><div class="profileEmpty compactEmpty">The Champions Tournament begins next season after domestic champions and the top 32 nation places are confirmed.</div></div>';
  let currentGold=internationalGoldenBoot(G.season),goldCard=currentGold?'<div class="card internationalAwardCard"><div class="screenEyebrow">TOURNAMENT HONOURS</div><div class="title">International Golden Boot</div><div class="internationalAwardRow"><div><b>'+displayPlayerName(currentGold.name)+'</b><span>'+currentGold.clubName+' · '+nationFlagHtml(currentGold.nation,18)+'<span>'+nationName(currentGold.nation)+'</span></span></div><div>'+currentGold.goals+' goals</div></div></div>':'';
  let hist=(G.intClub.history||[]).map(h=>'<div class="intHistoryRow"><div class="yr">'+h.season+'</div><div><b>'+h.winnerName+'</b><span>'+nationFlagHtml(h.winnerNation,18)+'<span>'+nationName(h.winnerNation)+' · Champion</span>'+(h.goldenBoot?'<br>Golden Boot · '+h.goldenBoot.name+' ('+h.goldenBoot.goals+')':'')+'</span></div><div><b>'+h.runnerUpName+'</b><span>'+nationFlagHtml(h.runnerUpNation,18)+'<span>'+nationName(h.runnerUpNation)+' · Runner-up</span></span></div></div>').join('');
- return '<div class="card intHero competitionHero"><div class="screenEyebrow">INTERNATIONAL CLUB FOOTBALL · 96 NATION WORLD</div><div class="title">Champions Tournament</div><div class="sub">'+G.season+' · 32 clubs · 16 nations · Knockout Round.</div><div class="intStatusGrid competitionStatusGrid"><div><span>YOUR CLUB</span><b>'+userStatus+'</b></div><div><span>NEXT EVENT</span><b>'+nextText+'</b></div><div><span>FORMAT</span><b>5 rounds</b></div></div></div><div class="card qualificationCard competitionQualificationCard"><div class="sectionHead"><div><div class="title">'+nationName(G.careerNation)+' Representatives</div><div class="sub">Premier Champion and National Cup winner qualify. A domestic double passes the second spot to the Premier runner-up.</div></div></div>'+qrows+'</div>'+goldCard+rounds+'<div class="card competitionHistoryCard"><div class="sectionHead"><div><div class="title">International History</div><div class="sub">Champions and runners-up across your career.</div></div><div class="sectionCount">'+(G.intClub.history||[]).length+'</div></div>'+(hist||'<div class="profileEmpty compactEmpty">No Champions Tournament has been completed yet.</div>')+'</div>'; }
-
+ return '<div class="card intHero competitionHero"><div class="screenEyebrow">INTERNATIONAL CLUB FOOTBALL · 96 NATION WORLD</div><div class="title">Champions Tournament</div><div class="sub">'+G.season+' · 32 clubs · 32 nations · one national league champion per nation.</div><div class="intStatusGrid competitionStatusGrid"><div><span>YOUR CLUB</span><b>'+userStatus+'</b></div><div><span>NEXT EVENT</span><b>'+nextText+'</b></div><div><span>FORMAT</span><b>5 rounds</b></div></div></div><div class="card qualificationCard competitionQualificationCard"><div class="sectionHead"><div><div class="title">'+nationName(G.careerNation)+' Champion</div><div class="sub">The national league champion represents each of the current top 32 nations. National Cup results no longer create a second entrant.</div></div></div>'+qrows+'</div>'+goldCard+rounds+'<div class="card competitionHistoryCard"><div class="sectionHead"><div><div class="title">International History</div><div class="sub">Champions and runners-up across your career.</div></div><div class="sectionCount">'+(G.intClub.history||[]).length+'</div></div>'+(hist||'<div class="profileEmpty compactEmpty">No Champions Tournament has been completed yet.</div>')+'</div>';
+}
 /* v2.11.10.5: Club International and National Internationals render independent content sets. */
 function internationalClubView(){
  let tab=window.internationalSectionTab||"club";
@@ -20775,7 +20851,7 @@ function leagueHistoryView(){
  '<div class="card compactHistoryCard historyDataCard"><div class="sectionHead"><div><div class="title">Eras & Dynasties</div><div class="sub">Only genuine consecutive-title runs are recorded here.</div></div></div>'+dynastyRows+'</div>'+
  '<div class="card compactHistoryCard historyDataCard"><div class="sectionHead"><div><div class="title">Notable Coaches</div><div class="sub">Coaches who shaped the Premier Division.</div></div></div>'+coachRows+'</div>'+
  '<div class="card compactHistoryCard historyDataCard"><div class="sectionHead"><div><div class="title">National Cup History</div><div class="sub">Domestic cup champions and finalists.</div></div></div>'+(((G.cup&&G.cup.history)||[]).length?(G.cup.history||[]).map(h=>'<div class="historyWideRow"><div class="historyYear">'+h.season+'</div><div class="historyIdentity"><b>'+h.winnerName+'</b><span>Champion</span></div><div class="historyOutcome">Runner-up · '+h.runnerUpName+'</div></div>').join(''):'<div class="profileEmpty compactEmpty">No National Cup has been completed yet.</div>')+'</div>'+
- '<div class="card compactHistoryCard historyDataCard"><div class="sectionHead"><div><div class="title">Champions Tournament History</div><div class="sub">International champions across the 16-nation football world.</div></div></div>'+(((G.intClub&&G.intClub.history)||[]).length?(G.intClub.history||[]).map(h=>'<div class="historyWideRow"><div class="historyYear">'+h.season+'</div><div class="historyIdentity"><b>'+h.winnerName+'</b><span>'+nationFlagHtml(h.winnerNation,18)+'<span>'+nationName(h.winnerNation)+'</span></span></div><div class="historyOutcome">Runner-up · '+h.runnerUpName+'</div></div>').join(''):'<div class="profileEmpty compactEmpty">No Champions Tournament has been completed yet.</div>')+'</div>';
+ '<div class="card compactHistoryCard historyDataCard"><div class="sectionHead"><div><div class="title">Champions Tournament History</div><div class="sub">International champions from the top 32 nations.</div></div></div>'+(((G.intClub&&G.intClub.history)||[]).length?(G.intClub.history||[]).map(h=>'<div class="historyWideRow"><div class="historyYear">'+h.season+'</div><div class="historyIdentity"><b>'+h.winnerName+'</b><span>'+nationFlagHtml(h.winnerNation,18)+'<span>'+nationName(h.winnerNation)+'</span></span></div><div class="historyOutcome">Runner-up · '+h.runnerUpName+'</div></div>').join(''):'<div class="profileEmpty compactEmpty">No Champions Tournament has been completed yet.</div>')+'</div>';
 }
 
 const HALL_OF_FAME_VERSION="2.10.6";
@@ -25751,7 +25827,7 @@ function leagueFixturesView(){
  if(G.intClub.active)INTL_CLUB_ROUNDS.forEach((meta,ri)=>{let r=(G.intClub.rounds||[])[ri]||null;(intByAnchor[meta.anchorWeek]=intByAnchor[meta.anchorWeek]||[]).push({round:r,index:ri,meta})});
  let sections=[];
  rounds.forEach((round,index)=>{let week=index+1;let rows=round.map(([homeId,awayId])=>{let home=G.clubs[homeId],away=G.clubs[awayId],user=homeId===G.club||awayId===G.club,archived=findArchivedFixture(G.season,week,key,homeId,awayId),score;if(archived){let userResult="";if(user){let ug=homeId===G.club?archived.homeGoals:archived.awayGoals,og=homeId===G.club?archived.awayGoals:archived.homeGoals;userResult='<span class="fixtureResultTag">'+(ug>og?"W":ug<og?"L":"D")+'</span>'}score='<div class="fixtureScore">'+archived.homeGoals+'–'+archived.awayGoals+userResult+'</div>'}else if(week<=playedWeeks)score='<div class="fixtureScore missing">RESULT NOT ARCHIVED</div>';else score='<div class="fixtureScore future">VS</div>';return'<div class="fixtureScheduleRow '+(user?'userFixture':'')+'"><div class="fixtureClub">'+clubIdentityLinkHtml(homeId,home.name)+'</div>'+score+'<div class="fixtureClub away">'+clubIdentityLinkHtml(awayId,away.name)+'</div></div>'}).join("");let status=week<playedWeeks?"Completed":week===playedWeeks?"Latest round":week===playedWeeks+1?"Next round":"Scheduled";sections.push('<div class="fixtureWeek"><div class="fixtureWeekHead"><b>Week '+week+' <span class="fixtureCompetitionTag">'+displayPlayerName(info.name)+'</span></b><span>'+status+'</span></div>'+rows+'</div>');
- (intByAnchor[week]||[]).forEach(item=>{let ir=item.round,meta=item.meta;if(ir&&Array.isArray(ir.matches)&&ir.matches.length){let irows=ir.matches.map(m=>'<div class="fixtureScheduleRow '+((m.home===internationalUserKey()||m.away===internationalUserKey())?'userFixture intFixtureIntegrated':'')+'">'+internationalTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+(m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?'<span class=\"shootoutNote\">'+m.pens.home+'–'+m.pens.away+' pens</span>':'')):'VS')+'</div>'+internationalTeamHtml(m.away,true)+'</div>').join('');sections.push('<div class="fixtureWeek intFixtureWeek"><div class="fixtureWeekHead"><b>'+ir.name+' <span class="fixtureCompetitionTag">Champions Tournament</span></b><span>'+(ir.complete?'Completed':'After league week '+meta.anchorWeek)+'</span></div>'+irows+'</div>')}else sections.push('<div class="fixtureWeek intFixtureWeek"><div class="fixtureWeekHead"><b>'+meta.name+' <span class="fixtureCompetitionTag">Champions Tournament</span></b><span>After league week '+meta.anchorWeek+'</span></div><div class="intFixturePlaceholder">International draw pending.</div></div>')});
+ (intByAnchor[week]||[]).forEach(item=>{let ir=item.round,meta=item.meta;if(ir&&Array.isArray(ir.matches)&&ir.matches.length){let irows=ir.matches.map(m=>'<div class="fixtureScheduleRow '+((m.home===internationalUserKey()||m.away===internationalUserKey())?'userFixture intFixtureIntegrated':'')+'">'+internationalTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+(m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?'<span class=\"shootoutNote\">'+m.pens.home+'–'+m.pens.away+' pens</span>':'')):'VS')+'</div>'+internationalTeamHtml(m.away,true)+'</div>').join('');sections.push('<div class="fixtureWeek intFixtureWeek"><div class="fixtureWeekHead"><b>'+meta.name+' <span class="fixtureCompetitionTag">Champions Tournament</span></b><span>'+(ir.complete?'Completed':'After league week '+meta.anchorWeek)+'</span></div>'+irows+'</div>')}else sections.push('<div class="fixtureWeek intFixtureWeek"><div class="fixtureWeekHead"><b>'+meta.name+' <span class="fixtureCompetitionTag">Champions Tournament</span></b><span>After league week '+meta.anchorWeek+'</span></div><div class="intFixturePlaceholder">International draw pending.</div></div>')});
  (cupByAnchor[week]||[]).forEach(item=>{let cr=item.round,meta=item.meta;if(cr&&Array.isArray(cr.matches)&&cr.matches.length){let crows=cr.matches.map(m=>{let user=m.home===cupUserKey()||m.away===cupUserKey(),score=m.played?(m.homeGoals+'–'+m.awayGoals+(m.pens?'<span class=\"shootoutNote\">'+m.pens.home+'–'+m.pens.away+' pens</span>':'')):'VS';return'<div class="fixtureScheduleRow '+(user?'userFixture cupFixtureIntegrated':'')+'">'+cupTeamHtml(m.home)+'<div class="fixtureScore '+(m.played?'':'future')+'">'+score+'</div>'+cupTeamHtml(m.away,true)+'</div>'}).join('');sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>'+cr.name+' <span class="fixtureCompetitionTag">National Cup</span></b><span>'+(cr.complete?'Completed':'After league week '+meta.anchorWeek)+'</span></div>'+crows+'</div>')}else{let userStatus=cupUserAlive()?'Draw pending':'Your club eliminated';sections.push('<div class="fixtureWeek cupFixtureWeek"><div class="fixtureWeekHead"><b>'+meta.name+' <span class="fixtureCompetitionTag">National Cup</span></b><span>After league week '+meta.anchorWeek+'</span></div><div class="cupFixturePlaceholder">'+userStatus+' · Fixture draw will populate when the previous Cup round is complete.</div></div>')}});
  });
  return'<div class="card fixtureCalendarIntro"><div class="sectionHead"><div><div class="title">Season Calendar</div><div class="sub">'+G.season+' · League, National Cup'+(G.intClub.active?' and Champions Tournament':'')+' fixtures in one schedule.</div></div><div class="sectionCount">'+rounds.length+' WEEKS</div></div></div>'+sections.join('');
@@ -27179,12 +27255,24 @@ initialiseCareerStorage();
 function updateTopNavOffset(){
  try{
   let h=document.querySelector("header");
-  let px=h?Math.ceil(h.getBoundingClientRect().height):104;
-  document.documentElement.style.setProperty("--nav-top",px+"px");
+  let n=document.getElementById("nav");
+  let headerPx=h?Math.ceil(h.getBoundingClientRect().height):104;
+  let navPx=n?Math.ceil(n.getBoundingClientRect().height):62;
+  document.documentElement.style.setProperty("--nav-top",headerPx+"px");
+  if(navPx>0)document.documentElement.style.setProperty("--global-nav-height",navPx+"px");
  }catch(e){}
 }
 window.addEventListener("resize",updateTopNavOffset);
 window.addEventListener("orientationchange",()=>setTimeout(updateTopNavOffset,120));
+if(typeof ResizeObserver!=="undefined"){
+ try{
+  const topNavObserver=new ResizeObserver(()=>updateTopNavOffset());
+  const observedHeader=document.querySelector("header");
+  const observedNav=document.getElementById("nav");
+  if(observedHeader)topNavObserver.observe(observedHeader);
+  if(observedNav)topNavObserver.observe(observedNav);
+ }catch(e){}
+}
 setTimeout(updateTopNavOffset,0);
 setTimeout(updateTopNavOffset,250);
 
