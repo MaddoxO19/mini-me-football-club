@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.9 Home Workspace Separation</title>
+<title>Mini&Me Football Club v2.13.5.10 Home Workspace Scroll Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -9883,6 +9883,16 @@ body:not(.career-hub-active) #app .aboutGameView{
 .homeOverviewSinglePurpose{
   max-width:760px;
   margin:0 auto;
+}
+
+
+/* ==========================================================
+   v2.13.5.10 HOME WORKSPACE SCROLL FIX
+   Independent Home pages start below the fixed global navigation.
+   ========================================================== */
+.homeExpandedView,
+.aboutGameView{
+  scroll-margin-top:calc(var(--nav-top,104px) + 78px);
 }
 
 </style>
@@ -26733,10 +26743,22 @@ function showLeagueContextMore(){
  ).join("");
  m.classList.toggle("hidden",!m.classList.contains("hidden"));
 }
+function resetHomeWorkspaceScroll(){
+ // Home workspaces are full content views beneath the fixed global header/nav.
+ // Reset the document to its natural top instead of aligning #app to viewport top,
+ // which would place the screen hero underneath the fixed navigation.
+ try{
+   let scroller=document.scrollingElement||document.documentElement;
+   if(scroller)scroller.scrollTop=0;
+   window.scrollTo({top:0,left:0,behavior:"auto"});
+ }catch(e){
+   try{window.scrollTo(0,0)}catch(_){}
+ }
+}
 function scrollHomeContext(key){
  window.homeContextKey=key||"overview";
  renderSoon();
- setTimeout(()=>{let app=document.getElementById("app");if(app&&app.scrollIntoView)app.scrollIntoView({behavior:"smooth",block:"start"})},30);
+ requestAnimationFrame(()=>requestAnimationFrame(resetHomeWorkspaceScroll));
 }
 function activateContextNavigation(key){
  hideContextMore();
@@ -26820,7 +26842,7 @@ function navigateTo(nextPage){
 
 document.addEventListener("click",function(e){
  let back=e.target.closest&&e.target.closest("[data-home-expanded-back]");
- if(back){e.preventDefault();window.homeContextKey="overview";renderSoon();return}
+ if(back){e.preventDefault();window.homeContextKey="overview";renderSoon();requestAnimationFrame(()=>requestAnimationFrame(resetHomeWorkspaceScroll));return}
  let ctx=e.target.closest&&e.target.closest("[data-context-nav]");
  if(ctx){e.preventDefault();activateContextNavigation(ctx.dataset.contextNav);return}
  let more=e.target.closest&&e.target.closest("[data-context-more]");
