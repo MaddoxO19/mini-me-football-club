@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.13 International Round & Flag Polish</title>
+<title>Mini&Me Football Club v2.13.5.19 International Balance & Penalty Integrity</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14164,8 +14164,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.18 Workspace Position Preservation";
- const RELEASE_CANDIDATE_VERSION="2.13.5.17";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.19 International Balance & Penalty Integrity";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.19";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -18090,17 +18090,25 @@ function cupSeasonSummaryForClub(clubId){
  return {competition:"DOM_CUP",name:G.cup.name||"National Cup",finish:cupFinishForKey(key),winnerName:history?history.winnerName:(G.cup.champion?cupTeamName(G.cup.champion):"—"),winnerClubId:history?history.winnerClubId:cupDomesticId(G.cup.champion),runnerUpName:history?history.runnerUpName:(G.cup.runnerUp?cupTeamName(G.cup.runnerUp):"—"),runnerUpClubId:history?history.runnerUpClubId:cupDomesticId(G.cup.runnerUp),goldenBoot:gold};
 }
 function simulatePenaltyShootout(homeChance=.76,awayChance=.76){
- homeChance=Math.max(.5,Math.min(.92,Number(homeChance)||.76));awayChance=Math.max(.5,Math.min(.92,Number(awayChance)||.76));
+ homeChance=Math.max(.5,Math.min(.92,Number(homeChance)||.76));
+ awayChance=Math.max(.5,Math.min(.92,Number(awayChance)||.76));
  let home=0,away=0,homeTaken=0,awayTaken=0,kicks=[];
+ const decided=()=>{
+  let homeRemaining=Math.max(0,5-homeTaken),awayRemaining=Math.max(0,5-awayTaken);
+  return home>away+awayRemaining||away>home+homeRemaining;
+ };
  for(let round=1;round<=5;round++){
   let hs=gameRandom()<homeChance;homeTaken++;if(hs)home++;kicks.push({team:"home",round,scored:hs});
-  if(home>away+(5-awayTaken))return{home,away,homeTaken,awayTaken,kicks,suddenDeath:false};
+  if(decided())return{home,away,homeTaken,awayTaken,kicks,suddenDeath:false};
   let as=gameRandom()<awayChance;awayTaken++;if(as)away++;kicks.push({team:"away",round,scored:as});
-  if(away>home+(5-homeTaken))return{home,away,homeTaken,awayTaken,kicks,suddenDeath:false};
+  if(decided())return{home,away,homeTaken,awayTaken,kicks,suddenDeath:false};
  }
  let round=6;
  while(home===away&&round<30){
-  let hs=gameRandom()<homeChance,as=gameRandom()<awayChance;homeTaken++;awayTaken++;if(hs)home++;if(as)away++;kicks.push({team:"home",round,scored:hs},{team:"away",round,scored:as});round++;
+  let hs=gameRandom()<homeChance;homeTaken++;if(hs)home++;kicks.push({team:"home",round,scored:hs});
+  let as=gameRandom()<awayChance;awayTaken++;if(as)away++;kicks.push({team:"away",round,scored:as});
+  if(home!==away)break;
+  round++;
  }
  return{home,away,homeTaken,awayTaken,kicks,suddenDeath:true};
 }
@@ -18148,22 +18156,51 @@ function domesticCupView(){
 function internationalForeignKey(nationId,slot){return "F:"+nationId+":"+slot}
 function internationalIsForeign(key){return typeof key==="string"&&key.indexOf("F:")===0}
 function internationalIsRegional(key){return typeof key==="string"&&key.charAt(0)==="R"}
+
+/* v2.13.5.19 DOMESTIC CLUB FOOTBALL TIERS
+   National-team quality and domestic-league quality are intentionally separate.
+   These tiers govern generated Champions Tournament representatives only. */
+const INTERNATIONAL_DOMESTIC_TIER_RANGES={
+ 1:{label:"Elite Professional",min:82,max:92},
+ 2:{label:"Strong Professional",min:74,max:85},
+ 3:{label:"Professional",min:65,max:78},
+ 4:{label:"Semi Professional",min:56,max:69},
+ 5:{label:"Emerging / Amateur",min:46,max:60}
+};
+const INTERNATIONAL_DOMESTIC_TIERS={
+  ENG:1,ESP:1,GER:1,ITA:1,FRA:1,BRA:1,ARG:1,POR:1,NED:1,
+  BEL:2,TUR:2,MEX:2,USA:2,JPN:2,KOR:2,AUT:2,SCO:2,DEN:2,SUI:2,CZE:2,GRE:2,UKR:2,SRB:2,CRO:2,COL:2,URU:2,ECU:2,KSA:2,
+  CAN:3,POL:3,NOR:3,SWE:3,ROU:3,HUN:3,ISR:3,RSA:3,EGY:3,MAR:3,ALG:3,TUN:3,NGA:3,SEN:3,CIV:3,GHA:3,CMR:3,IRL:3,WAL:3,SVK:3,SLO:3,BUL:3,FIN:3,CHN:3,QAT:3,UAE:3,UZB:3,PAR:3,CHI:3,PER:3,CRC:3,PAN:3,AUS:3,
+  ALB:4,BIH:4,MKD:4,ISL:4,GEO:4,ARM:4,AZE:4,KAZ:4,MNE:4,MLI:4,BFA:4,COD:4,ZAM:4,ANG:4,GUI:4,CPV:4,IRQ:4,JOR:4,THA:4,VIE:4,VEN:4,BOL:4,JAM:4,HON:4,SLV:4,GUA:4,TRI:4,HAI:4,NZL:4,
+  FIJ:5,SOL:5,PNG:5,TAH:5,NCL:5,VAN:5
+};
+function internationalDomesticTier(nationId){return Number(INTERNATIONAL_DOMESTIC_TIERS[nationId])||4}
+function internationalDomesticTierMeta(nationId){return INTERNATIONAL_DOMESTIC_TIER_RANGES[internationalDomesticTier(nationId)]||INTERNATIONAL_DOMESTIC_TIER_RANGES[4]}
+function generatedInternationalChampionRating(nationId,slot=0){
+ let meta=internationalDomesticTierMeta(nationId),tier=internationalDomesticTier(nationId);
+ // A small national-football signal is retained, but cannot override domestic-league reality.
+ let national=Math.max(55,Math.min(92,Number(nationalTeamStrength(nationId))||70));
+ let nationalNudge=Math.max(-2,Math.min(2,Math.round((national-74)/7)));
+ let base=rnd(meta.min,meta.max)+nationalNudge-(slot?2:0);
+ return Math.max(meta.min-1,Math.min(meta.max+1,base));
+}
+
 function ensureInternationalClubState(){
  if(!G)return;
  if(!G.intClub||typeof G.intClub!=="object")G.intClub={};
  if(!Array.isArray(G.intClub.history))G.intClub.history=[];
  if(!Array.isArray(G.intClub.scoringLedger))G.intClub.scoringLedger=[];
  let expectedForeign=Math.max(0,(FOOTBALL_NATIONS.length-1)*2);
- if(!Array.isArray(G.intClub.foreignClubs)||G.intClub.foreignClubs.length!==expectedForeign||G.intClub.foreignClubIdentityVersion!=="2.13.5.12"){
+ if(!Array.isArray(G.intClub.foreignClubs)||G.intClub.foreignClubs.length!==expectedForeign||G.intClub.foreignClubIdentityVersion!=="2.13.5.19_TIERS"){
   let rows=[];
   FOOTBALL_NATIONS.filter(n=>n.id!==G.careerNation).forEach((n,ni)=>{
-   let names=internationalClubNamesForNation(n.id);
+   let names=internationalClubNamesForNation(n.id),tier=internationalDomesticTier(n.id),tierMeta=internationalDomesticTierMeta(n.id);
    for(let slot=0;slot<2;slot++){
-    let key=internationalForeignKey(n.id,slot+1),base=Math.max(62,Math.min(90,Math.round(nationalTeamStrength(n.id)+(slot===0?0:-2)+rnd(-2,2))));
-    rows.push({key,name:names[slot],nation:n.id,foreign:true,championClub:slot===0,rating:base,virtualPlayers:[generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name]});
+    let key=internationalForeignKey(n.id,slot+1),base=generatedInternationalChampionRating(n.id,slot);
+    rows.push({key,name:names[slot],nation:n.id,foreign:true,championClub:slot===0,rating:base,domesticTier:tier,domesticTierLabel:tierMeta.label,virtualPlayers:[generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name,generateFootballNameForPlayerNationality(n.id).name]});
    }
   });
-  G.intClub.foreignClubs=rows;G.intClub.foreignClubIdentityVersion="2.13.5.12";
+  G.intClub.foreignClubs=rows;G.intClub.foreignClubIdentityVersion="2.13.5.19_TIERS";
  }
  if(G.competitions&&G.competitions.INT_CLUB){G.competitions.INT_CLUB.enabled=true;G.competitions.INT_CLUB.clubSources={nations:32,clubsPerNation:1}}
  let q=G.intClub.nextQualification;
@@ -18194,10 +18231,10 @@ function internationalTeamRecord(key){
 }
 function internationalTeamName(key){let t=internationalTeamRecord(key);return t?t.name:"Unknown Club"}
 function internationalTeamNation(key){let t=internationalTeamRecord(key);return t?t.nation:G.careerNation}
-function internationalTeamStrength(key){let t=internationalTeamRecord(key);if(!t)return 70;if(Number.isFinite(t.clubId))return strength(t.clubId);return (Number(t.rating)||70)+dynamicNationModifier(t.nation)}
+function internationalTeamStrength(key){let t=internationalTeamRecord(key);if(!t)return 70;if(Number.isFinite(t.clubId))return strength(t.clubId);let mod=Math.max(-2,Math.min(2,Number(dynamicNationModifier(t.nation))||0));return (Number(t.rating)||70)+mod}
 function internationalShuffle(arr){let a=arr.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(gameRandom()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function buildInternationalMatches(keys){let a=internationalShuffle(keys),rows=[];for(let i=0;i<a.length;i+=2)rows.push({home:a[i],away:a[i+1],played:false,winner:null});return rows}
-function internationalSim(a,b){let sa=internationalTeamStrength(a),sb=internationalTeamStrength(b),diff=Math.max(-22,Math.min(22,sa-sb)),da=cupDomesticId(a),db=cupDomesticId(b),round=INTL_CLUB_ROUNDS[Number(G.intClub.currentRound)||0].name;if(da!==null&&db!==null)diff=rivalryAdjustedDiff(diff,da,db,"INT_CLUB",round);let ha=Math.max(.42,Math.min(2.8,1.35+diff*.052)),aa=Math.max(.38,Math.min(2.5,1.12-diff*.045));if(da!==null&&db!==null){let noise=rivalryNoiseFactor(da,db,"INT_CLUB",round);ha*=noise;aa*=Math.max(.88,2-noise)}return[Math.min(6,poissonGoals(ha*(.9+gameRandom()*.2))),Math.min(6,poissonGoals(aa*(.9+gameRandom()*.2)))]}
+function internationalSim(a,b){let sa=internationalTeamStrength(a),sb=internationalTeamStrength(b),diff=Math.max(-30,Math.min(30,sa-sb)),da=cupDomesticId(a),db=cupDomesticId(b),round=INTL_CLUB_ROUNDS[Number(G.intClub.currentRound)||0].name;if(da!==null&&db!==null)diff=rivalryAdjustedDiff(diff,da,db,"INT_CLUB",round);let ha=Math.max(.28,Math.min(3.35,1.35+diff*.058)),aa=Math.max(.24,Math.min(3.05,1.12-diff*.052));if(da!==null&&db!==null){let noise=rivalryNoiseFactor(da,db,"INT_CLUB",round);ha*=noise;aa*=Math.max(.88,2-noise)}return[Math.min(7,poissonGoals(ha*(.92+gameRandom()*.16))),Math.min(7,poissonGoals(aa*(.92+gameRandom()*.16)))]}
 function internationalScoringLedgerAdd(teamKey,name,playerId=null,goals=1){
  if(!Array.isArray(G.intClub.scoringLedger))G.intClub.scoringLedger=[];let season=Number(G.season),row=G.intClub.scoringLedger.find(x=>Number(x.season)===season&&x.teamKey===teamKey&&x.name===name);
  if(!row){row={season,teamKey,name,playerId:Number.isFinite(playerId)?playerId:null,goals:0};G.intClub.scoringLedger.push(row)}row.goals+=Number(goals)||0;return row;
