@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.4 Domestic & Foreign Population Weighting</title>
+<title>Mini&Me Football Club v2.13.5 World Cup Experience</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12990,6 +12990,279 @@ body.international-results-active{overflow:hidden}
  .federationGrid{grid-template-columns:1fr}
 }
 </style>
+
+<style id="minime-v2-13-5-world-cup-experience">
+/* ==========================================================
+   v2.13.5 WORLD CUP EXPERIENCE
+   Presentation + navigation only. Tournament engine unchanged.
+   ========================================================== */
+
+.worldCupModeHomeCard{
+ position:relative!important;
+ overflow:hidden!important;
+ padding:0!important;
+ border-color:#725f24!important;
+ background:
+   radial-gradient(circle at 82% 6%,rgba(217,181,74,.13),transparent 29%),
+   radial-gradient(circle at 9% 28%,rgba(45,116,214,.10),transparent 27%),
+   linear-gradient(145deg,#171a13 0%,#111922 57%,#0d151d 100%)!important;
+ box-shadow:0 18px 45px rgba(0,0,0,.28)!important;
+}
+.worldCupModeHomeCard:before{
+ content:"";
+ position:absolute;
+ left:0;right:0;top:0;
+ height:3px;
+ background:linear-gradient(90deg,#a88326,#e7cb6d,#728795,#d9b54a);
+ opacity:.9;
+}
+.wcExperienceInner{
+ position:relative;
+ z-index:1;
+ padding:17px 17px 16px;
+}
+.wcExperienceTop{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ gap:14px;
+ align-items:start;
+}
+.wcExperienceIdentity{
+ display:grid;
+ grid-template-columns:auto minmax(0,1fr);
+ gap:13px;
+ align-items:center;
+ min-width:0;
+}
+.wcExperienceMark{
+ width:58px;
+ height:58px;
+ border:1px solid rgba(217,181,74,.55);
+ border-radius:18px;
+ display:grid;
+ place-items:center;
+ color:var(--gold);
+ background:linear-gradient(145deg,rgba(217,181,74,.15),rgba(217,181,74,.035));
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.wcExperienceMark svg{
+ width:32px;height:32px;
+ fill:none;stroke:currentColor;stroke-width:1.7;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+.wcExperienceText{min-width:0}
+.wcExperienceText .screenEyebrow{
+ margin-bottom:5px!important;
+}
+.wcExperienceTitle{
+ font-size:25px;
+ line-height:1.02;
+ font-weight:950;
+ letter-spacing:-.025em;
+}
+.wcExperienceSub{
+ max-width:470px;
+ margin-top:7px;
+ color:var(--muted);
+ font-size:11px;
+ line-height:1.45;
+}
+.wcViewFinalsBtn{
+ min-width:142px;
+ min-height:48px;
+ border:1px solid #3b77c8;
+ border-radius:13px;
+ padding:9px 11px;
+ background:linear-gradient(145deg,rgba(44,119,224,.16),rgba(29,75,145,.07));
+ color:#8abaff;
+ display:grid;
+ grid-template-columns:auto minmax(0,1fr) auto;
+ gap:8px;
+ align-items:center;
+ text-align:left;
+ cursor:pointer;
+ touch-action:manipulation;
+}
+.wcViewFinalsBtn:active{
+ transform:scale(.985);
+ background:rgba(44,119,224,.20);
+}
+.wcViewFinalsBtn svg{
+ width:20px;height:20px;
+ fill:none;stroke:currentColor;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+.wcViewFinalsBtn span{
+ display:block;
+ font-size:8px;
+ font-weight:950;
+ letter-spacing:.08em;
+}
+.wcViewFinalsBtn small{
+ display:block;
+ color:#8a9baa;
+ font-size:8px;
+ margin-top:2px;
+ line-height:1.25;
+}
+.wcViewFinalsArrow{
+ font-size:19px;
+ font-weight:400;
+ line-height:1;
+}
+
+.wcExperienceMeta{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:9px;
+ margin-top:15px;
+}
+.wcExperienceMetaCard{
+ min-height:60px;
+ padding:10px 12px;
+ border:1px solid #5c522d;
+ border-radius:12px;
+ background:rgba(7,13,18,.33);
+ display:flex;
+ gap:10px;
+ align-items:center;
+}
+.wcExperienceMetaIcon{
+ width:30px;height:30px;
+ border:1px solid #4a5560;
+ border-radius:9px;
+ display:grid;
+ place-items:center;
+ color:#a9b6c1;
+ flex:0 0 auto;
+}
+.wcExperienceMetaIcon svg{
+ width:16px;height:16px;
+ fill:none;stroke:currentColor;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+.wcExperienceMetaCard span{
+ display:block;
+ color:var(--muted);
+ font-size:7px;
+ font-weight:900;
+ letter-spacing:.10em;
+}
+.wcExperienceMetaCard b{
+ display:block;
+ margin-top:3px;
+ font-size:12px;
+ line-height:1.2;
+}
+
+.worldCupModeManaged{
+ margin:10px 0 0!important;
+ border-radius:11px!important;
+ min-height:42px!important;
+}
+.wcExperienceSimBtn{
+ width:100%;
+ min-height:72px;
+ margin-top:12px;
+ border:1px solid #3f84ef;
+ border-radius:16px;
+ background:
+   radial-gradient(circle at 7% 50%,rgba(130,189,255,.17),transparent 13%),
+   linear-gradient(110deg,#1056b8,#176ccf 52%,#0a438f);
+ color:#f5f9ff;
+ display:grid;
+ grid-template-columns:auto minmax(0,1fr) auto;
+ gap:13px;
+ align-items:center;
+ padding:11px 14px;
+ box-shadow:0 10px 26px rgba(5,70,155,.20),inset 0 1px 0 rgba(255,255,255,.12);
+ cursor:pointer;
+ touch-action:manipulation;
+ text-align:left;
+}
+.wcExperienceSimBtn:active{
+ transform:scale(.988);
+ filter:brightness(.96);
+}
+.wcSimBall{
+ width:44px;height:44px;
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ border:1px solid rgba(178,215,255,.65);
+ background:rgba(5,32,70,.25);
+ box-shadow:0 0 20px rgba(77,154,255,.18);
+}
+.wcSimBall svg{
+ width:26px;height:26px;
+ fill:none;stroke:#d9edff;stroke-width:1.5;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+.wcSimCopy{min-width:0}
+.wcSimTitle{
+ display:block;
+ font-size:15px;
+ line-height:1.2;
+ font-weight:950;
+ letter-spacing:.005em;
+}
+.wcSimSub{
+ display:block;
+ margin-top:4px;
+ color:#c5def7;
+ font-size:9px;
+ line-height:1.25;
+}
+.wcSimArrow{
+ width:38px;height:38px;
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ color:#0c4c9d;
+ background:#f7fbff;
+ font-size:22px;
+ font-weight:500;
+}
+.wcExperienceResume{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px;
+ margin-top:10px;
+ color:#778792;
+ font-size:8.5px;
+ line-height:1.3;
+}
+.wcExperienceResume svg{
+ width:13px;height:13px;
+ fill:none;stroke:currentColor;stroke-width:1.7;
+ stroke-linecap:round;stroke-linejoin:round;
+}
+
+@media(max-width:560px){
+ .wcExperienceInner{padding:15px 14px 14px}
+ .wcExperienceTop{grid-template-columns:1fr}
+ .wcExperienceIdentity{grid-template-columns:auto minmax(0,1fr)}
+ .wcExperienceMark{width:52px;height:52px;border-radius:16px}
+ .wcExperienceMark svg{width:29px;height:29px}
+ .wcExperienceTitle{font-size:23px}
+ .wcViewFinalsBtn{
+  width:100%;
+  min-height:46px;
+  grid-template-columns:auto minmax(0,1fr) auto;
+ }
+ .wcExperienceMeta{grid-template-columns:1fr 1fr}
+ .wcExperienceSimBtn{min-height:68px;padding:10px 12px}
+ .wcSimTitle{font-size:14px}
+}
+@media(max-width:360px){
+ .wcExperienceIdentity{grid-template-columns:1fr}
+ .wcExperienceMark{display:none}
+ .wcExperienceMeta{grid-template-columns:1fr}
+ .wcExperienceTitle{font-size:21px}
+}
+</style>
+
 </head>
 <body>
 <section id="start" class="start">
@@ -13174,7 +13447,7 @@ body.international-results-active{overflow:hidden}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.4 Domestic & Foreign Population Weighting";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5 World Cup Experience";
  const RELEASE_CANDIDATE_VERSION="2.10.60.0";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -14644,7 +14917,10 @@ function currentWorldCupTournamentWeekLabel(){
 
 function worldCupTournamentModeHomeCardHtml(){
  if(!worldCupTournamentModeActive())return"";
- let t=ensureWorldCupTournament(),m=ensureWorldCupTournamentMode(),managed=managedNationId();
+ let t=ensureWorldCupTournament(),m=ensureWorldCupTournamentMode(),managed=managedNationId(),
+     stage=worldCupStageLabel(t.stage,t.groupMatchday),
+     tournamentWeek=Number(m.tournamentWeek||0)+1,
+     wcYear=currentWorldCupContextYear();
  let managedNote="";
  if(managed){
    let alive=t.stage==="GROUP"
@@ -14652,14 +14928,75 @@ function worldCupTournamentModeHomeCardHtml(){
      :(t.stage==="COMPLETE"?t.champion===managed:(t.rounds[t.stage]||[]).some(x=>x.home===managed||x.away===managed));
    managedNote='<div class="worldCupModeManaged '+(alive?'alive':'out')+'">'+nationFlagHtml(managed,18)+'<span>'+nationName(managed)+'</span><b>'+(alive?'YOUR NATION':'ELIMINATED')+'</b></div>';
  }
+
+ let trophyIcon='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 5h12v5c0 5-2.5 8-6 9.5C12.5 18 10 15 10 10V5Z"/><path d="M10 7H6v3c0 3 1.7 5 5 5"/><path d="M22 7h4v3c0 3-1.7 5-5 5"/><path d="M16 20v5"/><path d="M11 27h10"/></svg>';
+ let tableIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h2M7 12h2M7 16h2M12 8h6M12 12h6M12 16h6"/></svg>';
+ let calendarIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>';
+ let stageIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M4 19c.5-4 2-6 4-6s3.5 2 4 6M12 19c.5-4 2-6 4-6s3.5 2 4 6"/></svg>';
+ let ballIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7 3 2-1 4h-4L9 9l3-2ZM10 13l-3 2M14 13l3 2M9 9 6 8M15 9l3-1M9 17l1 4M15 17l-1 4"/></svg>';
+ let infoIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>';
+
  return '<div class="card worldCupModeHomeCard">'+
-   '<div class="screenEyebrow">CLUB FOOTBALL PAUSED</div>'+
-   '<div class="title">World Cup Finals</div>'+
-   '<div class="sub">Premier Division Week '+m.pausedLeagueWeek+' remains paused while the international tournament is completed.</div>'+
-   '<div class="worldCupModeStage"><span>TOURNAMENT WEEK '+(Number(m.tournamentWeek||0)+1)+'</span><b>'+worldCupStageLabel(t.stage,t.groupMatchday)+'</b></div>'+
-   managedNote+
-   '<button class="primary worldCupModeSimBtn" data-world-cup-mode-sim="1">SIMULATE · '+worldCupStageLabel(t.stage,t.groupMatchday)+'</button>'+
+   '<div class="wcExperienceInner">'+
+    '<div class="wcExperienceTop">'+
+      '<div class="wcExperienceIdentity">'+
+        '<div class="wcExperienceMark">'+trophyIcon+'</div>'+
+        '<div class="wcExperienceText">'+
+          '<div class="screenEyebrow">CLUB FOOTBALL PAUSED · '+wcYear+' WORLD CUP</div>'+
+          '<div class="wcExperienceTitle">World Cup Finals</div>'+
+          '<div class="wcExperienceSub">Premier Division Week '+m.pausedLeagueWeek+' remains paused while the international tournament is completed.</div>'+
+        '</div>'+
+      '</div>'+
+      '<button class="wcViewFinalsBtn" data-world-cup-view-finals="1">'+tableIcon+
+        '<span>VIEW WORLD CUP<small>'+(t.stage==="GROUP"?'Group tables & standings':'Groups & knockout path')+'</small></span>'+
+        '<b class="wcViewFinalsArrow">›</b>'+
+      '</button>'+
+    '</div>'+
+    '<div class="wcExperienceMeta">'+
+      '<div class="wcExperienceMetaCard"><div class="wcExperienceMetaIcon">'+calendarIcon+'</div><div><span>TOURNAMENT WEEK</span><b>'+tournamentWeek+'</b></div></div>'+
+      '<div class="wcExperienceMetaCard"><div class="wcExperienceMetaIcon">'+stageIcon+'</div><div><span>CURRENT STAGE</span><b>'+stage+'</b></div></div>'+
+    '</div>'+
+    managedNote+
+    '<button class="wcExperienceSimBtn" data-world-cup-mode-sim="1">'+
+      '<span class="wcSimBall">'+ballIcon+'</span>'+
+      '<span class="wcSimCopy"><b class="wcSimTitle">SIMULATE · '+stage+'</b><small class="wcSimSub">Continue the '+wcYear+' World Cup Finals</small></span>'+
+      '<span class="wcSimArrow">→</span>'+
+    '</button>'+
+    '<div class="wcExperienceResume">'+infoIcon+'<span>Your club season resumes after the World Cup Finals.</span></div>'+
+   '</div>'+
  '</div>';
+}
+
+
+function openWorldCupFinalsHub(){
+ page="league";
+ leagueTab="international";
+ window.internationalSectionTab="national";
+ window.worldCupHubTab="finals";
+ render();
+
+ setTimeout(()=>{
+   let internationalTab=document.querySelector('[data-tab="international"],[data-league-tab="international"],[data-league-section="international"]');
+   if(internationalTab&&!internationalTab.classList.contains("active")&&internationalTab.click)internationalTab.click();
+
+   setTimeout(()=>{
+     window.internationalSectionTab="national";
+     window.worldCupHubTab="finals";
+     let nationalTab=document.querySelector('[data-international-section="national"]');
+     if(nationalTab&&!nationalTab.classList.contains("active")&&nationalTab.click)nationalTab.click();
+
+     setTimeout(()=>{
+       window.worldCupHubTab="finals";
+       let finalsTab=document.querySelector('[data-wc-hub-tab="finals"]');
+       if(finalsTab&&!finalsTab.classList.contains("active")&&finalsTab.click)finalsTab.click();
+
+       setTimeout(()=>{
+         let target=document.querySelector(".worldCupFinalsHub")||document.querySelector(".worldCupHub");
+         if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
+       },70);
+     },70);
+   },70);
+ },40);
 }
 
 function worldCupStageResultLabel(stage,groupMatchday){
@@ -25619,6 +25956,7 @@ document.addEventListener("click",function(e){
 
  let marketSource=e.target.closest&&e.target.closest("[data-market-source]");if(marketSource){window.marketSourceTab=marketSource.dataset.marketSource||"free";page="market";renderSoon();return}
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
+ let worldCupViewFinals=e.target.closest&&e.target.closest("[data-world-cup-view-finals]");if(worldCupViewFinals){openWorldCupFinalsHub();return}
  let worldCupModeSim=e.target.closest&&e.target.closest("[data-world-cup-mode-sim]");if(worldCupModeSim){simulateWorldCupTournamentWeek();return}
  let wcHubTab=e.target.closest&&e.target.closest("[data-wc-hub-tab]");if(wcHubTab){window.worldCupHubTab=wcHubTab.dataset.wcHubTab||"qualification";render();return}
  let wcHubConf=e.target.closest&&e.target.closest("[data-wc-hub-conf]");if(wcHubConf){window.worldCupHubConf=wcHubConf.dataset.wcHubConf||"AFC";window.worldCupHubTab="qualification";render();return}
