@@ -9914,7 +9914,7 @@ body:not(.career-hub-active) #app .aboutGameView{
 @media(max-width:430px){.intTeamPrimary{gap:4px}.intTeamPrimary>.inlineNationFlag{--flag-size:13px!important}.intTeam .intNationTag{font-size:7.5px!important}}
 
 /* ==========================================================
-   v2.13.5.14 MANAGER SETUP + GAME GUIDE
+   v2.13.5.15 MANAGER SETUP + GAME GUIDE
    ========================================================== */
 .managerSetupCard{margin:16px 0 12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:left}
 .managerSetupField{display:block;margin-bottom:14px}.managerSetupField:last-child{margin-bottom:0}.managerSetupField>span{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.10em}
@@ -9927,6 +9927,29 @@ body:not(.career-hub-active) #app .aboutGameView{
 .gameGuideGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.gameGuideItem{min-width:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}.gameGuideItem>span{display:block;color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.12em}.gameGuideItem>b{display:block;margin-top:5px;font-size:14px;line-height:1.2}.gameGuideItem>p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.gameGuideItem.accent{border-color:#705d25;background:#d9b54a09}
 .gameGuideStart{min-height:50px!important}.gameGuideFoot{text-align:center;margin-top:9px;color:var(--muted);font-size:9px}.gmGuideBtn{margin:-1px 0 12px!important}
 @media(max-width:600px){.gameGuideModal{padding:10px}.gameGuidePlacemat{padding:14px;max-height:calc(100dvh - 20px)}.gameGuideTitle{font-size:21px}.gameGuideGrid{grid-template-columns:1fr;gap:8px}.gameGuideItem{padding:11px}.gameGuideItem>b{font-size:13px}.gameGuideItem>p{font-size:10px}}
+
+/* v2.13.5.15 PROFILE MOBILE & SHEET RESET */
+@media(max-width:600px){
+ .playerProfileNameRow,
+ .clubProfileNameRow{
+   position:relative!important;
+   display:block!important;
+   padding-right:0!important;
+ }
+ .playerProfileNameRow .playerProfileName,
+ .clubProfileNameRow .clubProfileIdentity{
+   padding-right:0!important;
+ }
+ .playerEditButton.profileEditButtonUnified,
+ .clubProfileEditButton.profileEditButtonUnified{
+   display:flex!important;
+   width:max-content!important;
+   margin:12px 0 0 auto!important;
+   position:relative!important;
+   clear:both!important;
+ }
+}
+
 </style>
 <!-- MINI&ME DEVTOOLS PATCH START -->
 <style id="minime-devtools-overrides">
@@ -14141,7 +14164,7 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.14 Manager Setup & Game Guide";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.15 Profile Mobile & Sheet Reset";
  const RELEASE_CANDIDATE_VERSION="2.13.5.13";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -23926,7 +23949,7 @@ function showClubProfile(id,tab="overview"){
  '<div class="clubProfileTabs profileTabsUnified">'+tabs.map(x=>'<button data-club-profile-tab="'+c.id+'" data-tab="'+x[0]+'" class="'+(tab===x[0]?'active':'')+'">'+x[1]+'</button>').join("")+'</div>'+
  body+
  '<button class="btn full profileBottomClose" data-close="1">CLOSE</button>';
- $("#sheet").classList.remove("hidden");
+ showSheetFromTop();
 }
 function applyPromotionRelegation(){
  ensureLeagueWorld();let top=standings("top"),lower=standings("lower");if(top.length<3||lower.length<3)return;
@@ -26374,6 +26397,24 @@ function clubEditorHtml(c){
  '<div class="editorField"><label>Club Balance</label><input id="editClubBalance" type="number" min="0" step="1000000" value="'+c.balance+'"></div></div>'+
  '<div class="editorActions"><button class="btn primary" data-save-club-edit="'+c.id+'">SAVE CHANGES</button><button class="btn" data-cancel-club-edit="1">CANCEL</button></div><div class="editorHint">Club and Head Coach changes affect this save immediately. Coach OVR, playstyle and formation feed directly into Coach Fit and team selection.</div></div>';
 }
+
+function resetOpenSheetToTop(){
+ try{
+  const box=document.getElementById("sheetbox");
+  if(box){
+   box.scrollTop=0;
+   box.scrollTo({top:0,left:0,behavior:"auto"});
+  }
+ }catch(_){}
+}
+function showSheetFromTop(){
+ const sheet=document.getElementById("sheet");
+ if(!sheet)return;
+ resetOpenSheetToTop();
+ sheet.classList.remove("hidden");
+ requestAnimationFrame(()=>requestAnimationFrame(resetOpenSheetToTop));
+}
+
 function openClubEditor(id){let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;$("#sheetbox").innerHTML='<div class="label">CLUB PROFILE</div><h2>'+c.name+'</h2>'+clubEditorHtml(c);$("#sheet").classList.remove("hidden")}
 function saveClubEdit(id){
  let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;
@@ -26655,7 +26696,7 @@ function showPlayer(id,tab="overview"){
  body+
  '<div id="playerEditorHost" class="playerEditorHost"></div>'+
  '<button class="btn full profileBottomClose" data-close="1">CLOSE</button>';
- $("#sheet").classList.remove("hidden");
+ showSheetFromTop();
 }
 function buy(id){
  let p=G.players.find(x=>x.id===id),c=G.clubs[G.club];if(!p||!c||p.freeAgent||p.team===-1)return;
