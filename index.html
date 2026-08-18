@@ -9912,6 +9912,21 @@ body:not(.career-hub-active) #app .aboutGameView{
 .intTeamPrimary>.inlineNationFlag{flex:0 0 auto}
 .intTeam .intNationTag{margin-top:2px!important;font-size:8px!important}
 @media(max-width:430px){.intTeamPrimary{gap:4px}.intTeamPrimary>.inlineNationFlag{--flag-size:13px!important}.intTeam .intNationTag{font-size:7.5px!important}}
+
+/* ==========================================================
+   v2.13.5.14 MANAGER SETUP + GAME GUIDE
+   ========================================================== */
+.managerSetupCard{margin:16px 0 12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:left}
+.managerSetupField{display:block;margin-bottom:14px}.managerSetupField:last-child{margin-bottom:0}.managerSetupField>span{display:block;margin-bottom:6px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.10em}
+.managerSetupField input{width:100%;min-height:46px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#0b1218;color:var(--text);font-size:14px;outline:none}.managerSetupField input:focus{border-color:var(--gold)}
+.managerSetupField small{display:block;margin-top:6px;color:var(--muted);font-size:9px;line-height:1.4}
+#managerStep{position:relative;z-index:2}
+.gameGuideModal{position:fixed;inset:0;z-index:7000;background:rgba(4,7,10,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+.gameGuideModal.hidden{display:none!important}.gameGuidePlacemat{width:min(100%,760px);max-height:calc(100dvh - 36px);overflow:auto;border:1px solid #705d25;border-radius:20px;background:linear-gradient(180deg,#121b24,#0a1118);padding:18px;box-shadow:0 24px 70px #000c}
+.gameGuideTop{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--line)}.gameGuideTitle{margin-top:4px;font-size:24px;font-weight:950;line-height:1.05}.gameGuideClose{width:42px;height:42px;flex:0 0 auto;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--text);font-size:25px;line-height:1;cursor:pointer}
+.gameGuideGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.gameGuideItem{min-width:0;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}.gameGuideItem>span{display:block;color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.12em}.gameGuideItem>b{display:block;margin-top:5px;font-size:14px;line-height:1.2}.gameGuideItem>p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.gameGuideItem.accent{border-color:#705d25;background:#d9b54a09}
+.gameGuideStart{min-height:50px!important}.gameGuideFoot{text-align:center;margin-top:9px;color:var(--muted);font-size:9px}.gmGuideBtn{margin:-1px 0 12px!important}
+@media(max-width:600px){.gameGuideModal{padding:10px}.gameGuidePlacemat{padding:14px;max-height:calc(100dvh - 20px)}.gameGuideTitle{font-size:21px}.gameGuideGrid{grid-template-columns:1fr;gap:8px}.gameGuideItem{padding:11px}.gameGuideItem>b{font-size:13px}.gameGuideItem>p{font-size:10px}}
 </style>
 <!-- MINI&ME DEVTOOLS PATCH START -->
 <style id="minime-devtools-overrides">
@@ -13934,8 +13949,18 @@ body.result-active #contextMore{display:none!important}
   <div id="saveSlotHint" class="sub">Up to three independent careers can be stored on this device.</div>
   <div id="careerSlots" class="careerSlots"></div>
 </div>
+<div id="managerStep" class="careerStep hidden">
+  <div class="careerTop"><button id="backToSlotsFromManager" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
+  <h2>Create Your General Manager</h2>
+  <div class="sub">Set the identity that will follow you throughout your club and international management career.</div>
+  <div class="managerSetupCard">
+    <label class="managerSetupField"><span>YOUR NAME</span><input id="managerFullName" type="text" maxlength="40" autocomplete="name" placeholder="e.g. Alex Fitzgerald"></label>
+    <label class="managerSetupField"><span>KNOWN AS</span><input id="managerKnownAs" type="text" maxlength="32" placeholder="e.g. Fitz"><small>This is the name used in news, records and your GM profile. Leave blank to use your full name.</small></label>
+  </div>
+  <button id="managerContinueBtn" class="btn primary full">CONTINUE</button>
+</div>
 <div id="federationStep" class="careerStep hidden">
-  <div class="careerTop"><button id="backToSlotsFromFederation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
+  <div class="careerTop"><button id="backToManagerFromFederation" class="backBtn">‹ BACK</button><div class="label">NEW CAREER</div><span class="careerTopSpacer"></span></div>
   <h2>Choose Your Federation</h2>
   <div class="sub">Start with the football region you want your domestic career to belong to.</div>
   <div class="worldFoundationNote careerSetupNote"><b>Football world.</b> Choose a federation, then a country, then the club you want to manage.</div>
@@ -13979,6 +14004,25 @@ body.result-active #contextMore{display:none!important}
 <div id="continueDock" class="continueDock hidden"><button id="continueBtn" class="btn primary">CONTINUE</button></div>
 
 
+
+<div id="gameGuideModal" class="gameGuideModal hidden" role="dialog" aria-modal="true" aria-labelledby="gameGuideTitle">
+ <div class="gameGuidePlacemat">
+  <div class="gameGuideTop">
+   <div><div class="screenEyebrow">MINI&ME FOOTBALL</div><div id="gameGuideTitle" class="gameGuideTitle">Your Manager Placemat</div><div class="sub">The essentials for running your club and building a career.</div></div>
+   <button class="gameGuideClose" data-close-game-guide="1" aria-label="Close game guide">×</button>
+  </div>
+  <div class="gameGuideGrid">
+   <div class="gameGuideItem"><span>01</span><b>Manage the Match</b><p>Your Head Coach selects the formation and strongest XI. Player quality, positional effectiveness, Coach Fit, coach OVR and club DNA shape match strength.</p></div>
+   <div class="gameGuideItem"><span>02</span><b>Improve the Squad</b><p>Use Squad to understand roles and depth. Use Market to recruit where the team is weak, renew contracts and move players on when needed.</p></div>
+   <div class="gameGuideItem"><span>03</span><b>Compete Every Week</b><p>Continue from Home to progress fixtures. League, National Cup and international competitions build your season and career record.</p></div>
+   <div class="gameGuideItem"><span>04</span><b>Build the Club</b><p>Facilities, finances, staff and football identity matter over time. Sustainable decisions improve the club without turning the game into constant administration.</p></div>
+   <div class="gameGuideItem"><span>05</span><b>Shape Your Legacy</b><p>Your GM career can move between clubs and eventually into national team management. Records, rivalries, honours and history persist as the football world grows.</p></div>
+   <div class="gameGuideItem accent"><span>TIP</span><b>Winning</b><p>A strong natural XI that fits the coach is more important than simply owning the highest rated squad. Build for the way your Head Coach wants to play.</p></div>
+  </div>
+  <button class="btn primary full gameGuideStart" data-close-game-guide="1">START MANAGING</button>
+  <div class="gameGuideFoot">You can reopen this guide at any time from your GM Profile.</div>
+ </div>
+</div>
 
 <div id="seasonReview" class="seasonReview hidden">
  <div class="reviewWrap">
@@ -14097,7 +14141,7 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.13 International Round & Flag Polish";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.14 Manager Setup & Game Guide";
  const RELEASE_CANDIDATE_VERSION="2.13.5.13";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -17344,7 +17388,7 @@ function seedPlayerStyle(p,legacyTeamId=null){
 }
 function ensurePlayerStyleState(){if(G&&Array.isArray(G.players))G.players.forEach(p=>seedPlayerStyle(p,p.team>=0?p.team:null))}
 
-let G=null, selected=0, page="home", selectedCareerNation="AUS", selectedCareerFederation="AFC";
+let G=null, selected=0, page="home", selectedCareerNation="AUS", selectedCareerFederation="AFC", selectedGMFullName="", selectedGMKnownAs="";
 let clubTab="overview",leagueTab="table",squadTab="team",statisticsTab="leaders";
 let marketPositionFilter="RECOMMENDED";
 const ACTIVE_SLOT_KEY="miniMeFootballActiveSlot";
@@ -19131,7 +19175,7 @@ function renderCareerSlots(mode=careerSlotMode){
 }
 
 function showCareerHubStep(stepId){
- ["launchStep","saveSlotStep","federationStep","nationStep","clubStep"].forEach(id=>{
+ ["launchStep","saveSlotStep","managerStep","federationStep","nationStep","clubStep"].forEach(id=>{
    let el=$("#"+id);
    if(el)el.classList.toggle("hidden",id!==stepId);
  });
@@ -23522,7 +23566,7 @@ function gmNationalCareerHtml(){
 
 function gmProfileHtml(){
  let scope=window.gmCareerScope||"club";if(!["club","national"].includes(scope))scope="club";
- return gmProfileSharedHeroHtml()+gmCareerScopeTabsHtml()+(scope==="national"?gmNationalCareerHtml():gmClubCareerHtml());
+ return gmProfileSharedHeroHtml()+'<button class="btn full gmGuideBtn" data-open-game-guide="1">GAME GUIDE</button>'+gmCareerScopeTabsHtml()+(scope==="national"?gmNationalCareerHtml():gmClubCareerHtml());
 }
 
 function exitToCareerHub(){
@@ -23533,6 +23577,7 @@ function exitToCareerHub(){
  let result=$("#resultScreen");if(result)result.classList.add("hidden");
  $("#clubStep").classList.add("hidden");
  $("#saveSlotStep").classList.add("hidden");
+ $("#managerStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
  $("#start").classList.remove("hidden");
  document.body.classList.add("career-hub-active");
@@ -23550,13 +23595,22 @@ function hideGMProfile(){
  let box=$("#gmProfileModal");if(box)box.classList.add("hidden");
  document.body.classList.remove("gm-profile-open");
 }
+function showGameGuide(firstRun){
+ let box=$("#gameGuideModal");if(!box)return;
+ if(firstRun&&G&&G.gameGuideSeen)return;
+ box.classList.remove("hidden");document.body.classList.add("game-guide-open");
+}
+function hideGameGuide(){
+ let box=$("#gameGuideModal");if(box)box.classList.add("hidden");document.body.classList.remove("game-guide-open");
+ if(G){G.gameGuideSeen=true;try{save()}catch(e){}}
+}
 function editGMName(){
  ensureUserGMIdentity();
  let next=prompt("Enter your GM name or alias:",G.userGM.name||"");
  if(next===null)return;
  next=String(next).trim().slice(0,32);
  if(!next)return;
- G.userGM.name=next;
+ G.userGM.name=next;G.userGM.knownAs=next;
  let c=G.clubs[G.club];
  if(c&&c.gm)c.gm.name=next;
  let gm=G.staffHistory.gms[G.userGM.id];if(gm)gm.name=next;
@@ -26954,7 +27008,23 @@ function renderFederationChoices(){
  }).join("");
 }
 
+function showManagerStep(){
+ ["saveSlotStep","federationStep","nationStep","clubStep"].forEach(id=>{let el=$("#"+id);if(el)el.classList.add("hidden")});
+ let step=$("#managerStep");if(step)step.classList.remove("hidden");
+ let full=$("#managerFullName"),known=$("#managerKnownAs");
+ if(full){full.value=selectedGMFullName||"";setTimeout(()=>full.focus(),50)}
+ if(known)known.value=selectedGMKnownAs||"";
+}
+function confirmManagerIdentity(){
+ let full=String($("#managerFullName")?.value||"").trim().replace(/\s+/g," ").slice(0,40);
+ let known=String($("#managerKnownAs")?.value||"").trim().replace(/\s+/g," ").slice(0,32);
+ if(!full){alert("Please enter your name before continuing.");$("#managerFullName")?.focus();return}
+ selectedGMFullName=full;selectedGMKnownAs=known||full;
+ $("#managerStep").classList.add("hidden");showFederationStep();
+}
+
 function showFederationStep(){
+ $("#managerStep").classList.add("hidden");
  $("#saveSlotStep").classList.add("hidden");
  $("#nationStep").classList.add("hidden");
  $("#clubStep").classList.add("hidden");
@@ -27025,6 +27095,14 @@ function startSelectedCareer(){
  var status=$("#startStatus");
  try{
   G=world();
+  ensureUserGMIdentity();
+  let managerDisplay=selectedGMKnownAs||selectedGMFullName||"General Manager";
+  G.userGM.fullName=selectedGMFullName||managerDisplay;
+  G.userGM.knownAs=managerDisplay;
+  G.userGM.name=managerDisplay;
+  let userClub=G.clubs&&G.clubs[G.club];if(userClub&&userClub.gm)userClub.gm.name=managerDisplay;
+  let userGMRec=G.staffHistory&&G.staffHistory.gms&&G.staffHistory.gms[G.userGM.id];if(userGMRec)userGMRec.name=managerDisplay;
+  G.gameGuideSeen=false;
   G._careerSlot=activeSaveSlot;
   G._storageMode="slot";
   var saved=save();
@@ -27032,6 +27110,7 @@ function startSelectedCareer(){
   document.body.classList.remove("career-hub-active");
   page="home";
   render();
+  setTimeout(()=>showGameGuide(true),80);
   if(!saved)G.feed.unshift({t:"SAVE WARNING",m:"Safari is running the game but local saving is unavailable in this browsing mode."});
  }catch(e){
   $("#clubStep").classList.add("hidden");
@@ -27087,6 +27166,8 @@ document.addEventListener("click",function(e){
  let gmTab=e.target.closest&&e.target.closest("[data-gm-tab]");if(gmTab){window.gmProfileTab=gmTab.dataset.gmTab||"record";showGMProfile();return}
  let reviewTab=e.target.closest&&e.target.closest("[data-review-tab]");if(reviewTab){e.preventDefault();setSeasonReviewTab(reviewTab.dataset.reviewTab||"league");return}
  let marketFilterBtn=e.target.closest("[data-market-position]");
+ let openGuide=e.target.closest&&e.target.closest("[data-open-game-guide]");if(openGuide){e.preventDefault();hideGMProfile();showGameGuide(false);return}
+ let closeGuide=e.target.closest&&e.target.closest("[data-close-game-guide]");if(closeGuide){e.preventDefault();hideGameGuide();return}
  if(marketFilterBtn){marketPositionFilter=marketFilterBtn.getAttribute("data-market-position")||"RECOMMENDED";page="market";renderSoon();return}
  let resultPlayer=e.target.closest("[data-result-player]");
  if(resultPlayer){
@@ -27119,7 +27200,7 @@ let slotBtn=e.target.closest("[data-career-slot]");if(slotBtn){
  if(existing&&!confirm("Career "+slot+" already contains "+(careerSlotSummary(slot)?.club||"a saved career")+". Replace it with a new career?"))return;
  activeSaveSlot=slot;
  try{localStorage.setItem(ACTIVE_SLOT_KEY,String(slot))}catch(e){}
- showFederationStep();
+ showManagerStep();
  return;
 }
 let cp=e.target.closest("[data-club]");if(cp){
@@ -27178,16 +27259,22 @@ document.addEventListener("change",function(e){
  if(e.target&&e.target.id==="editClubCoachStyle"){let p=COACH_STYLE_PROFILES[e.target.value]||COACH_STYLE_PROFILES.Balanced,sel=$("#editClubCoachFormation");if(sel)sel.innerHTML=p.formations.map(f=>'<option value="'+f+'">'+f+'</option>').join("");}
 });
 
-$("#newBtn").addEventListener("click",function(){showCareerSlots("new")});
+$("#newBtn").addEventListener("click",function(){selectedGMFullName="";selectedGMKnownAs="";showCareerSlots("new")});
 $("#loadBtn").addEventListener("click",function(){showCareerSlots("load")});
 $("#backToLaunchFromSlots").addEventListener("click",function(){
  $("#saveSlotStep").classList.add("hidden");
  $("#launchStep").classList.remove("hidden");
 });
-$("#backToSlotsFromFederation").addEventListener("click",function(){
- $("#federationStep").classList.add("hidden");
+$("#backToSlotsFromManager").addEventListener("click",function(){
+ $("#managerStep").classList.add("hidden");
  $("#saveSlotStep").classList.remove("hidden");
  renderCareerSlots("new");
+});
+$("#managerContinueBtn").addEventListener("click",confirmManagerIdentity);
+$("#managerKnownAs").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();confirmManagerIdentity()}});
+$("#backToManagerFromFederation").addEventListener("click",function(){
+ $("#federationStep").classList.add("hidden");
+ $("#managerStep").classList.remove("hidden");
 });
 $("#backToFederationsFromNation").addEventListener("click",function(){
  $("#nationStep").classList.add("hidden");
