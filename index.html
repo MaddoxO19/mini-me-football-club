@@ -14164,7 +14164,7 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.17 Milestones & Historic Firsts";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.18 Workspace Position Preservation";
  const RELEASE_CANDIDATE_VERSION="2.13.5.17";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -20016,7 +20016,7 @@ function currentWorldStories(season=G.season,limit=5){
 }
 
 /* ==========================================================
-   v2.13.5.17 MILESTONES & HISTORIC FIRSTS
+   v2.13.5.18 MILESTONES & HISTORIC FIRSTS
    Narrative/history only. No match-engine changes.
    ========================================================== */
 function ensureHistoricFirstsState(){
@@ -26524,11 +26524,12 @@ function resetOpenSheetToTop(){
  }catch(_){}
 }
 function showSheetFromTop(){
+ // v2.13.5.18: preserve the current sheet workspace position.
+ // This avoids jumping back to the top after management actions such as
+ // repeated contract extensions. The helper name is retained for compatibility.
  const sheet=document.getElementById("sheet");
  if(!sheet)return;
- resetOpenSheetToTop();
  sheet.classList.remove("hidden");
- requestAnimationFrame(()=>requestAnimationFrame(resetOpenSheetToTop));
 }
 
 function openClubEditor(id){let c=G.clubs.find(x=>x.id===Number(id));if(!c)return;$("#sheetbox").innerHTML='<div class="label">CLUB PROFILE</div><h2>'+c.name+'</h2>'+clubEditorHtml(c);$("#sheet").classList.remove("hidden")}
@@ -27147,7 +27148,8 @@ function resetTopMenuSection(nextPage){
 function navigateTo(nextPage){
  if(!nextPage)return;
  let previous=page;
- resetTopMenuSection(nextPage);
+ // v2.13.5.18: preserve each menu's current sub-section and workspace position.
+ // This is intentional for repetitive management workflows such as contracts.
  page=nextPage;
  document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  let ok=render();
@@ -27157,7 +27159,6 @@ function navigateTo(nextPage){
   render();
   return;
  }
- resetMainWorkspaceScroll();
 }
 
 document.addEventListener("click",function(e){
