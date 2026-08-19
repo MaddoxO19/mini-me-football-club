@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.0.0 Pre-Production</title>
+<title>Mini&Me Football Club v1.0.2 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.0.0 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.0.0";
+const BUILD_VERSION="Mini&Me Football Club v1.0.2 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.0.2";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -21080,6 +21080,25 @@ function displayPlayerName(name){
  return String(name||"").replace(/\s+\d+$/,"").trim();
 }
 
+/* v1.0.1 QA — player-name integrity for news/feed text.
+   Some legacy saves retain an old numeric suffix in p.name (for example
+   "Owen Robinson 40"). Player cards already use displayPlayerName().
+   News previously rendered the stored feed string directly, allowing the
+   legacy suffix to reappear. This display-layer sanitizer replaces any
+   stored raw player name with the clean display name without mutating
+   save identity or player IDs. */
+function displayFeedMessage(message){
+ let text=String(message||"");
+ if(!G||!Array.isArray(G.players))return text;
+ G.players.forEach(p=>{
+   if(!p||!p.name)return;
+   let raw=String(p.name),clean=displayPlayerName(raw);
+   if(raw===clean||!raw)return;
+   text=text.split(raw).join(clean);
+ });
+ return text;
+}
+
 const MARKET_ROLE_POSITIONS={
  GK:["GK"],
  DEF:["LB","CB","CB","RB","LWB","RWB"],
@@ -23235,11 +23254,14 @@ function showSeasonReview(){
    '<div class="honourRow"><div><b>Your Club</b><span>Cup finish</span></div><b>'+(r.cup&&r.cup.finish?r.cup.finish:"—")+'</b></div>'+
    (r.cup&&r.cup.goldenBoot?'<div class="honourRow reviewPlayerRow" data-review-player="'+r.cup.goldenBoot.id+'"><div><b>Golden Boot · '+r.cup.goldenBoot.name+'</b><span>'+r.cup.goldenBoot.club+' · '+r.cup.goldenBoot.apps+' apps</span></div><b>'+r.cup.goldenBoot.goals+' goals</b></div>':'')+
   '</div>'+
-  '<div class="card reviewSection qualificationCard"><div class="sectionHead"><div><div class="title">International Club Football</div><div class="sub">Champions Tournament outcome and next-season qualification.</div></div></div>'+
-   '<div class="honourRow"><div><b>Champions Tournament</b><span>'+r.season+' international campaign</span></div><b>'+(r.international&&r.international.finish?r.international.finish:'Not contested')+'</b></div>'+
-   (r.international&&r.international.active?'<div class="honourRow"><div><b>International Champion</b><span>32-club competition</span></div><b>'+(r.international.winnerName||'—')+'</b></div>':'')+
-   (r.international&&r.international.goldenBoot?'<div class="honourRow"><div><b>International Golden Boot · '+r.international.goldenBoot.name+'</b><span>'+r.international.goldenBoot.clubName+' · '+nationFlagHtml(r.international.goldenBoot.nation,18)+'<span>'+nationName(r.international.goldenBoot.nation)+'</span></span></div><b>'+r.international.goldenBoot.goals+' goals</b></div>':'')+
-   '<div class="honourRow"><div><b>Next Season Qualification</b><span>'+nationFlagHtml(G.careerNation,18)+'<span>'+nationName(G.careerNation)+' representatives</span></span></div><b>'+(r.internationalQualification&&r.internationalQualification.userQualified?'QUALIFIED':'Not qualified')+'</b></div>'+
+  '<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Champions Tournament Summary</div><div class="sub">International club outcomes and honours.</div></div></div>'+
+   '<div class="honourRow"><div><b>Champion</b><span>'+r.season+' Champions Tournament</span></div><b>'+(r.international&&r.international.winnerName?r.international.winnerName:"—")+'</b></div>'+
+   '<div class="honourRow"><div><b>Runner-up</b><span>Finalist</span></div><b>'+(r.international&&r.international.runnerUpName?r.international.runnerUpName:"—")+'</b></div>'+
+   '<div class="honourRow"><div><b>Your Club</b><span>Tournament finish</span></div><b>'+(r.international&&r.international.finish?r.international.finish:"Not contested")+'</b></div>'+
+   (r.international&&r.international.goldenBoot?'<div class="honourRow reviewPlayerRow" '+(r.international.goldenBoot.id?'data-review-player="'+r.international.goldenBoot.id+'"':'')+'><div><b>Golden Boot · '+displayPlayerName(r.international.goldenBoot.name)+'</b><span>'+r.international.goldenBoot.clubName+' · '+nationFlagHtml(r.international.goldenBoot.nation,18)+'<span>'+nationName(r.international.goldenBoot.nation)+'</span></span></div><b>'+r.international.goldenBoot.goals+' goals</b></div>':'')+
+  '</div>'+
+  '<div class="card reviewSection qualificationCard"><div class="sectionHead"><div><div class="title">Next Season Qualification</div><div class="sub">'+(r.internationalQualification?r.internationalQualification.season:(Number(r.season)+1))+' Champions Tournament entry.</div></div></div>'+
+   '<div class="honourRow"><div><b>Your Club</b><span>'+nationFlagHtml(G.careerNation,18)+'<span>'+nationName(G.careerNation)+' representative</span></span></div><b>'+(r.internationalQualification&&r.internationalQualification.userQualified?'QUALIFIED':'Not qualified')+'</b></div>'+
    ((r.internationalQualification&&r.internationalQualification.qualifiers)||[]).map(q=>'<div class="qualificationRow"><div><b>'+displayPlayerName(q.name)+'</b><span>'+q.source+'</span></div><div>'+r.internationalQualification.season+'</div></div>').join('')+
   '</div>'+
   '<div class="reviewPhase"><span>LEAGUE HONOURS</span><b>Premier Division</b></div>'+
@@ -25576,7 +25598,7 @@ function homeNewsHtml(limit=3){
  let recent=(G.feed||[]).slice(0,limit);
  return '<div class="card homeNewsCard"><div class="sectionHead homeNewsHead"><div><div class="title">Club News</div><div class="sub">Latest events affecting your club.</div></div><div class="sectionCount">'+recent.length+'</div></div>'+
    (recent.length?'<div class="homeNewsList">'+recent.map(x=>
-     '<div class="newsItem premiumNewsItem">'+homeNewsIconHtml(x.t)+'<div class="premiumNewsCopy"><b>'+String(x.t||"CLUB UPDATE")+'</b><span>'+String(x.m||"")+'</span></div></div>'
+     '<div class="newsItem premiumNewsItem">'+homeNewsIconHtml(x.t)+'<div class="premiumNewsCopy"><b>'+String(x.t||"CLUB UPDATE")+'</b><span>'+displayFeedMessage(x.m)+'</span></div></div>'
    ).join("")+'</div>':'<div class="profileEmpty compactEmpty">No major club updates this week.</div>')+
  '</div>';
 }
@@ -25976,6 +25998,8 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.0.2","Season Review Competition Summary Consistency","PRE-PRODUCTION / QA FIX","Rebuilt the Champions Tournament season-review summary to mirror the National Cup structure: Champion, Runner-up, Your Club and Golden Boot. Next-season international qualification is now presented in its own subordinate card for clearer and more consistent review navigation."],
+  ["v1.0.1","QA Player Name Integrity","PRE-PRODUCTION / QA FIX","Corrected legacy numeric player-ID suffixes appearing in Club News and other feed text. Feed messages now pass through the same player display-name integrity layer used by player cards. Existing save identity and player IDs are not changed."],
   ["v1.0.0","Pre-Production Baseline","PRE-PRODUCTION / BASELINE","Version control reset from the legacy v2.x development stream. Gameplay, world, match and international engines are now controlled under v1.0.0. The anchored national-strength and supremacy-scoreline model is the approved international baseline for production QA. No gameplay logic was changed by the version reset."],
   ["v2.13.5.27","National Scoreline Distribution Calibration","SIMULATION","Rebalanced the unified national engine toward realistic international scorelines. Reduced goal inflation in mismatches, increased the share of close wins and low-scoring draws, and suppressed unusually frequent 4–4 / 5–0 / 6–0 tails without changing nation tiers or reintroducing separate competition engines."],
   ["v2.13.5.26","Unified National Match Engine","SIMULATION / PRODUCTION","Unified friendlies, World Cup qualifying and World Cup 90-minute simulation around one national strength, expectation, upset and score-generation path. Removed qualifier-specific scoring adjustments/guards; competition context now changes only post-draw progression such as knockout resolution."],
