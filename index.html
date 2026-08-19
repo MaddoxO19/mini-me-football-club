@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.4 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.6 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14053,6 +14053,26 @@ body.result-active #contextMore{display:none!important}
     grid-column:1 / -1!important;
   }
 }
+
+/* v1.1.6 QA — Season Preview Layout Integrity */
+body.season-preview-active #seasonPreview{
+  top:var(--season-preview-top,116px)!important;
+  bottom:0!important;height:auto!important;left:0!important;right:0!important;
+  padding:16px max(20px,env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))!important;
+  scroll-padding-top:16px!important;
+}
+body.season-preview-active .seasonPreviewWrap{width:100%!important;max-width:760px!important;margin:0 auto!important;padding:0!important}
+body.season-preview-active .seasonPreviewHero{width:100%!important;margin:0 0 16px!important;padding:0 0 16px!important}
+body.season-preview-active .seasonPreviewTabs{width:100%!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;margin:0 0 16px!important;padding:0 0 4px!important;overflow-x:auto!important}
+body.season-preview-active .seasonPreviewTabs button{flex:0 0 auto!important;min-height:44px!important;height:auto!important;padding:0 16px!important;border-radius:999px!important;font-size:10px!important}
+body.season-preview-active #seasonPreviewContent{width:100%!important}
+body.season-preview-active .seasonPreviewBegin{position:sticky!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;width:100%!important;min-height:54px!important;height:auto!important;margin:16px 0 0!important;border-radius:16px!important;z-index:12!important;box-shadow:0 12px 30px rgba(0,0,0,.44)!important}
+@media(max-width:430px){
+ body.season-preview-active #seasonPreview{padding:14px max(16px,env(safe-area-inset-right)) calc(26px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))!important}
+ body.season-preview-active .seasonPreviewHero h1{font-size:28px!important}
+ body.season-preview-active .seasonPreviewTabs{gap:8px!important}
+ body.season-preview-active .seasonPreviewTabs button{min-height:42px!important;padding:0 15px!important;font-size:9.5px!important}
+}
 </style>
 
 </head>
@@ -14301,8 +14321,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.4 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.4";
+const BUILD_VERSION="Mini&Me Football Club v1.1.6 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.6";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -20616,9 +20636,15 @@ function renderSeasonPreview(tab='outlook'){
  $("#seasonPreviewTabs").innerHTML=defs.map(x=>'<button type="button" data-season-preview-tab="'+x[0]+'" class="'+(x[0]===tab?'active':'')+'">'+x[1]+'</button>').join('');
  $("#seasonPreviewContent").innerHTML='<div class="seasonPreviewPanel active">'+seasonPreviewPanelHtml(tab)+'</div>';
 }
+function syncSeasonPreviewTop(){
+ let header=document.querySelector("header"),bottom=0;
+ if(header){let r=header.getBoundingClientRect();if(r.bottom>0)bottom=r.bottom}
+ if(bottom<72)bottom=116;
+ document.documentElement.style.setProperty("--season-preview-top",Math.round(bottom)+"px");
+}
 function maybeShowSeasonPreview(){
  if(!G||!G.seasonPreview||G.seasonPreview.dismissed||Number(G.seasonPreview.season)!==Number(G.season)){setTimeout(maybeShowClubIdentityDecision,80);return false}
- renderSeasonPreview('outlook');$("#seasonPreview").classList.remove('hidden');document.body.classList.add('season-preview-active');return true;
+ renderSeasonPreview('outlook');syncSeasonPreviewTop();$("#seasonPreview").classList.remove('hidden');document.body.classList.add('season-preview-active');$("#seasonPreview").scrollTop=0;return true;
 }
 function closeSeasonPreview(){
  if(G&&G.seasonPreview){G.seasonPreview.dismissed=true;save()}let o=$("#seasonPreview");if(o)o.classList.add('hidden');document.body.classList.remove('season-preview-active');setTimeout(maybeShowClubIdentityDecision,80);
@@ -21286,6 +21312,8 @@ function signFreeAgent(id){
 function displayPlayerName(name){
  return String(name||"").replace(/\s+\d+$/,"").trim();
 }
+
+/* v1.1.5 QA: legacy numeric player-ID suffixes are sanitized across Season Review, awards, records and recruitment surfaces. */
 
 /* v1.0.1 QA — player-name integrity for news/feed text.
    Some legacy saves retain an old numeric suffix in p.name (for example
@@ -23647,13 +23675,13 @@ function showSeasonReview(){
     else if(live.renewedThisSeason||Number(live.years)>1)label="Renewed · "+live.years+" year"+(Number(live.years)===1?"":"s");
    }
    let pid=resolveReviewPlayerId(p);
-   return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus '+(label.indexOf("Renewed")===0?"renewed":"")+'">'+label+'</div></div>';
+   return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus '+(label.indexOf("Renewed")===0?"renewed":"")+'">'+label+'</div></div>';
  }).join(""):'<div class="sub">No first-team contracts expire this offseason.</div>';
- let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
+ let fy=r.finalYear.length?r.finalYear.slice(0,8).map(p=>{let pid=resolveReviewPlayerId(p);return'<div class="reviewWorldRow" '+(pid?'data-review-player="'+pid+'"':'')+'><div><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>'+p.ovr+' OVR</span></div><div class="reviewWorldStatus">1 year remaining</div></div>'}).join(""):'<div class="sub">No players are entering the final year of their contract.</div>';
  let clubRetirements=Array.isArray(r.clubRetirements)?r.clubRetirements:[];
  let leagueRetirements=Array.isArray(r.leagueRetirements)?r.leagueRetirements:[];
- let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
- let leagueRetireHtml=leagueRetirements.length?leagueRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+p.name+' · '+p.pos+'</b><span>'+p.clubName+' · Age '+p.age+' · '+p.ovr+' OVR · '+p.apps+' career apps</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No notable league retirements to report.</div>';
+ let clubRetireHtml=clubRetirements.length?clubRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>Age '+p.age+' · '+p.ovr+' OVR · Career '+p.apps+' apps · '+p.goals+' goals · '+p.assists+' assists</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No players from your club are retiring this season.</div>';
+ let leagueRetireHtml=leagueRetirements.length?leagueRetirements.map(p=>'<div class="reviewRetirementRow" data-review-player="'+p.id+'"><div><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>'+p.clubName+' · Age '+p.age+' · '+p.ovr+' OVR · '+p.apps+' career apps</span></div><div class="retireAge">RETIRING</div></div>').join(""):'<div class="sub">No notable league retirements to report.</div>';
  $("#reviewContent").innerHTML=
  '<div class="reviewPhase"><span>SEASON OUTCOME</span><b>'+r.divisionName+'</b></div>'+
  '<div class="reviewGrid">'+
@@ -23672,7 +23700,7 @@ function showSeasonReview(){
    '<div class="honourRow"><div><b>Champion</b><span>'+r.season+' National Cup</span></div><b>'+(r.cup&&r.cup.winnerName?r.cup.winnerName:"—")+'</b></div>'+
    '<div class="honourRow"><div><b>Runner-up</b><span>Finalist</span></div><b>'+(r.cup&&r.cup.runnerUpName?r.cup.runnerUpName:"—")+'</b></div>'+
    '<div class="honourRow"><div><b>Your Club</b><span>Cup finish</span></div><b>'+(r.cup&&r.cup.finish?r.cup.finish:"—")+'</b></div>'+
-   (r.cup&&r.cup.goldenBoot?'<div class="honourRow reviewPlayerRow" data-review-player="'+r.cup.goldenBoot.id+'"><div><b>Golden Boot · '+r.cup.goldenBoot.name+'</b><span>'+r.cup.goldenBoot.club+' · '+r.cup.goldenBoot.apps+' apps</span></div><b>'+r.cup.goldenBoot.goals+' goals</b></div>':'')+
+   (r.cup&&r.cup.goldenBoot?'<div class="honourRow reviewPlayerRow" data-review-player="'+r.cup.goldenBoot.id+'"><div><b>Golden Boot · '+displayPlayerName(r.cup.goldenBoot.name)+'</b><span>'+r.cup.goldenBoot.club+' · '+r.cup.goldenBoot.apps+' apps</span></div><b>'+r.cup.goldenBoot.goals+' goals</b></div>':'')+
   '</div>'+
   '<div class="reviewPhase"><span>INTERNATIONAL CUP</span><b>Champions Tournament</b></div>'+
   '<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Champions Tournament Summary</div><div class="sub">International club outcomes and honours.</div></div></div>'+
@@ -23688,14 +23716,14 @@ function showSeasonReview(){
   '<div class="reviewPhase"><span>LEAGUE HONOURS</span><b>Premier Division</b></div>'+
   '<div class="awardsHero"><div class="label">MINI&ME FOOTBALL AWARDS</div><div class="title awardsHeroTitle">'+r.season+' Premier Division Awards</div><div class="sub">Premier Division honours based exclusively on top-flight performance. Tap players or clubs to inspect them.</div></div>'+
  '<div class="awardsGrid">'+
- (r.awards&&r.awards.player?'<div class="awardCard major worldAwardCard" '+worldPlayerAttrs(r.awards.player)+'><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.player.name+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.goldenBoot?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenBoot)+'><div class="label">GOLDEN BOOT</div><div class="awardName">'+r.awards.goldenBoot.name+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
- (r.awards&&r.awards.assistKing?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.assistKing)+'><div class="label">PLAYMAKER AWARD</div><div class="awardName">'+r.awards.assistKing.name+' · '+r.awards.assistKing.pos+'</div><div class="awardMeta">'+r.awards.assistKing.club+'</div><div class="awardValue">'+r.awards.assistKing.assists+' assists</div></div>':'')+
- (r.awards&&r.awards.goldenGlove?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenGlove)+'><div class="label">GOLDEN GLOVE</div><div class="awardName">'+r.awards.goldenGlove.name+' · '+r.awards.goldenGlove.pos+'</div><div class="awardMeta">'+r.awards.goldenGlove.club+' · '+r.awards.goldenGlove.saves+' saves</div><div class="awardValue">'+r.awards.goldenGlove.cleanSheets+' clean sheets</div></div>':'')+
- (r.awards&&r.awards.defender?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.defender)+'><div class="label">DEFENDER OF THE YEAR</div><div class="awardName">'+r.awards.defender.name+' · '+r.awards.defender.pos+'</div><div class="awardMeta">'+r.awards.defender.club+'</div><div class="awardValue">'+r.awards.defender.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.midfielder?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.midfielder)+'><div class="label">MIDFIELDER OF THE YEAR</div><div class="awardName">'+r.awards.midfielder.name+' · '+r.awards.midfielder.pos+'</div><div class="awardMeta">'+r.awards.midfielder.club+'</div><div class="awardValue">'+r.awards.midfielder.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.forward?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.forward)+'><div class="label">FORWARD OF THE YEAR</div><div class="awardName">'+r.awards.forward.name+' · '+r.awards.forward.pos+'</div><div class="awardMeta">'+r.awards.forward.club+'</div><div class="awardValue">'+r.awards.forward.avg+' AVG</div></div>':'')+
- (r.awards&&r.awards.young?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.young)+'><div class="label">YOUNG PLAYER OF THE YEAR</div><div class="awardName">'+r.awards.young.name+' · '+r.awards.young.pos+'</div><div class="awardMeta">'+r.awards.young.club+' · Age '+r.awards.young.age+'</div><div class="awardValue">'+r.awards.young.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.player?'<div class="awardCard major worldAwardCard" '+worldPlayerAttrs(r.awards.player)+'><div class="label">PLAYER OF THE YEAR</div><div class="awardName">'+displayPlayerName(r.awards.player.name)+' · '+r.awards.player.pos+'</div><div class="awardMeta">'+r.awards.player.club+' · '+r.awards.player.apps+' apps</div><div class="awardValue">'+r.awards.player.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.goldenBoot?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenBoot)+'><div class="label">GOLDEN BOOT</div><div class="awardName">'+displayPlayerName(r.awards.goldenBoot.name)+' · '+r.awards.goldenBoot.pos+'</div><div class="awardMeta">'+r.awards.goldenBoot.club+'</div><div class="awardValue">'+r.awards.goldenBoot.goals+' goals</div></div>':'')+
+ (r.awards&&r.awards.assistKing?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.assistKing)+'><div class="label">PLAYMAKER AWARD</div><div class="awardName">'+displayPlayerName(r.awards.assistKing.name)+' · '+r.awards.assistKing.pos+'</div><div class="awardMeta">'+r.awards.assistKing.club+'</div><div class="awardValue">'+r.awards.assistKing.assists+' assists</div></div>':'')+
+ (r.awards&&r.awards.goldenGlove?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.goldenGlove)+'><div class="label">GOLDEN GLOVE</div><div class="awardName">'+displayPlayerName(r.awards.goldenGlove.name)+' · '+r.awards.goldenGlove.pos+'</div><div class="awardMeta">'+r.awards.goldenGlove.club+' · '+r.awards.goldenGlove.saves+' saves</div><div class="awardValue">'+r.awards.goldenGlove.cleanSheets+' clean sheets</div></div>':'')+
+ (r.awards&&r.awards.defender?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.defender)+'><div class="label">DEFENDER OF THE YEAR</div><div class="awardName">'+displayPlayerName(r.awards.defender.name)+' · '+r.awards.defender.pos+'</div><div class="awardMeta">'+r.awards.defender.club+'</div><div class="awardValue">'+r.awards.defender.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.midfielder?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.midfielder)+'><div class="label">MIDFIELDER OF THE YEAR</div><div class="awardName">'+displayPlayerName(r.awards.midfielder.name)+' · '+r.awards.midfielder.pos+'</div><div class="awardMeta">'+r.awards.midfielder.club+'</div><div class="awardValue">'+r.awards.midfielder.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.forward?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.forward)+'><div class="label">FORWARD OF THE YEAR</div><div class="awardName">'+displayPlayerName(r.awards.forward.name)+' · '+r.awards.forward.pos+'</div><div class="awardMeta">'+r.awards.forward.club+'</div><div class="awardValue">'+r.awards.forward.avg+' AVG</div></div>':'')+
+ (r.awards&&r.awards.young?'<div class="awardCard worldAwardCard" '+worldPlayerAttrs(r.awards.young)+'><div class="label">YOUNG PLAYER OF THE YEAR</div><div class="awardName">'+displayPlayerName(r.awards.young.name)+' · '+r.awards.young.pos+'</div><div class="awardMeta">'+r.awards.young.club+' · Age '+r.awards.young.age+'</div><div class="awardValue">'+r.awards.young.avg+' AVG</div></div>':'')+
  (r.awards&&r.awards.manager?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.manager.club)+'><div class="label">MANAGER OF THE YEAR</div><div class="awardName">'+r.awards.manager.name+'</div><div class="awardMeta">'+r.awards.manager.club+' · Head Coach</div><div class="awardValue">'+ordinal(r.awards.manager.position)+' finish · '+r.awards.manager.coach+' OVR</div></div>':'')+
  (r.awards&&r.awards.gm?'<div class="awardCard worldAwardCard" '+worldClubAttrs(r.awards.gm.club)+'><div class="label">GM OF THE YEAR</div><div class="awardName">'+r.awards.gm.club+'</div><div class="awardMeta">General Manager · Premier Division</div><div class="awardValue">'+(r.awards.gm.overperformance>0?("+"+r.awards.gm.overperformance+" vs expectation"):ordinal(r.awards.gm.position)+" finish")+'</div></div>':'')+
  '</div>'+
@@ -25072,7 +25100,7 @@ function marketIntelligenceBriefHtml(players,needGroups){
  return '<div class="card marketIntelBrief"><div class="sectionHead"><div><div class="title">Scouting Shortlist</div><div class="sub">Recommendations are based only on players currently discovered by your Scouting Department.</div></div><div class="sectionCount">LV '+cov.level+'</div></div>'+
    (picks.length?picks.map((x,i)=>{
       let p=x.p,a=scoutingAssessment(G.club,p),tier=scoutingTierEstimate(G.club,p);
-      return '<div class="marketIntelPick" data-player="'+p.id+'"><div class="marketIntelRank">'+(i+1)+'</div><div><b>'+p.name+' · '+p.pos+'</b><span>'+marketRecommendationLabel(G.club,p,needGroups)+' · '+tier.label+' · '+a.confidence+'</span></div><div class="marketIntelOvr">'+a.ovrText+'</div></div>';
+      return '<div class="marketIntelPick" data-player="'+p.id+'"><div class="marketIntelRank">'+(i+1)+'</div><div><b>'+displayPlayerName(p.name)+' · '+p.pos+'</b><span>'+marketRecommendationLabel(G.club,p,needGroups)+' · '+tier.label+' · '+a.confidence+'</span></div><div class="marketIntelOvr">'+a.ovrText+'</div></div>';
     }).join(''):'<div class="profileEmpty compactEmpty">No suitable discovered targets currently match your squad priorities.</div>')+
    '<div class="trainingNote">A stronger Scouting Department expands the player pool and narrows rating uncertainty. Hidden players are never included in recommendations.</div></div>';
 }
@@ -26579,6 +26607,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.6","Season Preview Layout Integrity","PRE-PRODUCTION / QA FIX","Corrected the New Season Preview so its heading begins below the actual visible global club header, resets to the top on open, and uses the same 760px horizontal content grid as the rest of the game. Preview tabs now align consistently, while the sticky Begin Season action is retained with standard mobile width, inset and corner treatment. The header offset is measured rather than hardcoded and rechecks after resize or orientation changes."],
   ["v1.1.4","Major Trophy Moments","PRE-PRODUCTION / QA ENHANCEMENT","Expanded the World Cup celebration into a shared Major Trophy Moment system for Premier Division and Championship titles, National Cup wins, Champions Tournament wins and managed World Cup victories. Major achievements now receive a dedicated presentation and GM recognition. A one-time retroactive World Cup check allows existing saves to preview the new celebration after an already-completed managed World Cup win."],
   ["v1.1.3","World Cup Champion Moment","PRE-PRODUCTION / QA ENHANCEMENT","Added a dedicated World Cup conclusion experience. A GM who manages the winning nation now receives a prominent champion recap on the Final screen, a career-defining headline, Final score context and confirmation that the title is permanently recorded in the national-team career. Non-managed champions also receive a proper tournament conclusion rather than an abrupt return to club football."],
   ["v1.1.2","World Cup Seeded Draw Integrity","PRE-PRODUCTION / QA FIX","Rebuilt the World Cup finals draw around four seeded pots ranked by the approved anchored national strength model. Each group now receives exactly one nation from each pot, with independent pot shuffling replacing the fixed snake allocation. Existing tournaments are safely redrawn only when no group match has yet been played."],
@@ -26980,7 +27009,7 @@ function leagueRecordsView(){
  });
  let teamGoalEntry=Object.entries(allTimeTeamGoals).sort((a,b)=>b[1]-a[1])[0]||null;
  let teamGoalLeader=teamGoalEntry?{clubId:Number(teamGoalEntry[0]),goals:Number(teamGoalEntry[1]),club:G.clubs.find(c=>c.id===Number(teamGoalEntry[0]))}:null;
- let playerRow=(label,item,value,meta)=>richRecordRow(label,item?item.p.name+' · '+item.p.pos+(meta?' · '+meta:''):'No tracked record',item?('<button class="recordLink" onclick="showPlayer(\''+item.p.id+'\')">'+value+'</button>'):'—');
+ let playerRow=(label,item,value,meta)=>richRecordRow(label,item?displayPlayerName(item.p.name)+' · '+item.p.pos+(meta?' · '+meta:''):'No tracked record',item?('<button class="recordLink" onclick="showPlayer(\''+item.p.id+'\')">'+value+'</button>'):'—');
  let activeRecordPlayers=players.filter(x=>x&&x.p&&!x.p.retired);
  let youngestActive=activeRecordPlayers.slice().sort((a,b)=>(Number(a.p.age)||999)-(Number(b.p.age)||999))[0]||null;
  let oldestActive=activeRecordPlayers.slice().sort((a,b)=>(Number(b.p.age)||0)-(Number(a.p.age)||0))[0]||null;
@@ -27102,7 +27131,7 @@ function clubStaffHistoryHtml(clubId){ensureStaffHistoryState();let c=G.clubs[cl
 function richClubWorldHistoryHtml(clubId){
  let r=clubWorldHistoryRecord(clubId);if(!r)return "";
  let score=m=>m?(G.clubs[m.homeClubId].name+' '+m.homeGoals+'–'+m.awayGoals+' '+G.clubs[m.awayClubId].name):'—';
- let pv=x=>x?'<span class="recordPlayerLink" data-player="'+x.p.id+'">'+x.p.name+' · '+x.t.apps+'</span>':'—';
+ let pv=x=>x?'<span class="recordPlayerLink" data-player="'+x.p.id+'">'+displayPlayerName(x.p.name)+' · '+x.t.apps+'</span>':'—';
  return '<div class="card"><div class="sectionHead"><div><div class="title">Club Records</div><div class="sub">Persistent records for this club across your career world.</div></div></div>'+
   richRecordRow('Biggest win',r.biggestWin?'Week '+r.biggestWin.week+' · '+r.biggestWin.season:'League history',score(r.biggestWin))+
   richRecordRow('Biggest defeat',r.biggestLoss?'Week '+r.biggestLoss.week+' · '+r.biggestLoss.season:'League history',score(r.biggestLoss))+
@@ -28297,6 +28326,8 @@ $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
 $("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
+window.addEventListener("resize",()=>{if(document.body.classList.contains("season-preview-active"))syncSeasonPreviewTop()},{passive:true});
+window.addEventListener("orientationchange",()=>setTimeout(()=>{if(document.body.classList.contains("season-preview-active"))syncSeasonPreviewTop()},120));
 $("#seasonPreviewTabs").addEventListener("click",function(e){let b=e.target.closest("[data-season-preview-tab]");if(b)renderSeasonPreview(b.dataset.seasonPreviewTab)});
 $("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
 $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
