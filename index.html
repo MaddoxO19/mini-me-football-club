@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.3 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.4 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12982,6 +12982,20 @@ body.season-preview-active header{position:relative!important}
 .worldCupChampionMoment .wcChampionScore{margin:16px 0 4px;font-size:20px;font-weight:900;color:#f5f7fa}
 .worldCupChampionMoment .wcChampionGM{margin:18px auto 0;padding:12px 14px;max-width:560px;border-radius:14px;background:rgba(226,187,65,.09);color:#e2bb41;font-weight:800}
 
+/* v1.1.4 shared major trophy moment */
+.majorTrophyModal{position:fixed;inset:0;z-index:7900;background:rgba(3,7,11,.92);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.majorTrophyModal.hidden{display:none!important}
+.majorTrophyCard{width:min(100%,580px);max-height:calc(100dvh - 36px);overflow:auto;border:1px solid rgba(226,187,65,.56);border-radius:24px;background:linear-gradient(180deg,#191b12,#0d151e 55%,#0a1118);box-shadow:0 28px 80px #000d;padding:22px;text-align:center}
+.majorTrophyEyebrow{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
+.majorTrophyIcon{font-size:52px;line-height:1;margin:12px 0}
+.majorTrophyTitle{font-size:30px;font-weight:950;line-height:1.05;letter-spacing:-.03em}
+.majorTrophySub{margin:11px auto 0;max-width:510px;color:#c4ced7;font-size:12px;line-height:1.55}
+.majorTrophyResult{margin:16px auto 0;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:#111923;font-size:12px;font-weight:850}
+.majorTrophyGM{margin:12px auto 0;color:var(--gold);font-size:12px;font-weight:900}
+.majorTrophyActions{margin-top:18px}
+.majorTrophyActions .btn{min-height:50px!important}
+@media(max-width:430px){.majorTrophyCard{padding:17px}.majorTrophyTitle{font-size:25px}.majorTrophyIcon{font-size:46px}}
+
 .internationalResultsWrap{width:min(100%,720px);margin:0 auto}
 .internationalResultsHero{padding:8px 2px 15px;border-bottom:1px solid var(--line);margin-bottom:12px}
 .internationalResultsHero .title{font-size:24px!important;margin-top:4px}
@@ -14236,6 +14250,18 @@ body.result-active #contextMore{display:none!important}
  </div>
 </div>
 
+<div id="majorTrophyModal" class="majorTrophyModal hidden" role="dialog" aria-modal="true" aria-labelledby="majorTrophyTitle">
+ <div class="majorTrophyCard">
+  <div id="majorTrophyEyebrow" class="majorTrophyEyebrow">MAJOR TROPHY</div>
+  <div id="majorTrophyIcon" class="majorTrophyIcon">🏆</div>
+  <div id="majorTrophyTitle" class="majorTrophyTitle">Champions</div>
+  <div id="majorTrophySub" class="majorTrophySub"></div>
+  <div id="majorTrophyResult" class="majorTrophyResult"></div>
+  <div id="majorTrophyGM" class="majorTrophyGM"></div>
+  <div class="majorTrophyActions"><button id="majorTrophyContinueBtn" class="btn primary full">CONTINUE</button></div>
+ </div>
+</div>
+
 <div id="resultScreen" class="resultScreen hidden"><div class="resultCard">
 <div class="card resultPanel resultPrimaryPanel broadcastResultCard">
   <div id="resultWeek" class="label broadcastCompetition"></div>
@@ -14276,7 +14302,7 @@ body.result-active #contextMore{display:none!important}
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
 const BUILD_VERSION="Mini&Me Football Club v1.1.3 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.3";
+ const RELEASE_CANDIDATE_VERSION="1.1.4";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -16081,6 +16107,8 @@ function simulateWorldCupTournamentWeek(){
    if(payload.managedWorldCupChampion){
      let gmName=(G.userGM&&G.userGM.name)||"Your GM";
      G.feed.unshift({t:"WORLD CUP CHAMPION",m:gmName+" has led "+nationName(t.champion)+" to the World Cup. A career-defining international achievement."});
+     let wf=t.rounds&&t.rounds.FINAL&&t.rounds.FINAL[0];
+     queueMajorTrophyMoment({type:"WORLD_CUP",season:G.season,nation:t.champion,result:wf?("Final · "+nationName(t.champion)+" "+wf.hg+"–"+wf.ag+" "+nationName(t.runnerUp)+(wf.pens?" · "+wf.pens.home+"–"+wf.pens.away+" pens":"")):"World Cup Champions"});
    }
    G.feed.unshift({t:"CLUB FOOTBALL",m:"The World Cup has concluded. Premier Division football resumes from Week "+m.pausedLeagueWeek+"."});
  }
@@ -18433,7 +18461,9 @@ function simulateCupRound(){
  if(idx===CUP_ROUNDS.length-1){
   let final=round.matches[0],champ=final.winner,runner=champ===final.home?final.away:final.home;G.cup.champion=champ;G.cup.runnerUp=runner;
   let rec={season:G.season,winnerKey:champ,winnerClubId:cupDomesticId(champ),winnerName:cupTeamName(champ),runnerUpKey:runner,runnerUpClubId:cupDomesticId(runner),runnerUpName:cupTeamName(runner),gmName:champ===cupUserKey()?(G.userGM&&G.userGM.name||"User GM"):null};
-  G.cup.history.unshift(rec);cupAwardClub(runner,3000000,"National Cup runner-up");
+  G.cup.history.unshift(rec);
+  if(champ===cupUserKey())queueMajorTrophyMoment({type:"DOM_CUP",season:G.season,clubId:G.club,result:"Final · "+cupTeamName(champ)+" "+final.homeGoals+"–"+final.awayGoals+" "+cupTeamName(runner)+(final.pens?" · "+final.pens.home+"–"+final.pens.away+" pens":"")});
+  cupAwardClub(runner,3000000,"National Cup runner-up");
   let cid=cupDomesticId(champ);if(cid!==null){G.players.filter(p=>p.team===cid).forEach(p=>{if(!Array.isArray(p.awards))p.awards=[];if(!p.awards.some(a=>a.name==="National Cup Winner"&&a.season===G.season))p.awards.unshift({name:"National Cup Winner",season:G.season,clubId:cid,clubNameAtTime:G.clubs[cid].name})})}
  }else{
   let ni=idx+1,nm=CUP_ROUNDS[ni];G.cup.rounds[ni]={name:nm.name,anchorWeek:nm.anchorWeek,matches:buildCupMatches(winners),complete:false};G.cup.currentRound=ni;
@@ -18577,6 +18607,7 @@ function simulateInternationalRound(){
   if(intlGolden&&Number.isFinite(intlGolden.playerId)){let gp=G.players.find(p=>p.id===intlGolden.playerId);if(gp){if(!Array.isArray(gp.awards))gp.awards=[];if(!gp.awards.some(a=>a.name==="Champions Tournament Golden Boot"&&a.season===G.season))gp.awards.unshift({name:"Champions Tournament Golden Boot",season:G.season,clubId:gp.team,clubNameAtTime:internationalTeamName(intlGolden.teamKey)})}}
   internationalAwardClub(runner,6000000,"Champions Tournament runner-up");let cid=cupDomesticId(champ);if(cid!==null)G.players.filter(p=>p.team===cid).forEach(p=>{if(!Array.isArray(p.awards))p.awards=[];if(!p.awards.some(a=>a.name==="Champions Tournament Winner"&&a.season===G.season))p.awards.unshift({name:"Champions Tournament Winner",season:G.season,clubId:cid,clubNameAtTime:G.clubs[cid].name})});
   G.feed.unshift({t:"WORLD CLUB CHAMPIONS",m:internationalTeamName(champ)+" won the "+G.season+" Champions Tournament."});
+  if(champ===internationalUserKey())queueMajorTrophyMoment({type:"INT_CLUB",season:G.season,clubId:G.club,result:"Final · "+internationalTeamName(champ)+" "+final.homeGoals+"–"+final.awayGoals+" "+internationalTeamName(runner)+(final.pens?" · "+final.pens.home+"–"+final.pens.away+" pens":"")});
  }else{let ni=idx+1,nm=INTL_CLUB_ROUNDS[ni];G.intClub.rounds[ni]={name:nm.name,anchorWeek:nm.anchorWeek,matches:buildInternationalMatches(winners),complete:false};G.intClub.currentRound=ni}
  return userResult;
 }
@@ -23269,8 +23300,14 @@ function prepareSeasonReview(){
    relegated:key==="top"&&relegated.some(x=>x.name===c.name)
  });
  refreshGMVacancies(true);
+ if(champion.id===G.club){
+   queueMajorTrophyMoment({type:"LEAGUE",season:G.season,clubId:G.club,division:key,result:champion.name+" · "+c.pts+" pts · "+c.w+"W "+c.d+"D "+c.l+"L"});
+ }
  save();
- showSeasonReview();
+ if(G.majorTrophyMomentQueue&&G.majorTrophyMomentQueue.length){
+   G._resumeSeasonReviewAfterTrophy=true;
+   showMajorTrophyMoment();
+ }else showSeasonReview();
 }
 
 function resolvePlayerIdFromAward(item){if(!item)return null;if(item.id)return item.id;let p=G.players.find(x=>x.name===item.name&&x.pos===item.pos);return p?p.id:null}
@@ -26310,6 +26347,89 @@ function internationalResultsContentHtml(payload){
  ).join('');
 }
 
+
+/* ==========================================================
+   v1.1.4 MAJOR TROPHY MOMENTS
+   One presentation system for league, cup, international club and World Cup wins.
+   ========================================================== */
+function ensureMajorTrophyMomentState(){
+ if(!G)return null;
+ if(!Array.isArray(G.majorTrophyMomentsSeen))G.majorTrophyMomentsSeen=[];
+ if(!Array.isArray(G.majorTrophyMomentQueue))G.majorTrophyMomentQueue=[];
+ return G;
+}
+function majorTrophyMomentKey(m){
+ return[m.type,m.season,m.clubId!=null?m.clubId:"",m.nation||""].join("|");
+}
+function queueMajorTrophyMoment(m){
+ ensureMajorTrophyMomentState();if(!m)return false;
+ let key=majorTrophyMomentKey(m);
+ if(G.majorTrophyMomentsSeen.includes(key)||G.majorTrophyMomentQueue.some(x=>majorTrophyMomentKey(x)===key))return false;
+ m.key=key;G.majorTrophyMomentQueue.push(m);save();return true;
+}
+function majorTrophyMomentCopy(m){
+ let club=G.clubs&&G.clubs[G.club]?G.clubs[G.club].name:"Your Club",
+     gm=(G.userGM&&G.userGM.name)||"Your GM";
+ if(m.type==="WORLD_CUP")return{
+   eyebrow:"CAREER DEFINING ACHIEVEMENT",icon:nationFlag(m.nation)||"🏆",
+   title:nationName(m.nation)+" are World Champions",
+   sub:"You have led "+nationName(m.nation)+" to the summit of international football. Winning the World Cup is one of the rarest achievements in Mini&Me Football and is permanently recorded in your national-team career.",
+   gm:gm+" · World Cup winning manager"
+ };
+ if(m.type==="INT_CLUB")return{
+   eyebrow:"INTERNATIONAL CLUB CHAMPIONS",icon:"🏆",title:club+" conquer the Champions Tournament",
+   sub:"Your club has defeated the best national champions in the international club competition and claimed the Champions Tournament.",
+   gm:gm+" · International trophy winning GM"
+ };
+ if(m.type==="DOM_CUP")return{
+   eyebrow:"NATIONAL CUP WINNERS",icon:"🏆",title:club+" lift the National Cup",
+   sub:"A knockout campaign ends with silverware. "+club+" are National Cup champions for "+m.season+".",
+   gm:gm+" · National Cup winning GM"
+ };
+ return{
+   eyebrow:(m.division==="lower"?"CHAMPIONSHIP CHAMPIONS":"PREMIER DIVISION CHAMPIONS"),
+   icon:"🏆",title:club+" are "+(m.division==="lower"?"Championship":"Premier Division")+" Champions",
+   sub:"A full league season has ended with "+club+" at the top of the table. The title is now part of the club and GM career record.",
+   gm:gm+" · League champion"
+ };
+}
+function showMajorTrophyMoment(){
+ ensureMajorTrophyMomentState();
+ let modal=$("#majorTrophyModal"),m=G.majorTrophyMomentQueue&&G.majorTrophyMomentQueue[0];
+ if(!modal||!m||!modal.classList.contains("hidden"))return false;
+ let c=majorTrophyMomentCopy(m);
+ $("#majorTrophyEyebrow").textContent=c.eyebrow;$("#majorTrophyIcon").textContent=c.icon;
+ $("#majorTrophyTitle").textContent=c.title;$("#majorTrophySub").textContent=c.sub;
+ $("#majorTrophyResult").textContent=m.result||m.detail||("Season "+m.season);
+ $("#majorTrophyGM").textContent=c.gm;
+ modal.classList.remove("hidden");document.body.classList.add("identity-decision-open");
+ return true;
+}
+function closeMajorTrophyMoment(){
+ ensureMajorTrophyMomentState();
+ let m=G.majorTrophyMomentQueue.shift();
+ if(m&&!G.majorTrophyMomentsSeen.includes(m.key))G.majorTrophyMomentsSeen.push(m.key);
+ let modal=$("#majorTrophyModal");if(modal)modal.classList.add("hidden");
+ document.body.classList.remove("identity-decision-open");save();
+ if(G.majorTrophyMomentQueue.length){setTimeout(showMajorTrophyMoment,100);return}
+ if(G._resumeSeasonReviewAfterTrophy){G._resumeSeasonReviewAfterTrophy=false;showSeasonReview();return}
+ page="home";render();
+}
+function retroactiveMajorTrophyMomentCheck(){
+ ensureMajorTrophyMomentState();
+ // Recover the most recent managed World Cup title so an existing save can
+ // preview the new presentation once even if the Final was already passed.
+ try{
+   let t=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.tournament;
+   if(t&&t.complete&&t.champion&&G.nationalGM&&G.nationalGM.active&&normalizedNationId(G.nationalGM.nation)===normalizedNationId(t.champion)){
+     let f=t.rounds&&t.rounds.FINAL&&t.rounds.FINAL[0],runner=t.runnerUp;
+     queueMajorTrophyMoment({
+       type:"WORLD_CUP",season:Number(t.season)||Number(G.season),nation:t.champion,
+       result:f&&f.hg!=null?("Final · "+nationName(t.champion)+" "+f.hg+"–"+f.ag+" "+nationName(runner)+(f.pens?" · "+f.pens.home+"–"+f.pens.away+" pens":"")):"World Cup Champions"
+     });
+   }
+ }catch(e){}
+}
 function worldCupChampionMomentHtml(payload){
  if(!payload||!payload.worldCupComplete||!payload.worldCupChampion)return"";
  let champ=payload.worldCupChampion,runner=payload.worldCupRunnerUp,
@@ -26355,6 +26475,7 @@ function closeInternationalResultsScreen(){
  if(screen)delete screen.dataset.worldCupMode;
  document.body.classList.remove("international-results-active");
  if(wcMode){
+  if(G.majorTrophyMomentQueue&&G.majorTrophyMomentQueue.length){showMajorTrophyMoment();return;}
   page="home";
   document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
   render();
@@ -26458,6 +26579,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.4","Major Trophy Moments","PRE-PRODUCTION / QA ENHANCEMENT","Expanded the World Cup celebration into a shared Major Trophy Moment system for Premier Division and Championship titles, National Cup wins, Champions Tournament wins and managed World Cup victories. Major achievements now receive a dedicated presentation and GM recognition. A one-time retroactive World Cup check allows existing saves to preview the new celebration after an already-completed managed World Cup win."],
   ["v1.1.3","World Cup Champion Moment","PRE-PRODUCTION / QA ENHANCEMENT","Added a dedicated World Cup conclusion experience. A GM who manages the winning nation now receives a prominent champion recap on the Final screen, a career-defining headline, Final score context and confirmation that the title is permanently recorded in the national-team career. Non-managed champions also receive a proper tournament conclusion rather than an abrupt return to club football."],
   ["v1.1.2","World Cup Seeded Draw Integrity","PRE-PRODUCTION / QA FIX","Rebuilt the World Cup finals draw around four seeded pots ranked by the approved anchored national strength model. Each group now receives exactly one nation from each pot, with independent pot shuffling replacing the fixed snake allocation. Existing tournaments are safely redrawn only when no group match has yet been played."],
   ["v1.1.1","National GM Record Integrity","PRE-PRODUCTION / QA FIX","Fixed national-team GM career records not updating after appointment. The shared national match engine now records managed-nation friendlies, World Cup qualifiers and World Cup finals into the GM profile, including W/D/L and World Cup participation. Existing saves receive a best-effort reconstruction from stored international results from the appointment season onward."],
@@ -27763,8 +27885,10 @@ function render(){
   $("#continueDock").classList.add("hidden");
   document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   renderContextNav();
+  if(!G._majorTrophyRetroChecked){G._majorTrophyRetroChecked=true;try{retroactiveMajorTrophyMomentCheck()}catch(e){}}
   if(G.nationalGM&&G.nationalGM.pendingOffer)setTimeout(()=>{try{showNationalGMDecisionGate()}catch(e){}},0);
-  else setTimeout(()=>{try{maybeShowDynamicStory()}catch(e){}},120);
+  else if(G.majorTrophyMomentQueue&&G.majorTrophyMomentQueue.length)setTimeout(()=>{try{showMajorTrophyMoment()}catch(e){}},140);
+  else setTimeout(()=>{try{maybeShowDynamicStory()}catch(e){}},180);
   return true;
  }catch(err){
   renderQueued=false;
@@ -28179,10 +28303,12 @@ $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDeci
 $("#dynamicStoryPrimaryBtn").addEventListener("click",()=>resolveDynamicStory("primary"));
 $("#dynamicStorySecondaryBtn").addEventListener("click",()=>resolveDynamicStory("secondary"));
 $("#dynamicStoryIgnoreBtn").addEventListener("click",()=>resolveDynamicStory("ignore"));
+$("#majorTrophyContinueBtn").addEventListener("click",closeMajorTrophyMoment);
 $("#resultContinueBtn").addEventListener("click",function(){
  // Close the club match report immediately.
  $("#resultScreen").classList.add("hidden");
  document.body.classList.remove("match-result-active");
+ if(G.majorTrophyMomentQueue&&G.majorTrophyMomentQueue.length){showMajorTrophyMoment();return;}
  if(pendingInternationalWeek()){
    page="home";
    document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page==="home"));
