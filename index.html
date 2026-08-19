@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.0.2 Pre-Production</title>
+<title>Mini&Me Football Club v1.0.3 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.0.2 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.0.2";
+const BUILD_VERSION="Mini&Me Football Club v1.0.3 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.0.3";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -23254,6 +23254,7 @@ function showSeasonReview(){
    '<div class="honourRow"><div><b>Your Club</b><span>Cup finish</span></div><b>'+(r.cup&&r.cup.finish?r.cup.finish:"—")+'</b></div>'+
    (r.cup&&r.cup.goldenBoot?'<div class="honourRow reviewPlayerRow" data-review-player="'+r.cup.goldenBoot.id+'"><div><b>Golden Boot · '+r.cup.goldenBoot.name+'</b><span>'+r.cup.goldenBoot.club+' · '+r.cup.goldenBoot.apps+' apps</span></div><b>'+r.cup.goldenBoot.goals+' goals</b></div>':'')+
   '</div>'+
+  '<div class="reviewPhase"><span>INTERNATIONAL CUP</span><b>Champions Tournament</b></div>'+
   '<div class="card reviewSection"><div class="sectionHead"><div><div class="title">Champions Tournament Summary</div><div class="sub">International club outcomes and honours.</div></div></div>'+
    '<div class="honourRow"><div><b>Champion</b><span>'+r.season+' Champions Tournament</span></div><b>'+(r.international&&r.international.winnerName?r.international.winnerName:"—")+'</b></div>'+
    '<div class="honourRow"><div><b>Runner-up</b><span>Finalist</span></div><b>'+(r.international&&r.international.runnerUpName?r.international.runnerUpName:"—")+'</b></div>'+
@@ -25998,6 +25999,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.0.3","Cup Heading Consistency","PRE-PRODUCTION / QA FIX","Added the International Cup · Champions Tournament phase heading above the Champions Tournament Summary so domestic and international cup outcomes use the same season-review hierarchy and are visually distinguished consistently."],
   ["v1.0.2","Season Review Competition Summary Consistency","PRE-PRODUCTION / QA FIX","Rebuilt the Champions Tournament season-review summary to mirror the National Cup structure: Champion, Runner-up, Your Club and Golden Boot. Next-season international qualification is now presented in its own subordinate card for clearer and more consistent review navigation."],
   ["v1.0.1","QA Player Name Integrity","PRE-PRODUCTION / QA FIX","Corrected legacy numeric player-ID suffixes appearing in Club News and other feed text. Feed messages now pass through the same player display-name integrity layer used by player cards. Existing save identity and player IDs are not changed."],
   ["v1.0.0","Pre-Production Baseline","PRE-PRODUCTION / BASELINE","Version control reset from the legacy v2.x development stream. Gameplay, world, match and international engines are now controlled under v1.0.0. The anchored national-strength and supremacy-scoreline model is the approved international baseline for production QA. No gameplay logic was changed by the version reset."],
