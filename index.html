@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.9 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.10 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14472,8 +14472,8 @@ body.season-preview-active .seasonPreviewHero .sub{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.9 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.9";
+const BUILD_VERSION="Mini&Me Football Club v1.1.10 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.10";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -18845,7 +18845,14 @@ function nationMathematicallyQualified(q,id){
    let idx=rows.findIndex(r=>r.id===id);
    if(idx<0||idx>=directSlots)return false;
 
-   // Guaranteed group-winning/direct slot if every nation below cannot catch points.
+   // v1.1.10: once every nation has completed its programme, the final
+   // table order is authoritative. Points may be level, but GD/GF/rating
+   // tie-breakers have already resolved the finishing order.
+   let groupComplete=rows.length>0&&rows.every(r=>Number(r.p||0)>=totalMatches);
+   if(groupComplete)return true;
+
+   // Before the group is complete, qualification is guaranteed only if
+   // every nation below the direct slots can no longer draw level on points.
    let minPts=Number(row.pts||0);
    for(let i=directSlots;i<rows.length;i++){
      let rival=rows[i],rRemaining=Math.max(0,totalMatches-Number(rival.p||0)),
@@ -18858,7 +18865,9 @@ function nationMathematicallyQualified(q,id){
  if(cid==="CONMEBOL"){
    let rows=qualificationTableRows(conf),row=conf.table&&conf.table[id],idx=rows.findIndex(r=>r.id===id);
    if(!row||idx<0||idx>=Number(conf.places||4))return false;
-   let totalMatches=(conf.teams.length-1)*2,minPts=Number(row.pts||0);
+   let totalMatches=(conf.teams.length-1)*2,minPts=Number(row.pts||0),
+       tableComplete=rows.length>0&&rows.every(r=>Number(r.p||0)>=totalMatches);
+   if(tableComplete)return true;
    for(let i=Number(conf.places||4);i<rows.length;i++){
      let rival=rows[i],remain=Math.max(0,totalMatches-Number(rival.p||0)),
          maxPts=Number(rival.pts||0)+remain*3;
@@ -26757,6 +26766,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.10","Qualification Tie-Break Status Integrity","PRE-PRODUCTION / QA FIX","Corrected confirmed-qualification status when completed groups finish level on points. Once every nation has played its full programme, the final sorted table order—including goal difference, goals scored and rating tie-breakers—now becomes authoritative. This fixes cases such as Canada finishing first over Costa Rica on equal points/GD but not displaying QUALIFIED, and applies consistently across grouped confederations and the CONMEBOL table."],
   ["v1.1.9","Qualification Group Progress Integrity","PRE-PRODUCTION / QA FIX","Corrected World Cup qualification group progress for uneven group sizes. Three-nation OFC and CONCACAF groups now show progress toward four actual matches per nation rather than six scheduler rounds, while four-nation groups continue to show six. The qualification scheduler itself is unchanged because odd-numbered groups still require bye rounds; only the misleading group-level presentation has been corrected. The same calculation now applies consistently across all confederations."],
   ["v1.1.8","Season Preview Header Alignment","PRE-PRODUCTION / QA FIX","Removed the duplicate Season Preview header measurement introduced during the earlier layout pass. The preview now uses the same dynamically maintained --nav-top header offset as the rest of the game, eliminating the oversized gap beneath the global header. The Season Preview hero also receives proper internal padding, typography spacing and mobile line-height so its title and description sit cleanly inside the card."],
   ["v1.1.7","Season Preview Menu Redesign","PRE-PRODUCTION / QA FIX","Redesigned the New Season Preview navigation to mirror the End of Season Review: two-column aligned menu buttons with the final Landscape option spanning the full row. The preview content now scrolls independently beneath the menu, while Begin Season is removed from the floating content area and docked as the final fixed action at the bottom of the preview."],
