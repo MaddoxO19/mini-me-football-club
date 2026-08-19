@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.25 International Match Probability Calibration</title>
+<title>Mini&Me Football Club v2.13.5.26 Unified National Match Engine</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.25 International Match Probability Calibration";
- const RELEASE_CANDIDATE_VERSION="2.13.5.25";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.26 Unified National Match Engine";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.26";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -15605,12 +15605,11 @@ function qualificationScoreGuard(homeId,awayId,hg,ag,seed){
 }
 
 function simulateQualificationMatch(home,away,seed){
- let exp=internationalMatchExpectations(home,away,false);
- let hg=internationalPoisson(Math.min(3.20,exp.home+.03),seed,100);
- let ag=internationalPoisson(Math.max(.20,Math.min(3.05,exp.away-.02)),seed,120);
- [hg,ag]=internationalUpsetGuard(home,away,hg,ag,seed+"|QUAL");
- [hg,ag]=qualificationScoreGuard(home,away,hg,ag,seed+"|QUAL_SCORE");
- updateNationalRating(home,away,hg,ag);return[hg,ag];
+ // v2.13.5.26: qualification uses the exact same authoritative
+ // 90-minute national match engine as friendlies and World Cup matches.
+ let [hg,ag]=simulateNationalMatch90(home,away,"WCQ|"+seed);
+ updateNationalRating(home,away,hg,ag);
+ return[hg,ag];
 }
 function playQualificationPair(group,home,away,seed){
  let [hg,ag]=simulateQualificationMatch(home,away,seed);applyQualificationResult(group,home,away,hg,ag);
@@ -16202,118 +16201,25 @@ function worldCupStartingXIAvg(nationId){
 }
 
 function worldCupNationStrength(nationId){
- let tier=worldCupNationTier(nationId),cfg=WORLD_CUP_TIER_VALUES[tier]||WORLD_CUP_TIER_VALUES.D,
-     xi=worldCupStartingXIAvg(nationId),
-     squad=Number.isFinite(xi)?xi:cfg.base,
-     rating=Math.max(650,Math.min(900,effectiveNationalRating(nationId)));
-
- // World Cup strength intentionally differs from club/national friendly simulation.
- // Pedigree supplies the stable backbone, XI OVR is the strongest live input,
- // and ranking has only a modest influence.
- let raw=(cfg.base*.44)+(squad*.46)+((rating/10)*.10);
- let mult=cfg.mult;
- // A genuinely exceptional player generation can lift a lower-tier nation.
- // This preserves user-created GOAT pathways without allowing rating drift alone to do it.
- if(tier==="E"){
-   if(squad>=92)mult=1.04;
-   else if(squad>=88)mult=.98;
-   else if(squad>=84)mult=.90;
- }else if(tier==="D"&&squad>=90)mult=Math.max(mult,1.00);
- return raw*mult;
+ // v2.13.5.26: World Cup, qualifying and friendlies share the same
+ // authoritative national-team strength calculation.
+ return nationalTeamStrength(nationId);
 }
 
 function worldCupMatchExpectations(a,b,stage){
- let sa=worldCupNationStrength(a),sb=worldCupNationStrength(b),
-     diff=Math.max(-32,Math.min(32,sa-sb)),abs=Math.abs(diff),
-     ta=worldCupNationTier(a),tb=worldCupNationTier(b),
-     xa=worldCupStartingXIAvg(a),xb=worldCupStartingXIAvg(b),
-     order={S:6,A:5,B:4,C:3,D:2,E:1},
-     gap=(order[ta]||2)-(order[tb]||2),tierGap=Math.abs(gap),
-     lowerXi=gap>0?xb:xa,genuineRise=Number.isFinite(lowerXi)&&lowerXi>=84;
-
- let home=1.24+diff*.052,away=1.20-diff*.052;
-
- if(abs>=22){
-   if(diff>0){home+=.72;away-=.48}else{away+=.72;home-=.48}
- }else if(abs>=18){
-   if(diff>0){home+=.55;away-=.34}else{away+=.55;home-=.34}
- }else if(abs>=12){
-   if(diff>0){home+=.34;away-=.21}else{away+=.34;home-=.21}
- }else if(abs>=7){
-   if(diff>0){home+=.18;away-=.10}else{away+=.18;home-=.10}
- }
-
- if(!genuineRise&&tierGap>=3){
-   let fav=tierGap>=4?.38:.22,dog=tierGap>=4?.18:.10;
-   if(gap>0){home+=fav;away-=dog}
-   else{away+=fav;home-=dog}
- }
-
- // Knockout football magnifies pedigree slightly without making outcomes fixed.
- if(stage!=="GROUP"){
-   if(gap>=2){home+=.12;away-=.08}
-   if(gap<=-2){away+=.12;home-=.08}
- }
-
- let dogFloor=!genuineRise&&tierGap>=4?.07:!genuineRise&&tierGap>=3?.11:.16;
- return{
-   home:Math.max(diff<0?dogFloor:.16,Math.min(3.85,home)),
-   away:Math.max(diff>0?dogFloor:.16,Math.min(3.85,away)),
-   diff,homeTier:ta,awayTier:tb
- };
+ // v2.13.5.26: exact same 90-minute probability model as friendlies/qualifiers.
+ // Stage is retained only for compatibility with existing callers.
+ return internationalMatchExpectations(a,b,true);
 }
 
 function worldCupUpsetGuard(a,b,hg,ag,stage,seed){
- let sa=worldCupNationStrength(a),sb=worldCupNationStrength(b),
-     diff=sa-sb,abs=Math.abs(diff),
-     ta=worldCupNationTier(a),tb=worldCupNationTier(b),
-     order={S:6,A:5,B:4,C:3,D:2,E:1},
-     tierGap=(order[ta]||1)-(order[tb]||1);
-
- let favourite=diff>=0?"home":"away",
-     favGoals=favourite==="home"?hg:ag,
-     dogGoals=favourite==="home"?ag:hg,
-     upset=dogGoals>favGoals,draw=dogGoals===favGoals;
-
- if(upset||draw){
-   let allowed;
-   if(abs>=20)allowed=stage==="GROUP"?.035:.018;
-   else if(abs>=15)allowed=stage==="GROUP"?.065:.035;
-   else if(abs>=10)allowed=stage==="GROUP"?.12:.075;
-   else allowed=.20;
-
-   // S/A against C/D gets additional tournament protection.
-   if(Math.abs(tierGap)>=2)allowed*=.60;
-   if(Math.abs(tierGap)>=3)allowed*=.45;
-   if(Math.abs(tierGap)>=4)allowed=Math.min(allowed,.010);
-
-   let r=internationalRand(seed+"|WC_TIER_GUARD",11);
-   if(upset&&r>allowed){
-     if(favourite==="home")hg=Math.max(hg,ag);
-     else ag=Math.max(ag,hg);
-   }else if(draw&&stage!=="GROUP"&&abs>=10&&r>allowed*1.8){
-     if(favourite==="home")hg++;
-     else ag++;
-   }
- }
-
- // Heavy defeats of S/A sides by C/D opposition should be extraordinarily rare.
- if(["S","A"].includes(ta)&&["C","D","E"].includes(tb)&&ag-hg>=3){
-   if(internationalRand(seed+"|H_POWER_COLLAPSE",12)>.02)ag=hg+1;
- }
- if(["S","A"].includes(tb)&&["C","D","E"].includes(ta)&&hg-ag>=3){
-   if(internationalRand(seed+"|A_POWER_COLLAPSE",13)>.02)hg=ag+1;
- }
-
- return[Math.max(0,hg),Math.max(0,ag)];
+ // v2.13.5.26: exact same 90-minute upset model as friendlies/qualifiers.
+ // Competition context must not secretly change underlying team strength.
+ return internationalUpsetGuard(a,b,hg,ag,seed);
 }
 
 function simulateWorldCupNationalMatch(home,away,stage,seedExtra=""){
- let exp=worldCupMatchExpectations(home,away,stage),
-     seed="WC|"+G.season+"|"+stage+"|"+home+"|"+away+"|"+seedExtra;
- let hg=internationalPoisson(exp.home,seed,200);
- let ag=internationalPoisson(exp.away,seed,230);
- [hg,ag]=worldCupUpsetGuard(home,away,hg,ag,stage,seed);
+ let [hg,ag]=simulateNationalMatch90(home,away,"WC|"+stage+"|"+seedExtra);
  updateNationalRating(home,away,hg,ag);
  return[hg,ag];
 }
@@ -16866,11 +16772,18 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
  }
  return[hg,ag];
 }
+function simulateNationalMatch90(home,away,contextKey="NATIONAL"){
+ let exp=internationalMatchExpectations(home,away,true),
+     seed="NAT|"+G.season+"|"+G.week+"|"+home+"|"+away+"|"+contextKey;
+ let hg=internationalPoisson(exp.home,seed,10);
+ let ag=internationalPoisson(exp.away,seed,30);
+ [hg,ag]=internationalUpsetGuard(home,away,hg,ag,seed);
+ return[hg,ag];
+}
+
 function simulateNationalFriendly(a,b,windowKey){
- let exp=internationalMatchExpectations(a,b,true),seed=G.season+"|"+G.week+"|"+a+"|"+b+"|"+windowKey;
- let ga=internationalPoisson(exp.home,seed,10);
- let gb=internationalPoisson(exp.away,seed,30);
- [ga,gb]=internationalUpsetGuard(a,b,ga,gb,seed);
+ let seed="NAT|"+G.season+"|"+G.week+"|"+a+"|"+b+"|"+windowKey;
+ let [ga,gb]=simulateNationalMatch90(a,b,windowKey);
  let aa=internationalAppearancePlayers(a,seed+"|A"),bb=internationalAppearancePlayers(b,seed+"|B");
  let aWin=ga>gb,bWin=gb>ga,draw=ga===gb;
 
@@ -26061,6 +25974,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v2.13.5.26","Unified National Match Engine","SIMULATION / PRODUCTION","Unified friendlies, World Cup qualifying and World Cup 90-minute simulation around one national strength, expectation, upset and score-generation path. Removed qualifier-specific scoring adjustments/guards; competition context now changes only post-draw progression such as knockout resolution."],
   ["v2.13.5.25","International Match Probability Calibration","SIMULATION","Refined friendly, qualifier and World Cup probability curves for large national strength gaps. Extreme mismatches now produce stronger favourite scoring expectations and much rarer draws/upsets while exceptional live squads can still overcome historical tier limits."],
   ["v2.13.5.24","Version Governance & International Calibration","SIMULATION / GOVERNANCE","Calibrated the existing national-team tier engine, added a Minor E tier for small island nations, strengthened qualification realism, and made About the authoritative recent build record."],
   ["v2.13.5.23","Club History Integrity Fix","BUG FIX","Corrected null international champion IDs being interpreted as domestic club ID 0, repairing false Champions Tournament honours and timeline entries."],
@@ -26090,7 +26004,7 @@ function aboutBuildHistoryHtml(){
    '<div class="aboutVersionRow"><span>International System</span><b>'+INTERNATIONAL_NATIONAL_VERSION+'</b></div>'+
    '<div class="aboutVersionRow"><span>Save Integrity</span><b>'+saveVersion+'</b></div></div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Production Status</div><div class="sub">Current QA position and known technical debt.</div></div></div>'+
-   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
+   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. The national-team simulation engine is unified as of v2.13.5.26. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Build History</div><div class="sub">Recent development milestones leading to the current build.</div></div><div class="sectionCount">'+recentBuilds.length+'</div></div>'+
    '<div class="buildHistoryTable"><div class="buildHistoryHead"><span>VERSION</span><span>UPDATE</span></div>'+
    recentBuilds.map(x=>'<div class="buildHistoryRow"><strong>'+x[0]+'</strong><div><b>'+x[1]+'</b><small style="display:block;margin:3px 0;color:var(--gold);font-size:8px;font-weight:900;letter-spacing:.07em">'+x[2]+'</small><span>'+x[3]+'</span></div></div>').join("")+'</div></div>'+
