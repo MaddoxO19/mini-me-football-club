@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.8 International Strength & Scoreline Model</title>
+<title>Mini&Me Football Club v1.0.0 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,13 +14228,16 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.27 National Scoreline Distribution Calibration";
- const RELEASE_CANDIDATE_VERSION="2.13.5.27";
- const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
+const BUILD_VERSION="Mini&Me Football Club v1.0.0 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.0.0";
+const RELEASE_STAGE="PRE-PRODUCTION";
+const GAMEPLAY_ENGINE_VERSION="1.0.0";
+const MATCH_ENGINE_VERSION="1.0.0";
+ const INTERNATIONAL_NATIONAL_VERSION="1.0.0";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
 const PLAYER_NAME_MAX=24;
-const WORLD_ENGINE_VERSION="2.0";
+const WORLD_ENGINE_VERSION="1.0.0";
 const FOOTBALL_NATIONS=[
  {id:"AUS",name:"Australia",flag:"🇦🇺"},{id:"ENG",name:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},{id:"FRA",name:"France",flag:"🇫🇷"},{id:"GER",name:"Germany",flag:"🇩🇪"},
  {id:"ITA",name:"Italy",flag:"🇮🇹"},{id:"JPN",name:"Japan",flag:"🇯🇵"},{id:"ESP",name:"Spain",flag:"🇪🇸"},{id:"USA",name:"United States",flag:"🇺🇸"},
@@ -16474,7 +16477,7 @@ function nationalTeamTier(nationId){
 function nationalTeamStrength(nationId){
  if(internationalBatchCache&&internationalBatchCache.strengths.has(nationId))return internationalBatchCache.strengths.get(nationId);
  ensureInternationalNationalState();
- // v2.13.7 ANCHORED NATIONAL STRENGTH
+ // v1.0.0 PRE-PRODUCTION — ANCHORED NATIONAL STRENGTH
  // Pedigree tier sets the backbone of the world hierarchy. Live squad quality only
  // shades a nation within a bounded band around its anchor, so a weak generation
  // cannot collapse a major nation and a strong generation cannot inflate a minnow,
@@ -16701,7 +16704,7 @@ function internationalMatchExpectations(a,b,neutral=true){
      tc=internationalTierContext(a,b),
      tierGap=Math.abs(tc.gap);
 
- // v2.13.7 SUPREMACY SCORELINE MODEL
+ // v1.0.0 PRE-PRODUCTION — SUPREMACY SCORELINE MODEL
  // The rating gap maps directly to expected goal supremacy through a saturating
  // curve, so a bigger gap means a bigger but bounded favourite expectation and a
  // suppressed underdog. Ordinary matches need no post-hoc correction.
@@ -16731,7 +16734,7 @@ function internationalMatchExpectations(a,b,neutral=true){
 }
 
 function internationalUpsetGuard(a,b,hg,ag,seed){
- // v2.13.7: the anchored strength + supremacy model already produces calibrated
+ // v1.0.0 PRE-PRODUCTION: the anchored strength + supremacy model already produces calibrated
  // W/D/L rates, so this is now only a thin safety net for extreme mismatches
  // rather than a corrective layer that rewrites ordinary results.
  let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),diff=sa-sb,abs=Math.abs(diff),
@@ -16757,7 +16760,7 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
  return[hg,ag];
 }
 function calibrateNationalScoreline(home,away,hg,ag,seed){
- // v2.13.8: the supremacy model owns the scoreline distribution. What remains is a
+ // v1.0.0 PRE-PRODUCTION: the supremacy model owns the scoreline distribution. What remains is a
  // very light high-tail safeguard that only shaves the occasional arcade-y blowout
  // total; 3-3, 4-4 and six-goal margins are left to the model as legitimate results.
  let total=hg+ag;
@@ -25973,6 +25976,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.0.0","Pre-Production Baseline","PRE-PRODUCTION / BASELINE","Version control reset from the legacy v2.x development stream. Gameplay, world, match and international engines are now controlled under v1.0.0. The anchored national-strength and supremacy-scoreline model is the approved international baseline for production QA. No gameplay logic was changed by the version reset."],
   ["v2.13.5.27","National Scoreline Distribution Calibration","SIMULATION","Rebalanced the unified national engine toward realistic international scorelines. Reduced goal inflation in mismatches, increased the share of close wins and low-scoring draws, and suppressed unusually frequent 4–4 / 5–0 / 6–0 tails without changing nation tiers or reintroducing separate competition engines."],
   ["v2.13.5.26","Unified National Match Engine","SIMULATION / PRODUCTION","Unified friendlies, World Cup qualifying and World Cup 90-minute simulation around one national strength, expectation, upset and score-generation path. Removed qualifier-specific scoring adjustments/guards; competition context now changes only post-draw progression such as knockout resolution."],
   ["v2.13.5.25","International Match Probability Calibration","SIMULATION","Refined friendly, qualifier and World Cup probability curves for large national strength gaps. Extreme mismatches now produce stronger favourite scoring expectations and much rarer draws/upsets while exceptional live squads can still overcome historical tier limits."],
@@ -25999,13 +26003,15 @@ function aboutBuildHistoryHtml(){
   '<div class="aboutBrandMark"><div class="aboutBrandIcon">M&M</div><div class="aboutBrandCopy"><b>Mini&Me Football Club</b><span>Designed as a compact, data-rich management game that remains easy to pick up and play.</span></div></div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Current Version</div><div class="sub">The active build and major engine identifiers in this game file.</div></div></div>'+
    '<div class="aboutVersionGrid"><div class="aboutVersionRow current"><span>Game Build</span><b>'+buildShort+'</b></div>'+
-   '<div class="aboutVersionRow"><span>Release Status</span><b>PRE-PRODUCTION · QA</b></div>'+
-   '<div class="aboutVersionRow"><span>World Engine</span><b>'+WORLD_ENGINE_VERSION+'</b></div>'+
-   '<div class="aboutVersionRow"><span>International System</span><b>'+INTERNATIONAL_NATIONAL_VERSION+'</b></div>'+
-   '<div class="aboutVersionRow"><span>Save Integrity</span><b>'+saveVersion+'</b></div></div></div>'+
+   '<div class="aboutVersionRow"><span>Release Status</span><b>'+RELEASE_STAGE+' · QA</b></div>'+
+   '<div class="aboutVersionRow"><span>Gameplay Engine</span><b>v'+GAMEPLAY_ENGINE_VERSION+'</b></div>'+
+   '<div class="aboutVersionRow"><span>Match Engine</span><b>v'+MATCH_ENGINE_VERSION+'</b></div>'+
+   '<div class="aboutVersionRow"><span>World Engine</span><b>v'+WORLD_ENGINE_VERSION+'</b></div>'+
+   '<div class="aboutVersionRow"><span>International System</span><b>v'+INTERNATIONAL_NATIONAL_VERSION+'</b></div>'+
+   '<div class="aboutVersionRow"><span>Save Schema</span><b>'+saveVersion+'</b></div></div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Production Status</div><div class="sub">Current QA position and known technical debt.</div></div></div>'+
-   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. The national-team simulation engine is unified as of v2.13.5.26. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
-  '<div class="card"><div class="sectionHead"><div><div class="title">Build History</div><div class="sub">Recent development milestones leading to the current build.</div></div><div class="sectionCount">'+recentBuilds.length+'</div></div>'+
+   '<div class="worldNote"><b style="color:var(--gold)">v1.0.0 · PRE-PRODUCTION QA</b><br>This file is the controlled pre-production baseline. Core gameplay, match, world and international engines are versioned together at v1.0.0. The anchored national-strength and supremacy-scoreline model is the approved international engine baseline. Current work is limited to regression testing, defect correction and release validation. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; any future cleanup should be controlled screen by screen.</div></div>'+
+  '<div class="card"><div class="sectionHead"><div><div class="title">Version History</div><div class="sub">v1.0.0 is the controlled pre-production baseline. Legacy v2.x entries are retained below for development traceability.</div></div><div class="sectionCount">'+recentBuilds.length+'</div></div>'+
    '<div class="buildHistoryTable"><div class="buildHistoryHead"><span>VERSION</span><span>UPDATE</span></div>'+
    recentBuilds.map(x=>'<div class="buildHistoryRow"><strong>'+x[0]+'</strong><div><b>'+x[1]+'</b><small style="display:block;margin:3px 0;color:var(--gold);font-size:8px;font-weight:900;letter-spacing:.07em">'+x[2]+'</small><span>'+x[3]+'</span></div></div>').join("")+'</div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Development Principles</div><div class="sub">The design approach guiding the current game.</div></div></div>'+
@@ -27704,6 +27710,7 @@ const RELEASE_CANDIDATE_CHECKS=[
  {name:"Save integrity",test:()=>typeof SAVE_INTEGRITY_VERSION==="string"&&typeof validateCareerSnapshot==="function"},
  {name:"Season progression",test:()=>typeof startSeasonTransition==="function"&&typeof prepareSeasonReview==="function"},
  {name:"Match engine",test:()=>typeof sim==="function"&&typeof strength==="function"},
+  {name:"Pre-production version control",test:()=>RELEASE_CANDIDATE_VERSION==="1.0.0"&&RELEASE_STAGE==="PRE-PRODUCTION"&&GAMEPLAY_ENGINE_VERSION==="1.0.0"&&MATCH_ENGINE_VERSION==="1.0.0"&&WORLD_ENGINE_VERSION==="1.0.0"&&INTERNATIONAL_NATIONAL_VERSION==="1.0.0"},
  {name:"Facilities",test:()=>typeof facilityCard==="function"&&typeof facilityStatusHtml==="function"},
  {name:"Player profiles",test:()=>typeof showPlayer==="function"},
  {name:"Club profiles",test:()=>typeof showClubProfile==="function"},
