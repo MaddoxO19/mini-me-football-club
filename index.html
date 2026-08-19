@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.26 Unified National Match Engine</title>
+<title>Mini&Me Football Club v2.13.5.27 National Scoreline Distribution Calibration</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.26 Unified National Match Engine";
- const RELEASE_CANDIDATE_VERSION="2.13.5.26";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.27 National Scoreline Distribution Calibration";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.27";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -16689,38 +16689,40 @@ function internationalMatchExpectations(a,b,neutral=true){
      tc=internationalTierContext(a,b),
      tierGap=Math.abs(tc.gap);
 
- // Base neutral scoring environment.
+ // v2.13.5.27: lower-scoring international environment.
+ // Strength gaps still matter, but should more often create 1–0, 2–0, 2–1
+ // and 3–0 results rather than routine 5–0 / 6–0 scorelines.
  let favBoost=0,underdogSuppression=0;
- if(abs>=24){favBoost=.92;underdogSuppression=.72}
- else if(abs>=20){favBoost=.80;underdogSuppression=.60}
- else if(abs>=15){favBoost=.58;underdogSuppression=.43}
- else if(abs>=10){favBoost=.31;underdogSuppression=.23}
- else if(abs>=6){favBoost=.16;underdogSuppression=.11}
+ if(abs>=24){favBoost=.58;underdogSuppression=.55}
+ else if(abs>=20){favBoost=.48;underdogSuppression=.45}
+ else if(abs>=15){favBoost=.34;underdogSuppression=.32}
+ else if(abs>=10){favBoost=.20;underdogSuppression=.18}
+ else if(abs>=6){favBoost=.10;underdogSuppression=.08}
 
- let homeBase=1.30,awayBase=1.16;
- let home=homeBase+diff*.053;
- let away=awayBase-diff*.048;
+ let homeBase=1.14,awayBase=1.06;
+ let home=homeBase+diff*.043;
+ let away=awayBase-diff*.040;
 
  if(diff>0){home+=favBoost;away-=underdogSuppression}
  else if(diff<0){away+=favBoost;home-=underdogSuppression}
 
- // Historical tier separation only strengthens a mismatch when the lower-tier
- // side has not genuinely developed an exceptional live XI.
+ // Historical tier separation remains meaningful, but adds probability of
+ // control rather than simply inflating the favourite's goal total.
  let lowerIsHome=tc.gap<0, lowerXi=lowerIsHome?tc.xa:tc.xb;
  let genuineRise=Number.isFinite(lowerXi)&&lowerXi>=84;
  if(!genuineRise&&tierGap>=2){
-   let extraFav=tierGap>=4?.62:tierGap>=3?.40:.20;
-   let extraDog=tierGap>=4?.28:tierGap>=3?.18:.09;
+   let extraFav=tierGap>=4?.34:tierGap>=3?.22:.11;
+   let extraDog=tierGap>=4?.20:tierGap>=3?.13:.06;
    if(tc.gap>0){home+=extraFav;away-=extraDog}
    else if(tc.gap<0){away+=extraFav;home-=extraDog}
  }
 
  let extreme=!genuineRise&&(tierGap>=4||abs>=26),
-     dogFloor=extreme?.07:(tierGap>=3&&!genuineRise?.11:.18);
+     dogFloor=extreme?.06:(tierGap>=3&&!genuineRise?.10:.16);
 
  return{
-   home:Math.max((diff<0?dogFloor:.18),Math.min(4.20,home)),
-   away:Math.max((diff>0?dogFloor:.18),Math.min(4.10,away)),
+   home:Math.max((diff<0?dogFloor:.16),Math.min(3.35,home)),
+   away:Math.max((diff>0?dogFloor:.16),Math.min(3.25,away)),
    diff,tierGap,homeTier:tc.ta,awayTier:tc.tb,homeXi:tc.xa,awayXi:tc.xb
  };
 }
@@ -16772,12 +16774,45 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
  }
  return[hg,ag];
 }
+function calibrateNationalScoreline(home,away,hg,ag,seed){
+ let total=hg+ag,sa=nationalTeamStrength(home),sb=nationalTeamStrength(away),
+     diff=sa-sb,abs=Math.abs(diff);
+
+ // Very high-scoring draws are possible, but should be rare in senior internationals.
+ if(hg===ag&&hg>=4){
+   if(internationalRand(seed+"|HIGH_DRAW",1)>.10){hg--;ag--;}
+ }else if(hg===ag&&hg===3){
+   if(internationalRand(seed+"|THREE_DRAW",2)>.40){hg--;ag--;}
+ }
+
+ // Compress the far tail without flattening genuine mismatches.
+ total=hg+ag;
+ if(total>=7){
+   let extreme=abs>=18;
+   let keepChance=extreme?.30:.12;
+   if(internationalRand(seed+"|TOTAL_GOALS",3)>keepChance){
+     if(hg>ag&&hg>=4)hg--;
+     else if(ag>hg&&ag>=4)ag--;
+     else if(hg===ag&&hg>2){hg--;ag--;}
+   }
+ }
+
+ // A six-goal winning margin remains possible, but should be exceptional.
+ if(Math.abs(hg-ag)>=6&&internationalRand(seed+"|MARGIN6",4)>.18){
+   if(hg>ag)hg--;
+   else ag--;
+ }
+
+ return[Math.max(0,hg),Math.max(0,ag)];
+}
+
 function simulateNationalMatch90(home,away,contextKey="NATIONAL"){
  let exp=internationalMatchExpectations(home,away,true),
      seed="NAT|"+G.season+"|"+G.week+"|"+home+"|"+away+"|"+contextKey;
  let hg=internationalPoisson(exp.home,seed,10);
  let ag=internationalPoisson(exp.away,seed,30);
  [hg,ag]=internationalUpsetGuard(home,away,hg,ag,seed);
+ [hg,ag]=calibrateNationalScoreline(home,away,hg,ag,seed);
  return[hg,ag];
 }
 
@@ -25974,6 +26009,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v2.13.5.27","National Scoreline Distribution Calibration","SIMULATION","Rebalanced the unified national engine toward realistic international scorelines. Reduced goal inflation in mismatches, increased the share of close wins and low-scoring draws, and suppressed unusually frequent 4–4 / 5–0 / 6–0 tails without changing nation tiers or reintroducing separate competition engines."],
   ["v2.13.5.26","Unified National Match Engine","SIMULATION / PRODUCTION","Unified friendlies, World Cup qualifying and World Cup 90-minute simulation around one national strength, expectation, upset and score-generation path. Removed qualifier-specific scoring adjustments/guards; competition context now changes only post-draw progression such as knockout resolution."],
   ["v2.13.5.25","International Match Probability Calibration","SIMULATION","Refined friendly, qualifier and World Cup probability curves for large national strength gaps. Extreme mismatches now produce stronger favourite scoring expectations and much rarer draws/upsets while exceptional live squads can still overcome historical tier limits."],
   ["v2.13.5.24","Version Governance & International Calibration","SIMULATION / GOVERNANCE","Calibrated the existing national-team tier engine, added a Minor E tier for small island nations, strengthened qualification realism, and made About the authoritative recent build record."],
