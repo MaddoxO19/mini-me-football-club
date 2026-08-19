@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.0.3 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.0 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -5462,6 +5462,25 @@ body.identity-decision-open{overflow:hidden}
 @media(max-width:430px){
  .identityDecisionCard{padding:15px}.identityDecisionTitle{font-size:22px}.identityDecisionText{font-size:11px}
  .identityDecisionStyle b{font-size:14px}.identityDecisionActions{grid-template-columns:1fr}
+}
+
+/* ==========================================================
+   v1.1.0 PLAYER LIFECYCLE & SQUAD DYNAMICS
+   Contextual football stories reuse the proven DNA decision language.
+   ========================================================== */
+.dynamicStoryModal{z-index:7650}
+.dynamicStoryCard{width:min(100%,540px)}
+.dynamicStoryMeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.dynamicStoryMeta>div{border:1px solid var(--line);border-radius:12px;background:#111923;padding:10px}
+.dynamicStoryMeta span{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.dynamicStoryMeta b{display:block;margin-top:4px;font-size:12px}
+.dynamicStoryActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.dynamicStoryActions .btn{min-height:46px!important}
+.dynamicStoryActions .hiddenAction{display:none!important}
+.dynamicStoryNote{margin-top:10px;color:var(--muted);font-size:9px;line-height:1.45}
+@media(max-width:520px){
+ .dynamicStoryMeta{grid-template-columns:1fr}
+ .dynamicStoryActions{grid-template-columns:1fr}
 }
 
 
@@ -14189,6 +14208,24 @@ body.result-active #contextMore{display:none!important}
  </div>
 </div>
 
+<div id="dynamicStoryModal" class="identityDecisionModal dynamicStoryModal hidden" role="dialog" aria-modal="true" aria-labelledby="dynamicStoryTitle">
+ <div class="identityDecisionCard dynamicStoryCard">
+  <div id="dynamicStoryEyebrow" class="identityDecisionEyebrow">CLUB STORY</div>
+  <div id="dynamicStoryTitle" class="identityDecisionTitle">Club Update</div>
+  <div id="dynamicStoryText" class="identityDecisionText"></div>
+  <div class="dynamicStoryMeta">
+   <div><span>CONTEXT</span><b id="dynamicStoryContext">Club</b></div>
+   <div><span>GM CONSIDERATION</span><b id="dynamicStoryPrompt">No immediate action required</b></div>
+  </div>
+  <div class="dynamicStoryActions">
+   <button id="dynamicStoryPrimaryBtn" class="btn primary">REVIEW</button>
+   <button id="dynamicStorySecondaryBtn" class="btn">CONSIDER</button>
+   <button id="dynamicStoryIgnoreBtn" class="btn">IGNORE</button>
+  </div>
+  <div class="dynamicStoryNote">Stories are generated from actual club and player circumstances. You can act, review the issue, or leave it alone.</div>
+ </div>
+</div>
+
 <div id="resultScreen" class="resultScreen hidden"><div class="resultCard">
 <div class="card resultPanel resultPrimaryPanel broadcastResultCard">
   <div id="resultWeek" class="label broadcastCompetition"></div>
@@ -14228,8 +14265,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.0.3 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.0.3";
+const BUILD_VERSION="Mini&Me Football Club v1.1.0 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.0";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -20641,6 +20678,7 @@ function advance(){
  weeklyLeaguePlayerDevelopment();
  G.week++;
  clearStrengthCache();
+ maybeGenerateLifecycleStory();
 
  // International football is now a deliberate second step after the club match.
  let queued=queueInternationalWeekStep();
@@ -22412,6 +22450,213 @@ function resolveUserClubIdentityDecision(adopt){
   G.feed.unshift({t:"CLUB IDENTITY",m:"The club retained its "+p.fromStyle+" Football DNA. "+p.toStyle+" influence remains part of the current era and may be reconsidered after three further seasons."});
  }
  let modal=$("#identityDecisionModal");if(modal)modal.classList.add("hidden");document.body.classList.remove("identity-decision-open");save();render();
+}
+
+
+/* ==========================================================
+   v1.1.0 PLAYER LIFECYCLE & SQUAD DYNAMICS
+   ========================================================== */
+function ensureLifecycleDynamics(){
+ if(!G)return null;
+ if(!G.lifecycleDynamics||typeof G.lifecycleDynamics!=="object")G.lifecycleDynamics={};
+ let d=G.lifecycleDynamics;
+ if(Number(d.season)!==Number(G.season)){
+   d.season=Number(G.season);
+   d.targetStories=1+rnd(0,4);
+   d.stories=[];
+   d.pending=[];
+   d.lastCheckpoint=0;
+ }
+ if(!Array.isArray(d.stories))d.stories=[];
+ if(!Array.isArray(d.pending))d.pending=[];
+ if(!Number.isFinite(Number(d.targetStories)))d.targetStories=1+rnd(0,4);
+ return d;
+}
+function playerClubTenure(p){
+ if(!p||!Array.isArray(p.clubHistory))return 0;
+ let live=[...p.clubHistory].reverse().find(x=>x&&x.endSeason==null&&(Number(x.clubId)===Number(G.club)));
+ return live?Math.max(0,Number(G.season)-Number(live.startSeason||G.season)):0;
+}
+function ensurePlayerInjuryHistory(p){
+ if(!p)return[];
+ if(!Array.isArray(p.injuryHistory))p.injuryHistory=[];
+ return p.injuryHistory;
+}
+function queueLifecycleStory(story,critical=false){
+ let d=ensureLifecycleDynamics();if(!d||!story)return false;
+ let key=story.key||[story.kind,story.playerId||"",G.season,G.week].join("|");
+ if(d.stories.some(x=>x.key===key)||d.pending.some(x=>x.key===key))return false;
+ if(!critical&&d.stories.length>=Math.min(5,Number(d.targetStories)||1))return false;
+ if(critical&&d.stories.length>=5)return false;
+ story.key=key;story.season=G.season;story.week=G.week;story.id="LIFE-"+G.season+"-"+G.week+"-"+(d.stories.length+d.pending.length+1);
+ d.pending.push(story);
+ d.stories.push({key,id:story.id,kind:story.kind,playerId:story.playerId||null,title:story.title});
+ G.feed.unshift({t:story.newsType||"CLUB STORY",m:story.feed||story.text});
+ return true;
+}
+function currentLifecycleStory(){
+ let d=ensureLifecycleDynamics();return d&&d.pending&&d.pending[0]||null;
+}
+function lifecycleStoryModalBlocked(){
+ let result=$("#resultScreen"),intl=$("#internationalResultsScreen"),sheet=$("#sheet"),identity=$("#identityDecisionModal"),national=$("#nationalGMDecisionModal");
+ if(result&&!result.classList.contains("hidden"))return true;
+ if(intl&&!intl.classList.contains("hidden"))return true;
+ if(sheet&&!sheet.classList.contains("hidden"))return true;
+ if(identity&&!identity.classList.contains("hidden"))return true;
+ if(national&&!national.classList.contains("hidden"))return true;
+ return false;
+}
+function maybeShowDynamicStory(){
+ let story=currentLifecycleStory(),modal=$("#dynamicStoryModal");
+ if(!story||!modal||!modal.classList.contains("hidden")||lifecycleStoryModalBlocked())return false;
+ $("#dynamicStoryEyebrow").textContent=story.eyebrow||"CLUB STORY";
+ $("#dynamicStoryTitle").textContent=story.title||"Club Update";
+ $("#dynamicStoryText").textContent=story.text||"";
+ $("#dynamicStoryContext").textContent=story.context||"Club";
+ $("#dynamicStoryPrompt").textContent=story.prompt||"No immediate action required";
+ let p=$("#dynamicStoryPrimaryBtn"),q=$("#dynamicStorySecondaryBtn");
+ p.textContent=story.primaryLabel||"REVIEW";q.textContent=story.secondaryLabel||"CONSIDER";
+ p.classList.toggle("hiddenAction",story.primaryAction==="NONE");
+ q.classList.toggle("hiddenAction",!story.secondaryAction||story.secondaryAction==="NONE");
+ modal.classList.remove("hidden");document.body.classList.add("identity-decision-open");
+ return true;
+}
+function closeDynamicStory(){
+ let modal=$("#dynamicStoryModal");if(modal)modal.classList.add("hidden");
+ document.body.classList.remove("identity-decision-open");
+}
+function resolveDynamicStory(action){
+ let d=ensureLifecycleDynamics(),story=currentLifecycleStory();if(!d||!story)return;
+ let p=story.playerId!=null?G.players.find(x=>x.id===story.playerId):null;
+ const doAction=(code)=>{
+   if(code==="REVIEW_PLAYER"&&p){
+     closeDynamicStory();d.pending.shift();save();showPlayer(p.id);return true;
+   }
+   if(code==="REVIEW_MEDICAL"){
+     closeDynamicStory();d.pending.shift();page="squad";squadTab="develop";save();render();return true;
+   }
+   if(code==="ALLOW_MOVE"&&p){
+     p.listed=true;p.transferRequested=true;p.transferConcern={stage:"available",season:G.season,week:G.week,reason:story.reason||"new challenge"};
+     G.feed.unshift({t:"TRANSFER REQUEST",m:displayPlayerName(p.name)+" has been made available for transfer following discussions with the GM."});
+   }else if(code==="REFUSE_MOVE"&&p){
+     p.transferRequested=true;p.morale=Math.max(45,(Number(p.morale)||70)-8);
+     p.transferConcern={stage:"refused",season:G.season,week:G.week,reason:story.reason||"new challenge"};
+     G.feed.unshift({t:"PLAYER FUTURE",m:"The club rejected "+displayPlayerName(p.name)+"'s request to leave. The player remains under contract."});
+   }else if(code==="ENCOURAGE_STAY"&&p){
+     let accepted=gameRandom()<Math.max(.45,Math.min(.82,(Number(p.morale)||70)/100));
+     if(accepted){
+       p.transferRequested=false;p.transferConcern={stage:"resolved",season:G.season,week:G.week,reason:story.reason||"role"};
+       p.morale=Math.min(100,(Number(p.morale)||70)+5);
+       G.feed.unshift({t:"PLAYER FUTURE",m:displayPlayerName(p.name)+" has agreed to remain focused on the club after discussions with the GM."});
+     }else{
+       p.transferRequested=true;p.transferConcern={stage:"request",season:G.season,week:G.week,reason:story.reason||"role"};
+       G.feed.unshift({t:"TRANSFER REQUEST",m:displayPlayerName(p.name)+" remains determined to consider a move away from the club."});
+     }
+   }
+   return false;
+ };
+ let code=action==="primary"?story.primaryAction:action==="secondary"?story.secondaryAction:"IGNORE";
+ if(doAction(code))return;
+ d.pending.shift();
+ closeDynamicStory();save();render();
+ setTimeout(maybeShowDynamicStory,120);
+}
+function lifecycleTransferCandidate(){
+ let squad=roster().filter(p=>p&&!p.retiring&&Number(p.age)<=34&&Number(p.years)>0&&!p.listed);
+ if(!squad.length)return null;
+ let top=[...squad].sort((a,b)=>Number(b.ovr)-Number(a.ovr))[0];
+ let options=[];
+ squad.forEach(p=>{
+   if(p.id===top.id||Number(p.ovr)<80)return;
+   let role=playerSquadRole(p,G.club),tenure=playerClubTenure(p),apps=Number(p.stats&&p.stats.apps)||0;
+   if(["Rotation","Fringe"].includes(role)&&Number(p.ovr)>=82)options.push({p,reason:"role",score:10+(Number(p.ovr)-82)+(apps<6?5:0)});
+   if(top&&Number(top.ovr)-Number(p.ovr)>=5&&Number(p.ovr)>=84)options.push({p,reason:"shadow",score:9+(Number(p.ovr)-84)});
+   if(tenure>=6&&Number(p.ovr)>=86)options.push({p,reason:"challenge",score:8+Math.min(5,tenure-6)});
+ });
+ options.sort((a,b)=>b.score-a.score);
+ return options[0]||null;
+}
+function maybeEscalateTransferConcern(){
+ let p=roster().find(x=>x&&x.transferConcern&&x.transferConcern.stage==="speculation"&&
+   ((Number(G.season)-Number(x.transferConcern.season))*40+(Number(G.week)-Number(x.transferConcern.week)))>=4);
+ if(!p||gameRandom()>.34)return false;
+ p.transferConcern.stage="request";p.transferRequested=true;
+ return queueLifecycleStory({
+   key:"transfer-request-"+p.id+"-"+G.season,
+   kind:"TRANSFER",playerId:p.id,newsType:"TRANSFER REQUEST",
+   eyebrow:"PLAYER FUTURE",title:displayPlayerName(p.name)+" Requests a Move",
+   text:displayPlayerName(p.name)+" has formally asked the club to consider a transfer. The player believes a move may provide the role or personal challenge now being sought.",
+   context:"Transfer request",prompt:"Decide whether to make the player available.",
+   reason:p.transferConcern.reason,primaryLabel:"MAKE AVAILABLE",primaryAction:"ALLOW_MOVE",
+   secondaryLabel:"REFUSE REQUEST",secondaryAction:"REFUSE_MOVE",
+   feed:displayPlayerName(p.name)+" has formally requested a transfer."
+ },true);
+}
+function maybeGenerateLifecycleStory(){
+ if(!G||Number(G.week)<=0)return false;
+ let d=ensureLifecycleDynamics();if(!d||d.stories.length>=Math.min(5,d.targetStories))return false;
+ if(maybeEscalateTransferConcern())return true;
+ if(Number(G.week)%4!==0||Number(d.lastCheckpoint)===Number(G.week))return false;
+ d.lastCheckpoint=Number(G.week);
+ if(gameRandom()>.55)return false;
+
+ ensureFacilityState();
+ let squad=roster().filter(p=>p&&!p.retiring);
+ let medical=G.clubs[G.club]&&G.clubs[G.club].facilities?Number(G.clubs[G.club].facilities.medical)||1:1;
+ let medRec=G.medicalEcosystem&&G.medicalEcosystem.clubs&&G.medicalEcosystem.clubs[G.club];
+ let cases=medRec?Number(medRec.cases)||0:0;
+
+ // 1. Medical infrastructure scrutiny.
+ if(medical<5&&cases>=5&&!d.stories.some(x=>x.key==="medical-"+G.season)){
+   return queueLifecycleStory({
+     key:"medical-"+G.season,kind:"MEDICAL",newsType:"CLUB PRESSURE",
+     eyebrow:"SUPPORTER PRESSURE",title:"Medical Investment Under Scrutiny",
+     text:G.clubs[G.club].name+" have suffered a noticeable run of fitness issues. Supporters are beginning to ask whether further investment in the Medical Centre should become a club priority.",
+     context:cases+" medical cases this season · Level "+medical+" Medical Centre",
+     prompt:"Review facilities or continue with the current plan.",
+     primaryLabel:"REVIEW MEDICAL",primaryAction:"REVIEW_MEDICAL",secondaryAction:"NONE",
+     feed:"Supporters have questioned the club's medical investment after a run of injuries."
+   });
+ }
+
+ // 2. Veteran career question.
+ let veteran=[...squad].filter(p=>Number(p.age)>=34).sort((a,b)=>Number(b.age)-Number(a.age)||Number(b.ovr)-Number(a.ovr))[0];
+ if(veteran&&!d.stories.some(x=>x.key==="veteran-"+veteran.id+"-"+G.season)){
+   let injuries=ensurePlayerInjuryHistory(veteran).length;
+   return queueLifecycleStory({
+     key:"veteran-"+veteran.id+"-"+G.season,kind:"PLAYER",playerId:veteran.id,newsType:"CAREER WATCH",
+     eyebrow:"CAREER WATCH",title:"Questions Around "+displayPlayerName(veteran.name),
+     text:displayPlayerName(veteran.name)+" is now "+veteran.age+(injuries?" and has dealt with "+injuries+" recorded injury issue"+(injuries===1?"":"s"):"")+". Can the veteran remain a force at the highest level, or is the club approaching a succession decision?",
+     context:veteran.age+" years · "+veteran.ovr+" OVR",
+     prompt:"Review the player, contract and succession options.",
+     primaryLabel:"REVIEW PLAYER",primaryAction:"REVIEW_PLAYER",secondaryAction:"NONE"
+   });
+ }
+
+ // 3. Player ambition / transfer speculation.
+ let tc=lifecycleTransferCandidate();
+ if(tc&&tc.p&&!tc.p.transferConcern){
+   let p=tc.p,top=[...squad].sort((a,b)=>Number(b.ovr)-Number(a.ovr))[0],text,title;
+   if(tc.reason==="shadow"){
+     title=displayPlayerName(p.name)+" Considers a Bigger Role";
+     text=displayPlayerName(p.name)+" remains an outstanding player, but continues to operate in the shadow of "+displayPlayerName(top.name)+". It is understood the player may consider a move in search of greater personal prominence.";
+   }else if(tc.reason==="challenge"){
+     title=displayPlayerName(p.name)+" May Seek a New Challenge";
+     text=displayPlayerName(p.name)+" has spent "+playerClubTenure(p)+" seasons at "+G.clubs[G.club].name+". Sources suggest the player may be open to a new challenge while still performing at a high level.";
+   }else{
+     title=displayPlayerName(p.name)+" Wants a Larger Role";
+     text=displayPlayerName(p.name)+" is considered capable of a significant first-team role but has spent much of the season outside the club's leading group. A move may become attractive if the situation does not change.";
+   }
+   p.transferConcern={stage:"speculation",season:G.season,week:G.week,reason:tc.reason};
+   return queueLifecycleStory({
+     key:"transfer-spec-"+p.id+"-"+G.season,kind:"TRANSFER",playerId:p.id,newsType:"TRANSFER SPECULATION",
+     eyebrow:"PLAYER FUTURE",title,text,context:p.ovr+" OVR · "+playerSquadRole(p,G.club),
+     prompt:"Speak with the player, review their role, or leave the situation alone.",
+     reason:tc.reason,primaryLabel:"ENCOURAGE TO STAY",primaryAction:"ENCOURAGE_STAY",
+     secondaryLabel:"REVIEW PLAYER",secondaryAction:"REVIEW_PLAYER"
+   });
+ }
+ return false;
 }
 
 function playerSquadRole(player,teamId){
@@ -25082,7 +25327,12 @@ function recoverMedicalConditions(){
      p.conditionWeeks=0;p.conditionPenalty=0;p.conditionLabel="";
      let rec=G.medicalEcosystem.clubs[p.team];
      if(rec)rec.recovered=(Number(rec.recovered)||0)+1;
-     if(Number(p.team)===Number(G.club))G.feed.unshift({t:"MEDICAL UPDATE",m:p.name+" has returned to full fitness."});
+     let loss=Math.max(0,Number(p.pendingInjuryOvrLoss)||0);
+     if(loss){
+       let before=Number(p.ovr)||60;p.ovr=Math.max(50,before-loss);p.pot=Math.max(p.ovr,Number(p.pot)||p.ovr);
+       p.pendingInjuryOvrLoss=0;syncPlayerEconomy(p,true);clearStrengthCache();
+       if(Number(p.team)===Number(G.club))G.feed.unshift({t:"INJURY RECOVERY",m:displayPlayerName(p.name)+" has returned from a serious injury but has lost "+loss+" OVR during rehabilitation."});
+     }else if(Number(p.team)===Number(G.club))G.feed.unshift({t:"MEDICAL UPDATE",m:displayPlayerName(p.name)+" has returned to full fitness."});
    }
  });
 }
@@ -25099,17 +25349,50 @@ function applyMedicalMatchLoad(clubIds){
    candidates.forEach(p=>{
      let ageRisk=Number(p.age)>=32?.018:Number(p.age)>=29?.010:0;
      if(gameRandom()>=teamRisk+ageRisk)return;
-     let baseWeeks=gameRandom()<.72?1:gameRandom()<.92?2:3;
-     let recoveryBonus=level>=5?1:level>=4&&gameRandom()<.65?1:level>=3&&gameRandom()<.30?1:0;
-     let weeks=Math.max(1,baseWeeks-recoveryBonus);
-     let penalty=weeks>=3?4:weeks===2?3:2;
-     p.conditionWeeks=weeks;
-     p.conditionPenalty=penalty;
-     p.conditionLabel=weeks>=3?"Injury management":weeks===2?"Fitness concern":"Minor knock";
+     let majorChance={1:.026,2:.022,3:.018,4:.014,5:.010}[level]||.018;
+     let careerChance=({1:.0022,2:.0018,3:.0014,4:.0010,5:.0007}[level]||.0014)+(Number(p.age)>=34?.0012:Number(p.age)>=31?.0005:0);
+     let severityRoll=gameRandom(),careerEnding=severityRoll<careerChance,major=!careerEnding&&severityRoll<careerChance+majorChance;
+     let weeks,penalty;
+     if(careerEnding){
+       weeks=99;penalty=12;p.conditionLabel="Career-ending injury";p.retiring=true;p.injuryCareerEnding=true;
+     }else if(major){
+       let raw=rnd(10,24),medicalCut=Math.max(0,level-1)*rnd(0,2);
+       weeks=Math.max(8,raw-medicalCut);penalty=rnd(6,9);p.conditionLabel="Serious injury";
+       let lossChance=Math.max(.18,.48-(level-1)*.06+(Number(p.age)>=33?.16:Number(p.age)>=29?.07:0));
+       if(gameRandom()<lossChance)p.pendingInjuryOvrLoss=gameRandom()<.72?1:(gameRandom()<.88?2:3);
+     }else{
+       let baseWeeks=gameRandom()<.72?1:gameRandom()<.92?2:3;
+       let recoveryBonus=level>=5?1:level>=4&&gameRandom()<.65?1:level>=3&&gameRandom()<.30?1:0;
+       weeks=Math.max(1,baseWeeks-recoveryBonus);penalty=weeks>=3?4:weeks===2?3:2;
+       p.conditionLabel=weeks>=3?"Injury management":weeks===2?"Fitness concern":"Minor knock";
+     }
+     p.conditionWeeks=weeks;p.conditionPenalty=penalty;
+     ensurePlayerInjuryHistory(p).push({season:G.season,week:G.week,label:p.conditionLabel,weeks,major,careerEnding,ovrLoss:Number(p.pendingInjuryOvrLoss)||0});
      let rec=G.medicalEcosystem.clubs[clubId];
      if(rec){rec.cases=(Number(rec.cases)||0)+1;rec.weeksLost=(Number(rec.weeksLost)||0)+weeks}
      newCases++;
-     if(clubId===G.club)G.feed.unshift({t:"MEDICAL REPORT",m:p.name+" has a "+p.conditionLabel.toLowerCase()+" · expected impact "+weeks+" week"+(weeks===1?"":"s")+"."});
+     if(clubId===G.club){
+       if(careerEnding){
+         queueLifecycleStory({
+           key:"career-injury-"+p.id+"-"+G.season+"-"+G.week,kind:"INJURY",playerId:p.id,newsType:"MAJOR INJURY",
+           eyebrow:"BREAKING CLUB NEWS",title:displayPlayerName(p.name)+" Suffers Career-Ending Injury",
+           text:displayPlayerName(p.name)+" has suffered a severe injury and medical advice indicates the player will not return to competitive football. The club must now plan for life without the "+p.age+"-year-old.",
+           context:"Career-ending injury",prompt:"Review the player and squad succession options.",
+           primaryLabel:"REVIEW PLAYER",primaryAction:"REVIEW_PLAYER",secondaryAction:"NONE",
+           feed:displayPlayerName(p.name)+" has suffered a career-ending injury."
+         },true);
+       }else if(major){
+         queueLifecycleStory({
+           key:"major-injury-"+p.id+"-"+G.season+"-"+G.week,kind:"INJURY",playerId:p.id,newsType:"MAJOR INJURY",
+           eyebrow:"MEDICAL REPORT",title:"Major Injury for "+displayPlayerName(p.name),
+           text:displayPlayerName(p.name)+" faces approximately "+weeks+" weeks out with a serious injury."+(Number(p.pendingInjuryOvrLoss)>0?" Medical staff warn that the injury may have a lasting impact on the player's ability.":" A full recovery remains the expectation."),
+           context:weeks+" weeks · Medical Centre Level "+level,prompt:"Review the player or assess squad depth.",
+           primaryLabel:"REVIEW PLAYER",primaryAction:"REVIEW_PLAYER",secondaryAction:"NONE"
+         },true);
+       }else{
+         G.feed.unshift({t:"MEDICAL REPORT",m:displayPlayerName(p.name)+" has a "+p.conditionLabel.toLowerCase()+" · expected impact "+weeks+" week"+(weeks===1?"":"s")+"."});
+       }
+     }
    });
    return newCases;
  });
@@ -25193,11 +25476,18 @@ function playerDevelopmentOffseason(){
    if(room>0&&gameRandom()<chance)delta=rnd(1,Math.min(2,Math.max(1,room)));
   }else if(p.age<=29){
    if(gameRandom()<.08+training*.015&&before<(Number(p.pot)||before))delta=1;
-  }else if(p.age<=32){
-   if(gameRandom()<Math.max(.08,.31-training*.04))delta=-1;
+  }else if(p.age<=31){
+   let declineChance=Math.max(.08,.28-training*.035);
+   if(gameRandom()<declineChance)delta=-1;
+  }else if(p.age<=33){
+   let declineChance=Math.max(.16,.46-training*.04);
+   if(gameRandom()<declineChance)delta=-(gameRandom()<.12?2:1);
+  }else if(p.age<=35){
+   let declineChance=Math.max(.28,.67-training*.05);
+   if(gameRandom()<declineChance)delta=-(gameRandom()<.28?2:1);
   }else{
-   let declineChance=Math.max(.20,.62-training*.055);
-   if(gameRandom()<declineChance)delta=-(gameRandom()<.22?2:1);
+   let declineChance=Math.max(.42,.84-training*.05);
+   if(gameRandom()<declineChance)delta=-(gameRandom()<.18?3:gameRandom()<.55?2:1);
   }
   p.ovr=Math.max(50,Math.min(99,Math.min(Number(p.pot)||96,before+delta)));
   if(!p.manualEconomy)syncPlayerEconomy(p,true);
@@ -25207,6 +25497,16 @@ function playerDevelopmentOffseason(){
  if(changes.length){
   let ups=changes.filter(x=>x.delta>0).length,downs=changes.filter(x=>x.delta<0).length;
   G.feed.unshift({t:"PLAYER DEVELOPMENT",m:ups+" players improved during the offseason"+(downs?" · "+downs+" players declined.":".")});
+  let notable=changes.filter(x=>x.delta<0).map(x=>({x,p:G.players.find(p=>p.name===x.name&&p.team===G.club)})).filter(o=>o.p&&Number(o.p.age)>=33).sort((a,b)=>a.x.delta-b.x.delta||b.p.age-a.p.age)[0];
+  if(notable){
+    queueLifecycleStory({
+      key:"decline-"+notable.p.id+"-"+G.season,kind:"PLAYER",playerId:notable.p.id,newsType:"CAREER WATCH",
+      eyebrow:"OFFSEASON ANALYSIS",title:"Ageing Curve Hits "+displayPlayerName(notable.p.name),
+      text:displayPlayerName(notable.p.name)+" has declined from "+notable.x.from+" to "+notable.x.to+" OVR during the offseason. At "+notable.p.age+", the club may need to consider succession planning while judging how much elite football remains.",
+      context:notable.p.age+" years · "+notable.x.to+" OVR",prompt:"Review the player and the depth behind them.",
+      primaryLabel:"REVIEW PLAYER",primaryAction:"REVIEW_PLAYER",secondaryAction:"NONE"
+    });
+  }
  }
 }
 
@@ -25999,6 +26299,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.0","Player Lifecycle & Squad Dynamics","PRE-PRODUCTION / GAMEPLAY FEATURE","Added conservative long-career pressure through a clearer veteran regression curve, rare serious and career-ending injuries, possible permanent OVR loss, player ambition and transfer-request pathways, and 1–5 contextual Dynamic Story Events per season using the existing DNA decision design language. Core gameplay, match, world and international engine baselines remain v1.0.0."],
   ["v1.0.3","Cup Heading Consistency","PRE-PRODUCTION / QA FIX","Added the International Cup · Champions Tournament phase heading above the Champions Tournament Summary so domestic and international cup outcomes use the same season-review hierarchy and are visually distinguished consistently."],
   ["v1.0.2","Season Review Competition Summary Consistency","PRE-PRODUCTION / QA FIX","Rebuilt the Champions Tournament season-review summary to mirror the National Cup structure: Champion, Runner-up, Your Club and Golden Boot. Next-season international qualification is now presented in its own subordinate card for clearer and more consistent review navigation."],
   ["v1.0.1","QA Player Name Integrity","PRE-PRODUCTION / QA FIX","Corrected legacy numeric player-ID suffixes appearing in Club News and other feed text. Feed messages now pass through the same player display-name integrity layer used by player cards. Existing save identity and player IDs are not changed."],
@@ -27300,6 +27601,7 @@ function render(){
   document.querySelectorAll("#nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
   renderContextNav();
   if(G.nationalGM&&G.nationalGM.pendingOffer)setTimeout(()=>{try{showNationalGMDecisionGate()}catch(e){}},0);
+  else setTimeout(()=>{try{maybeShowDynamicStory()}catch(e){}},120);
   return true;
  }catch(err){
   renderQueued=false;
@@ -27319,6 +27621,7 @@ function render(){
           renderContextNav();
           G._renderRecoveryAttempted=false;
           if(G.nationalGM&&G.nationalGM.pendingOffer)setTimeout(()=>{try{showNationalGMDecisionGate()}catch(e){}},0);
+          else setTimeout(()=>{try{maybeShowDynamicStory()}catch(e){}},120);
           return true;
         }
       }catch(retryErr){
@@ -27710,6 +28013,9 @@ $("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
 $("#seasonPreviewTabs").addEventListener("click",function(e){let b=e.target.closest("[data-season-preview-tab]");if(b)renderSeasonPreview(b.dataset.seasonPreviewTab)});
 $("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
 $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
+$("#dynamicStoryPrimaryBtn").addEventListener("click",()=>resolveDynamicStory("primary"));
+$("#dynamicStorySecondaryBtn").addEventListener("click",()=>resolveDynamicStory("secondary"));
+$("#dynamicStoryIgnoreBtn").addEventListener("click",()=>resolveDynamicStory("ignore"));
 $("#resultContinueBtn").addEventListener("click",function(){
  // Close the club match report immediately.
  $("#resultScreen").classList.add("hidden");
@@ -27736,7 +28042,7 @@ const RELEASE_CANDIDATE_CHECKS=[
  {name:"Save integrity",test:()=>typeof SAVE_INTEGRITY_VERSION==="string"&&typeof validateCareerSnapshot==="function"},
  {name:"Season progression",test:()=>typeof startSeasonTransition==="function"&&typeof prepareSeasonReview==="function"},
  {name:"Match engine",test:()=>typeof sim==="function"&&typeof strength==="function"},
-  {name:"Pre-production version control",test:()=>RELEASE_CANDIDATE_VERSION==="1.0.0"&&RELEASE_STAGE==="PRE-PRODUCTION"&&GAMEPLAY_ENGINE_VERSION==="1.0.0"&&MATCH_ENGINE_VERSION==="1.0.0"&&WORLD_ENGINE_VERSION==="1.0.0"&&INTERNATIONAL_NATIONAL_VERSION==="1.0.0"},
+  {name:"Pre-production version control",test:()=>RELEASE_STAGE==="PRE-PRODUCTION"&&GAMEPLAY_ENGINE_VERSION==="1.0.0"&&MATCH_ENGINE_VERSION==="1.0.0"&&WORLD_ENGINE_VERSION==="1.0.0"&&INTERNATIONAL_NATIONAL_VERSION==="1.0.0"},
  {name:"Facilities",test:()=>typeof facilityCard==="function"&&typeof facilityStatusHtml==="function"},
  {name:"Player profiles",test:()=>typeof showPlayer==="function"},
  {name:"Club profiles",test:()=>typeof showClubProfile==="function"},
