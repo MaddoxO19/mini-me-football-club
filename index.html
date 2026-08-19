@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.12 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.13 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14230,6 +14230,30 @@ body.season-preview-active .seasonPreviewHero .sub{
 @media(max-width:430px){
  #nav [data-page="international"] span{font-size:8px!important;letter-spacing:-.025em!important}
 }
+
+/* ==========================================================
+   v1.1.13 QA — INTERNATIONAL WORKSPACE SPLIT
+   ========================================================== */
+.internationalWorkspaceIntro{
+  max-width:760px;
+  margin:0 auto 12px;
+  padding:14px 0 2px;
+}
+.internationalWorkspaceIntro .screenTitle{margin-top:3px}
+.internationalWorkspaceIntro .screenSubtitle{margin-top:5px}
+body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
+  --context-count:4!important;
+}
+@media(max-width:430px){
+ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav button span:last-child{
+   font-size:8.5px!important;
+   letter-spacing:.02em!important;
+ }
+ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav [data-context-nav="worldcup"] span:last-child{
+   font-size:7.8px!important;
+ }
+ .internationalWorkspaceIntro{padding-top:10px;margin-bottom:9px}
+}
 </style>
 
 </head>
@@ -14478,8 +14502,8 @@ body.season-preview-active .seasonPreviewHero .sub{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.12 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.12";
+const BUILD_VERSION="Mini&Me Football Club v1.1.13 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.13";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -19121,6 +19145,87 @@ function nationalInternationalView(){
  return gmBlock+worldCupHubHtml()+(window.worldCupHubTab==='finals'?'':internationalResultsHistoryHtml());
 }
 
+function nationalManagerWorkspaceHtml(){
+ ensureInternationalNationalState();ensureNationalGMState();syncWorldCupLifecycleState();
+ if(G.nationalGM&&G.nationalGM.active)ensureManagedNationalAISquad(false);
+
+ let managed=G.nationalGM&&G.nationalGM.active;
+ if(!managed){
+   return '<div class="card nationalInternationalManagerCard"><div class="sectionHead"><div>'+
+     '<div class="screenEyebrow">NATIONAL TEAM MANAGEMENT</div>'+
+     '<div class="title">No National Team Role</div>'+
+     '<div class="sub">National squad management becomes available when your GM accepts an international appointment.</div>'+
+   '</div></div></div>';
+ }
+
+ let balance=nationalSquadBalanceStatus(),
+     confirmed=!!G.nationalGM.squadConfirmed,
+     nation=G.nationalGM.nation;
+
+ return '<div class="card nationalInternationalManagerCard">'+
+   '<div class="sectionHead"><div><div class="screenEyebrow">NATIONAL TEAM MANAGER</div>'+
+   '<div class="title">'+nationFlagHtml(nation,24)+nationName(nation)+'</div>'+
+   '<div class="sub">Your dedicated national-team squad workspace.</div></div>'+
+   '<div class="nationalGMReadyState '+(confirmed&&balance.ready?'ready':'attention')+'">'+
+     (confirmed&&balance.ready?'READY':'ACTION REQUIRED')+
+   '</div></div>'+
+   '<div class="nationalGMControlGrid">'+
+     '<div><span>SQUAD</span><b>'+managedNationalSquadPlayers().length+' / '+NATIONAL_SQUAD_SIZE+'</b></div>'+
+     '<div><span>AVERAGE OVR</span><b>'+nationalSquadAverageOVR().toFixed(1)+'</b></div>'+
+     '<div><span>BALANCE</span><b>'+(balance.ready?'Ready':'Review')+'</b></div>'+
+     '<div><span>CONFIRMATION</span><b>'+(confirmed?'Confirmed':'Pending')+'</b></div>'+
+   '</div>'+
+   '<div class="nationalGMControlActions">'+
+     '<button data-national-gm-open-squad="1">MANAGE SQUAD</button>'+
+     '<button data-national-gm-confirm-squad="1" class="'+(confirmed?'confirmed':'')+'">'+
+       (G.nationalGM.manualSquadOverride?(confirmed?'OVERRIDE CONFIRMED':'CONFIRM OVERRIDE'):'AI SQUAD READY')+
+     '</button>'+
+   '</div>'+
+   (!balance.ready?'<div class="nationalGMControlNote">The squad still needs positional balance before it should be confirmed for international duty.</div>':'')+
+ '</div>';
+}
+
+function internationalNationsView(){
+ ensureInternationalNationalState();syncWorldCupLifecycleState();
+ window.worldCupHubTab="qualification";
+ return '<div class="internationalWorkspaceIntro">'+
+   '<div class="screenEyebrow">NATIONAL INTERNATIONALS</div>'+
+   '<div class="screenTitle">Nations</div>'+
+   '<div class="screenSubtitle">World Cup qualification, federation tables and the wider international landscape.</div>'+
+ '</div>'+
+ worldCupQualificationGlobalSummaryHtml()+
+ qualificationWatchHtml()+
+ worldCupQualificationFullHtml()+
+ internationalResultsHistoryHtml();
+}
+
+function internationalSquadView(){
+ return '<div class="internationalWorkspaceIntro">'+
+   '<div class="screenEyebrow">NATIONAL TEAM</div>'+
+   '<div class="screenTitle">Squad</div>'+
+   '<div class="screenSubtitle">Select, balance and confirm the players representing your nation.</div>'+
+ '</div>'+
+ nationalManagerWorkspaceHtml();
+}
+
+function internationalWorldCupView(){
+ ensureInternationalNationalState();syncWorldCupLifecycleState();
+ window.worldCupHubTab="finals";
+ return '<div class="internationalWorkspaceIntro">'+
+   '<div class="screenEyebrow">WORLD CUP</div>'+
+   '<div class="screenTitle">World Cup</div>'+
+   '<div class="screenSubtitle">Finals groups, knockout progression, results and tournament honours.</div>'+
+ '</div>'+
+ worldCupFinalsHubHtml()+
+ worldCupFinalsResultsHistoryHtml();
+}
+
+/* Legacy compatibility for old links/saves that still request the former
+   combined National workspace. Route it into Nations rather than duplicating UI. */
+function nationalInternationalView(){
+ return internationalNationsView();
+}
+
 function latestCurrentSeasonInternationalResults(){
  ensureInternationalNationalState();
  let season=Number(G.season),candidates=[];
@@ -19261,18 +19366,24 @@ function clubInternationalContent(){
 }
 /* v2.11.10.5: Club International and National Internationals render independent content sets. */
 function internationalClubView(){
- let tab=window.internationalSectionTab||"club";
- return internationalSectionTabsHtml()+(tab==="national"?nationalInternationalView():clubInternationalContent());
+ return international();
 }
 
 /* v1.1.11 Navigation Architecture
    International is now a first-class global workspace. The underlying
    Champions Tournament and National International views are unchanged. */
 function international(){
- let tab=window.internationalSectionTab||"club";
- if(!["club","national"].includes(tab))tab="club";
+ let tab=window.internationalSectionTab||"nations";
+ // Migrate the former two-tab state.
+ if(tab==="club")tab="champions";
+ if(tab==="national")tab="nations";
+ if(!["champions","nations","squad","worldcup"].includes(tab))tab="nations";
  window.internationalSectionTab=tab;
- return tab==="national"?nationalInternationalView():clubInternationalContent();
+
+ if(tab==="champions")return clubInternationalContent();
+ if(tab==="squad")return internationalSquadView();
+ if(tab==="worldcup")return internationalWorldCupView();
+ return internationalNationsView();
 }
 
 function ensureMatchHistoryArchive(){
@@ -26782,6 +26893,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.13","International Workspace Split","PRE-PRODUCTION / UX REFACTOR","Separated the International global workspace into four clear destinations: Champions, Nations, Squad and World Cup. Champions retains the Champions Tournament; Nations contains World Cup qualification, federation tables and current national results; Squad isolates national-team selection and confirmation; World Cup contains finals groups, knockout progression and finals results. The former combined Club/National state is migrated automatically and all competition/simulation engines remain unchanged."],
   ["v1.1.12","Home Navigation State Fix","PRE-PRODUCTION / QA FIX","Corrected the v1.1.11 navigation-state regression where the global Home button inherited the last Home workspace such as GM Brief or News. The global Home action now always returns to the true Home Overview and resets its scroll position, including when returning from Club or another primary section. Squad, Market, League and International continue preserving their own working sub-section state so repetitive management workflows are not disrupted."],
   ["v1.1.11","Navigation Architecture","PRE-PRODUCTION / UX REFACTOR","Rebalanced the primary information architecture. The global navigation is now Home, Squad, Market, League and International. Club moves under Home and replaces the redundant Overview shortcut; Home now uses Club, GM Brief, News and More. About and Game Guide move into Home More. League no longer carries International and is reduced to Table, Cup, Statistics and More, while International becomes its own global workspace with Club and National international views. Competition and simulation logic are unchanged."],
   ["v1.1.10","Qualification Tie-Break Status Integrity","PRE-PRODUCTION / QA FIX","Corrected confirmed-qualification status when completed groups finish level on points. Once every nation has played its full programme, the final sorted table order—including goal difference, goals scored and rating tie-breakers—now becomes authoritative. This fixes cases such as Canada finishing first over Costa Rica on equal points/GD but not displaying QUALIFIED, and applies consistently across grouped confederations and the CONMEBOL table."],
@@ -28005,8 +28117,10 @@ function contextNavDefinition(){
   {key:"statistics",label:"Statistics",icon:"statistics"},{key:"more",label:"More",icon:"more"}
  ];
  if(page==="international")return[
-  {key:"club",label:"Club",icon:"cup"},
-  {key:"national",label:"National",icon:"international"}
+  {key:"champions",label:"Champions",icon:"cup"},
+  {key:"nations",label:"Nations",icon:"national"},
+  {key:"squad",label:"Squad",icon:"team"},
+  {key:"worldcup",label:"World Cup",icon:"international"}
  ];
  if(page==="club")return[
   {key:"overview",label:"Overview",icon:"overview"},{key:"legacy",label:"Legacy",icon:"legacy"},
@@ -28023,7 +28137,11 @@ function activeContextNavKey(){
  if(page==="squad")return squadTab||"team";
  if(page==="market")return window.marketSourceTab||"all";
  if(page==="league")return ["records","history","halloffame"].includes(leagueTab)?"more":leagueTab||"table";
- if(page==="international")return window.internationalSectionTab||"club";
+ if(page==="international"){
+  let k=window.internationalSectionTab||"nations";
+  if(k==="club")k="champions";if(k==="national")k="nations";
+  return k;
+ }
  if(page==="club")return clubTab||"overview";
  return"";
 }
@@ -28111,7 +28229,7 @@ function activateContextNavigation(key){
    if(key==="more"){showLeagueContextMore();return}
    leagueTab=key;
  }else if(page==="international"){
-   window.internationalSectionTab=key==="national"?"national":"club";
+   window.internationalSectionTab=["champions","nations","squad","worldcup"].includes(key)?key:"nations";
  }else if(page==="club")clubTab=key;
  renderSoon();
 }
@@ -28206,7 +28324,7 @@ function resetTopMenuSection(nextPage){
   window.marketSourceTab="all";
   marketPositionFilter="RECOMMENDED";
  }else if(nextPage==="league")leagueTab="table";
- else if(nextPage==="international")window.internationalSectionTab="club";
+ else if(nextPage==="international")window.internationalSectionTab="nations";
  else if(nextPage==="club")clubTab="overview";
 }
 function navigateTo(nextPage){
