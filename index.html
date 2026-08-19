@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.29 Anchored National Match Engine</title>
+<title>Mini&Me Football Club v2.13.8 International Strength & Scoreline Model</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.29 Anchored National Match Engine";
- const RELEASE_CANDIDATE_VERSION="2.13.5.29";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.27 National Scoreline Distribution Calibration";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.27";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -16474,13 +16474,11 @@ function nationalTeamTier(nationId){
 function nationalTeamStrength(nationId){
  if(internationalBatchCache&&internationalBatchCache.strengths.has(nationId))return internationalBatchCache.strengths.get(nationId);
  ensureInternationalNationalState();
- // ==========================================================
- // v2.13.5.29 ANCHORED NATIONAL STRENGTH — PRODUCTION BASELINE
- // Pedigree sets the normal football hierarchy. Live Starting XI quality
- // moves a nation inside that hierarchy and can override it only when the
- // actual XI is genuinely exceptional. This keeps minnows weak by default
- // without making national tiers permanent ceilings.
- // ==========================================================
+ // v2.13.7 ANCHORED NATIONAL STRENGTH
+ // Pedigree tier sets the backbone of the world hierarchy. Live squad quality only
+ // shades a nation within a bounded band around its anchor, so a weak generation
+ // cannot collapse a major nation and a strong generation cannot inflate a minnow,
+ // except through an explicit, gated exceptional-generation pathway (GOAT saves).
  const ANCHOR={S:99,A:91,B:83,C:74,D:63,E:50};
  const EXPECTED_XI={S:86,A:83,B:80,C:75,D:69,E:61};
  let wc=worldCupNationTier(nationId),
@@ -16491,37 +16489,26 @@ function nationalTeamStrength(nationId){
      avg=null;
  if(pool.length){
    let sel=internationalAppearancePlayersRaw(nationId,pool),xi=sel.starters.length?sel.starters:pool.slice(0,11);
-   avg=xi.length?xi.reduce((sum,p)=>sum+(Number(p.ovr)||60),0)/xi.length:null;
+   avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||60),0)/xi.length:null;
  }
-
  let value=anchor;
  if(Number.isFinite(avg)){
-   // Ordinary generations shade the anchor but cannot casually bridge tiers.
+   // Ordinary squad variance: bounded so it shades, never reorders, the tiers.
    value=anchor+Math.max(-6,Math.min(7,avg-expXi))*0.8;
-
-   // Exceptional-generation escape route. Once a D/E nation really fields an
-   // elite XI, actual player quality becomes authoritative. A 90 OVR minnow XI
-   // is therefore a genuinely strong national side, while an ordinary 70 OVR
-   // minnow remains anchored to its historical football environment.
-   if(wc==="E"&&avg>=82){
-     // Smooth transformation curve: no cliff-edge jump at one OVR threshold.
-     // 82 XI remains near the historical ceiling; 90 XI becomes genuinely strong;
-     // 94+ XI can operate at major-nation level.
-     let transformed=55.6+(avg-82)*2.9;
-     value=Math.max(value,transformed);
-   }else if(wc==="D"&&avg>=80){
-     let transformed=68.6+(avg-80)*1.8;
-     value=Math.max(value,transformed);
-   }else if(wc==="C"&&avg>=86){
-     let transformed=79.6+(avg-86)*1.3;
-     value=Math.max(value,transformed);
+   // Exceptional-generation pathway (GOAT): a live XI far above the tier's expected
+   // level reflects a special generation and pulls strength up toward what the XI
+   // deserves on its own merit. Ramps in only for a genuinely elite XI (from ~84),
+   // so ordinary squads never bridge tiers, but an extraordinary 94-OVR side can
+   // reach genuine world class regardless of pedigree. Upward only and tier-agnostic:
+   // pedigree still protects strong nations, whose anchor already exceeds this term.
+   let xiStrength=40+(avg-58)*1.55;
+   if(xiStrength>value){
+     let pull=Math.max(0,Math.min(1,(avg-80)/12));
+     value=value+(xiStrength-value)*pull;
    }
  }
-
- // Ranking is only a within-band stabiliser. It cannot create a superpower by
- // accumulated results alone.
+ // Small ranking nudge for within-tier variety; bounded so it cannot bridge tiers.
  value+=Math.max(-3,Math.min(3,(rating-750)/10))*0.3;
- value=Math.max(44,Math.min(99,value));
  if(internationalBatchCache)internationalBatchCache.strengths.set(nationId,value);
  return value;
 }
@@ -16697,28 +16684,13 @@ function internationalTierContext(a,b){
  let ta=worldCupNationTier(a),tb=worldCupNationTier(b),
      xa=internationalLiveXiAverage(a),xb=internationalLiveXiAverage(b),
      ra=order[ta]||2,rb=order[tb]||2;
-
- function effectiveRank(tier,xi,rank){
-   if(!Number.isFinite(xi))return rank;
-   if(tier==="E"){
-     if(xi>=97)return 6;
-     if(xi>=94)return 5;
-     if(xi>=90)return 4;
-     if(xi>=86)return 3;
-   }
-   if(tier==="D"){
-     if(xi>=96)return 6;
-     if(xi>=92)return 5;
-     if(xi>=88)return 4;
-     if(xi>=84)return 3;
-   }
-   if(tier==="C"){
-     if(xi>=94)return 5;
-     if(xi>=90)return 4;
-   }
-   return rank;
+ // Exceptional real squads can outgrow historical football environment.
+ if(ta==="E"&&Number.isFinite(xa)){
+   if(xa>=92)ra=5; else if(xa>=88)ra=4; else if(xa>=84)ra=3;
  }
- ra=effectiveRank(ta,xa,ra);rb=effectiveRank(tb,xb,rb);
+ if(tb==="E"&&Number.isFinite(xb)){
+   if(xb>=92)rb=5; else if(xb>=88)rb=4; else if(xb>=84)rb=3;
+ }
  return{ta,tb,xa,xb,ra,rb,gap:ra-rb};
 }
 
@@ -16729,15 +16701,12 @@ function internationalMatchExpectations(a,b,neutral=true){
      tc=internationalTierContext(a,b),
      tierGap=Math.abs(tc.gap);
 
- // v2.13.5.29 SUPREMACY SCORELINE MODEL
+ // v2.13.7 SUPREMACY SCORELINE MODEL
  // The rating gap maps directly to expected goal supremacy through a saturating
  // curve, so a bigger gap means a bigger but bounded favourite expectation and a
  // suppressed underdog. Ordinary matches need no post-hoc correction.
- let lowerIsHome=tc.gap<0, lowerXi=lowerIsHome?tc.xa:tc.xb,
-     lowerTier=lowerIsHome?tc.ta:tc.tb;
- let genuineRise=Number.isFinite(lowerXi)&&(
-   (lowerTier==="E"&&lowerXi>=86)||(lowerTier==="D"&&lowerXi>=84)||(lowerTier==="C"&&lowerXi>=90)
- );
+ let lowerIsHome=tc.gap<0, lowerXi=lowerIsHome?tc.xa:tc.xb;
+ let genuineRise=Number.isFinite(lowerXi)&&lowerXi>=84;
 
  let sup=3.2*Math.tanh(diff/15);
  let hbar=(neutral?2.55:2.62)/2;
@@ -16762,7 +16731,7 @@ function internationalMatchExpectations(a,b,neutral=true){
 }
 
 function internationalUpsetGuard(a,b,hg,ag,seed){
- // v2.13.5.29: the anchored strength + supremacy model already produces calibrated
+ // v2.13.7: the anchored strength + supremacy model already produces calibrated
  // W/D/L rates, so this is now only a thin safety net for extreme mismatches
  // rather than a corrective layer that rewrites ordinary results.
  let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),diff=sa-sb,abs=Math.abs(diff),
@@ -16771,10 +16740,7 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
 
  let favourite=diff>=0?"home":"away",
      underXi=favourite==="home"?tc.xb:tc.xa,
-     underTier=favourite==="home"?tc.tb:tc.ta,
-     genuineRise=Number.isFinite(underXi)&&(
-       (underTier==="E"&&underXi>=86)||(underTier==="D"&&underXi>=84)||(underTier==="C"&&underXi>=90)
-     );
+     genuineRise=Number.isFinite(underXi)&&underXi>=84;
  if(genuineRise)return[hg,ag];
 
  let favGoals=favourite==="home"?hg:ag,undGoals=favourite==="home"?ag:hg,
@@ -16791,13 +16757,16 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
  return[hg,ag];
 }
 function calibrateNationalScoreline(home,away,hg,ag,seed){
- // v2.13.5.29: ordinary scorelines are never rewritten. The supremacy/xG
- // model owns the result distribution. Only the extreme statistical tail is
- // lightly constrained to avoid recurrent arcade-like 5–5 / 6–6 outcomes.
- if(hg>=5&&ag>=5&&internationalRand(seed+"|EXTREME_DRAW",1)>.20){hg--;ag--;}
- if(hg+ag>=10&&internationalRand(seed+"|EXTREME_TOTAL",2)>.35){
-   if(hg>ag)hg--;else if(ag>hg)ag--;else{hg--;ag--;}
+ // v2.13.8: the supremacy model owns the scoreline distribution. What remains is a
+ // very light high-tail safeguard that only shaves the occasional arcade-y blowout
+ // total; 3-3, 4-4 and six-goal margins are left to the model as legitimate results.
+ let total=hg+ag;
+ if(total>=8&&internationalRand(seed+"|HIGH_TAIL",1)>.60){
+   if(hg>ag)hg--;
+   else if(ag>hg)ag--;
+   else{hg--;ag--;}
  }
+
  return[Math.max(0,hg),Math.max(0,ag)];
 }
 
@@ -26004,7 +25973,6 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
-  ["v2.13.5.29","Anchored National Match Engine","SIMULATION / PRODUCTION BASELINE","Adopted the anchored national hierarchy and supremacy score model as the production baseline. Added a genuine exceptional-generation escape route for D/E nations, aligned effective tier comparisons to live XI quality, reduced post-result rewriting to the extreme statistical tail only, and retained one unified engine for friendlies, World Cup qualifying and World Cup matches."],
   ["v2.13.5.27","National Scoreline Distribution Calibration","SIMULATION","Rebalanced the unified national engine toward realistic international scorelines. Reduced goal inflation in mismatches, increased the share of close wins and low-scoring draws, and suppressed unusually frequent 4–4 / 5–0 / 6–0 tails without changing nation tiers or reintroducing separate competition engines."],
   ["v2.13.5.26","Unified National Match Engine","SIMULATION / PRODUCTION","Unified friendlies, World Cup qualifying and World Cup 90-minute simulation around one national strength, expectation, upset and score-generation path. Removed qualifier-specific scoring adjustments/guards; competition context now changes only post-draw progression such as knockout resolution."],
   ["v2.13.5.25","International Match Probability Calibration","SIMULATION","Refined friendly, qualifier and World Cup probability curves for large national strength gaps. Extreme mismatches now produce stronger favourite scoring expectations and much rarer draws/upsets while exceptional live squads can still overcome historical tier limits."],
@@ -26036,7 +26004,7 @@ function aboutBuildHistoryHtml(){
    '<div class="aboutVersionRow"><span>International System</span><b>'+INTERNATIONAL_NATIONAL_VERSION+'</b></div>'+
    '<div class="aboutVersionRow"><span>Save Integrity</span><b>'+saveVersion+'</b></div></div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Production Status</div><div class="sub">Current QA position and known technical debt.</div></div></div>'+
-   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. The national-team simulation engine is unified and anchored as of v2.13.5.29. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
+   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. The national-team simulation engine is unified as of v2.13.5.26. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Build History</div><div class="sub">Recent development milestones leading to the current build.</div></div><div class="sectionCount">'+recentBuilds.length+'</div></div>'+
    '<div class="buildHistoryTable"><div class="buildHistoryHead"><span>VERSION</span><span>UPDATE</span></div>'+
    recentBuilds.map(x=>'<div class="buildHistoryRow"><strong>'+x[0]+'</strong><div><b>'+x[1]+'</b><small style="display:block;margin:3px 0;color:var(--gold);font-size:8px;font-weight:900;letter-spacing:.07em">'+x[2]+'</small><span>'+x[3]+'</span></div></div>').join("")+'</div></div>'+
