@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.7 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.8 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14165,6 +14165,65 @@ body.season-preview-active .seasonPreviewWrap{
     font-size:11px!important;
   }
 }
+
+/* ==========================================================
+   v1.1.8 QA — SEASON PREVIEW HEADER / HERO ALIGNMENT
+   Use the game's existing dynamic global-header variable.
+   ========================================================== */
+body.season-preview-active #seasonPreview{
+  top:var(--nav-top,104px)!important;
+  padding-top:14px!important;
+}
+body.season-preview-active .seasonPreviewHero{
+  box-sizing:border-box!important;
+  padding:18px 18px 17px!important;
+  margin:0 0 16px!important;
+  border:1px solid #3a4550!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,#121b24,#0e161d)!important;
+}
+body.season-preview-active .seasonPreviewHero .label{
+  display:block!important;
+  margin:0 0 7px!important;
+  font-size:9px!important;
+  line-height:1!important;
+  letter-spacing:.15em!important;
+}
+body.season-preview-active .seasonPreviewHero h1{
+  margin:0 0 8px!important;
+  font-size:27px!important;
+  line-height:1.08!important;
+  letter-spacing:-.025em!important;
+}
+body.season-preview-active .seasonPreviewHero .sub{
+  max-width:100%!important;
+  margin:0!important;
+  font-size:10.5px!important;
+  line-height:1.5!important;
+}
+@media(max-width:430px){
+  body.season-preview-active #seasonPreview{
+    top:var(--nav-top,104px)!important;
+    padding-top:12px!important;
+  }
+  body.season-preview-active .seasonPreviewHero{
+    padding:16px 15px 15px!important;
+    border-radius:16px!important;
+  }
+  body.season-preview-active .seasonPreviewHero .label{
+    font-size:8.5px!important;
+    margin-bottom:6px!important;
+  }
+  body.season-preview-active .seasonPreviewHero h1{
+    font-size:24px!important;
+    line-height:1.08!important;
+    margin-bottom:7px!important;
+  }
+  body.season-preview-active .seasonPreviewHero .sub{
+    font-size:10px!important;
+    line-height:1.48!important;
+  }
+}
 </style>
 
 </head>
@@ -14413,8 +14472,8 @@ body.season-preview-active .seasonPreviewWrap{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.7 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.7";
+const BUILD_VERSION="Mini&Me Football Club v1.1.8 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.8";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -20728,15 +20787,10 @@ function renderSeasonPreview(tab='outlook'){
  $("#seasonPreviewTabs").innerHTML=defs.map(x=>'<button type="button" data-season-preview-tab="'+x[0]+'" class="'+(x[0]===tab?'active':'')+'">'+x[1]+'</button>').join('');
  $("#seasonPreviewContent").innerHTML='<div class="seasonPreviewPanel active">'+seasonPreviewPanelHtml(tab)+'</div>';
 }
-function syncSeasonPreviewTop(){
- let header=document.querySelector("header"),bottom=0;
- if(header){let r=header.getBoundingClientRect();if(r.bottom>0)bottom=r.bottom}
- if(bottom<72)bottom=116;
- document.documentElement.style.setProperty("--season-preview-top",Math.round(bottom)+"px");
-}
+
 function maybeShowSeasonPreview(){
  if(!G||!G.seasonPreview||G.seasonPreview.dismissed||Number(G.seasonPreview.season)!==Number(G.season)){setTimeout(maybeShowClubIdentityDecision,80);return false}
- renderSeasonPreview('outlook');syncSeasonPreviewTop();$("#seasonPreview").classList.remove('hidden');document.body.classList.add('season-preview-active');$("#seasonPreview").scrollTop=0;return true;
+ renderSeasonPreview('outlook');$("#seasonPreview").classList.remove('hidden');document.body.classList.add('season-preview-active');$("#seasonPreview").scrollTop=0;return true;
 }
 function closeSeasonPreview(){
  if(G&&G.seasonPreview){G.seasonPreview.dismissed=true;save()}let o=$("#seasonPreview");if(o)o.classList.add('hidden');document.body.classList.remove('season-preview-active');setTimeout(maybeShowClubIdentityDecision,80);
@@ -26699,6 +26753,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.8","Season Preview Header Alignment","PRE-PRODUCTION / QA FIX","Removed the duplicate Season Preview header measurement introduced during the earlier layout pass. The preview now uses the same dynamically maintained --nav-top header offset as the rest of the game, eliminating the oversized gap beneath the global header. The Season Preview hero also receives proper internal padding, typography spacing and mobile line-height so its title and description sit cleanly inside the card."],
   ["v1.1.7","Season Preview Menu Redesign","PRE-PRODUCTION / QA FIX","Redesigned the New Season Preview navigation to mirror the End of Season Review: two-column aligned menu buttons with the final Landscape option spanning the full row. The preview content now scrolls independently beneath the menu, while Begin Season is removed from the floating content area and docked as the final fixed action at the bottom of the preview."],
   ["v1.1.6","Season Preview Layout Integrity","PRE-PRODUCTION / QA FIX","Corrected the New Season Preview so its heading begins below the actual visible global club header, resets to the top on open, and uses the same 760px horizontal content grid as the rest of the game. Preview tabs now align consistently, while the sticky Begin Season action is retained with standard mobile width, inset and corner treatment. The header offset is measured rather than hardcoded and rechecks after resize or orientation changes."],
   ["v1.1.4","Major Trophy Moments","PRE-PRODUCTION / QA ENHANCEMENT","Expanded the World Cup celebration into a shared Major Trophy Moment system for Premier Division and Championship titles, National Cup wins, Champions Tournament wins and managed World Cup victories. Major achievements now receive a dedicated presentation and GM recognition. A one-time retroactive World Cup check allows existing saves to preview the new celebration after an already-completed managed World Cup win."],
@@ -28419,8 +28474,6 @@ $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
 $("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
-window.addEventListener("resize",()=>{if(document.body.classList.contains("season-preview-active"))syncSeasonPreviewTop()},{passive:true});
-window.addEventListener("orientationchange",()=>setTimeout(()=>{if(document.body.classList.contains("season-preview-active"))syncSeasonPreviewTop()},120));
 $("#seasonPreviewTabs").addEventListener("click",function(e){let b=e.target.closest("[data-season-preview-tab]");if(b)renderSeasonPreview(b.dataset.seasonPreviewTab)});
 $("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
 $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
