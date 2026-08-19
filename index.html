@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.23 Club History Integrity Fix</title>
+<title>Mini&Me Football Club v2.13.5.24 Version Governance & International Calibration</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.23 Club History Integrity Fix";
- const RELEASE_CANDIDATE_VERSION="2.13.5.19";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.24 Version Governance & International Calibration";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.24";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -15332,7 +15332,7 @@ function makeQualificationTable(ids){
 }
 function qualificationSeedingScore(id){
  let tier=typeof worldCupNationTier==="function"?worldCupNationTier(id):"D",
-     tierValue={S:500,A:400,B:300,C:200,D:100}[tier]||100,
+     tierValue={S:600,A:500,B:400,C:300,D:180,E:40}[tier]||180,
      power=nationalPowerProfile(id),
      pedigree=power?Math.max(0,Number(power.floor)||0):0,
      rating=Number(effectiveNationalRating(id))||700;
@@ -15575,7 +15575,7 @@ function qualificationScoreGuard(homeId,awayId,hg,ag,seed){
    let deficit=conceded-scored;
    if(deficit<3)return[conceded,scored];
 
-   let weakerOpp=["COMPETITIVE","DEVELOPING","LOWER"].includes(oppTier.key);
+   let weakerOpp=["COMPETITIVE","DEVELOPING","LOWER","MINOR"].includes(oppTier.key);
    let strongProtection=weakerOpp||strengthGap>=8;
    if(strongProtection){
      let keepHeavy=internationalRand(seed+"|HEAVY_LOSS|"+tag,1);
@@ -16144,6 +16144,7 @@ function worldCupGroupRows(group){
    Squad OVR still matters, but national pedigree strongly governs deep runs.
    ========================================================== */
 const WORLD_CUP_NATION_TIERS={
+ // v2.13.5.24 calibration of the existing v2.11.20.0 model.
  // S — genuine tournament favourites
  BRA:"S",FRA:"S",ARG:"S",ESP:"S",ENG:"S",GER:"S",
 
@@ -16153,17 +16154,21 @@ const WORLD_CUP_NATION_TIERS={
  // B — strong international sides, realistic knockout teams
  JPN:"B",KOR:"B",AUS:"B",USA:"B",MEX:"B",MAR:"B",SEN:"B",COL:"B",NGA:"B",SUI:"B",DEN:"B",
 
- // C — credible qualifiers; a knockout appearance is possible, a deep run is unusual
+ // C — established / credible qualifiers
  KSA:"C",IRN:"C",CAN:"C",CRC:"C",ECU:"C",EGY:"C",CMR:"C",CIV:"C",
  POL:"C",SWE:"C",NOR:"C",SRB:"C",UKR:"C",TUR:"C",CZE:"C",WAL:"C",SCO:"C",
- QAT:"C",GHA:"C",RSA:"C",
+ QAT:"C",GHA:"C",RSA:"C",NZL:"C",AUT:"C",CHI:"C",ALG:"C",PER:"C",TUN:"C",
 
- // D — qualifying is an achievement; deep World Cup runs should be exceptional
+ // D — competitive/developing nations; qualification is a notable achievement
  THA:"D",VIE:"D",CHN:"D",JOR:"D",UAE:"D",IRQ:"D",UZB:"D",
- NZL:"D",PAN:"D",HON:"D",SLV:"D",JAM:"D",
+ PAN:"D",HON:"D",SLV:"D",JAM:"D",GUA:"D",TRI:"D",HAI:"D",
  BOL:"D",VEN:"D",PAR:"D",
- CPV:"D",MLI:"D",ZAM:"D",GUI:"D",COD:"D",
- GEO:"D",ALB:"D",ARM:"D",AZE:"D",ISL:"D",FIN:"D",SVK:"D",SLO:"D",ROU:"D",BUL:"D"
+ CPV:"D",MLI:"D",ZAM:"D",GUI:"D",COD:"D",BFA:"D",ANG:"D",
+ GEO:"D",ALB:"D",ARM:"D",AZE:"D",ISL:"D",FIN:"D",SVK:"D",SLO:"D",ROU:"D",BUL:"D",
+ BIH:"D",MKD:"D",KAZ:"D",MNE:"D",
+
+ // E — minor / island football nations. They can still rise through genuine player quality.
+ FIJ:"E",SOL:"E",PNG:"E",TAH:"E",NCL:"E",VAN:"E"
 };
 
 const WORLD_CUP_TIER_VALUES={
@@ -16171,7 +16176,8 @@ const WORLD_CUP_TIER_VALUES={
  A:{base:89,mult:1.08,label:"A"},
  B:{base:84,mult:1.03,label:"B"},
  C:{base:78,mult:.98,label:"C"},
- D:{base:72,mult:.92,label:"D"}
+ D:{base:70,mult:.90,label:"D"},
+ E:{base:61,mult:.78,label:"E"}
 };
 
 function worldCupNationTier(nationId){
@@ -16205,7 +16211,15 @@ function worldCupNationStrength(nationId){
  // Pedigree supplies the stable backbone, XI OVR is the strongest live input,
  // and ranking has only a modest influence.
  let raw=(cfg.base*.44)+(squad*.46)+((rating/10)*.10);
- return raw*cfg.mult;
+ let mult=cfg.mult;
+ // A genuinely exceptional player generation can lift a lower-tier nation.
+ // This preserves user-created GOAT pathways without allowing rating drift alone to do it.
+ if(tier==="E"){
+   if(squad>=92)mult=1.04;
+   else if(squad>=88)mult=.98;
+   else if(squad>=84)mult=.90;
+ }else if(tier==="D"&&squad>=90)mult=Math.max(mult,1.00);
+ return raw*mult;
 }
 
 function worldCupMatchExpectations(a,b,stage){
@@ -16225,7 +16239,7 @@ function worldCupMatchExpectations(a,b,stage){
 
  // Knockout football magnifies pedigree slightly without making outcomes fixed.
  if(stage!=="GROUP"){
-   let order={S:5,A:4,B:3,C:2,D:1},gap=(order[ta]||1)-(order[tb]||1);
+   let order={S:6,A:5,B:4,C:3,D:2,E:1},gap=(order[ta]||1)-(order[tb]||1);
    if(gap>=2){home+=.12;away-=.08}
    if(gap<=-2){away+=.12;home-=.08}
  }
@@ -16241,7 +16255,7 @@ function worldCupUpsetGuard(a,b,hg,ag,stage,seed){
  let sa=worldCupNationStrength(a),sb=worldCupNationStrength(b),
      diff=sa-sb,abs=Math.abs(diff),
      ta=worldCupNationTier(a),tb=worldCupNationTier(b),
-     order={S:5,A:4,B:3,C:2,D:1},
+     order={S:6,A:5,B:4,C:3,D:2,E:1},
      tierGap=(order[ta]||1)-(order[tb]||1);
 
  let favourite=diff>=0?"home":"away",
@@ -16528,13 +16542,14 @@ function effectiveNationalBase(nationId,currentBase){
 }
 
 function nationalTeamTier(nationId){
- let rating=effectiveNationalRating(nationId),p=nationalPowerProfile(nationId);
+ let rating=effectiveNationalRating(nationId),p=nationalPowerProfile(nationId),wcTier=worldCupNationTier(nationId);
  if((p&&p.tier==="ELITE")||rating>=835)return{key:"ELITE",label:"Elite",mult:1.18};
  if((p&&p.tier==="POWER")||rating>=795)return{key:"POWER",label:"Power",mult:1.12};
  if((p&&p.tier==="STRONG")||rating>=755)return{key:"STRONG",label:"Strong",mult:1.07};
+ if(wcTier==="E"&&rating<755)return{key:"MINOR",label:"Minor",mult:.80};
  if(rating>=710)return{key:"COMPETITIVE",label:"Competitive",mult:1.015};
- if(rating>=665)return{key:"DEVELOPING",label:"Developing",mult:.96};
- return{key:"LOWER",label:"Lower",mult:.90};
+ if(rating>=665)return{key:"DEVELOPING",label:"Developing",mult:.95};
+ return{key:"LOWER",label:"Lower",mult:.87};
 }
 
 function nationalTeamStrength(nationId){
@@ -16545,17 +16560,24 @@ function nationalTeamStrength(nationId){
      pool=nationalTeamSelection(nationId,23),
      rating=effectiveNationalRating(nationId),
      tier=nationalTeamTier(nationId);
- let value;
+ let value,avg=null;
  if(!pool.length){
    value=base*.68+(rating/10)*.32;
  }else{
    let sel=internationalAppearancePlayersRaw(nationId,pool),xi=sel.starters.length?sel.starters:pool.slice(0,11);
-   let avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||60),0)/xi.length:base;
-   // Squad remains the largest component, but established national strength
-   // now has enough weight to prevent implausible long-term collapse.
+   avg=xi.length?xi.reduce((s,p)=>s+(Number(p.ovr)||60),0)/xi.length:base;
+   // Squad remains the largest component, with pedigree/rating stabilising the world hierarchy.
    value=(base*.28)+(avg*.49)+((rating/10)*.23);
  }
- value*=tier.mult;
+ let mult=tier.mult;
+ // Minor nations are structurally weaker by default, but an exceptional real squad
+ // can legitimately lift the nation above its historical football environment.
+ if(tier.key==="MINOR"&&Number.isFinite(avg)){
+   if(avg>=92)mult=1.06;
+   else if(avg>=88)mult=1.00;
+   else if(avg>=84)mult=.92;
+ }
+ value*=mult;
  if(internationalBatchCache)internationalBatchCache.strengths.set(nationId,value);
  return value;
 }
@@ -16725,8 +16747,8 @@ function internationalMatchExpectations(a,b,neutral=true){
 
  // Base neutral scoring environment.
  let favBoost=0,underdogSuppression=0;
- if(abs>=20){favBoost=.62;underdogSuppression=.46}
- else if(abs>=15){favBoost=.46;underdogSuppression=.34}
+ if(abs>=20){favBoost=.78;underdogSuppression=.58}
+ else if(abs>=15){favBoost=.56;underdogSuppression=.41}
  else if(abs>=10){favBoost=.30;underdogSuppression=.22}
  else if(abs>=6){favBoost=.16;underdogSuppression=.11}
 
@@ -16771,7 +16793,7 @@ function internationalUpsetGuard(a,b,hg,ag,seed){
  // Elite/power nations losing outright to developing/lower nations should be rare.
  let ft=nationalTeamTier(favourite==="home"?a:b),
      ut=nationalTeamTier(favourite==="home"?b:a);
- if(["ELITE","POWER"].includes(ft.key)&&["DEVELOPING","LOWER"].includes(ut.key)){
+ if(["ELITE","POWER"].includes(ft.key)&&["DEVELOPING","LOWER","MINOR"].includes(ut.key)){
    let fav=favourite==="home"?hg:ag,und=favourite==="home"?ag:hg;
    if(und>fav&&internationalRand(seed+"|POWER_SHOCK",3)>.06){
      if(favourite==="home")hg=ag;
@@ -25975,17 +25997,21 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
-  ["v2.13.5.7","About & Build History","Home navigation simplified; About, current build information and recent development history added."],
-  ["v2.13.5.6","GM Brief Snapshot","Expanded GM Brief combines current priorities with essential GM career data."],
-  ["v2.13.5.5","Navigation Content Expansion","Expanded Home News and dedicated Records, History and Hall of Fame More-menu identities."],
-  ["v2.13.5.4","Navigation Shell Hotfix","Corrected the fixed contextual navigation shell and restored the intended scrollable middle workspace."],
-  ["v2.13.5.2","World Cup Finals Hotfix","Removed stray rendered newline markup from the World Cup Finals patch."],
-  ["v2.13.5.1","World Cup Finals Patch","World Cup last-round results and improved Round of 16 presentation."],
-  ["v2.13.5","World Cup Experience","World Cup tournament pause experience and direct Finals navigation."],
-  ["v2.13.4","Domestic & Foreign Population Weighting","Country-aware domestic and foreign player populations with multicultural naming heritage."],
-  ["v2.13.3","Nationality Aware Player Names","Player nationality drives culturally appropriate expanded name generation."],
-  ["v2.13.2","Career Nation Club Identities","Domestic club identities expanded across all selectable career nations."]
- ];
+  ["v2.13.5.24","Version Governance & International Calibration","SIMULATION / GOVERNANCE","Calibrated the existing national-team tier engine, added a Minor E tier for small island nations, strengthened qualification realism, and made About the authoritative recent build record."],
+  ["v2.13.5.23","Club History Integrity Fix","BUG FIX","Corrected null international champion IDs being interpreted as domestic club ID 0, repairing false Champions Tournament honours and timeline entries."],
+  ["v2.13.5.22","Player Age & Retirement Integrity","BUG FIX","Restored the age-39 retirement boundary, blocked inappropriate late-career extensions and repaired legacy active players aged 40+."],
+  ["v2.13.5.21","Season Review Mobile Tabs Fix","UX / MOBILE","Reworked five Season Review tabs for narrow screens so all sections remain accessible."],
+  ["v2.13.5.20","National Team Offer Decision Gate","BUG FIX / UX","National-team appointments now surface as blocking GM decisions and unresolved legacy offers are recovered."],
+  ["v2.13.5.19","International Balance & Penalty Integrity","SIMULATION","Corrected shootout termination and introduced domestic football quality tiers for Champions Tournament club strength."],
+  ["v2.13.5.18","Workspace Position Preservation","UX","Reversed aggressive navigation resets so repetitive management workflows retain their working position."],
+  ["v2.13.5.17","Milestones & Historic Firsts","FEATURE","Added international debuts, first World Cups, first trophies, first championships, trebles, three-peats and persistent historic firsts."],
+  ["v2.13.5.16","Global Navigation Reset","UX - SUPERSEDED","Introduced global menu/top resets; subsequently reversed in v2.13.5.18 after management-workflow testing."],
+  ["v2.13.5.15","Profile Mobile & Sheet Reset","UX / MOBILE","Separated Edit and Close controls on mobile and improved profile sheet behaviour."],
+  ["v2.13.5.14","Manager Setup & Game Guide","FEATURE / ONBOARDING","Added GM name/Known As setup and a first-career Manager Placemat guide."],
+  ["v2.13.5.13","International Round & Flag Polish","UX","Added nation flags to Champions Tournament clubs and corrected knockout-round labels."],
+  ["v2.13.5.12","International Champion Identity Fix","FEATURE","Expanded Champions Tournament club identities with persistent generated club names and crests beyond the original nation set."],
+  ["v2.13.5.11","Pre-Production Stable Baseline","STABILITY","Verified v2.13.5.10 as the source baseline, corrected build metadata and replaced fragile sticky-header offsets without removing legacy CSS overrides."]
+ ]
  let buildShort=String(BUILD_VERSION||"").replace(/^Mini&Me Football Club\s*/,"");
  let saveVersion=typeof SAVE_INTEGRITY_VERSION!=="undefined"?SAVE_INTEGRITY_VERSION:"Current";
  return '<div class="aboutGameView">'+
@@ -25994,12 +26020,15 @@ function aboutBuildHistoryHtml(){
   '<div class="aboutBrandMark"><div class="aboutBrandIcon">M&M</div><div class="aboutBrandCopy"><b>Mini&Me Football Club</b><span>Designed as a compact, data-rich management game that remains easy to pick up and play.</span></div></div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Current Version</div><div class="sub">The active build and major engine identifiers in this game file.</div></div></div>'+
    '<div class="aboutVersionGrid"><div class="aboutVersionRow current"><span>Game Build</span><b>'+buildShort+'</b></div>'+
+   '<div class="aboutVersionRow"><span>Release Status</span><b>PRE-PRODUCTION · QA</b></div>'+
    '<div class="aboutVersionRow"><span>World Engine</span><b>'+WORLD_ENGINE_VERSION+'</b></div>'+
    '<div class="aboutVersionRow"><span>International System</span><b>'+INTERNATIONAL_NATIONAL_VERSION+'</b></div>'+
    '<div class="aboutVersionRow"><span>Save Integrity</span><b>'+saveVersion+'</b></div></div></div>'+
+  '<div class="card"><div class="sectionHead"><div><div class="title">Production Status</div><div class="sub">Current QA position and known technical debt.</div></div></div>'+
+   '<div class="worldNote"><b style="color:var(--gold)">PRE-PRODUCTION QA</b><br>Gameplay is feature-complete for the current production target. Current work is focused on regression testing, simulation calibration and bug correction. Legacy CSS priority declarations remain intentionally in place because bulk removal destabilised the interface; future cleanup should be controlled screen by screen.</div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Build History</div><div class="sub">Recent development milestones leading to the current build.</div></div><div class="sectionCount">'+recentBuilds.length+'</div></div>'+
    '<div class="buildHistoryTable"><div class="buildHistoryHead"><span>VERSION</span><span>UPDATE</span></div>'+
-   recentBuilds.map(x=>'<div class="buildHistoryRow"><strong>'+x[0]+'</strong><div><b>'+x[1]+'</b><span>'+x[2]+'</span></div></div>').join("")+'</div></div>'+
+   recentBuilds.map(x=>'<div class="buildHistoryRow"><strong>'+x[0]+'</strong><div><b>'+x[1]+'</b><small style="display:block;margin:3px 0;color:var(--gold);font-size:8px;font-weight:900;letter-spacing:.07em">'+x[2]+'</small><span>'+x[3]+'</span></div></div>').join("")+'</div></div>'+
   '<div class="card"><div class="sectionHead"><div><div class="title">Development Principles</div><div class="sub">The design approach guiding the current game.</div></div></div>'+
    '<div class="aboutPrinciples"><div class="aboutPrinciple"><b>Stable Core</b><span>Protect working systems and make targeted changes from confirmed baselines.</span></div>'+
    '<div class="aboutPrinciple"><b>Simple, Data Rich</b><span>Keep management decisions accessible while preserving useful football context and history.</span></div>'+
