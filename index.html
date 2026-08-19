@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.24 Version Governance & International Calibration</title>
+<title>Mini&Me Football Club v2.13.5.25 International Match Probability Calibration</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14228,8 +14228,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.24 Version Governance & International Calibration";
- const RELEASE_CANDIDATE_VERSION="2.13.5.24";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.25 International Match Probability Calibration";
+ const RELEASE_CANDIDATE_VERSION="2.13.5.25";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
 const CLUB_NAME_MAX=22;
@@ -16157,7 +16157,7 @@ const WORLD_CUP_NATION_TIERS={
  // C — established / credible qualifiers
  KSA:"C",IRN:"C",CAN:"C",CRC:"C",ECU:"C",EGY:"C",CMR:"C",CIV:"C",
  POL:"C",SWE:"C",NOR:"C",SRB:"C",UKR:"C",TUR:"C",CZE:"C",WAL:"C",SCO:"C",
- QAT:"C",GHA:"C",RSA:"C",NZL:"C",AUT:"C",CHI:"C",ALG:"C",PER:"C",TUN:"C",
+ QAT:"C",GHA:"C",RSA:"C",NZL:"C",AUT:"C",GRE:"C",ISR:"C",CHI:"C",ALG:"C",PER:"C",TUN:"C",
 
  // D — competitive/developing nations; qualification is a notable achievement
  THA:"D",VIE:"D",CHN:"D",JOR:"D",UAE:"D",IRQ:"D",UZB:"D",
@@ -16224,29 +16224,41 @@ function worldCupNationStrength(nationId){
 
 function worldCupMatchExpectations(a,b,stage){
  let sa=worldCupNationStrength(a),sb=worldCupNationStrength(b),
-     diff=Math.max(-30,Math.min(30,sa-sb)),abs=Math.abs(diff),
-     ta=worldCupNationTier(a),tb=worldCupNationTier(b);
+     diff=Math.max(-32,Math.min(32,sa-sb)),abs=Math.abs(diff),
+     ta=worldCupNationTier(a),tb=worldCupNationTier(b),
+     xa=worldCupStartingXIAvg(a),xb=worldCupStartingXIAvg(b),
+     order={S:6,A:5,B:4,C:3,D:2,E:1},
+     gap=(order[ta]||2)-(order[tb]||2),tierGap=Math.abs(gap),
+     lowerXi=gap>0?xb:xa,genuineRise=Number.isFinite(lowerXi)&&lowerXi>=84;
 
- let home=1.24+diff*.050,away=1.20-diff*.050;
+ let home=1.24+diff*.052,away=1.20-diff*.052;
 
- if(abs>=18){
-   if(diff>0){home+=.48;away-=.30}else{away+=.48;home-=.30}
+ if(abs>=22){
+   if(diff>0){home+=.72;away-=.48}else{away+=.72;home-=.48}
+ }else if(abs>=18){
+   if(diff>0){home+=.55;away-=.34}else{away+=.55;home-=.34}
  }else if(abs>=12){
-   if(diff>0){home+=.32;away-=.20}else{away+=.32;home-=.20}
+   if(diff>0){home+=.34;away-=.21}else{away+=.34;home-=.21}
  }else if(abs>=7){
    if(diff>0){home+=.18;away-=.10}else{away+=.18;home-=.10}
  }
 
+ if(!genuineRise&&tierGap>=3){
+   let fav=tierGap>=4?.38:.22,dog=tierGap>=4?.18:.10;
+   if(gap>0){home+=fav;away-=dog}
+   else{away+=fav;home-=dog}
+ }
+
  // Knockout football magnifies pedigree slightly without making outcomes fixed.
  if(stage!=="GROUP"){
-   let order={S:6,A:5,B:4,C:3,D:2,E:1},gap=(order[ta]||1)-(order[tb]||1);
    if(gap>=2){home+=.12;away-=.08}
    if(gap<=-2){away+=.12;home-=.08}
  }
 
+ let dogFloor=!genuineRise&&tierGap>=4?.07:!genuineRise&&tierGap>=3?.11:.16;
  return{
-   home:Math.max(.18,Math.min(3.25,home)),
-   away:Math.max(.18,Math.min(3.25,away)),
+   home:Math.max(diff<0?dogFloor:.16,Math.min(3.85,home)),
+   away:Math.max(diff>0?dogFloor:.16,Math.min(3.85,away)),
    diff,homeTier:ta,awayTier:tb
  };
 }
@@ -16273,6 +16285,7 @@ function worldCupUpsetGuard(a,b,hg,ag,stage,seed){
    // S/A against C/D gets additional tournament protection.
    if(Math.abs(tierGap)>=2)allowed*=.60;
    if(Math.abs(tierGap)>=3)allowed*=.45;
+   if(Math.abs(tierGap)>=4)allowed=Math.min(allowed,.010);
 
    let r=internationalRand(seed+"|WC_TIER_GUARD",11);
    if(upset&&r>allowed){
@@ -16285,10 +16298,10 @@ function worldCupUpsetGuard(a,b,hg,ag,stage,seed){
  }
 
  // Heavy defeats of S/A sides by C/D opposition should be extraordinarily rare.
- if(["S","A"].includes(ta)&&["C","D"].includes(tb)&&ag-hg>=3){
+ if(["S","A"].includes(ta)&&["C","D","E"].includes(tb)&&ag-hg>=3){
    if(internationalRand(seed+"|H_POWER_COLLAPSE",12)>.02)ag=hg+1;
  }
- if(["S","A"].includes(tb)&&["C","D"].includes(ta)&&hg-ag>=3){
+ if(["S","A"].includes(tb)&&["C","D","E"].includes(ta)&&hg-ag>=3){
    if(internationalRand(seed+"|A_POWER_COLLAPSE",13)>.02)hg=ag+1;
  }
 
@@ -16740,62 +16753,113 @@ function recordInternationalAppearance(p,nationId,match,started,won,drawn){
  if(c.matchHistory.length>60)c.matchHistory.length=60;
 }
 
+function internationalLiveXiAverage(nationId){
+ let pool=nationalTeamSelection(nationId,23);
+ if(!pool.length)return null;
+ let sel=internationalAppearancePlayersRaw(nationId,pool),
+     xi=sel.starters.length?sel.starters:pool.slice(0,11);
+ if(!xi.length)return null;
+ return xi.reduce((sum,p)=>sum+(Number(p.ovr)||60),0)/xi.length;
+}
+function internationalTierContext(a,b){
+ const order={S:6,A:5,B:4,C:3,D:2,E:1};
+ let ta=worldCupNationTier(a),tb=worldCupNationTier(b),
+     xa=internationalLiveXiAverage(a),xb=internationalLiveXiAverage(b),
+     ra=order[ta]||2,rb=order[tb]||2;
+ // Exceptional real squads can outgrow historical football environment.
+ if(ta==="E"&&Number.isFinite(xa)){
+   if(xa>=92)ra=5; else if(xa>=88)ra=4; else if(xa>=84)ra=3;
+ }
+ if(tb==="E"&&Number.isFinite(xb)){
+   if(xb>=92)rb=5; else if(xb>=88)rb=4; else if(xb>=84)rb=3;
+ }
+ return{ta,tb,xa,xb,ra,rb,gap:ra-rb};
+}
+
 function internationalMatchExpectations(a,b,neutral=true){
  let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),
-     diff=Math.max(-32,Math.min(32,sa-sb)),
-     abs=Math.abs(diff);
+     diff=Math.max(-34,Math.min(34,sa-sb)),
+     abs=Math.abs(diff),
+     tc=internationalTierContext(a,b),
+     tierGap=Math.abs(tc.gap);
 
  // Base neutral scoring environment.
  let favBoost=0,underdogSuppression=0;
- if(abs>=20){favBoost=.78;underdogSuppression=.58}
- else if(abs>=15){favBoost=.56;underdogSuppression=.41}
- else if(abs>=10){favBoost=.30;underdogSuppression=.22}
+ if(abs>=24){favBoost=.92;underdogSuppression=.72}
+ else if(abs>=20){favBoost=.80;underdogSuppression=.60}
+ else if(abs>=15){favBoost=.58;underdogSuppression=.43}
+ else if(abs>=10){favBoost=.31;underdogSuppression=.23}
  else if(abs>=6){favBoost=.16;underdogSuppression=.11}
 
  let homeBase=1.30,awayBase=1.16;
- let home=homeBase+diff*.052;
- let away=awayBase-diff*.047;
+ let home=homeBase+diff*.053;
+ let away=awayBase-diff*.048;
 
  if(diff>0){home+=favBoost;away-=underdogSuppression}
  else if(diff<0){away+=favBoost;home-=underdogSuppression}
 
+ // Historical tier separation only strengthens a mismatch when the lower-tier
+ // side has not genuinely developed an exceptional live XI.
+ let lowerIsHome=tc.gap<0, lowerXi=lowerIsHome?tc.xa:tc.xb;
+ let genuineRise=Number.isFinite(lowerXi)&&lowerXi>=84;
+ if(!genuineRise&&tierGap>=2){
+   let extraFav=tierGap>=4?.62:tierGap>=3?.40:.20;
+   let extraDog=tierGap>=4?.28:tierGap>=3?.18:.09;
+   if(tc.gap>0){home+=extraFav;away-=extraDog}
+   else if(tc.gap<0){away+=extraFav;home-=extraDog}
+ }
+
+ let extreme=!genuineRise&&(tierGap>=4||abs>=26),
+     dogFloor=extreme?.07:(tierGap>=3&&!genuineRise?.11:.18);
+
  return{
-   home:Math.max(.20,Math.min(3.45,home)),
-   away:Math.max(.20,Math.min(3.35,away)),
-   diff,
-   tierGap:Math.abs((Number(nationalStateById(a)?.rating)||700)-(Number(nationalStateById(b)?.rating)||700))
+   home:Math.max((diff<0?dogFloor:.18),Math.min(4.20,home)),
+   away:Math.max((diff>0?dogFloor:.18),Math.min(4.10,away)),
+   diff,tierGap,homeTier:tc.ta,awayTier:tc.tb,homeXi:tc.xa,awayXi:tc.xb
  };
 }
 
 function internationalUpsetGuard(a,b,hg,ag,seed){
- let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),diff=sa-sb,abs=Math.abs(diff);
- if(abs<11)return[hg,ag];
+ let sa=nationalTeamStrength(a),sb=nationalTeamStrength(b),diff=sa-sb,abs=Math.abs(diff),
+     tc=internationalTierContext(a,b),tierGap=Math.abs(tc.gap);
+ if(abs<10&&tierGap<2)return[hg,ag];
 
- let favourite=diff>0?"home":"away";
- let favGoals=favourite==="home"?hg:ag,undGoals=favourite==="home"?ag:hg;
- let upset=undGoals>favGoals,draw=undGoals===favGoals;
+ let favourite=diff>=0?"home":"away";
+ let favNation=favourite==="home"?a:b,undNation=favourite==="home"?b:a,
+     favGoals=favourite==="home"?hg:ag,undGoals=favourite==="home"?ag:hg,
+     upset=undGoals>favGoals,draw=undGoals===favGoals,
+     underXi=favourite==="home"?tc.xb:tc.xa,
+     genuineRise=Number.isFinite(underXi)&&underXi>=84;
  if(!upset&&!draw)return[hg,ag];
 
- // A shock remains possible, but its probability falls sharply as the
- // underlying national-team gap increases.
- let allowChance=abs>=26?.025:abs>=22?.045:abs>=18?.075:abs>=14?.12:.18;
+ // Extreme mismatches are still probabilistic, but shocks now have genuinely
+ // exceptional rather than routine frequency.
+ let allowChance=abs>=28?.010:abs>=24?.018:abs>=20?.035:abs>=16?.065:abs>=12?.11:.17;
+ if(!genuineRise){
+   if(tierGap>=4)allowChance=Math.min(allowChance,.008);
+   else if(tierGap>=3)allowChance=Math.min(allowChance,.020);
+   else if(tierGap>=2)allowChance=Math.min(allowChance,.055);
+ }
  let r=internationalRand(seed+"|UPSET_GUARD",1);
 
  if(upset&&r>allowChance){
    if(favourite==="home")hg=Math.max(hg,ag);
    else ag=Math.max(ag,hg);
  }
- if(draw&&abs>=18&&internationalRand(seed+"|DRAW_GUARD",2)>.20){
-   if(favourite==="home")hg++;
-   else ag++;
+ if(draw){
+   let drawAllow=!genuineRise&&tierGap>=4?.025:!genuineRise&&tierGap>=3?.055:abs>=22?.08:abs>=18?.14:.24;
+   if(internationalRand(seed+"|DRAW_GUARD",2)>drawAllow){
+     if(favourite==="home")hg++;
+     else ag++;
+   }
  }
 
- // Elite/power nations losing outright to developing/lower nations should be rare.
- let ft=nationalTeamTier(favourite==="home"?a:b),
-     ut=nationalTeamTier(favourite==="home"?b:a);
- if(["ELITE","POWER"].includes(ft.key)&&["DEVELOPING","LOWER","MINOR"].includes(ut.key)){
+ // Major powers losing outright to genuinely minor opposition is possible,
+ // but should be a career-defining shock rather than normal variance.
+ let ft=nationalTeamTier(favNation),ut=nationalTeamTier(undNation);
+ if(["ELITE","POWER"].includes(ft.key)&&["DEVELOPING","LOWER","MINOR"].includes(ut.key)&&!genuineRise){
    let fav=favourite==="home"?hg:ag,und=favourite==="home"?ag:hg;
-   if(und>fav&&internationalRand(seed+"|POWER_SHOCK",3)>.06){
+   if(und>fav&&internationalRand(seed+"|POWER_SHOCK",3)>.025){
      if(favourite==="home")hg=ag;
      else ag=hg;
    }
@@ -25997,6 +26061,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v2.13.5.25","International Match Probability Calibration","SIMULATION","Refined friendly, qualifier and World Cup probability curves for large national strength gaps. Extreme mismatches now produce stronger favourite scoring expectations and much rarer draws/upsets while exceptional live squads can still overcome historical tier limits."],
   ["v2.13.5.24","Version Governance & International Calibration","SIMULATION / GOVERNANCE","Calibrated the existing national-team tier engine, added a Minor E tier for small island nations, strengthened qualification realism, and made About the authoritative recent build record."],
   ["v2.13.5.23","Club History Integrity Fix","BUG FIX","Corrected null international champion IDs being interpreted as domestic club ID 0, repairing false Champions Tournament honours and timeline entries."],
   ["v2.13.5.22","Player Age & Retirement Integrity","BUG FIX","Restored the age-39 retirement boundary, blocked inappropriate late-career extensions and repaired legacy active players aged 40+."],
