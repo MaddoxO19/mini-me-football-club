@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.6 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.7 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14073,6 +14073,98 @@ body.season-preview-active .seasonPreviewBegin{position:sticky!important;bottom:
  body.season-preview-active .seasonPreviewTabs{gap:8px!important}
  body.season-preview-active .seasonPreviewTabs button{min-height:42px!important;padding:0 15px!important;font-size:9.5px!important}
 }
+
+/* ==========================================================
+   v1.1.7 QA — SEASON PREVIEW MENU REDESIGN
+   Mirrors the Season Review navigation hierarchy.
+   ========================================================== */
+body.season-preview-active #seasonPreview{
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  padding:
+    14px
+    max(16px,env(safe-area-inset-right))
+    0
+    max(16px,env(safe-area-inset-left))!important;
+}
+body.season-preview-active .seasonPreviewWrap{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  width:100%!important;
+  max-width:760px!important;
+  margin:0 auto!important;
+}
+body.season-preview-active .seasonPreviewHero{
+  flex:0 0 auto!important;
+  margin:0 0 14px!important;
+  padding:0 0 14px!important;
+}
+body.season-preview-active .seasonPreviewTabs{
+  flex:0 0 auto!important;
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  width:100%!important;
+  overflow:visible!important;
+  margin:0 0 16px!important;
+  padding:0!important;
+}
+body.season-preview-active .seasonPreviewTabs button{
+  width:100%!important;
+  min-width:0!important;
+  min-height:54px!important;
+  height:auto!important;
+  padding:10px 12px!important;
+  border-radius:18px!important;
+  font-size:10px!important;
+  text-align:center!important;
+  justify-content:center!important;
+  white-space:normal!important;
+}
+body.season-preview-active .seasonPreviewTabs button:last-child:nth-child(odd){
+  grid-column:1 / -1!important;
+}
+body.season-preview-active #seasonPreviewContent{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  padding:0 0 18px!important;
+  scrollbar-width:thin;
+}
+body.season-preview-active .seasonPreviewBegin{
+  position:static!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-height:58px!important;
+  height:58px!important;
+  margin:0!important;
+  border-radius:16px 16px 0 0!important;
+  z-index:20!important;
+  box-shadow:0 -12px 28px rgba(0,0,0,.38)!important;
+}
+body.season-preview-active .seasonPreviewWrap{
+  padding-bottom:calc(10px + env(safe-area-inset-bottom))!important;
+}
+@media(max-width:430px){
+  body.season-preview-active .seasonPreviewTabs{
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+  }
+  body.season-preview-active .seasonPreviewTabs button{
+    min-height:52px!important;
+    padding:9px 10px!important;
+    font-size:9.5px!important;
+  }
+  body.season-preview-active .seasonPreviewBegin{
+    min-height:60px!important;
+    height:60px!important;
+    font-size:11px!important;
+  }
+}
 </style>
 
 </head>
@@ -14321,8 +14413,8 @@ body.season-preview-active .seasonPreviewBegin{position:sticky!important;bottom:
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.6 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.6";
+const BUILD_VERSION="Mini&Me Football Club v1.1.7 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.7";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -26607,6 +26699,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.7","Season Preview Menu Redesign","PRE-PRODUCTION / QA FIX","Redesigned the New Season Preview navigation to mirror the End of Season Review: two-column aligned menu buttons with the final Landscape option spanning the full row. The preview content now scrolls independently beneath the menu, while Begin Season is removed from the floating content area and docked as the final fixed action at the bottom of the preview."],
   ["v1.1.6","Season Preview Layout Integrity","PRE-PRODUCTION / QA FIX","Corrected the New Season Preview so its heading begins below the actual visible global club header, resets to the top on open, and uses the same 760px horizontal content grid as the rest of the game. Preview tabs now align consistently, while the sticky Begin Season action is retained with standard mobile width, inset and corner treatment. The header offset is measured rather than hardcoded and rechecks after resize or orientation changes."],
   ["v1.1.4","Major Trophy Moments","PRE-PRODUCTION / QA ENHANCEMENT","Expanded the World Cup celebration into a shared Major Trophy Moment system for Premier Division and Championship titles, National Cup wins, Champions Tournament wins and managed World Cup victories. Major achievements now receive a dedicated presentation and GM recognition. A one-time retroactive World Cup check allows existing saves to preview the new celebration after an already-completed managed World Cup win."],
   ["v1.1.3","World Cup Champion Moment","PRE-PRODUCTION / QA ENHANCEMENT","Added a dedicated World Cup conclusion experience. A GM who manages the winning nation now receives a prominent champion recap on the Final screen, a career-defining headline, Final score context and confirmation that the title is permanently recorded in the national-team career. Non-managed champions also receive a proper tournament conclusion rather than an abrupt return to club football."],
