@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.2 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.3 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -12972,6 +12972,16 @@ body.season-preview-active header{position:relative!important}
 /* Compact fixture-style international results, not a club broadcast result screen. */
 .internationalResultsScreen{position:fixed;inset:0;z-index:5100;background:#080d12;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(18px + env(safe-area-inset-top)) 14px calc(36px + env(safe-area-inset-bottom))}
 .internationalResultsScreen.hidden{display:none!important}
+
+/* v1.1.3 World Cup champion moment */
+.worldCupChampionMoment{margin:0 0 18px;padding:24px 18px;border:1px solid rgba(226,187,65,.52);border-radius:22px;background:linear-gradient(180deg,rgba(226,187,65,.10),rgba(18,29,39,.96));text-align:center}
+.worldCupChampionMoment .wcChampionFlag{margin:8px auto 12px;font-size:54px;line-height:1}
+.worldCupChampionMoment h2{margin:0;font-size:30px;line-height:1.05;color:#f5f7fa}
+.worldCupChampionMoment .wcChampionKicker{font-size:12px;letter-spacing:.18em;font-weight:900;color:#e2bb41;margin-bottom:10px}
+.worldCupChampionMoment .wcChampionSub{margin:10px auto 0;max-width:560px;color:#98a7b7;font-size:15px;line-height:1.45}
+.worldCupChampionMoment .wcChampionScore{margin:16px 0 4px;font-size:20px;font-weight:900;color:#f5f7fa}
+.worldCupChampionMoment .wcChampionGM{margin:18px auto 0;padding:12px 14px;max-width:560px;border-radius:14px;background:rgba(226,187,65,.09);color:#e2bb41;font-weight:800}
+
 .internationalResultsWrap{width:min(100%,720px);margin:0 auto}
 .internationalResultsHero{padding:8px 2px 15px;border-bottom:1px solid var(--line);margin-bottom:12px}
 .internationalResultsHero .title{font-size:24px!important;margin-top:4px}
@@ -14266,7 +14276,7 @@ body.result-active #contextMore{display:none!important}
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
 const BUILD_VERSION="Mini&Me Football Club v1.1.2 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.2";
+ const RELEASE_CANDIDATE_VERSION="1.1.3";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -16063,6 +16073,15 @@ function simulateWorldCupTournamentWeek(){
  if(t.complete){
    m.active=false;
    payload.worldCupComplete=true;
+   payload.worldCupChampion=t.champion;
+   payload.worldCupRunnerUp=t.runnerUp;
+   payload.managedWorldCupChampion=!!(G.nationalGM&&G.nationalGM.active&&normalizedNationId(G.nationalGM.nation)===normalizedNationId(t.champion));
+   let finalMatch=t.rounds&&t.rounds.FINAL&&t.rounds.FINAL[0];
+   if(finalMatch)payload.worldCupFinal={home:finalMatch.home,away:finalMatch.away,hg:finalMatch.hg,ag:finalMatch.ag,pens:finalMatch.pens||null};
+   if(payload.managedWorldCupChampion){
+     let gmName=(G.userGM&&G.userGM.name)||"Your GM";
+     G.feed.unshift({t:"WORLD CUP CHAMPION",m:gmName+" has led "+nationName(t.champion)+" to the World Cup. A career-defining international achievement."});
+   }
    G.feed.unshift({t:"CLUB FOOTBALL",m:"The World Cup has concluded. Premier Division football resumes from Week "+m.pausedLeagueWeek+"."});
  }
 
@@ -26291,12 +26310,33 @@ function internationalResultsContentHtml(payload){
  ).join('');
 }
 
+function worldCupChampionMomentHtml(payload){
+ if(!payload||!payload.worldCupComplete||!payload.worldCupChampion)return"";
+ let champ=payload.worldCupChampion,runner=payload.worldCupRunnerUp,
+     managed=!!payload.managedWorldCupChampion,
+     f=payload.worldCupFinal||{},
+     score=(f.hg!=null&&f.ag!=null)?(Number(f.hg)+"–"+Number(f.ag)):"",
+     pens=f.pens?" · "+f.pens.home+"–"+f.pens.away+" pens":"",
+     gmName=(G.userGM&&G.userGM.name)||"Your GM";
+ return '<div class="worldCupChampionMoment">'+
+   '<div class="wcChampionKicker">'+(managed?'CAREER DEFINING ACHIEVEMENT':'WORLD CUP CHAMPIONS')+'</div>'+
+   '<div class="wcChampionFlag">'+nationFlag(champ)+'</div>'+
+   '<h2>'+nationName(champ)+' are World Champions</h2>'+
+   (score?'<div class="wcChampionScore">Final · '+nationName(champ)+' '+score+' '+nationName(runner)+pens+'</div>':'')+
+   '<div class="wcChampionSub">'+(managed
+     ?'You have led '+nationName(champ)+' to the summit of international football. The World Cup title is now permanently recorded in your national-team career.'
+     :nationName(champ)+' have completed their World Cup campaign as champions after defeating '+nationName(runner)+' in the Final.')+'</div>'+
+   (managed?'<div class="wcChampionGM">'+gmName+' · World Cup winning manager</div>':'')+
+ '</div>';
+}
+
 function showInternationalResultsScreen(payload){
  let screen=$("#internationalResultsScreen");if(!screen)return;
  let wcMode=!!(payload&&payload.worldCupMode);
- $("#internationalResultsTitle").textContent=wcMode?('World Cup · Tournament Week '+Number(payload.tournamentWeek||1)):('Week '+Number(payload&&payload.week||G.week)+' International Results');
- $("#internationalResultsSub").textContent=wcMode?'The World Cup is being played while club football remains paused.':'All nation v nation fixtures simulated during this international window.';
- $("#internationalResultsContent").innerHTML=internationalResultsContentHtml(payload);
+ let championMoment=wcMode&&payload&&payload.worldCupComplete?worldCupChampionMomentHtml(payload):"";
+ $("#internationalResultsTitle").textContent=wcMode?(payload.worldCupComplete?(payload.managedWorldCupChampion?'WORLD CUP CHAMPIONS':'World Cup Final'):('World Cup · Tournament Week '+Number(payload.tournamentWeek||1))):('Week '+Number(payload&&payload.week||G.week)+' International Results');
+ $("#internationalResultsSub").textContent=wcMode?(payload.worldCupComplete?(payload.managedWorldCupChampion?'A historic achievement for your international managerial career.':'The World Cup has reached its conclusion.'):'The World Cup is being played while club football remains paused.'):'All nation v nation fixtures simulated during this international window.';
+ $("#internationalResultsContent").innerHTML=championMoment+internationalResultsContentHtml(payload);
  if(wcMode){
    $("#internationalResultsContinueBtn").textContent=payload.worldCupComplete?"RETURN TO CLUB FOOTBALL":"CONTINUE WORLD CUP";
    screen.dataset.worldCupMode="1";
@@ -26418,6 +26458,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.3","World Cup Champion Moment","PRE-PRODUCTION / QA ENHANCEMENT","Added a dedicated World Cup conclusion experience. A GM who manages the winning nation now receives a prominent champion recap on the Final screen, a career-defining headline, Final score context and confirmation that the title is permanently recorded in the national-team career. Non-managed champions also receive a proper tournament conclusion rather than an abrupt return to club football."],
   ["v1.1.2","World Cup Seeded Draw Integrity","PRE-PRODUCTION / QA FIX","Rebuilt the World Cup finals draw around four seeded pots ranked by the approved anchored national strength model. Each group now receives exactly one nation from each pot, with independent pot shuffling replacing the fixed snake allocation. Existing tournaments are safely redrawn only when no group match has yet been played."],
   ["v1.1.1","National GM Record Integrity","PRE-PRODUCTION / QA FIX","Fixed national-team GM career records not updating after appointment. The shared national match engine now records managed-nation friendlies, World Cup qualifiers and World Cup finals into the GM profile, including W/D/L and World Cup participation. Existing saves receive a best-effort reconstruction from stored international results from the appointment season onward."],
   ["v1.1.0","Player Lifecycle & Squad Dynamics","PRE-PRODUCTION / GAMEPLAY FEATURE","Added conservative long-career pressure through a clearer veteran regression curve, rare serious and career-ending injuries, possible permanent OVR loss, player ambition and transfer-request pathways, and 1–5 contextual Dynamic Story Events per season using the existing DNA decision design language. Core gameplay, match, world and international engine baselines remain v1.0.0."],
