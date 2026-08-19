@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.0 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.2 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14265,8 +14265,8 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.0 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.0";
+const BUILD_VERSION="Mini&Me Football Club v1.1.2 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.2";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -14689,6 +14689,9 @@ function ensureNationalGMState(){
  if(typeof n.squadConfirmed!=="boolean")n.squadConfirmed=false;
  if(!Number.isFinite(Number(n.lastConfirmedSeason)))n.lastConfirmedSeason=0;
  if(!Number.isFinite(Number(n.lastConfirmedWeek)))n.lastConfirmedWeek=0;
+ if(!Array.isArray(n.recordedMatchKeys))n.recordedMatchKeys=[];
+ if(!Array.isArray(n.worldCupCyclesManaged))n.worldCupCyclesManaged=[];
+ if(!Number.isFinite(Number(n.recordRepairVersion)))n.recordRepairVersion=0;
 }
 
 const NATIONAL_SQUAD_VERSION="2.11.8.0";
@@ -15138,6 +15141,75 @@ function resignNationalGMRole(){
  n.active=false;n.nation=null;n.startedSeason=null;n.squad=[];
  G.feed.unshift({t:"NATIONAL TEAM",m:(G.userGM&&G.userGM.name||"Your GM")+" stepped down as "+nationName(old)+" manager."});
  save();render();return true;
+}
+
+function nationalGMMatchKey(season,week,home,away,hg,ag,type){
+ return [Number(season)||0,Number(week)||0,String(type||"INT"),String(home),String(away),Number(hg),Number(ag)].join("|");
+}
+function recordNationalGMMatch(home,away,hg,ag,contextKey="INTERNATIONAL",season=G.season,week=G.week){
+ ensureNationalGMState();let n=G.nationalGM;
+ if(!n.active||!n.nation)return false;
+ let managed=normalizedNationId(n.nation),h=normalizedNationId(home),a=normalizedNationId(away);
+ if(h!==managed&&a!==managed)return false;
+ if(Number(season)<Number(n.startedSeason||season))return false;
+ let key=nationalGMMatchKey(season,week,h,a,hg,ag,contextKey);
+ if(n.recordedMatchKeys.includes(key))return false;
+ n.recordedMatchKeys.push(key);
+ if(n.recordedMatchKeys.length>600)n.recordedMatchKeys=n.recordedMatchKeys.slice(-600);
+ n.matches=(Number(n.matches)||0)+1;
+ let gf=h===managed?Number(hg):Number(ag),ga=h===managed?Number(ag):Number(hg);
+ if(gf>ga)n.wins=(Number(n.wins)||0)+1;
+ else if(gf<ga)n.losses=(Number(n.losses)||0)+1;
+ else n.draws=(Number(n.draws)||0)+1;
+ if(String(contextKey).indexOf("WC|")===0||String(contextKey).indexOf("WORLD_CUP")>=0){
+   let cycle=worldCupCycleForSeason(season);
+   if(!n.worldCupCyclesManaged.includes(cycle))n.worldCupCyclesManaged.push(cycle);
+   n.worldCups=n.worldCupCyclesManaged.length;
+ }
+ return true;
+}
+function rebuildNationalGMRecordFromStoredResults(force=false){
+ ensureNationalGMState();let n=G.nationalGM;
+ if(!n.active||!n.nation||!Number.isFinite(Number(n.startedSeason)))return false;
+ if(!force&&Number(n.recordRepairVersion)>=1)return false;
+ let old={matches:Number(n.matches)||0,wins:Number(n.wins)||0,draws:Number(n.draws)||0,losses:Number(n.losses)||0,worldCups:Number(n.worldCups)||0};
+ n.matches=0;n.wins=0;n.draws=0;n.losses=0;n.worldCups=0;n.recordedMatchKeys=[];n.worldCupCyclesManaged=[];
+ let managed=normalizedNationId(n.nation),start=Number(n.startedSeason)||Number(G.season);
+ const add=(m,type,season,week)=>{
+   if(!m)return;
+   let home=normalizedNationId(m.home),away=normalizedNationId(m.away);
+   let hg=Number.isFinite(Number(m.hg))?Number(m.hg):Number(m.homeGoals),ag=Number.isFinite(Number(m.ag))?Number(m.ag):Number(m.awayGoals);
+   if(!Number.isFinite(hg)||!Number.isFinite(ag))return;
+   recordNationalGMMatch(home,away,hg,ag,type,Number(season)||Number(m.season)||G.season,Number(week)||Number(m.week)||0);
+ };
+ try{
+   (G.internationalNational&&G.internationalNational.windows||[]).forEach(w=>{
+     if(Number(w.season)<start)return;
+     (w.matches||[]).forEach(m=>add(m,"FRIENDLY",w.season,w.week));
+   });
+ }catch(e){}
+ try{
+   let q=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.qualification;
+   if(q&&q.confederations)Object.values(q.confederations).forEach(conf=>{
+     let groups=conf.format==="GROUPS"?(conf.groups||[]):[conf];
+     groups.forEach(g=>(g.matches||[]).forEach(m=>{if(m&&m.played&&Number(m.season)>=start)add(m,"WCQ",m.season,m.week)}));
+   });
+ }catch(e){}
+ try{
+   let t=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.tournament;
+   if(t&&Number(t.season)>=start){
+     (t.groups||[]).forEach(g=>(g.matches||[]).forEach(m=>{if(m&&m.played)add(m,"WORLD_CUP",m.season||t.season,m.week)}));
+     Object.values(t.rounds||{}).forEach(round=>(round||[]).forEach(m=>{if(m&&m.played)add(m,"WORLD_CUP",m.season||t.season,m.week)}));
+     if(t.complete&&normalizedNationId(t.champion)===managed)n.worldCupTitles=Math.max(Number(n.worldCupTitles)||0,1);
+   }
+ }catch(e){}
+ // Completed World Cup history can recover titles even where full old fixtures were compacted.
+ try{
+   let titleCount=(G.internationalNational&&G.internationalNational.history||[]).filter(h=>Number(h.season)>=start&&normalizedNationId(h.winner)===managed).length;
+   n.worldCupTitles=Math.max(Number(n.worldCupTitles)||0,titleCount);
+ }catch(e){}
+ n.recordRepairVersion=1;
+ return n.matches!==old.matches||n.wins!==old.wins||n.draws!==old.draws||n.losses!==old.losses||n.worldCups!==old.worldCups;
 }
 
 function nationalGMRecordLabel(){
@@ -15806,7 +15878,7 @@ function worldCupQualificationCardHtml(){
  return '<div class="card wcqCard"><div class="sectionHead"><div><div class="screenEyebrow">'+s.confed+' WORLD CUP QUALIFYING</div><div class="title">'+s.stage+'</div><div class="sub">'+confederationById(s.confed).description+' · '+confederationById(s.confed).places+' direct place'+(confederationById(s.confed).places===1?'':'s')+'.</div></div><div class="wcqStatus '+(s.qualified?'good':'')+'">'+status+'</div></div><div class="wcqHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span></div>'+table+playoff+'</div>';
 }
 
-const WORLD_CUP_FINALS_VERSION="2.11.3.0";
+const WORLD_CUP_FINALS_VERSION="1.1.2";
 const WORLD_CUP_GROUPS=8;
 const WORLD_CUP_GROUP_TEAMS=4;
 
@@ -16105,26 +16177,55 @@ function worldCupTournamentDue(){
  let q=ensureWorldCupQualification(),cycle=Number(q.cycle)||worldCupCycleForSeason();
  return q.complete && Number(G.season)===worldCupFinalsSeason(cycle);
 }
+function worldCupSeedingScore(nationId){
+ // v1.1.2: World Cup pots use the same anchored national strength model
+ // that governs international match quality. National rating is only a
+ // tie-breaker because it is already a component of nationalTeamStrength().
+ let strength=Number(nationalTeamStrength(nationId))||0,
+     rating=Number(nationalStateById(nationId)?.rating)||700;
+ return{strength,rating};
+}
 function seededWorldCupTeams(){
  let q=ensureWorldCupQualification(),qualified=(q.qualified||[]).slice();
- return nationalRanking().filter(n=>qualified.includes(n.id)).map(n=>n.id);
+ return qualified.sort((a,b)=>{
+   let sa=worldCupSeedingScore(a),sb=worldCupSeedingScore(b);
+   return sb.strength-sa.strength||sb.rating-sa.rating||String(a).localeCompare(String(b));
+ });
+}
+function shuffleWorldCupPot(pot){
+ let a=pot.slice();
+ for(let i=a.length-1;i>0;i--){
+   let j=Math.floor(gameRandom()*(i+1));
+   [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+function worldCupDrawPots(seeded){
+ return[
+   seeded.slice(0,8),
+   seeded.slice(8,16),
+   seeded.slice(16,24),
+   seeded.slice(24,32)
+ ];
 }
 function buildWorldCupTournament(){
  // Tournament state is created only after qualification has completed for this cycle.
+ // One nation from each seeded pot is drawn into every group.
  ensureInternationalNationalState();
  let q=ensureWorldCupQualification(),seeded=seededWorldCupTeams();
  if(seeded.length<32)return null;
 
- let pots=[seeded.slice(0,8),seeded.slice(8,16),seeded.slice(16,24),seeded.slice(24,32)];
- let groups=Array.from({length:8},(_,i)=>({
-   id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false
- }));
- pots.forEach((pot,pi)=>{
-   pot.forEach((id,i)=>{
-     let gi=pi%2===0?i:7-i;
-     groups[gi].teams.push(id);
-   });
+ let rawPots=worldCupDrawPots(seeded),
+     pots=rawPots.map(shuffleWorldCupPot),
+     groups=Array.from({length:8},(_,i)=>({
+       id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false
+     }));
+
+ // Every group receives exactly one Pot 1, Pot 2, Pot 3 and Pot 4 nation.
+ pots.forEach(pot=>{
+   pot.forEach((id,gi)=>groups[gi].teams.push(id));
  });
+
  groups.forEach(g=>{
    g.teams.forEach(id=>g.table[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
    for(let i=0;i<g.teams.length;i++){
@@ -16136,6 +16237,9 @@ function buildWorldCupTournament(){
 
  let t={
    version:WORLD_CUP_FINALS_VERSION,
+   drawVersion:"1.1.2",
+   drawMethod:"FOUR_POT_ANCHORED_STRENGTH",
+   drawPots:rawPots.map(p=>p.slice()),
    cycle:q.cycle,
    season:G.season,
    active:true,
@@ -16154,10 +16258,21 @@ function buildWorldCupTournament(){
  registerWorldCupFirstAppearances(t);
  return t;
 }
+function worldCupTournamentHasPlayedMatches(t){
+ if(!t||!Array.isArray(t.groups))return false;
+ return t.groups.some(g=>(g.matches||[]).some(m=>m&&m.played)||Object.values(g.table||{}).some(r=>Number(r&&r.p)>0));
+}
 function ensureWorldCupTournament(){
  ensureInternationalNationalState();
  let wc=G.internationalNational.worldCup,t=wc.tournament;
  if(worldCupTournamentDue() && (!t||Number(t.season)!==Number(G.season)))t=buildWorldCupTournament();
+
+ // v1.1.2 save migration: if the World Cup draw exists but no group match
+ // has been played, safely rebuild it under the anchored four-pot system.
+ // Never redraw a tournament once competition has begun.
+ if(t&&Number(t.season)===Number(G.season)&&t.stage==="GROUP"&&!worldCupTournamentHasPlayedMatches(t)&&t.drawMethod!=="FOUR_POT_ANCHORED_STRENGTH"){
+   t=buildWorldCupTournament();
+ }
  return t||null;
 }
 function worldCupGroupMatchdays(group){
@@ -16362,6 +16477,9 @@ function simulateWorldCupKnockoutRound(){
    G.internationalNational.worldCup.enabled=false;
    G.competitions.INT_NATIONAL.enabled=false;
    let champState=nationalStateById(t.champion);if(champState)champState.titles=(Number(champState.titles)||0)+1;
+   if(G.nationalGM&&G.nationalGM.active&&normalizedNationId(G.nationalGM.nation)===normalizedNationId(t.champion)){
+     ensureNationalGMState();G.nationalGM.worldCupTitles=(Number(G.nationalGM.worldCupTitles)||0)+1;
+   }
    G.internationalNational.history.unshift({season:G.season,cycle:t.cycle,winner:t.champion,runnerUp:t.runnerUp});
    G.feed.unshift({t:"WORLD CUP",m:nationName(t.champion)+" are World Cup champions after defeating "+nationName(t.runnerUp)+" in the Final."});
  }else{
@@ -16817,6 +16935,7 @@ function simulateNationalMatch90(home,away,contextKey="NATIONAL"){
  let ag=internationalPoisson(exp.away,seed,30);
  [hg,ag]=internationalUpsetGuard(home,away,hg,ag,seed);
  [hg,ag]=calibrateNationalScoreline(home,away,hg,ag,seed);
+ recordNationalGMMatch(home,away,hg,ag,contextKey,G.season,G.week);
  return[hg,ag];
 }
 
@@ -26299,6 +26418,8 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.2","World Cup Seeded Draw Integrity","PRE-PRODUCTION / QA FIX","Rebuilt the World Cup finals draw around four seeded pots ranked by the approved anchored national strength model. Each group now receives exactly one nation from each pot, with independent pot shuffling replacing the fixed snake allocation. Existing tournaments are safely redrawn only when no group match has yet been played."],
+  ["v1.1.1","National GM Record Integrity","PRE-PRODUCTION / QA FIX","Fixed national-team GM career records not updating after appointment. The shared national match engine now records managed-nation friendlies, World Cup qualifiers and World Cup finals into the GM profile, including W/D/L and World Cup participation. Existing saves receive a best-effort reconstruction from stored international results from the appointment season onward."],
   ["v1.1.0","Player Lifecycle & Squad Dynamics","PRE-PRODUCTION / GAMEPLAY FEATURE","Added conservative long-career pressure through a clearer veteran regression curve, rare serious and career-ending injuries, possible permanent OVR loss, player ambition and transfer-request pathways, and 1–5 contextual Dynamic Story Events per season using the existing DNA decision design language. Core gameplay, match, world and international engine baselines remain v1.0.0."],
   ["v1.0.3","Cup Heading Consistency","PRE-PRODUCTION / QA FIX","Added the International Cup · Champions Tournament phase heading above the Champions Tournament Summary so domestic and international cup outcomes use the same season-review hierarchy and are visually distinguished consistently."],
   ["v1.0.2","Season Review Competition Summary Consistency","PRE-PRODUCTION / QA FIX","Rebuilt the Champions Tournament season-review summary to mirror the National Cup structure: Champion, Runner-up, Your Club and Golden Boot. Next-season international qualification is now presented in its own subordinate card for clearer and more consistent review navigation."],
@@ -27593,6 +27714,7 @@ function render(){
   migrateLoadedCareerState();
   if(!runtimeStateReady())throw new Error("Career runtime state is incomplete.");
   ensureRuntimeState();
+  if(G.nationalGM&&G.nationalGM.active)rebuildNationalGMRecordFromStoredResults(false);
   $("#clubline").textContent=nationName(G.careerNation)+" · "+leagueInfo().name+" · Season "+G.season;
   let viewFn=({home,squad,market,league,club})[page];
   if(typeof viewFn!=="function")throw new Error("Unknown page: "+page);
