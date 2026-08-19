@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v2.13.5.22 Player Age & Retirement Integrity</title>
+<title>Mini&Me Football Club v2.13.5.23 Club History Integrity Fix</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -9952,7 +9952,7 @@ body:not(.career-hub-active) #app .aboutGameView{
 
 
 /* ==========================================================
-   v2.13.5.22 NATIONAL TEAM OFFER DECISION GATE
+   v2.13.5.23 NATIONAL TEAM OFFER DECISION GATE
    Pending international management offers must be resolved.
    ========================================================== */
 .nationalGMDecisionGate{
@@ -13985,7 +13985,7 @@ body.result-active #contextMore{display:none!important}
 
 <style id="minime-v2-13-5-21-season-review-mobile-tabs">
 /* ==========================================================
-   v2.13.5.22 SEASON REVIEW MOBILE TAB FIX
+   v2.13.5.23 SEASON REVIEW MOBILE TAB FIX
    Keep all five review sections visible on narrow screens.
    ========================================================== */
 @media(max-width:620px){
@@ -14228,7 +14228,7 @@ body.result-active #contextMore{display:none!important}
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v2.13.5.22 Player Age & Retirement Integrity";
+const BUILD_VERSION="Mini&Me Football Club v2.13.5.23 Club History Integrity Fix";
  const RELEASE_CANDIDATE_VERSION="2.13.5.19";
  const INTERNATIONAL_NATIONAL_VERSION="2.11.9.2";
 const DOMESTIC_LEAGUE_SIZE=20;
@@ -14942,6 +14942,14 @@ function managedNationalSquadHtml(){
 }
 
 
+function historyClubIdMatches(recordClubId,clubId){
+ // External / regional clubs intentionally store null domestic IDs.
+ // Never coerce null to 0, because club 0 is a valid domestic club (ACT City in the default world).
+ if(recordClubId===null||typeof recordClubId==="undefined"||recordClubId==="")return false;
+ let a=Number(recordClubId),b=Number(clubId);
+ return Number.isFinite(a)&&Number.isFinite(b)&&a===b;
+}
+
 function gmCareerSuccessScore(){
  let gm=G.userGM||{},club=G.clubs&&G.clubs[G.club],rep=Number(club&&club.rep)||50;
  let seasons=Math.max(1,(Number(G.season)||2026)-2025);
@@ -14955,8 +14963,8 @@ function gmCareerSuccessScore(){
      trophies+=Number(h.internationalTitles)||0;
    }
  });
- if(G.cup&&Array.isArray(G.cup.history))trophies+=G.cup.history.filter(h=>Number(h.winnerClubId)===Number(G.club)&&h.gmName===(gm.name||"User GM")).length;
- if(G.intClub&&Array.isArray(G.intClub.history))trophies+=G.intClub.history.filter(h=>Number(h.winnerClubId)===Number(G.club)).length;
+ if(G.cup&&Array.isArray(G.cup.history))trophies+=G.cup.history.filter(h=>historyClubIdMatches(h.winnerClubId,G.club)&&h.gmName===(gm.name||"User GM")).length;
+ if(G.intClub&&Array.isArray(G.intClub.history))trophies+=G.intClub.history.filter(h=>historyClubIdMatches(h.winnerClubId,G.club)).length;
  return Math.round(rep*.55+Math.min(20,seasons*1.2)+winPct*18+Math.min(22,trophies*4));
 }
 
@@ -18268,7 +18276,7 @@ function internationalForeignKey(nationId,slot){return "F:"+nationId+":"+slot}
 function internationalIsForeign(key){return typeof key==="string"&&key.indexOf("F:")===0}
 function internationalIsRegional(key){return typeof key==="string"&&key.charAt(0)==="R"}
 
-/* v2.13.5.22 DOMESTIC CLUB FOOTBALL TIERS
+/* v2.13.5.23 DOMESTIC CLUB FOOTBALL TIERS
    National-team quality and domestic-league quality are intentionally separate.
    These tiers govern generated Champions Tournament representatives only. */
 const INTERNATIONAL_DOMESTIC_TIER_RANGES={
@@ -20202,10 +20210,10 @@ function priorLeagueTitleSeasons(clubId,beforeSeason){
  return [...new Set(out)].sort((a,b)=>a-b);
 }
 function priorCupTitleSeasons(clubId,beforeSeason){
- return [...new Set((G.cup&&Array.isArray(G.cup.history)?G.cup.history:[]).filter(h=>h&&Number(h.winnerClubId)===Number(clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
+ return [...new Set((G.cup&&Array.isArray(G.cup.history)?G.cup.history:[]).filter(h=>h&&historyClubIdMatches(h.winnerClubId,clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
 }
 function priorInternationalTitleSeasons(clubId,beforeSeason){
- return [...new Set((G.intClub&&Array.isArray(G.intClub.history)?G.intClub.history:[]).filter(h=>h&&Number(h.winnerClubId)===Number(clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
+ return [...new Set((G.intClub&&Array.isArray(G.intClub.history)?G.intClub.history:[]).filter(h=>h&&historyClubIdMatches(h.winnerClubId,clubId)&&Number(h.season)<Number(beforeSeason)).map(h=>Number(h.season)))].sort((a,b)=>a-b);
 }
 function competitionThreePeat(prior,currentSeason){
  let s=Number(currentSeason);return prior.includes(s-1)&&prior.includes(s-2);
@@ -20779,7 +20787,7 @@ function showMatchResult(r,playedWeek){
 
 function ensureLifecycleState(){
 
- // v2.13.5.22 save repair: legacy active players aged 40+ cannot continue playing.
+ // v2.13.5.23 save repair: legacy active players aged 40+ cannot continue playing.
  if(G&&Array.isArray(G.players)){
    G.players.forEach(p=>{
      if(p&&p.team!==-2&&Number(p.age)>=40){
@@ -22318,9 +22326,9 @@ function clubDNASeasonPerformance(clubId,season){
  if(division==="top"&&pos===1){bonus+=1.0;notes.push("Premier champion")}
  else if(division==="top"&&pos&&pos<=4){bonus+=.25;notes.push("Top four")}
  else if(division==="lower"&&pos===1){bonus+=.45;notes.push("Championship champion")}
- let cup=(G.cup&&Array.isArray(G.cup.history))?G.cup.history.find(h=>Number(h.season)===Number(season)&&Number(h.winnerClubId)===Number(clubId)):null;
+ let cup=(G.cup&&Array.isArray(G.cup.history))?G.cup.history.find(h=>Number(h.season)===Number(season)&&historyClubIdMatches(h.winnerClubId,clubId)):null;
  if(cup){bonus+=.55;notes.push("National Cup winner")}
- let intl=(G.intClub&&Array.isArray(G.intClub.history))?G.intClub.history.find(h=>Number(h.season)===Number(season)&&Number(h.winnerClubId)===Number(clubId)):null;
+ let intl=(G.intClub&&Array.isArray(G.intClub.history))?G.intClub.history.find(h=>Number(h.season)===Number(season)&&historyClubIdMatches(h.winnerClubId,clubId)):null;
  if(intl){bonus+=.85;notes.push("Champions Tournament winner")}
  return{pos,division,bonus,notes};
 }
@@ -24076,9 +24084,9 @@ function clubPersonalityProfile(clubId){
      top4=hs.filter(h=>h.division==="top"&&Number(h.position)<=4).length,
      avgGF=hs.length?hs.reduce((s,h)=>s+(Number(h.gf)||0),0)/hs.length:0,
      avgGA=hs.length?hs.reduce((s,h)=>s+(Number(h.ga)||0),0)/hs.length:99,
-     cupWins=((G.cup&&G.cup.history)||[]).filter(h=>Number(h.winnerClubId)===Number(clubId)).length,
-     cupFinals=((G.cup&&G.cup.history)||[]).filter(h=>Number(h.winnerClubId)===Number(clubId)||Number(h.runnerUpClubId)===Number(clubId)).length,
-     intWins=((G.intClub&&G.intClub.history)||[]).filter(h=>Number(h.winnerClubId)===Number(clubId)).length,
+     cupWins=((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,clubId)).length,
+     cupFinals=((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,clubId)||historyClubIdMatches(h.runnerUpClubId,clubId)).length,
+     intWins=((G.intClub&&G.intClub.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,clubId)).length,
      ph=clubPhilosophy(clubId),
      dna=clubFootballIdentity(clubId),
      youthLvl=youthLevelForClub(clubId);
@@ -24139,8 +24147,8 @@ function clubIdentityTimeline(clubId){
    if(h.division==="top"&&h.champion)events.push({season:h.season,title:"Premier Champions",note:"Won the Premier Division."});
    else if(h.division==="lower"&&h.champion)events.push({season:h.season,title:"Championship Champions",note:"Finished top of the Championship."});
  });
- ((G.cup&&G.cup.history)||[]).forEach(h=>{if(Number(h.winnerClubId)===Number(clubId))events.push({season:h.season,title:"National Cup Winners",note:"Added the National Cup to the club’s honours."})});
- ((G.intClub&&G.intClub.history)||[]).forEach(h=>{if(Number(h.winnerClubId)===Number(clubId))events.push({season:h.season,title:"Champions Tournament Winners",note:"Reached the summit of international club football."})});
+ ((G.cup&&G.cup.history)||[]).forEach(h=>{if(historyClubIdMatches(h.winnerClubId,clubId))events.push({season:h.season,title:"National Cup Winners",note:"Added the National Cup to the club’s honours."})});
+ ((G.intClub&&G.intClub.history)||[]).forEach(h=>{if(historyClubIdMatches(h.winnerClubId,clubId))events.push({season:h.season,title:"Champions Tournament Winners",note:"Reached the summit of international club football."})});
  for(let i=1;i<hs.length;i++){
    let prev=hs[i-1],cur=hs[i];
    if(prev.division==="lower"&&cur.division==="top")events.push({season:cur.season,title:"Promoted Era",note:"Returned to the Premier Division."});
@@ -24210,8 +24218,8 @@ function clubProfileRecords(id){
  '<div class="recordTile"><div class="label">BEST POINTS</div><div class="recordValue">'+(r.bestPoints?r.bestPoints.points:"—")+'</div><div class="recordNote">'+(r.bestPoints?r.bestPoints.season:'No archived season')+'</div></div>'+
  '<div class="recordTile"><div class="label">MOST GOALS</div><div class="recordValue">'+(r.mostGoals?r.mostGoals.goals:"—")+'</div><div class="recordNote">'+(r.mostGoals?r.mostGoals.season:'No archived season')+'</div></div>'+
  '<div class="recordTile"><div class="label">RELEGATIONS</div><div class="recordValue">'+(r.relegations||0)+'</div></div>'+
- '<div class="recordTile"><div class="label">CUP TITLES</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id).length+'</div></div>'+
- '<div class="recordTile"><div class="label">CUP FINALS</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id||h.runnerUpClubId===id).length+'</div></div></div>';
+ '<div class="recordTile"><div class="label">CUP TITLES</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)).length+'</div></div>'+
+ '<div class="recordTile"><div class="label">CUP FINALS</div><div class="recordValue">'+((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)||historyClubIdMatches(h.runnerUpClubId,id)).length+'</div></div></div>';
 }
 function clubProfileHonours(id){
  let c=G.clubs[id];ensureClubHistoryState();let r=c.records||{},years=(c.history||[]).filter(h=>h.champion).map(h=>h.season);
@@ -24219,10 +24227,10 @@ function clubProfileHonours(id){
  '<div class="honourRow"><div><b>League Titles</b><span>Career era</span></div><b>'+(r.titles||0)+'</b></div>'+
  '<div class="honourRow"><div><b>Promotions</b><span>Career era</span></div><b>'+(r.promotions||0)+'</b></div>'+
  '<div class="honourRow"><div><b>Relegations</b><span>Career era</span></div><b>'+(r.relegations||0)+'</b></div>'+
- '<div class="honourRow"><div><b>National Cups</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id).length+'</b></div>'+
- '<div class="honourRow"><div><b>Cup Finals</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>h.winnerClubId===id||h.runnerUpClubId===id).length+'</b></div>'+
- '<div class="honourRow"><div><b>International Titles</b><span>Champions Tournament</span></div><b>'+((G.intClub&&G.intClub.history)||[]).filter(h=>h.winnerClubId===id).length+'</b></div>'+
- '<div class="honourRow"><div><b>International Finals</b><span>Champions Tournament</span></div><b>'+((G.intClub&&G.intClub.history)||[]).filter(h=>h.winnerClubId===id||h.runnerUpClubId===id).length+'</b></div>'+
+ '<div class="honourRow"><div><b>National Cups</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)).length+'</b></div>'+
+ '<div class="honourRow"><div><b>Cup Finals</b><span>Domestic knockout</span></div><b>'+((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)||historyClubIdMatches(h.runnerUpClubId,id)).length+'</b></div>'+
+ '<div class="honourRow"><div><b>International Titles</b><span>Champions Tournament</span></div><b>'+((G.intClub&&G.intClub.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)).length+'</b></div>'+
+ '<div class="honourRow"><div><b>International Finals</b><span>Champions Tournament</span></div><b>'+((G.intClub&&G.intClub.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,id)||historyClubIdMatches(h.runnerUpClubId,id)).length+'</b></div>'+
  (years.length?'<div class="sub" style="margin-top:12px">Title seasons · '+years.join(", ")+'</div>':'')+'</div>';
 }
 
@@ -26511,8 +26519,8 @@ function clubPrestigeProfile(clubId){
  if(!c)return{score:50,label:"Modest",rep:50,honours:0,division:"lower"};
  let rep=Number(c.rep)||70,key=clubCurrentDivisionKey(clubId),records=c.records||{};
  let leagueTitles=Number(records.titles)||0,
-     cupTitles=((G.cup&&G.cup.history)||[]).filter(h=>Number(h.winnerClubId)===Number(clubId)).length,
-     intTitles=((G.intClub&&G.intClub.history)||[]).filter(h=>Number(h.winnerClubId)===Number(clubId)).length,
+     cupTitles=((G.cup&&G.cup.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,clubId)).length,
+     intTitles=((G.intClub&&G.intClub.history)||[]).filter(h=>historyClubIdMatches(h.winnerClubId,clubId)).length,
      honours=leagueTitles+cupTitles+intTitles;
  let divisionAdj=key==="top"?2:-3;
  let honoursAdj=Math.min(6,leagueTitles*.7+cupTitles*.55+intTitles*1.2);
