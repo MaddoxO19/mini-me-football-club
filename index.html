@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.18 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.19 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14672,8 +14672,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.18 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.18";
+const BUILD_VERSION="Mini&Me Football Club v1.1.19 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.19";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -19396,20 +19396,49 @@ function worldCupLastRoundResultsHtml(){
  '</div>';
 }
 
+function worldCupRoundOf16Sources(index){
+ // Fixed 32-team World Cup Round of 16 bracket:
+ // A1-B2, C1-D2, E1-F2, G1-H2, B1-A2, D1-C2, F1-E2, H1-G2.
+ const map=[
+   ["Group A Winner","Group B Runner-up"],
+   ["Group C Winner","Group D Runner-up"],
+   ["Group E Winner","Group F Runner-up"],
+   ["Group G Winner","Group H Runner-up"],
+   ["Group B Winner","Group A Runner-up"],
+   ["Group D Winner","Group C Runner-up"],
+   ["Group F Winner","Group E Runner-up"],
+   ["Group H Winner","Group G Runner-up"]
+ ];
+ return map[index]||["",""];
+}
+
 function worldCupKnockoutFixtureCardHtml(m,index){
  let homeWin=m.played&&m.winner===m.home,awayWin=m.played&&m.winner===m.away;
  let homeScore=m.played?Number(m.hg):'—',awayScore=m.played?Number(m.ag):'—';
  let status=m.played?(m.pens?'Decided on penalties':'Completed'):'Fixture '+(index+1);
+
+ let homeSource=m.homeSource||"",awaySource=m.awaySource||"";
+ try{
+   let t=G.internationalNational&&G.internationalNational.worldCup&&G.internationalNational.worldCup.tournament,
+       r16=(t&&t.rounds&&t.rounds.R16)||[];
+   if(r16.includes(m)&&(!homeSource||!awaySource)){
+     let derived=worldCupRoundOf16Sources(index);
+     if(!homeSource)homeSource=derived[0];
+     if(!awaySource)awaySource=derived[1];
+   }
+ }catch(e){}
+
  let team=(id,source,win,score)=>
    '<div class="wcFinalsFixtureTeam '+(win?'winner':'')+'">'+
      nationFlagHtml(id,17)+
      '<span class="wcFinalsTeamIdentity"><b>'+nationName(id)+'</b>'+(source?'<small>'+source+'</small>':'')+'</span>'+
      '<strong>'+score+'</strong>'+
    '</div>';
+
  return '<div class="wcFinalsFixtureCard">'+
    '<div class="wcFinalsFixtureNo">MATCH '+(index+1)+'</div>'+
-   team(m.home,m.homeSource,homeWin,homeScore)+
-   team(m.away,m.awaySource,awayWin,awayScore)+
+   team(m.home,homeSource,homeWin,homeScore)+
+   team(m.away,awaySource,awayWin,awayScore)+
    '<div class="wcFinalsFixtureStatus">'+status+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')+'</div>'+
  '</div>';
 }
@@ -19449,7 +19478,18 @@ function worldCupFinalsGroupsHtml(t){
  '</div></div>'+groups;
 }
 
+function ensureWorldCupRoundOf16SourceMetadata(t){
+ if(!t||!t.rounds||!Array.isArray(t.rounds.R16))return;
+ t.rounds.R16.forEach((m,i)=>{
+   if(!m)return;
+   let src=worldCupRoundOf16Sources(i);
+   if(!m.homeSource)m.homeSource=src[0];
+   if(!m.awaySource)m.awaySource=src[1];
+ });
+}
+
 function worldCupFinalsTournamentHtml(t,q){
+ ensureWorldCupRoundOf16SourceMetadata(t);
  if(!t||Number(t.season)!==Number(G.season)){
    let qualified=(q&&q.qualified)||[];
    return '<div class="sectionHead"><div><div class="title">'+currentWorldCupContextYear()+' World Cup Finals</div><div class="sub">The 32-team tournament will appear here once qualification is complete.</div></div><div class="sectionCount">'+qualified.length+'/32</div></div>'+
@@ -27345,6 +27385,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.19","Round of 16 Qualification Context","PRE-PRODUCTION / QA FIX","Corrected World Cup Round of 16 progression labels for existing saves. Older tournaments created before v1.1.16 did not store Group Winner / Runner-up source metadata, so Round of 16 cards appeared without qualification context while later rounds worked normally. The source is now deterministically derived from the fixed Round of 16 bracket and old fixtures are enriched in memory when rendered, without redrawing or altering tournament results."],
   ["v1.1.18","World Cup Completion Snapshot","PRE-PRODUCTION / UX ENHANCEMENT","Added a dedicated World Cup completion popup immediately after the Final. The snapshot presents the champion, runner-up and Final score, the managed nation’s tournament finish, Golden Boot, top average rating, top assists and Golden Glove, plus a direct View World Cup action. The popup uses the existing tournament data and current World Cup statistics without changing simulation logic."],
   ["v1.1.17","International Hub Refinement","PRE-PRODUCTION / UX ENHANCEMENT","Simplified Nations by removing Qualification Watch and Recent International Results, and replaced the neon qualifier cards with compact federation-grouped qualifier lists. Removed the redundant Recent World Cup Results table from the World Cup workspace. Added current top-three World Cup leaderboards for Golden Boot, average rating, assists and Golden Glove, plus a career list of past World Cup winners. Current tournament statistics are reconstructed from saved World Cup fixtures so existing in-progress tournaments populate immediately."],
   ["v1.1.16","World Cup Knockout Context","PRE-PRODUCTION / UX ENHANCEMENT","Added progression context to World Cup knockout fixtures. Round of 16 teams now identify how they qualified, such as Group A Winner or Group B Runner-up, with later rounds carrying their prior-match source. Added a persistent Groups tab beside Tournament and Last Round so completed group-stage tables remain reviewable throughout the knockout rounds and after the Final."],
