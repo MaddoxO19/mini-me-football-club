@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.13 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.14 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14502,8 +14502,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.13 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.13";
+const BUILD_VERSION="Mini&Me Football Club v1.1.14 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.14";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -15458,50 +15458,32 @@ function nationalGMRecordLabel(){
 
 
 function openManagedNationalSquadPanel(){
- window.internationalSectionTab="national";
- page="league";
- leagueTab="international";
+ // v1.1.14: national squad management is now its own International workspace.
+ page="international";
+ window.internationalSectionTab="squad";
+ hideContextMore();
  render();
 
+ // Preserve the existing full squad editor behaviour beneath the summary card.
  setTimeout(()=>{
-   let nationalTab=document.querySelector('[data-international-section="national"]');
-   if(nationalTab&&nationalTab.click)nationalTab.click();
-
-   setTimeout(()=>{
-     let host=document.querySelector(".nationalInternationalManagerCard");
-     if(!host)return;
-     let existing=document.querySelector(".nationalSquadManagerCard");
-     if(!existing){
-       host.insertAdjacentHTML("afterend",managedNationalSquadHtml());
-       existing=document.querySelector(".nationalSquadManagerCard");
-     }
-     if(existing&&existing.scrollIntoView)existing.scrollIntoView({behavior:"smooth",block:"start"});
-   },60);
- },60);
+   let host=document.querySelector(".nationalInternationalManagerCard");
+   if(!host)return;
+   let existing=document.querySelector(".nationalSquadManagerCard");
+   if(!existing){
+     host.insertAdjacentHTML("afterend",managedNationalSquadHtml());
+     existing=document.querySelector(".nationalSquadManagerCard");
+   }
+   if(existing&&existing.scrollIntoView)existing.scrollIntoView({behavior:"smooth",block:"start"});
+ },80);
 }
 
 function openNationalInternationalManagement(){
- page="league";
+ // v1.1.14: broad international management opens the Nations workspace.
+ page="international";
+ window.internationalSectionTab="nations";
+ hideContextMore();
  render();
-
- setTimeout(()=>{
-   // Drive the real League UI controls so this remains aligned with whatever
-   // internal tab state the League renderer currently uses.
-   let internationalTab=document.querySelector('[data-tab="international"],[data-league-tab="international"],[data-league-section="international"]');
-   if(internationalTab&&internationalTab.click)internationalTab.click();
-
-   setTimeout(()=>{
-     let nationalTab=document.querySelector('[data-international-section="national"]');
-     if(nationalTab&&nationalTab.click)nationalTab.click();
-
-     setTimeout(()=>{
-       let target=document.querySelector(".nationalInternationalManagerCard")||
-                  document.querySelector('[data-national-gm-open-squad="1"]')||
-                  document.querySelector(".nationalSquadManagerCard");
-       if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
-     },80);
-   },80);
- },80);
+ requestAnimationFrame(()=>requestAnimationFrame(resetMainWorkspaceScroll));
 }
 
 
@@ -16232,35 +16214,14 @@ function worldCupTournamentModeHomeCardHtml(){
 
 
 function openWorldCupFinalsHub(){
- page="league";
- leagueTab="international";
- window.internationalSectionTab="national";
+ // v1.1.14: direct route into the new global International workspace.
+ page="international";
+ window.internationalSectionTab="worldcup";
  window.worldCupHubTab="finals";
  window.worldCupFinalsView="tournament";
+ hideContextMore();
  render();
-
- setTimeout(()=>{
-   let internationalTab=document.querySelector('[data-tab="international"],[data-league-tab="international"],[data-league-section="international"]');
-   if(internationalTab&&!internationalTab.classList.contains("active")&&internationalTab.click)internationalTab.click();
-
-   setTimeout(()=>{
-     window.internationalSectionTab="national";
-     window.worldCupHubTab="finals";
-     let nationalTab=document.querySelector('[data-international-section="national"]');
-     if(nationalTab&&!nationalTab.classList.contains("active")&&nationalTab.click)nationalTab.click();
-
-     setTimeout(()=>{
-       window.worldCupHubTab="finals";
-       let finalsTab=document.querySelector('[data-wc-hub-tab="finals"]');
-       if(finalsTab&&!finalsTab.classList.contains("active")&&finalsTab.click)finalsTab.click();
-
-       setTimeout(()=>{
-         let target=document.querySelector(".worldCupFinalsHub")||document.querySelector(".worldCupHub");
-         if(target&&target.scrollIntoView)target.scrollIntoView({behavior:"smooth",block:"start"});
-       },70);
-     },70);
-   },70);
- },40);
+ requestAnimationFrame(()=>requestAnimationFrame(resetMainWorkspaceScroll));
 }
 
 function worldCupStageResultLabel(stage,groupMatchday){
@@ -26893,6 +26854,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.14","International Link Routing","PRE-PRODUCTION / QA FIX","Removed remaining legacy navigation paths from the pre-v1.1.11 League-hosted International architecture. View World Cup now routes directly to International > World Cup; Manage Squad routes to International > Squad; and broader national-management shortcuts route to International > Nations. World Cup finals, federation and qualification controls now also explicitly retain the new International workspace rather than falling back to League."],
   ["v1.1.13","International Workspace Split","PRE-PRODUCTION / UX REFACTOR","Separated the International global workspace into four clear destinations: Champions, Nations, Squad and World Cup. Champions retains the Champions Tournament; Nations contains World Cup qualification, federation tables and current national results; Squad isolates national-team selection and confirmation; World Cup contains finals groups, knockout progression and finals results. The former combined Club/National state is migrated automatically and all competition/simulation engines remain unchanged."],
   ["v1.1.12","Home Navigation State Fix","PRE-PRODUCTION / QA FIX","Corrected the v1.1.11 navigation-state regression where the global Home button inherited the last Home workspace such as GM Brief or News. The global Home action now always returns to the true Home Overview and resets its scroll position, including when returning from Club or another primary section. Squad, Market, League and International continue preserving their own working sub-section state so repetitive management workflows are not disrupted."],
   ["v1.1.11","Navigation Architecture","PRE-PRODUCTION / UX REFACTOR","Rebalanced the primary information architecture. The global navigation is now Home, Squad, Market, League and International. Club moves under Home and replaces the redundant Overview shortcut; Home now uses Club, GM Brief, News and More. About and Game Guide move into Home More. League no longer carries International and is reduced to Table, Cup, Statistics and More, while International becomes its own global workspace with Club and National international views. Competition and simulation logic are unchanged."],
@@ -28542,9 +28504,9 @@ document.addEventListener("click",function(e){
  let leagueRecord=e.target.closest&&e.target.closest("[data-league-record-tab]");if(leagueRecord){window.leagueRecordTab=leagueRecord.dataset.leagueRecordTab||"team";renderSoon();return}
  let worldCupViewFinals=e.target.closest&&e.target.closest("[data-world-cup-view-finals]");if(worldCupViewFinals){openWorldCupFinalsHub();return}
  let worldCupModeSim=e.target.closest&&e.target.closest("[data-world-cup-mode-sim]");if(worldCupModeSim){simulateWorldCupTournamentWeek();return}
- let wcFinalsView=e.target.closest&&e.target.closest("[data-wc-finals-view]");if(wcFinalsView){window.worldCupFinalsView=wcFinalsView.dataset.wcFinalsView||"tournament";window.worldCupHubTab="finals";render();return}
- let wcHubTab=e.target.closest&&e.target.closest("[data-wc-hub-tab]");if(wcHubTab){window.worldCupHubTab=wcHubTab.dataset.wcHubTab||"qualification";render();return}
- let wcHubConf=e.target.closest&&e.target.closest("[data-wc-hub-conf]");if(wcHubConf){window.worldCupHubConf=wcHubConf.dataset.wcHubConf||"AFC";window.worldCupHubTab="qualification";render();return}
+ let wcFinalsView=e.target.closest&&e.target.closest("[data-wc-finals-view]");if(wcFinalsView){page="international";window.internationalSectionTab="worldcup";window.worldCupFinalsView=wcFinalsView.dataset.wcFinalsView||"tournament";window.worldCupHubTab="finals";render();return}
+ let wcHubTab=e.target.closest&&e.target.closest("[data-wc-hub-tab]");if(wcHubTab){let k=wcHubTab.dataset.wcHubTab||"qualification";page="international";window.internationalSectionTab=k==="finals"?"worldcup":"nations";window.worldCupHubTab=k;render();return}
+ let wcHubConf=e.target.closest&&e.target.closest("[data-wc-hub-conf]");if(wcHubConf){page="international";window.internationalSectionTab="nations";window.worldCupHubConf=wcHubConf.dataset.wcHubConf||"AFC";window.worldCupHubTab="qualification";render();return}
  let intSection=e.target.closest&&e.target.closest("[data-international-section]");if(intSection){window.internationalSectionTab=intSection.dataset.internationalSection||"club";render();return}
  let nationalGMReviewDuty=e.target.closest&&e.target.closest("[data-national-gm-review-duty]");if(nationalGMReviewDuty){openNationalSquadReview();return}
  let nationalReviewClose=e.target.closest&&e.target.closest("[data-national-squad-review-close]");if(nationalReviewClose){closeNationalSquadReview();return}
