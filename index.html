@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.15 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.16 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14254,6 +14254,21 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
  }
  .internationalWorkspaceIntro{padding-top:10px;margin-bottom:9px}
 }
+
+/* v1.1.16 World Cup knockout context */
+.worldCupFinalsViewTabs{grid-template-columns:repeat(3,1fr)!important}
+.wcFinalsFixtureTeam{grid-template-columns:22px minmax(0,1fr) auto!important}
+.wcFinalsTeamIdentity{min-width:0;display:flex;flex-direction:column;gap:2px}
+.wcFinalsTeamIdentity b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wcFinalsTeamIdentity small{
+  display:block;color:#80909d;font-size:7px;font-weight:800;
+  line-height:1.15;letter-spacing:.025em;white-space:normal
+}
+.wcFinalsFixtureTeam.winner .wcFinalsTeamIdentity small{color:#b9a56b}
+@media(max-width:430px){
+ .worldCupFinalsViewTabs button{font-size:8px!important;padding:8px 6px!important}
+ .wcFinalsTeamIdentity small{font-size:6.6px}
+}
 </style>
 
 </head>
@@ -14502,8 +14517,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.15 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.15";
+const BUILD_VERSION="Mini&Me Football Club v1.1.16 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.16";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -16724,8 +16739,14 @@ function buildWorldCupRoundOf16(){
   ["A1","B2"],["C1","D2"],["E1","F2"],["G1","H2"],
   ["B1","A2"],["D1","C2"],["F1","E2"],["H1","G2"]
  ];
- let resolve=s=>top[s[0]][Number(s[1])-1];
- t.rounds.R16=fixtures.map((f,i)=>({id:i,home:resolve(f[0]),away:resolve(f[1]),played:false,winner:null,hg:null,ag:null,pens:null}));
+ let resolve=s=>top[s[0]][Number(s[1])-1],
+     source=s=>"Group "+s[0]+" "+(s[1]==="1"?"Winner":"Runner-up");
+ t.rounds.R16=fixtures.map((f,i)=>({
+   id:i,
+   home:resolve(f[0]),away:resolve(f[1]),
+   homeSource:source(f[0]),awaySource:source(f[1]),
+   played:false,winner:null,hg:null,ag:null,pens:null
+ }));
 }
 function simulateWorldCupKnockoutMatch(match,stage,index){
  let [hg,ag]=simulateWorldCupNationalMatch(match.home,match.away,stage,index),pens=null,winner;
@@ -16747,9 +16768,23 @@ function simulateWorldCupKnockoutMatch(match,stage,index){
 }
 function buildNextWorldCupRound(stage,winners){
  let t=G.internationalNational.worldCup.tournament;
- if(stage==="R16")t.rounds.QF=[[0,1],[2,3],[4,5],[6,7]].map((p,i)=>({id:i,home:winners[p[0]],away:winners[p[1]],played:false,winner:null}));
- if(stage==="QF")t.rounds.SF=[[0,1],[2,3]].map((p,i)=>({id:i,home:winners[p[0]],away:winners[p[1]],played:false,winner:null}));
- if(stage==="SF")t.rounds.FINAL=[{id:0,home:winners[0],away:winners[1],played:false,winner:null}];
+ if(stage==="R16")t.rounds.QF=[[0,1],[2,3],[4,5],[6,7]].map((p,i)=>({
+   id:i,home:winners[p[0]],away:winners[p[1]],
+   homeSource:"Round of 16 · Match "+(p[0]+1)+" Winner",
+   awaySource:"Round of 16 · Match "+(p[1]+1)+" Winner",
+   played:false,winner:null
+ }));
+ if(stage==="QF")t.rounds.SF=[[0,1],[2,3]].map((p,i)=>({
+   id:i,home:winners[p[0]],away:winners[p[1]],
+   homeSource:"Quarter-final "+(p[0]+1)+" Winner",
+   awaySource:"Quarter-final "+(p[1]+1)+" Winner",
+   played:false,winner:null
+ }));
+ if(stage==="SF")t.rounds.FINAL=[{
+   id:0,home:winners[0],away:winners[1],
+   homeSource:"Semi-final 1 Winner",awaySource:"Semi-final 2 Winner",
+   played:false,winner:null
+ }];
 }
 function simulateWorldCupKnockoutRound(){
  let t=ensureWorldCupTournament();if(!t||t.complete||t.stage==="GROUP")return null;
@@ -19072,11 +19107,12 @@ function worldCupQualificationFullHtml(){
 
 function worldCupFinalsViewTabsHtml(){
  let view=window.worldCupFinalsView||"tournament";
- if(!["tournament","results"].includes(view))view="tournament";
+ if(!["tournament","groups","results"].includes(view))view="tournament";
  window.worldCupFinalsView=view;
  return '<div class="worldCupFinalsViewTabs">'+
    '<button data-wc-finals-view="tournament" class="'+(view==="tournament"?'active':'')+'">Tournament</button>'+
-   '<button data-wc-finals-view="results" class="'+(view==="results"?'active':'')+'">Last Round Results</button>'+
+   '<button data-wc-finals-view="groups" class="'+(view==="groups"?'active':'')+'">Groups</button>'+
+   '<button data-wc-finals-view="results" class="'+(view==="results"?'active':'')+'">Last Round</button>'+
  '</div>';
 }
 
@@ -19123,10 +19159,16 @@ function worldCupKnockoutFixtureCardHtml(m,index){
  let homeWin=m.played&&m.winner===m.home,awayWin=m.played&&m.winner===m.away;
  let homeScore=m.played?Number(m.hg):'—',awayScore=m.played?Number(m.ag):'—';
  let status=m.played?(m.pens?'Decided on penalties':'Completed'):'Fixture '+(index+1);
+ let team=(id,source,win,score)=>
+   '<div class="wcFinalsFixtureTeam '+(win?'winner':'')+'">'+
+     nationFlagHtml(id,17)+
+     '<span class="wcFinalsTeamIdentity"><b>'+nationName(id)+'</b>'+(source?'<small>'+source+'</small>':'')+'</span>'+
+     '<strong>'+score+'</strong>'+
+   '</div>';
  return '<div class="wcFinalsFixtureCard">'+
    '<div class="wcFinalsFixtureNo">MATCH '+(index+1)+'</div>'+
-   '<div class="wcFinalsFixtureTeam '+(homeWin?'winner':'')+'">'+nationFlagHtml(m.home,17)+'<b>'+nationName(m.home)+'</b><strong>'+homeScore+'</strong></div>'+
-   '<div class="wcFinalsFixtureTeam '+(awayWin?'winner':'')+'">'+nationFlagHtml(m.away,17)+'<b>'+nationName(m.away)+'</b><strong>'+awayScore+'</strong></div>'+
+   team(m.home,m.homeSource,homeWin,homeScore)+
+   team(m.away,m.awaySource,awayWin,awayScore)+
    '<div class="wcFinalsFixtureStatus">'+status+(m.pens?' · '+m.pens.home+'–'+m.pens.away+' pens':'')+'</div>'+
  '</div>';
 }
@@ -19141,6 +19183,31 @@ function worldCupKnockoutStageHtml(t,key,label){
  '</div>';
 }
 
+function worldCupFinalsGroupsHtml(t){
+ if(!t||!Array.isArray(t.groups)||!t.groups.length){
+   return '<div class="wcFinalsEmpty">World Cup group tables are not available yet.</div>';
+ }
+ let groups=(t.groups||[]).map(g=>
+   '<div class="worldCupHubGroup">'+
+     '<div class="worldCupHubGroupHead"><b>Group '+g.id+'</b><span>'+(g.complete?'Completed':'Top two advance')+'</span></div>'+
+     '<div class="worldCupHubTableHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span><span>Status</span></div>'+
+     worldCupGroupRows(g).map((r,i)=>
+       '<div class="worldCupHubTableRow">'+
+         '<span>'+(i+1)+'</span>'+
+         '<span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b></span>'+
+         '<span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong>'+
+         '<em>'+(i<2?(g.complete?'ADVANCED':'ADVANCING'):'')+'</em>'+
+       '</div>'
+     ).join('')+
+   '</div>'
+ ).join('');
+ return '<div class="sectionHead"><div>'+
+   '<div class="screenEyebrow">'+currentWorldCupContextYear()+' WORLD CUP · GROUP STAGE</div>'+
+   '<div class="title">Group Tables</div>'+
+   '<div class="sub">Review the complete group-stage standings and qualification positions.</div>'+
+ '</div></div>'+groups;
+}
+
 function worldCupFinalsTournamentHtml(t,q){
  if(!t||Number(t.season)!==Number(G.season)){
    let qualified=(q&&q.qualified)||[];
@@ -19148,8 +19215,8 @@ function worldCupFinalsTournamentHtml(t,q){
      (qualified.length?'<div class="worldCupQualifiedGrid">'+qualified.map(id=>'<div>'+nationFlagHtml(id,16)+'<span>'+nationName(id)+'</span></div>').join('')+'</div>':'');
  }
  if(t.stage==="GROUP"){
-   let groups=(t.groups||[]).map(g=>'<div class="worldCupHubGroup"><div class="worldCupHubGroupHead"><b>Group '+g.id+'</b><span>Top two advance</span></div><div class="worldCupHubTableHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span><span>Status</span></div>'+worldCupGroupRows(g).map((r,i)=>'<div class="worldCupHubTableRow"><span>'+(i+1)+'</span><span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b></span><span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong><em>'+(i<2?'ADVANCING':'')+'</em></div>').join('')+'</div>').join('');
-   return '<div class="sectionHead"><div><div class="screenEyebrow">'+currentWorldCupContextYear()+' WORLD CUP · 32 TEAMS</div><div class="title">Group Stage</div><div class="sub">Eight groups of four. Top two advance to the Round of 16.</div></div><div class="wcqStatus">MATCHDAY '+Number(t.groupMatchday||0)+' / 3</div></div>'+groups;
+   return '<div class="sectionHead"><div><div class="screenEyebrow">'+currentWorldCupContextYear()+' WORLD CUP · 32 TEAMS</div><div class="title">Group Stage</div><div class="sub">Eight groups of four. Top two advance to the Round of 16.</div></div><div class="wcqStatus">MATCHDAY '+Number(t.groupMatchday||0)+' / 3</div></div>'+
+     worldCupFinalsGroupsHtml(t).replace(/<div class="sectionHead">[\s\S]*?<\/div><\/div>/,'');
  }
  let labels={R16:'Round of 16',QF:'Quarter-finals',SF:'Semi-finals',FINAL:'Final'};
  let stages=['R16','QF','SF','FINAL'].map(key=>worldCupKnockoutStageHtml(t,key,labels[key])).join('');
@@ -19158,7 +19225,7 @@ function worldCupFinalsTournamentHtml(t,q){
 
 function worldCupFinalsHubHtml(){
  let t=ensureWorldCupTournament(),q=ensureWorldCupQualification(),view=window.worldCupFinalsView||'tournament';
- let body=view==='results'?worldCupLastRoundResultsHtml():worldCupFinalsTournamentHtml(t,q);
+ let body=view==='results'?worldCupLastRoundResultsHtml():view==='groups'?worldCupFinalsGroupsHtml(t):worldCupFinalsTournamentHtml(t,q);
  return '<div class="card worldCupFinalsHub">'+worldCupFinalsViewTabsHtml()+body+'</div>';
 }
 
@@ -26927,6 +26994,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.16","World Cup Knockout Context","PRE-PRODUCTION / UX ENHANCEMENT","Added progression context to World Cup knockout fixtures. Round of 16 teams now identify how they qualified, such as Group A Winner or Group B Runner-up, with later rounds carrying their prior-match source. Added a persistent Groups tab beside Tournament and Last Round so completed group-stage tables remain reviewable throughout the knockout rounds and after the Final."],
   ["v1.1.15","World Cup Confederation Draw Integrity","PRE-PRODUCTION / QA FIX","Added confederation separation to the 32-team World Cup draw while preserving the four seeded strength pots. AFC, CAF, CONCACAF, CONMEBOL and OFC are limited to one nation per group; UEFA may have up to two where required by its larger allocation. The draw uses backtracking rather than a simple shuffle so valid later-pot placements are protected. Existing World Cups are redrawn automatically only when no group match has yet been played."],
   ["v1.1.14","International Link Routing","PRE-PRODUCTION / QA FIX","Removed remaining legacy navigation paths from the pre-v1.1.11 League-hosted International architecture. View World Cup now routes directly to International > World Cup; Manage Squad routes to International > Squad; and broader national-management shortcuts route to International > Nations. World Cup finals, federation and qualification controls now also explicitly retain the new International workspace rather than falling back to League."],
   ["v1.1.13","International Workspace Split","PRE-PRODUCTION / UX REFACTOR","Separated the International global workspace into four clear destinations: Champions, Nations, Squad and World Cup. Champions retains the Champions Tournament; Nations contains World Cup qualification, federation tables and current national results; Squad isolates national-team selection and confirmation; World Cup contains finals groups, knockout progression and finals results. The former combined Club/National state is migrated automatically and all competition/simulation engines remain unchanged."],
