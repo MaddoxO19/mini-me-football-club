@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.16 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.17 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14269,6 +14269,82 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
  .worldCupFinalsViewTabs button{font-size:8px!important;padding:8px 6px!important}
  .wcFinalsTeamIdentity small{font-size:6.6px}
 }
+
+/* ==========================================================
+   v1.1.17 INTERNATIONAL HUB REFINEMENT
+   ========================================================== */
+.wcQualifierSimple{
+  background:var(--card)!important;
+  border:1px solid var(--line)!important;
+}
+.wcQualifierFederation{
+  padding:12px 0;
+  border-top:1px solid var(--line);
+}
+.wcQualifierFederation:first-of-type{margin-top:10px}
+.wcQualifierFederationHead{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:8px;
+}
+.wcQualifierFederationHead b{
+  color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.12em
+}
+.wcQualifierFederationHead span{color:var(--muted);font-size:8px}
+.wcQualifierNationList{
+  display:flex;flex-wrap:wrap;gap:6px 14px
+}
+.wcQualifierNationList>span{
+  display:inline-flex;align-items:center;gap:5px;
+  background:none!important;border:0!important;padding:0!important;
+  color:var(--text)
+}
+.wcQualifierNationList b{font-size:9px;font-weight:800}
+
+.wcCurrentHonours{margin-top:14px}
+.wcAwardGrid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
+}
+.wcAwardPanel{
+  border:1px solid var(--line);border-radius:14px;background:#0f1821;padding:12px
+}
+.wcAwardTitle{
+  color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.10em;
+  text-transform:uppercase;padding-bottom:9px;border-bottom:1px solid var(--line)
+}
+.wcAwardLeaderRow{
+  display:grid;grid-template-columns:20px minmax(0,1fr) auto;
+  gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)
+}
+.wcAwardLeaderRow:last-child{border-bottom:0;padding-bottom:0}
+.wcAwardRank{color:var(--muted);font-size:9px;font-weight:900}
+.wcAwardPlayer{display:flex;align-items:center;gap:6px;min-width:0}
+.wcAwardPlayer>span:last-child{min-width:0}
+.wcAwardPlayer b{
+  display:block;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.wcAwardPlayer small{display:block;color:var(--muted);font-size:7px;margin-top:2px}
+.wcAwardLeaderRow>strong{color:#e7edf2;font-size:9px;white-space:nowrap}
+.wcAwardEmpty{color:var(--muted);font-size:8px;padding-top:10px}
+
+.wcPastWinnerList{margin-top:8px}
+.wcPastWinnerRow{
+  display:grid;grid-template-columns:48px minmax(0,1fr) auto;
+  gap:9px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)
+}
+.wcPastWinnerRow:last-child{border-bottom:0}
+.wcPastWinnerRow>b{color:var(--gold);font-size:10px}
+.wcPastWinnerRow>span{display:flex;align-items:center;gap:7px;min-width:0}
+.wcPastWinnerRow strong{font-size:10px}
+.wcPastWinnerRow small{color:var(--muted);font-size:8px;text-align:right}
+
+@media(max-width:430px){
+ .wcQualifierNationList{gap:7px 12px}
+ .wcQualifierNationList b{font-size:8.5px}
+ .wcAwardGrid{grid-template-columns:1fr}
+ .wcAwardPanel{padding:11px}
+ .wcPastWinnerRow{grid-template-columns:42px minmax(0,1fr)}
+ .wcPastWinnerRow small{grid-column:2;text-align:left;margin-top:-5px}
+}
 </style>
 
 </head>
@@ -14517,8 +14593,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.16 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.16";
+const BUILD_VERSION="Mini&Me Football Club v1.1.17 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.17";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -19060,15 +19136,27 @@ function worldCupFederationTabsHtml(selected){
 
 function worldCupQualificationGlobalSummaryHtml(){
  let q=ensureWorldCupQualification(),wcYear=currentWorldCupContextYear(),
-     qualified=FOOTBALL_NATIONS.map(n=>n.id).filter(id=>nationMathematicallyQualified(q,id)||(q.complete&&(q.qualified||[]).includes(id)));
+     qualified=FOOTBALL_NATIONS.map(n=>n.id).filter(id=>nationMathematicallyQualified(q,id)||(q.complete&&(q.qualified||[]).includes(id))),
+     confOrder=["UEFA","CAF","AFC","CONMEBOL","CONCACAF","OFC"];
 
- let chips=qualified.length
-   ?qualified.map(id=>'<div class="worldCupQualifiedChip">'+nationFlagHtml(id,15)+'<span>'+nationName(id)+'</span><b>Q</b></div>').join("")
-   :'<div class="worldCupHubEmpty">No nation has mathematically secured qualification yet.</div>';
+ let sections=confOrder.map(conf=>{
+   let ids=qualified.filter(id=>nationConfederation(id)===conf),
+       meta=confederationById(conf);
+   if(!ids.length)return"";
+   return '<div class="wcQualifierFederation">'+
+     '<div class="wcQualifierFederationHead"><b>'+meta.short+'</b><span>'+ids.length+' qualified</span></div>'+
+     '<div class="wcQualifierNationList">'+ids.map(id=>
+       '<span>'+nationFlagHtml(id,15)+'<b>'+nationName(id)+'</b></span>'
+     ).join('')+'</div>'+
+   '</div>';
+ }).join('');
 
- return '<div class="worldCupHubOverview">'+
-   '<div class="worldCupHubOverviewHead"><div><span>'+wcYear+' WORLD CUP QUALIFICATION</span><b>GLOBAL QUALIFICATION RACE</b><small>Confirmed qualifiers only. Federation tables below show the wider qualification race.</small></div><strong>'+qualified.length+'/32</strong></div>'+
-   '<div class="worldCupConfirmedQualifiers">'+chips+'</div>'+
+ return '<div class="worldCupHubOverview wcQualifierSimple">'+
+   '<div class="worldCupHubOverviewHead"><div><span>'+wcYear+' WORLD CUP QUALIFICATION</span>'+
+     '<b>GLOBAL QUALIFICATION RACE</b>'+
+     '<small>Confirmed qualifiers grouped by federation.</small></div>'+
+     '<strong>'+qualified.length+'/32</strong></div>'+
+   (sections||'<div class="worldCupHubEmpty">No nation has mathematically secured qualification yet.</div>')+
  '</div>';
 }
 
@@ -19292,12 +19380,10 @@ function internationalNationsView(){
  return '<div class="internationalWorkspaceIntro">'+
    '<div class="screenEyebrow">NATIONAL INTERNATIONALS</div>'+
    '<div class="screenTitle">Nations</div>'+
-   '<div class="screenSubtitle">World Cup qualification, federation tables and the wider international landscape.</div>'+
+   '<div class="screenSubtitle">World Cup qualification and federation tables across the international landscape.</div>'+
  '</div>'+
  worldCupQualificationGlobalSummaryHtml()+
- qualificationWatchHtml()+
- worldCupQualificationFullHtml()+
- internationalResultsHistoryHtml();
+ worldCupQualificationFullHtml();
 }
 
 function internationalSquadView(){
@@ -19312,13 +19398,15 @@ function internationalSquadView(){
 function internationalWorldCupView(){
  ensureInternationalNationalState();syncWorldCupLifecycleState();
  window.worldCupHubTab="finals";
+ let t=ensureWorldCupTournament();
  return '<div class="internationalWorkspaceIntro">'+
    '<div class="screenEyebrow">WORLD CUP</div>'+
    '<div class="screenTitle">World Cup</div>'+
-   '<div class="screenSubtitle">Finals groups, knockout progression, results and tournament honours.</div>'+
+   '<div class="screenSubtitle">Finals groups, knockout progression, current leaders and tournament history.</div>'+
  '</div>'+
  worldCupFinalsHubHtml()+
- worldCupFinalsResultsHistoryHtml();
+ worldCupCurrentHonoursHtml(t)+
+ worldCupPastWinnersHtml();
 }
 
 /* Legacy compatibility for old links/saves that still request the former
@@ -19424,6 +19512,116 @@ function latestWorldCupFinalsResults(){
  if(!played.length)return null;
  let latestWeek=Math.max(...played.map(m=>m.week));
  return{week:latestWeek,matches:played.filter(m=>m.week===latestWeek)};
+}
+
+function worldCupPlayedMatchesWithStage(t){
+ let out=[];
+ (t&&t.groups||[]).forEach(g=>(g.matches||[]).forEach(m=>{
+   if(m&&m.played)out.push({m,stage:"Group "+g.id});
+ }));
+ ["R16","QF","SF","FINAL"].forEach(stage=>{
+   ((t&&t.rounds&&t.rounds[stage])||[]).forEach(m=>{
+     if(m&&m.played)out.push({m,stage});
+   });
+ });
+ return out;
+}
+
+function worldCupCurrentPlayerStats(t){
+ let map=new Map(),matches=worldCupPlayedMatchesWithStage(t);
+ function row(p,nation){
+   if(!map.has(p.id))map.set(p.id,{
+     id:p.id,name:displayPlayerName(p.name),nation:nation,pos:p.pos,
+     apps:0,starts:0,goals:0,assists:0,cleanSheets:0,
+     ratingTotal:0,ratedApps:0
+   });
+   return map.get(p.id);
+ }
+ function side(match,stage,nation,opponent,gf,ga){
+   // Rebuild the same deterministic tournament appearance selection used by
+   // recordWorldCupPlayerMatch so current saves gain leaderboards immediately.
+   let sel=internationalAppearancePlayers(nation,"WC|"+G.season+"|"+stage+"|"+nation+"|"+opponent),
+       goalEvents=(match.goals||[]).filter(e=>e&&e.nation===nation),
+       goalCounts={},assistCounts={};
+   goalEvents.forEach(e=>{
+     if(e.scorerId!=null)goalCounts[e.scorerId]=(goalCounts[e.scorerId]||0)+1;
+     if(e.assistId!=null)assistCounts[e.assistId]=(assistCounts[e.assistId]||0)+1;
+   });
+
+   (sel.appearances||[]).forEach(p=>{
+     let r=row(p,nation),started=(sel.starters||[]).some(x=>x.id===p.id),
+         pg=goalCounts[p.id]||0,pa=assistCounts[p.id]||0,
+         resultBoost=gf>ga?.28:gf===ga?.08:-.12,
+         clean=(started&&p.pos==="GK"&&ga===0)?1:0,
+         rating=6.15+Math.max(-.35,Math.min(.55,((Number(p.ovr)||75)-78)/35))
+                +resultBoost+pg*.72+pa*.34+clean*.42;
+     rating=Math.max(5.4,Math.min(9.7,rating));
+
+     r.apps++;if(started)r.starts++;
+     r.goals+=pg;r.assists+=pa;r.cleanSheets+=clean;
+     r.ratingTotal+=rating;r.ratedApps++;
+   });
+ }
+
+ matches.forEach(x=>{
+   let m=x.m;
+   side(m,x.stage,m.home,m.away,Number(m.hg)||0,Number(m.ag)||0);
+   side(m,x.stage,m.away,m.home,Number(m.ag)||0,Number(m.hg)||0);
+ });
+ return Array.from(map.values()).map(r=>Object.assign(r,{
+   avgRating:r.ratedApps?r.ratingTotal/r.ratedApps:0
+ }));
+}
+
+function worldCupLeaderRowsHtml(rows,valueFn){
+ if(!rows.length)return '<div class="wcAwardEmpty">No tournament statistics yet.</div>';
+ return rows.slice(0,3).map((r,i)=>
+   '<div class="wcAwardLeaderRow">'+
+     '<span class="wcAwardRank">'+(i+1)+'</span>'+
+     '<span class="wcAwardPlayer">'+nationFlagHtml(r.nation,14)+'<span><b>'+r.name+'</b><small>'+nationName(r.nation)+' · '+r.pos+'</small></span></span>'+
+     '<strong>'+valueFn(r)+'</strong>'+
+   '</div>'
+ ).join('');
+}
+
+function worldCupCurrentHonoursHtml(t){
+ if(!t||Number(t.season)!==Number(G.season))return'';
+ let stats=worldCupCurrentPlayerStats(t),
+     byGoals=stats.filter(x=>x.goals>0).sort((a,b)=>b.goals-a.goals||b.assists-a.assists||b.avgRating-a.avgRating),
+     byRating=stats.filter(x=>x.ratedApps>=1).sort((a,b)=>b.avgRating-a.avgRating||b.ratedApps-a.ratedApps),
+     byAssists=stats.filter(x=>x.assists>0).sort((a,b)=>b.assists-a.assists||b.goals-a.goals||b.avgRating-a.avgRating),
+     keepers=stats.filter(x=>x.pos==="GK").sort((a,b)=>b.cleanSheets-a.cleanSheets||b.avgRating-a.avgRating||b.apps-a.apps);
+
+ return '<div class="card wcCurrentHonours">'+
+   '<div class="sectionHead"><div><div class="screenEyebrow">CURRENT TOURNAMENT</div>'+
+   '<div class="title">World Cup Leaders</div>'+
+   '<div class="sub">Current top three performers across the '+currentWorldCupContextYear()+' World Cup.</div></div></div>'+
+   '<div class="wcAwardGrid">'+
+     '<div class="wcAwardPanel"><div class="wcAwardTitle">Golden Boot</div>'+worldCupLeaderRowsHtml(byGoals,r=>r.goals+' goals')+'</div>'+
+     '<div class="wcAwardPanel"><div class="wcAwardTitle">Avg. Rating</div>'+worldCupLeaderRowsHtml(byRating,r=>r.avgRating.toFixed(2))+'</div>'+
+     '<div class="wcAwardPanel"><div class="wcAwardTitle">Assists</div>'+worldCupLeaderRowsHtml(byAssists,r=>r.assists+' assists')+'</div>'+
+     '<div class="wcAwardPanel"><div class="wcAwardTitle">Golden Glove</div>'+worldCupLeaderRowsHtml(keepers,r=>r.cleanSheets+' CS')+'</div>'+
+   '</div>'+
+ '</div>';
+}
+
+function worldCupPastWinnersHtml(){
+ ensureInternationalNationalState();
+ let hist=(G.internationalNational.history||[])
+   .filter(h=>h&&h.winner)
+   .slice()
+   .sort((a,b)=>Number(b.season)-Number(a.season));
+
+ return '<div class="card wcPastWinners">'+
+   '<div class="sectionHead"><div><div class="screenEyebrow">WORLD CUP HISTORY</div>'+
+   '<div class="title">Past Winners</div>'+
+   '<div class="sub">World champions recorded during your career.</div></div>'+
+   '<div class="sectionCount">'+hist.length+'</div></div>'+
+   (hist.length?'<div class="wcPastWinnerList">'+hist.map(h=>
+     '<div class="wcPastWinnerRow"><b>'+h.season+'</b><span>'+nationFlagHtml(h.winner,17)+'<strong>'+nationName(h.winner)+'</strong></span>'+
+     (h.runnerUp?'<small>Runner-up · '+nationName(h.runnerUp)+'</small>':'')+'</div>'
+   ).join('')+'</div>':'<div class="profileEmpty compactEmpty">No completed World Cup has been recorded in this career yet.</div>')+
+ '</div>';
 }
 
 function worldCupFinalsResultsHistoryHtml(){
@@ -26994,6 +27192,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.17","International Hub Refinement","PRE-PRODUCTION / UX ENHANCEMENT","Simplified Nations by removing Qualification Watch and Recent International Results, and replaced the neon qualifier cards with compact federation-grouped qualifier lists. Removed the redundant Recent World Cup Results table from the World Cup workspace. Added current top-three World Cup leaderboards for Golden Boot, average rating, assists and Golden Glove, plus a career list of past World Cup winners. Current tournament statistics are reconstructed from saved World Cup fixtures so existing in-progress tournaments populate immediately."],
   ["v1.1.16","World Cup Knockout Context","PRE-PRODUCTION / UX ENHANCEMENT","Added progression context to World Cup knockout fixtures. Round of 16 teams now identify how they qualified, such as Group A Winner or Group B Runner-up, with later rounds carrying their prior-match source. Added a persistent Groups tab beside Tournament and Last Round so completed group-stage tables remain reviewable throughout the knockout rounds and after the Final."],
   ["v1.1.15","World Cup Confederation Draw Integrity","PRE-PRODUCTION / QA FIX","Added confederation separation to the 32-team World Cup draw while preserving the four seeded strength pots. AFC, CAF, CONCACAF, CONMEBOL and OFC are limited to one nation per group; UEFA may have up to two where required by its larger allocation. The draw uses backtracking rather than a simple shuffle so valid later-pot placements are protected. Existing World Cups are redrawn automatically only when no group match has yet been played."],
   ["v1.1.14","International Link Routing","PRE-PRODUCTION / QA FIX","Removed remaining legacy navigation paths from the pre-v1.1.11 League-hosted International architecture. View World Cup now routes directly to International > World Cup; Manage Squad routes to International > Squad; and broader national-management shortcuts route to International > Nations. World Cup finals, federation and qualification controls now also explicitly retain the new International workspace rather than falling back to League."],
