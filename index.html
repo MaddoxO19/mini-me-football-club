@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.5.1 Pre-Production</title>
+<title>Mini&Me Football Club v1.5.5 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14957,6 +14957,98 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 .watchEvent{
   min-height:34px!important;
 }
+
+/* v1.5.2 box geometry refinement */
+.watchPlayer[data-index="0"]{
+  outline:1px solid rgba(255,255,255,.08);
+}
+
+/* v1.5.3 play segmentation + outcome clarity */
+.watchPlayBoundary,
+.watchOutcomeFlash{
+  position:absolute;
+  inset:0;
+  z-index:18;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  background:rgba(5,10,15,.34);
+  backdrop-filter:blur(1px);
+  -webkit-backdrop-filter:blur(1px);
+}
+.watchPlayBoundary.hidden,
+.watchOutcomeFlash.hidden{display:none!important}
+.watchPlayBoundary strong{
+  color:#f1f4f5;
+  font-size:17px;
+  letter-spacing:.08em;
+}
+.watchPlayBoundary span{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+}
+.watchOutcomeFlash strong{
+  font-size:28px;
+  letter-spacing:.08em;
+}
+.watchOutcomeFlash span{
+  margin-top:5px;
+  color:#fff;
+  font-size:10px;
+  font-weight:850;
+}
+.watchOutcomeFlash.goal strong{color:var(--gold)}
+.watchOutcomeFlash.save strong{color:#dce9f3}
+.watchOutcomeFlash.miss strong{color:#d7d9db}
+.watchGoalFlash{
+  z-index:21!important;
+}
+
+/* v1.5.4 sequence realism */
+.watchActivePlayer{
+  margin-top:5px;
+  min-height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:8px;
+  background:#0a131a;
+  color:#cfd8de;
+  font-size:7.5px;
+  font-weight:900;
+  letter-spacing:.035em;
+  text-transform:uppercase;
+}
+.watchActivePlayer.hidden{
+  visibility:hidden;
+}
+.watchOutcomeFlash strong{
+  text-shadow:0 2px 12px rgba(0,0,0,.55);
+}
+
+/* v1.5.5 set pieces + final-third logic */
+.watchGoalFlash,
+.watchOutcomeFlash{
+  isolation:isolate;
+}
+.watchGoalFlash:not(.hidden) ~ *{
+  filter:none!important;
+}
+.watchOutcomeFlash{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  background:rgba(5,10,15,.52)!important;
+}
+.watchPlayBoundary{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  background:rgba(5,10,15,.42)!important;
+}
 </style>
 
 </head>
@@ -15205,8 +15297,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.5.1 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.5.1";
+const BUILD_VERSION="Mini&Me Football Club v1.5.5 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.5.5";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22401,6 +22493,7 @@ function watchMatchBuildEvents(r){
  }
 
  ev.sort((a,b)=>a.minute-b.minute||(a.type==="GOAL"?1:-1));
+ ev=ev.map((e,i)=>watchAssignSetPieceOrigin(e,i));
 
  // Avoid same event + same side repeatedly appearing back-to-back.
  for(let i=1;i<ev.length;i++){
@@ -22445,9 +22538,12 @@ function watchMatchShellHtml(r){
       '<div class="watchCorner tl"></div><div class="watchCorner tr"></div><div class="watchCorner bl"></div><div class="watchCorner br"></div>'+
       watchMatchPlayerMarkers("home")+watchMatchPlayerMarkers("away")+
       '<span id="wmBall" class="watchBall"></span>'+
+      '<div id="wmPlayBoundary" class="watchPlayBoundary hidden"><strong id="wmPlayBoundaryTitle">NEW PHASE</strong><span id="wmPlayBoundaryDetail"></span></div>'+
+      '<div id="wmOutcomeFlash" class="watchOutcomeFlash hidden"><strong id="wmOutcomeTitle"></strong><span id="wmOutcomeDetail"></span></div>'+
       '<div id="wmGoalFlash" class="watchGoalFlash hidden"><strong>GOAL</strong><span id="wmGoalScorer"></span></div>'+
     '</div>'+
     '<div id="wmEvent" class="watchEvent">Kick-off</div>'+
+    '<div id="wmActivePlayer" class="watchActivePlayer hidden"></div>'+
    '</div>'+
    '<div id="wmLog" class="watchLog"></div>'+
    '<div class="watchControls">'+
@@ -22491,6 +22587,9 @@ const WATCH_WORLD={
  lastPasser:null,
  lastReceiver:null,
  passChain:[],
+ playId:0,
+ playState:"OPEN_PLAY",
+ playResetUntil:0,
  phaseClock:0,
  phaseDuration:2.5,
  targetEventIndex:0,
@@ -22547,6 +22646,9 @@ function watchInitWorld(){
  WATCH_WORLD.lastPasser=null;
  WATCH_WORLD.lastReceiver=null;
  WATCH_WORLD.passChain=[];
+ WATCH_WORLD.playId=0;
+ WATCH_WORLD.playState="OPEN_PLAY";
+ WATCH_WORLD.playResetUntil=0;
  WATCH_WORLD.phaseClock=0;
  WATCH_WORLD.phaseDuration=2.4;
  WATCH_WORLD.targetEventIndex=0;
@@ -22592,6 +22694,8 @@ function watchWorldTick(dt){
  // Continuous tactical world always updates.
  watchUpdatePhase(dt);
  watchUpdateShape(dt,next);
+ watchDefensiveTracking();
+ if(WATCH_WORLD.ball.owner&&!WATCH_WORLD.eventActive)watchTriggerOffBallRuns(WATCH_WORLD.ball.owner);
  watchUpdateKeeperPositioning();
  watchUpdatePlayers(dt);
  watchUpdateBall(dt);
@@ -22677,6 +22781,16 @@ function watchPassingOptions(owner){
        progressScore=.55+progressGain*2.2-dist*.008-laneRisk*.34-receiverPressure*.18+roleBonus,
        switchScore=.35+Math.abs(p.x-owner.x)*.018+width*.25-laneRisk*.22,
        recycleScore=.45-progressGain*.8-dist*.006-laneRisk*.18+(p.role==="DEF"?.18:0);
+   if(!watchCanRecycleDeep(owner,p)){
+     safeScore-=.55;
+     recycleScore-=.90;
+     progressScore-=.45;
+   }
+   if(watchShouldAvoidBackwardRecycle(owner,{player:p})){
+     safeScore-=.65;
+     recycleScore-=1.10;
+     switchScore-=.25;
+   }
    return {player:p,dist,progressGain,laneRisk,receiverPressure,safeScore,progressScore,switchScore,recycleScore,centrality};
  }).filter(o=>o.dist>3&&o.dist<48);
 }
@@ -22842,27 +22956,194 @@ function watchOneTwoOption(owner,options){
  });
  return watchBestOption(progressive,"oneTwoScore");
 }
+
+
+function watchGeometryInvariantCheck(){
+ let issues=[];
+ WATCH_WORLD.players.forEach(p=>{
+   if(p.role==="GK"){
+     if(p.side==="away"&&(p.y<3||p.y>15))issues.push("away_gk_depth");
+     if(p.side==="home"&&(p.y<85||p.y>97))issues.push("home_gk_depth");
+     if(p.x<45||p.x>55)issues.push("gk_width");
+   }else{
+     if(p.side==="home"&&p.y<5)issues.push("home_attacker_goal");
+     if(p.side==="away"&&p.y>95)issues.push("away_attacker_goal");
+   }
+ });
+ return issues;
+}
+
+
+function watchShowPlayBoundary(label,sub=""){
+ let pitch=document.getElementById("watchPitch"),
+     overlay=document.getElementById("wmPlayBoundary"),
+     title=document.getElementById("wmPlayBoundaryTitle"),
+     detail=document.getElementById("wmPlayBoundaryDetail");
+ if(!overlay||!pitch)return;
+ if(title)title.textContent=label||"NEW PHASE";
+ if(detail)detail.textContent=sub||"";
+ overlay.classList.remove("hidden");
+ clearTimeout(WATCH_WORLD._playBoundaryTimer);
+ WATCH_WORLD._playBoundaryTimer=setTimeout(()=>overlay.classList.add("hidden"),520/Math.max(1,WATCH_MATCH.speed));
+}
+function watchStartNewPlay(reason="OPEN PLAY",side=WATCH_WORLD.possession){
+ WATCH_WORLD.playId++;
+ WATCH_WORLD.playState="RESTART";
+ WATCH_WORLD.playResetUntil=performance.now()+Math.max(260,620/Math.max(1,WATCH_MATCH.speed));
+ WATCH_WORLD.passChain=[];
+ WATCH_WORLD.lastPasser=null;
+ WATCH_WORLD.lastReceiver=null;
+ WATCH_WORLD.phase="BUILD";
+ watchShowPlayBoundary(reason, side==="home"?"Home possession":"Away possession");
+ setTimeout(()=>{if(WATCH_WORLD.playState==="RESTART")WATCH_WORLD.playState="OPEN_PLAY"},Math.max(260,620/Math.max(1,WATCH_MATCH.speed)));
+}
+function watchInFinalThird(player){
+ return watchGoalProgress(player.side,player.y)>.70;
+}
+function watchCanRecycleDeep(owner,receiver){
+ if(!owner||!receiver)return false;
+ let ownerProg=watchGoalProgress(owner.side,owner.y),
+     recvProg=watchGoalProgress(receiver.side,receiver.y);
+ if(ownerProg<.72)return true;
+ // Once a forward is near goal, only allow short support/recycle options.
+ if(owner.role==="FWD" && ownerProg>.78){
+   return recvProg>.55 && watchDistance(owner,receiver)<24;
+ }
+ return recvProg>.45;
+}
+function watchOutcomeLabel(e){
+ if(e.type==="GOAL")return"GOAL";
+ if(e.type==="SAVE")return"SAVED";
+ if(e.type==="MISS")return"MISSED";
+ return"ATTACK ENDS";
+}
+function watchShowOutcomeFlash(type,text,sub=""){
+ let el=document.getElementById("wmOutcomeFlash"),
+     title=document.getElementById("wmOutcomeTitle"),
+     detail=document.getElementById("wmOutcomeDetail");
+ if(!el)return;
+ el.className="watchOutcomeFlash "+String(type||"").toLowerCase();
+ if(title)title.textContent=text||type;
+ if(detail)detail.textContent=sub||"";
+ el.classList.remove("hidden");
+ clearTimeout(WATCH_WORLD._outcomeTimer);
+ WATCH_WORLD._outcomeTimer=setTimeout(()=>el.classList.add("hidden"),Math.max(780,1250/Math.max(1,WATCH_MATCH.speed)));
+}
+
+function watchAttackingGoalY(side){
+ return side==="home"?0:100;
+}
+function watchDefendingGoalY(side){
+ return side==="home"?100:0;
+}
+function watchPenaltyAreaFrontY(attackingSide){
+ return attackingSide==="home"?18:82;
+}
+function watchSixYardFrontY(attackingSide){
+ return attackingSide==="home"?8:92;
+}
+function watchClampAttackerToLivePitch(player,x,y,allowSixYard=false){
+ let side=player.side,
+     minY=side==="home"?(allowSixYard?6:10):2,
+     maxY=side==="home"?98:(allowSixYard?94:90);
+ return {
+   x:Math.max(7,Math.min(93,x)),
+   y:Math.max(minY,Math.min(maxY,y))
+ };
+}
+function watchFinishingZoneForPlayer(player,lane="CENTRE"){
+ let side=player.side,
+     home=side==="home",
+     role=player.role,
+     x=lane==="LEFT"?43:lane==="RIGHT"?57:50,
+     y;
+
+ if(role==="MID")y=home?20:80;
+ else if(role==="FWD"&&(player.index===8||player.index===10))y=home?14:86;
+ else y=home?12:88;
+
+ // Wide scorer attacks far-post/inside channel, but never crosses goal line.
+ if(role==="FWD"&&player.index===8)x=lane==="RIGHT"?46:55;
+ if(role==="FWD"&&player.index===10)x=lane==="LEFT"?54:45;
+
+ return watchClampAttackerToLivePitch(player,x,y,false);
+}
+function watchKeeperDepthLimit(keeper,ballX,ballY,nearestAttacker=null){
+ let top=keeper.side==="away",
+     goalY=top?6:94,
+     ballDepth=top?ballY:(100-ballY),
+     attackerDepth=nearestAttacker?(top?nearestAttacker.y:(100-nearestAttacker.y)):100,
+     step;
+
+ // Default: stay close to goal.
+ if(ballDepth>32)step=1.5;
+ else if(ballDepth>22)step=3;
+ else if(ballDepth>14)step=5;
+ else step=7;
+
+ // If an attacker is already very close to goal, keeper cannot be stranded near 18-yard line.
+ if(attackerDepth<16)step=Math.min(step,4.5);
+ if(attackerDepth<10)step=Math.min(step,3.0);
+
+ return top?goalY+step:goalY-step;
+}
+function watchNearestAttackerToGoal(defendingSide){
+ let attackingSide=watchOpponentSide(defendingSide),
+     list=WATCH_WORLD.players.filter(p=>p.side===attackingSide&&p.role!=="GK");
+ if(!list.length)return null;
+ list.sort((a,b)=>{
+   let ad=attackingSide==="home"?a.y:100-a.y,
+       bd=attackingSide==="home"?b.y:100-b.y;
+   return ad-bd;
+ });
+ return list[0]||null;
+}
+function watchBoxEntryTarget(player,targetX,targetY){
+ let side=player.side,
+     front=watchPenaltyAreaFrontY(side),
+     six=watchSixYardFrontY(side),
+     clamped=watchClampAttackerToLivePitch(player,targetX,targetY,false);
+
+ // Non-directed open play should not casually put attackers inside six-yard box.
+ if(!WATCH_WORLD.eventActive){
+   if(side==="home")clamped.y=Math.max(clamped.y,six+2);
+   else clamped.y=Math.min(clamped.y,six-2);
+ }
+ return clamped;
+}
+function watchPassTargetPoint(owner,receiver,state){
+ let tx=receiver.x,ty=receiver.y,
+     dir=owner.side==="home"?-1:1;
+
+ if(state==="THROUGH"){
+   ty+=dir*5.5;
+ }
+ if(state==="CROSS"){
+   tx=50+(tx-50)*.45;
+   ty+=dir*2;
+ }
+ if(state==="CUTBACK"){
+   tx=50+(tx-50)*.28;
+   ty-=dir*3.5;
+ }
+ let live=watchBoxEntryTarget(receiver,tx,ty);
+ return live;
+}
+
 function watchScorerRunTarget(scorer,e){
  if(!scorer)return null;
- let side=scorer.side,
-     home=side==="home",
-     lane=e&&e.lane||"CENTRE",
-     role=scorer.role,
-     x=scorer.x,y=scorer.y;
+ let lane=e&&e.lane||"CENTRE",
+     target=watchFinishingZoneForPlayer(scorer,lane);
 
- if(role==="FWD"&&scorer.index===9){
-   return {x:lane==="LEFT"?46:lane==="RIGHT"?54:50,y:home?12:88,type:"CENTRAL_RUN"};
- }
- if(role==="FWD"&&(scorer.index===8||scorer.index===10)){
-   let farPost=scorer.index===8?58:42;
-   return {x:lane==="LEFT"?farPost:lane==="RIGHT"?100-farPost:scorer.index===8?58:42,
-           y:home?14:86,type:"INSIDE_RUN"};
- }
- if(role==="MID"){
-   let offset=scorer.index===5?-7:scorer.index===7?7:0;
-   return {x:50+offset,y:home?22:78,type:"LATE_RUN"};
- }
- return {x:50,y:home?20:80,type:"SUPPORT_RUN"};
+ // Arrive from current position; do not jump beyond keeper/goal mouth.
+ let maxAdvance=scorer.role==="MID"?12:scorer.role==="FWD"?16:10,
+     dir=scorer.side==="home"?-1:1,
+     desiredY=target.y;
+
+ if(scorer.side==="home")desiredY=Math.max(target.y,scorer.y-maxAdvance);
+ else desiredY=Math.min(target.y,scorer.y+maxAdvance);
+
+ return watchClampAttackerToLivePitch(scorer,target.x,desiredY,false);
 }
 function watchKeeperZone(keeper,ballX,ballY){
  let top=keeper.side==="away",
@@ -22875,6 +23156,171 @@ function watchKeeperZone(keeper,ballX,ballY){
    y:top?Math.max(4,Math.min(15,goalY+step)):Math.max(85,Math.min(96,goalY-step))
  };
 }
+
+function watchActivePlayerName(player){
+ if(!player)return"";
+ try{
+   let team=player.side==="home"?(WATCH_MATCH_RESULT&&WATCH_MATCH_RESULT.perfA):(WATCH_MATCH_RESULT&&WATCH_MATCH_RESULT.perfB);
+   if(Array.isArray(team)){
+     let roleOrder={GK:0,DEF:1,MID:2,FWD:3};
+     let candidates=team.filter(x=>x&&x.name);
+     if(candidates[player.index]&&candidates[player.index].name)return displayPlayerName(candidates[player.index].name);
+     let grouped=candidates.filter(x=>{
+       let pos=String(x.pos||"").toUpperCase();
+       if(player.role==="GK")return pos==="GK";
+       if(player.role==="DEF")return pos.includes("DEF")||pos.includes("CB")||pos.includes("LB")||pos.includes("RB");
+       if(player.role==="MID")return pos.includes("MID")||pos.includes("CM")||pos.includes("DM")||pos.includes("AM");
+       return pos.includes("FWD")||pos.includes("ST")||pos.includes("CF")||pos.includes("LW")||pos.includes("RW");
+     });
+     if(grouped.length)return displayPlayerName(grouped[player.index%grouped.length].name);
+   }
+ }catch(e){}
+ return player.role;
+}
+function watchSetActiveLabel(player,action=""){
+ let el=document.getElementById("wmActivePlayer");
+ if(!el)return;
+ if(!player){el.textContent="";el.classList.add("hidden");return}
+ let name=watchActivePlayerName(player);
+ el.textContent=(name||player.role)+(action?(" · "+action):"");
+ let goalFlash=document.getElementById("wmGoalFlash"),
+     outcome=document.getElementById("wmOutcomeFlash"),
+     blocked=(goalFlash&&!goalFlash.classList.contains("hidden"))||(outcome&&!outcome.classList.contains("hidden"));
+ if(!blocked)el.classList.remove("hidden");
+ clearTimeout(WATCH_WORLD._activeLabelTimer);
+ WATCH_WORLD._activeLabelTimer=setTimeout(()=>el.classList.add("hidden"),900/Math.max(1,WATCH_MATCH.speed));
+}
+function watchForwardRunCandidates(side){
+ return WATCH_WORLD.players.filter(p=>p.side===side&&(p.role==="FWD"||p.role==="MID")&&p.role!=="GK");
+}
+function watchTriggerOffBallRuns(owner){
+ if(!owner)return;
+ let dir=owner.side==="home"?-1:1,
+     candidates=watchForwardRunCandidates(owner.side)
+       .filter(p=>p!==owner&&watchDistance(owner,p)<38),
+     seed="RUNS|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*6)+"|"+owner.side+"|"+owner.index;
+ candidates.forEach((p,i)=>{
+   let roll=intelHash(seed+"|"+i);
+   if(roll<.48)return;
+   let laneShift=p.index===8?-5:p.index===10?5:(p.index%2===0?-2:2),
+       advance=p.role==="FWD"?7:4;
+   p.tx=Math.max(8,Math.min(92,p.tx+laneShift));
+   p.ty=Math.max(6,Math.min(94,p.ty+dir*advance));
+ });
+}
+function watchDefensiveTracking(){
+ ["home","away"].forEach(side=>{
+   let opp=watchOpponentSide(side),
+       attackers=WATCH_WORLD.players.filter(p=>p.side===opp&&p.role==="FWD"),
+       defenders=WATCH_WORLD.players.filter(p=>p.side===side&&p.role==="DEF");
+   defenders.forEach((d,i)=>{
+     let target=attackers.slice().sort((a,b)=>Math.abs(a.x-d.x)-Math.abs(b.x-d.x))[0];
+     if(!target)return;
+     let dist=watchDistance(d,target);
+     if(dist<22){
+       d.tx=d.tx*.7+(target.x+(d.x<target.x?-2.5:2.5))*.3;
+       d.ty=d.ty*.7+(target.y+(side==="home"?3:-3))*.3;
+     }
+   });
+ });
+}
+function watchIsShootingPosition(player){
+ if(!player)return false;
+ let progress=watchGoalProgress(player.side,player.y),
+     central=Math.abs(player.x-50)<24;
+ return progress>.80&&central;
+}
+function watchShouldAvoidBackwardRecycle(owner,opt){
+ if(!owner||!opt||!opt.player)return false;
+ if(!watchIsShootingPosition(owner))return false;
+ let recvProg=watchGoalProgress(owner.side,opt.player.y);
+ return recvProg<.58||watchDistance(owner,opt.player)>22;
+}
+function watchShotPrepTarget(player){
+ let home=player.side==="home",
+     x=Math.max(42,Math.min(58,player.x)),
+     y=home?Math.max(10,player.y-3):Math.min(90,player.y+3);
+ return {x,y};
+}
+
+function watchDirectlyInFrontOfGoal(player){
+ if(!player)return false;
+ let progress=watchGoalProgress(player.side,player.y),
+     central=Math.abs(player.x-50)<17;
+ return player.role==="FWD" && player.index===9 && progress>.80 && central;
+}
+function watchNearBoxForward(player){
+ if(!player)return false;
+ return player.role==="FWD" && watchGoalProgress(player.side,player.y)>.74;
+}
+function watchShortLayoffOptions(owner,options){
+ return options.filter(o=>{
+   let p=o.player;
+   if(!p)return false;
+   return watchDistance(owner,p)<16 &&
+          watchGoalProgress(owner.side,p.y)>.62 &&
+          p.role!=="DEF";
+ });
+}
+function watchVisualShotThreat(owner){
+ if(!owner)return null;
+ let lane=Math.abs(owner.x-50)<10?"CENTRE":owner.x<50?"LEFT":"RIGHT",
+     target=watchOpenSpaceTarget(owner);
+ return {type:"CARRY",target:target||{x:owner.x,y:owner.y},label:"SHOT_PREP",lane};
+}
+function watchAssignSetPieceOrigin(e,index){
+ if(!e || !["GOAL","SAVE","MISS"].includes(e.type))return e;
+ let seed="SETPIECE|"+G.season+"|"+G.week+"|"+e.minute+"|"+index+"|"+e.side+"|"+e.type,
+     r=intelHash(seed);
+ // Keep most events as open play. Some become set-piece presentations only.
+ if(r<.14)e.origin="CORNER";
+ else if(r<.23)e.origin="FREE_KICK";
+ else e.origin="OPEN_PLAY";
+ return e;
+}
+function watchSetPieceLane(e){
+ if(e.lane)return e.lane;
+ let seed="SPLANE|"+G.season+"|"+G.week+"|"+e.minute+"|"+e.side;
+ return ["LEFT","CENTRE","RIGHT"][Math.floor(intelHash(seed)*3)];
+}
+function watchSetPieceTaker(side,origin,lane){
+ let team=WATCH_WORLD.players.filter(p=>p.side===side);
+ if(origin==="CORNER"){
+   let idx=lane==="LEFT"?8:10;
+   return team.find(p=>p.index===idx)||team.find(p=>p.role==="FWD")||null;
+ }
+ if(origin==="FREE_KICK"){
+   return team.find(p=>p.role==="MID"&&p.index!==6)||
+          team.find(p=>p.role==="FWD")||null;
+ }
+ return null;
+}
+function watchSetPieceTarget(side,origin,lane,finisher){
+ let home=side==="home";
+ if(origin==="CORNER"){
+   return {
+     taker:{x:lane==="LEFT"?4:96,y:home?4:96},
+     delivery:{x:lane==="LEFT"?43:57,y:home?13:87},
+     finisher:finisher?watchFinishingZoneForPlayer(finisher,lane):{x:50,y:home?14:86}
+   };
+ }
+ return {
+   taker:{x:lane==="LEFT"?34:lane==="RIGHT"?66:50,y:home?25:75},
+   delivery:{x:lane==="LEFT"?44:lane==="RIGHT"?56:50,y:home?13:87},
+   finisher:finisher?watchFinishingZoneForPlayer(finisher,lane):{x:50,y:home?14:86}
+ };
+}
+function watchPrepareSetPiece(e){
+ let lane=watchSetPieceLane(e),
+     finisher=watchSelectFinisher(e.side,e),
+     taker=watchSetPieceTaker(e.side,e.origin,lane),
+     target=watchSetPieceTarget(e.side,e.origin,lane,finisher);
+ return {lane,finisher,taker,target,origin:e.origin};
+}
+function watchSetPieceLabel(origin){
+ return origin==="CORNER"?"CORNER":origin==="FREE_KICK"?"FREE KICK":"OPEN PLAY";
+}
+
 function watchDecisionForCarrier(owner){
  if(!owner)return {type:"RECYCLE"};
 
@@ -22896,6 +23342,18 @@ function watchDecisionForCarrier(owner){
      finalThird=progress>.70,
      seed="DECIDE|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*5)+"|"+owner.side+"|"+owner.index,
      r=intelHash(seed);
+
+ // Hard final-third rule: a central forward directly in front of goal cannot
+ // visually send possession back toward midfield. Keep the action local.
+ if(watchDirectlyInFrontOfGoal(owner)){
+   let local=watchShortLayoffOptions(owner,options),
+       localCombo=watchBestCombination(owner,local),
+       closeSpace=watchOpenSpaceTarget(owner);
+   if(localCombo && r>.72)return{type:"ONE_TWO",option:localCombo};
+   if(closeSpace)return{type:"CARRY",target:watchBoxEntryTarget(owner,closeSpace.x,closeSpace.y),label:"SHOT_PREP"};
+   return{type:"CARRY",target:watchShotPrepTarget(owner),label:"SHOT_PREP"};
+ }
+
 
  if(owner.role==="GK"){
    if(switchOpt&&r>.70)return{type:"KEEPER_DISTRIBUTION",option:switchOpt,long:true};
@@ -22946,7 +23404,14 @@ function watchDecisionForCarrier(owner){
    if(oneTwo&&r>.62)return{type:"ONE_TWO",option:oneTwo};
    if(through&&r<.22)return{type:"THROUGH",option:through};
    if(space&&space.congestion<.7&&pressure<.65&&r<.33)return{type:"CARRY",target:space};
-   return{type:"PASS",option:combination||safe||progressive||recycle,label:"support"};
+   let forwardOptions=options.filter(o=>watchCanRecycleDeep(owner,o.player));
+   if(watchNearBoxForward(owner)){
+     forwardOptions=forwardOptions.filter(o=>watchDistance(owner,o.player)<22 && watchGoalProgress(owner.side,o.player.y)>.55);
+   }
+   let forwardCombo=watchBestCombination(owner,forwardOptions);
+   if(forwardCombo)return{type:"PASS",option:forwardCombo,label:"support"};
+   if(watchNearBoxForward(owner))return watchVisualShotThreat(owner);
+   return{type:"PASS",option:progressive||safe||recycle,label:"support"};
  }
 
  return{type:"PASS",option:combination||safe||progressive||recycle,label:"safe"};
@@ -22954,6 +23419,7 @@ function watchDecisionForCarrier(owner){
 function watchApplyCarrierDecision(owner,decision){
  if(!owner||!decision)return;
  watchBriefActionBanner(decision);
+ watchSetActiveLabel(owner,watchVisualActionLabel(decision));
 
  if(["PASS","SWITCH","THROUGH","CROSS","CUTBACK","ONE_TWO","KEEPER_DISTRIBUTION"].includes(decision.type)
     && decision.option && decision.option.player){
@@ -22984,10 +23450,14 @@ function watchApplyCarrierDecision(owner,decision){
      p.tx=50+(p.tx-50)*.28;
    }
 
+   let targetPoint=watchPassTargetPoint(owner,p,state);
+   p.tx=targetPoint.x;
+   p.ty=targetPoint.y;
+
    watchRememberPass(owner,p,state);
    WATCH_WORLD.phase=["THROUGH","CROSS","CUTBACK"].includes(state)?"ATTACK":
                      decision.label==="progressive"?"PROGRESS":WATCH_WORLD.phase;
-   watchKickBallTo(p.x,p.y,duration,p,state);
+   watchKickBallTo(targetPoint.x,targetPoint.y,duration,p,state);
 
    if(state==="ONE_TWO"){
      let original=owner;
@@ -23065,6 +23535,11 @@ function watchSupportAroundCarrier(owner){
      desiredY=owner.y-dir*(state==="FINAL_THIRD"?12:8);
    }
 
+
+
+   let liveTarget=watchBoxEntryTarget(p,desiredX,desiredY);
+   desiredX=liveTarget.x;
+   desiredY=liveTarget.y;
    if(watchLaneCongestion(p.side,desiredX,desiredY)<1.8){
      p.tx=p.tx*.62+Math.max(7,Math.min(93,desiredX))*.38;
      p.ty=p.ty*.62+Math.max(5,Math.min(95,desiredY))*.38;
@@ -23117,6 +23592,13 @@ function watchUpdatePhase(dt){
        watchTriggerTransition(newSide);
        WATCH_WORLD.phase="BUILD";
        watchGiveBall(interceptor);
+       if(WATCH_WORLD.playState!=="RESTART" && !WATCH_WORLD.eventActive){
+         let now=performance.now();
+         if(!WATCH_WORLD._lastTurnoverBoundary||now-WATCH_WORLD._lastTurnoverBoundary>1200){
+           WATCH_WORLD._lastTurnoverBoundary=now;
+           watchStartNewPlay("TURNOVER",newSide);
+         }
+       }
        WATCH_WORLD.phaseClock=0;
      }
    }
@@ -23389,9 +23871,9 @@ function watchUpdatePlayers(dt){
    p.x=Math.max(4,Math.min(96,p.x));
    p.y=Math.max(2,Math.min(98,p.y));
    if(p.role==="GK"){
-     if(p.side==="away")p.y=Math.max(3,Math.min(19,p.y));
-     else p.y=Math.max(81,Math.min(97,p.y));
-     p.x=Math.max(42,Math.min(58,p.x));
+     if(p.side==="away")p.y=Math.max(4.5,Math.min(11.8,p.y));
+     else p.y=Math.max(88.2,Math.min(95.5,p.y));
+     p.x=Math.max(46.8,Math.min(53.2,p.x));
    }
  });
 }
@@ -23609,14 +24091,29 @@ function watchGoalSideForAttacker(side){
 }
 function watchKeeperSetPosition(keeper,ballX,ballY,attackingSide){
  if(!keeper)return;
- let zone=watchKeeperZone(keeper,ballX,ballY);
 
- // Keeper follows zone gradually, never teleports or chases wide.
- keeper.tx=keeper.tx*.72+zone.x*.28;
- keeper.ty=keeper.ty*.72+zone.y*.28;
- keeper.tx=Math.max(45,Math.min(55,keeper.tx));
- if(keeper.side==="away")keeper.ty=Math.max(4,Math.min(16,keeper.ty));
- else keeper.ty=Math.max(84,Math.min(96,keeper.ty));
+ let top=keeper.side==="away",
+     nearest=watchNearestAttackerToGoal(keeper.side),
+     ballDepth=top?ballY:(100-ballY),
+     attackerDepth=nearest?(top?nearest.y:(100-nearest.y)):100,
+     targetX=50+(ballX-50)*.045,
+     targetY;
+
+ // Normal keeper home zone is inside/around the six-yard box.
+ if(ballDepth>24)targetY=top?7:93;
+ else if(ballDepth>16)targetY=top?8.5:91.5;
+ else targetY=top?10.5:89.5;
+
+ // If attacker is already close to goal, retreat rather than step out.
+ if(attackerDepth<18)targetY=top?7.5:92.5;
+ if(attackerDepth<12)targetY=top?6.8:93.2;
+
+ keeper.tx=keeper.tx*.84+Math.max(47,Math.min(53,targetX))*.16;
+ keeper.ty=keeper.ty*.84+targetY*.16;
+
+ keeper.tx=Math.max(47,Math.min(53,keeper.tx));
+ if(top)keeper.ty=Math.max(4.5,Math.min(11.5,keeper.ty));
+ else keeper.ty=Math.max(88.5,Math.min(95.5,keeper.ty));
 }
 function watchUpdateKeeperPositioning(){
  ["home","away"].forEach(side=>{
@@ -23675,12 +24172,12 @@ function watchEventOutcomeTarget(e,keeper){
  }
  if(e.type==="SAVE"){
    let kx=keeper?keeper.x:50,
-       ky=home?6:94;
-   return {x:kx,y:ky,state:"SAVE"};
+       ky=home?5.5:94.5;
+   return {x:Math.max(46,Math.min(54,kx)),y:ky,state:"SAVE"};
  }
  if(e.type==="MISS"){
-   let x=lane==="LEFT"?13:lane==="RIGHT"?87:64;
-   return {x,y:goalY,state:"MISS"};
+   let x=lane==="LEFT"?8:lane==="RIGHT"?92:(intelHash("MISS|"+G.season+"|"+G.week+"|"+e.minute)>.5?67:33);
+   return {x,y:home?-3:103,state:"MISS"};
  }
  return null;
 }
@@ -23699,7 +24196,12 @@ function watchBeginDirectedEvent(e){
  WATCH_WORLD.eventStageClock=0;
  WATCH_WORLD.possession=e.side;
  WATCH_WORLD.phase="ATTACK";
- WATCH_WORLD._directed=watchDirectedEventSetup(e);
+ WATCH_WORLD._directed=(e.origin&&e.origin!=="OPEN_PLAY")
+   ?watchPrepareSetPiece(e)
+   :watchDirectedEventSetup(e);
+ if(e.origin&&e.origin!=="OPEN_PLAY"){
+   watchStartNewPlay(watchSetPieceLabel(e.origin),e.side);
+ }
 
  document.querySelectorAll(".watchPlayer.designatedScorer").forEach(x=>x.classList.remove("designatedScorer"));
  if(e.type==="GOAL"){
@@ -23733,7 +24235,7 @@ function watchGoalkeeperDistribution(keeper){
  }
 }
 
-function watchUpdateDirectedEvent(dt){
+function watchUpdateOpenPlayDirectedEvent(dt){
  let e=WATCH_WORLD.targetEvent;if(!e)return;
  WATCH_WORLD.eventStageClock+=dt;
 
@@ -23758,11 +24260,12 @@ function watchUpdateDirectedEvent(dt){
    if(creator){
      creator.tx=lane==="LEFT"?31:lane==="RIGHT"?69:50;
      creator.ty=home?34:66;
+     watchSetActiveLabel(creator,"CREATING");
    }
    if(finisher){
      let run=watchScorerRunTarget(finisher,e);
-     finisher.tx=finisher.tx*.65+run.x*.35;
-     finisher.ty=finisher.ty*.65+(home?Math.max(run.y,18):Math.min(run.y,82))*.35;
+     finisher.tx=finisher.tx*.70+run.x*.30;
+     finisher.ty=finisher.ty*.70+run.y*.30;
    }
    watchRecoverDefenders(e.side,laneX,home?25:75);
 
@@ -23779,8 +24282,10 @@ function watchUpdateDirectedEvent(dt){
  else if(WATCH_WORLD.eventStage===1){
    if(finisher){
      let run=watchScorerRunTarget(finisher,e);
-     finisher.tx=run.x;
-     finisher.ty=run.y;
+     let box=watchBoxEntryTarget(finisher,run.x,run.y);
+     finisher.tx=box.x;
+     finisher.ty=box.y;
+     watchSetActiveLabel(finisher,"RUNNING INTO SPACE");
    }
    watchRecoverDefenders(e.side,laneX,home?20:80);
 
@@ -23799,9 +24304,11 @@ function watchUpdateDirectedEvent(dt){
  // Stage 2: final touch and shot preparation.
  else if(WATCH_WORLD.eventStage===2){
    if(finisher){
-     let goalX=lane==="LEFT"?45:lane==="RIGHT"?55:50;
-     finisher.tx=goalX;
-     finisher.ty=home?11:89;
+     let finish=watchFinishingZoneForPlayer(finisher,lane),
+         prep=watchShotPrepTarget(finisher);
+     finisher.tx=finish.x*.68+prep.x*.32;
+     finisher.ty=finish.y*.68+prep.y*.32;
+     watchSetActiveLabel(finisher,"SHOOTING");
    }
    if(keeper){
      let shotX=finisher?finisher.x:50,
@@ -23841,8 +24348,10 @@ function watchUpdateDirectedEvent(dt){
      }
      else if(e.type==="SAVE"){
        if(keeper)watchGiveBall(keeper);
+       watchShowOutcomeFlash("SAVE","SAVED",e.player?displayPlayerName(e.player):"Goalkeeper save");
      }
      else if(e.type==="MISS"){
+       watchShowOutcomeFlash("MISS","MISSED",e.player?displayPlayerName(e.player):"Chance goes wide");
        // ball exits play; keeper will restart in next stage
      }
      else{
@@ -23867,15 +24376,19 @@ function watchUpdateDirectedEvent(dt){
        WATCH_WORLD.possession=restartSide;
        watchTriggerTransition(restartSide);
        WATCH_WORLD.phase="BUILD";
+       watchStartNewPlay("KICK-OFF",restartSide);
      }
      else if(e.type==="SAVE"){
        let defendingSide=watchOpponentSide(e.side);
        WATCH_WORLD.possession=defendingSide;
        watchTriggerTransition(defendingSide);
+       watchStartNewPlay("GOALKEEPER RESTART",defendingSide);
        if(keeper)setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(160,420/speed));
      }
      else if(e.type==="MISS"){
-       watchRestartAfterDeadBall(watchOpponentSide(e.side));
+       let restartSide=watchOpponentSide(e.side);
+       watchStartNewPlay("GOAL KICK",restartSide);
+       watchRestartAfterDeadBall(restartSide);
      }
 
      WATCH_WORLD.targetEventIndex++;
@@ -23891,13 +24404,114 @@ function watchUpdateDirectedEvent(dt){
    }
  }
 }
+
+function watchUpdateSetPieceEvent(dt){
+ let e=WATCH_WORLD.targetEvent;if(!e)return;
+ WATCH_WORLD.eventStageClock+=dt;
+ let speed=Math.max(1,WATCH_MATCH.speed),
+     setup=WATCH_WORLD._directed,
+     lane=setup.lane,
+     home=e.side==="home",
+     taker=setup.taker,
+     finisher=setup.finisher,
+     keeper=watchKeeperForSide(watchOpponentSide(e.side));
+
+ if(WATCH_WORLD.eventStage===0){
+   if(taker){
+     taker.tx=setup.target.taker.x;
+     taker.ty=setup.target.taker.y;
+     watchGiveBall(taker);
+     watchSetActiveLabel(taker,watchSetPieceLabel(e.origin));
+   }
+   if(finisher){
+     finisher.tx=setup.target.finisher.x;
+     finisher.ty=setup.target.finisher.y;
+   }
+   watchRecoverDefenders(e.side,setup.target.delivery.x,setup.target.delivery.y);
+   if(WATCH_WORLD.eventStageClock>.55/speed){
+     WATCH_WORLD.eventStage=1;WATCH_WORLD.eventStageClock=0;
+     if(finisher){
+       let state=e.origin==="CORNER"?"CROSS":"LONG_PASS";
+       watchKickBallTo(setup.target.delivery.x,setup.target.delivery.y,.32/Math.sqrt(speed),finisher,state);
+     }
+   }
+ }
+ else if(WATCH_WORLD.eventStage===1){
+   if(WATCH_WORLD.eventStageClock>.48/speed){
+     WATCH_WORLD.eventStage=2;WATCH_WORLD.eventStageClock=0;
+     let shooter=finisher||WATCH_WORLD.ball.owner;
+     if(shooter){
+       watchGiveBall(shooter);
+       watchSetActiveLabel(shooter,"SHOOTING");
+     }
+     let target=watchEventOutcomeTarget(e,keeper);
+     if(target)watchKickBallTo(target.x,target.y,.20/Math.sqrt(speed),e.type==="SAVE"?keeper:null,target.state);
+   }
+ }
+ else if(WATCH_WORLD.eventStage===2){
+   if(WATCH_WORLD.eventStageClock>.36/speed){
+     if(e.type==="GOAL"){
+       if(home)WATCH_MATCH.scoreHome++;else WATCH_MATCH.scoreAway++;
+       let h=document.getElementById("wmHome"),a=document.getElementById("wmAway");
+       if(h)h.textContent=WATCH_MATCH.scoreHome;if(a)a.textContent=WATCH_MATCH.scoreAway;
+       watchGoalCelebration(e);
+     }else if(e.type==="SAVE"){
+       if(keeper)watchGiveBall(keeper);
+       watchShowOutcomeFlash("SAVE","SAVED",e.player?displayPlayerName(e.player):"Goalkeeper save");
+     }else if(e.type==="MISS"){
+       watchShowOutcomeFlash("MISS","MISSED",e.player?displayPlayerName(e.player):"Chance goes wide");
+     }
+     watchLog(e.minute+"′",watchSetPieceLabel(e.origin)+" · "+watchEventText(e));
+     WATCH_WORLD.simMinute=Math.max(WATCH_WORLD.simMinute,e.minute+.06);
+     WATCH_WORLD.eventStage=3;WATCH_WORLD.eventStageClock=0;
+   }
+ }
+ else if(WATCH_WORLD.eventStage===3){
+   if(WATCH_WORLD.eventStageClock>.50/speed){
+     let restartSide=watchOpponentSide(e.side);
+     if(e.type==="GOAL"){
+       let centre=watchPickReceiver(restartSide,"CENTRE",["MID"]);
+       if(centre)watchGiveBall(centre);
+       WATCH_WORLD.possession=restartSide;
+       watchTriggerTransition(restartSide);
+       watchStartNewPlay("KICK-OFF",restartSide);
+     }else if(e.type==="SAVE"){
+       WATCH_WORLD.possession=restartSide;
+       watchTriggerTransition(restartSide);
+       watchStartNewPlay("GOALKEEPER RESTART",restartSide);
+       if(keeper)setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(160,420/speed));
+     }else{
+       watchStartNewPlay("GOAL KICK",restartSide);
+       watchRestartAfterDeadBall(restartSide);
+     }
+     WATCH_WORLD.targetEventIndex++;
+     WATCH_MATCH.index=WATCH_WORLD.targetEventIndex;
+     WATCH_WORLD.targetEvent=WATCH_MATCH.events[WATCH_WORLD.targetEventIndex]||null;
+     WATCH_WORLD.eventActive=false;WATCH_WORLD._directed=null;
+     document.querySelectorAll(".watchPlayer.designatedScorer").forEach(x=>x.classList.remove("designatedScorer"));
+     WATCH_WORLD.eventStage=0;WATCH_WORLD.eventStageClock=0;
+     let banner=document.getElementById("wmEvent");if(banner)banner.textContent="Open play";
+   }
+ }
+}
+function watchUpdateDirectedEvent(dt){
+ let e=WATCH_WORLD.targetEvent;
+ if(e&&e.origin&&e.origin!=="OPEN_PLAY")return watchUpdateSetPieceEvent(dt);
+ return watchUpdateOpenPlayDirectedEvent(dt);
+}
+
 function watchGoalCelebration(e){
  let flash=document.getElementById("wmGoalFlash"),
-     scorer=document.getElementById("wmGoalScorer");
+     scorer=document.getElementById("wmGoalScorer"),
+     outcome=document.getElementById("wmOutcomeFlash"),
+     n=watchMatchNormaliseResult(WATCH_MATCH_RESULT);
+ if(outcome)outcome.classList.add("hidden");
  if(!flash)return;
- if(scorer)scorer.textContent=e.player?displayPlayerName(e.player):watchMatchNormaliseResult(WATCH_MATCH_RESULT)[e.side==="home"?"homeName":"awayName"];
+ let scorerName=e.player?displayPlayerName(e.player):(e.side==="home"?n.homeName:n.awayName);
+ if(scorer)scorer.textContent=scorerName+" · "+e.minute+"′";
  flash.classList.remove("hidden");
- setTimeout(()=>flash.classList.add("hidden"),Math.max(850,1400/WATCH_MATCH.speed));
+ clearTimeout(WATCH_WORLD._goalTimer);
+ WATCH_WORLD._goalTimer=setTimeout(()=>flash.classList.add("hidden"),Math.max(950,1550/WATCH_MATCH.speed));
 }
 function watchFinishWorld(){
  if(!WATCH_WORLD.running)return;
@@ -23924,6 +24538,7 @@ function watchOpen(){
  document.body.insertAdjacentHTML("beforeend",watchMatchShellHtml(WATCH_MATCH_RESULT));
  watchLog("0′","Kick-off");
  watchInitWorld();
+ watchStartNewPlay("KICK-OFF","home");
  let p=document.getElementById("wmPlay");if(p)p.textContent="PAUSE";
  setTimeout(watchStartWorld,120);
 }
@@ -29910,6 +30525,10 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.5.5","Set Pieces & Final Third","PRE-PRODUCTION / VIEWER REFINEMENT","Reset Watch Game maturity expectations and addressed several core football-presentation issues without modifying the authoritative match engine. Added a hard final-third rule preventing the central forward from visually recycling possession back toward midfield when directly in front of goal; advanced forwards are now limited to nearby combinations, one-twos, carries and shot-preparation movement. Removed overlapping goal/outcome text so only one authoritative overlay is visible at a time. Introduced visual corner and attacking free-kick sequences: a deterministic subset of already-generated goals, saves and misses can now be presented as set-piece outcomes while preserving the exact existing scorer and result. Corners position a taker near the corner arc and deliver into the box; free kicks establish a taker and delivery zone before the predetermined finish. Set-piece restarts are clearly segmented from subsequent open play."],
+  ["v1.5.4","Sequence Realism","PRE-PRODUCTION / VIEWER REFINEMENT","Continued Watch Game refinement without altering the authoritative match engine. Added purposeful off-ball runs from nearby forwards and midfielders, tighter defender tracking of advanced attackers, and stronger penalties against unrealistic backward recycling when a forward is already in a genuine shooting position. Directed attacks now include a clearer creation phase, run into space and shot-preparation movement before the predetermined outcome. A compact active-player/action cue has been added beneath the event banner so the viewer makes it easier to follow who is creating, carrying, running or shooting. Outcome overlays remain visible slightly longer, while repeated turnover boundaries are throttled to avoid making the presentation feel fragmented."],
+  ["v1.5.3","Play Segmentation & GK Discipline","PRE-PRODUCTION / VIEWER QA REFINEMENT","Addressed remaining Watch Game readability and geometry issues without changing the authoritative match engine. Added explicit short play-boundary overlays for kick-offs, goalkeeper restarts, goal kicks and turnovers so a new possession sequence is visually distinguishable from the previous attack. Deep forwards can no longer make implausible long recycle passes from the goal area back toward midfield; once advanced, their support options are constrained to nearby final-third players. Goalkeepers are now held in a much tighter home zone around the six-yard area and retreat when attackers are already close to goal. Saves, misses and goals now use different outcome overlays and clearer ball trajectories: saves finish near the keeper, misses visibly travel beyond the posts, and goals retain the dedicated scorer/score presentation before the next play begins."],
+  ["v1.5.2","Box Geometry Refinement","PRE-PRODUCTION / VIEWER QA FIX","Refined Watch Game spatial geometry after QA without changing any authoritative match engine. Goalkeepers now use a tighter depth model tied to ball position and the nearest attacker, with hard movement clamps that prevent them from drifting toward the 18-yard line while an attacker is already near goal. Attacking players are constrained to live finishing zones and can no longer run through the goalkeeper or into the goal mouth before the shot. Role-specific scorer runs now terminate in believable striker, inside-forward and late-midfielder finishing areas. Through balls, crosses and cutbacks calculate constrained receiver target points before flight, reducing passes that drag attackers beyond the playable box. Added internal geometry invariant checks for goalkeeper depth/width and attacker goal-line violations."],
   ["v1.5.1","Attacking Flow Refinement","PRE-PRODUCTION / VIEWER REFINEMENT","Refined the mature Watch Game presentation without changing the authoritative match engine. Open play now remembers recent pass chains so the same receivers are not repeatedly selected, with improved combination scoring for third-man options and less predictable circulation. Added visual one-twos, cutbacks and more varied wide-to-central combinations alongside existing crosses, switches, carries and through balls. Keeper positioning is now zone-based and smoothed toward a constrained target rather than reacting directly to the ball, reducing erratic movement and wide excursions. Directed goal sequences now use role-specific scorer runs: central strikers attack the central lane, wide forwards make inside runs and midfield scorers arrive later from deeper positions rather than being pulled immediately into a striker position."],
   ["v1.5.0","Mature Watch Game","PRE-PRODUCTION / VIEWER PRESENTATION","Advanced Watch Game into its mature presentation phase without changing any authoritative match or competition engine. Goalkeeper behaviour is now constrained to realistic keeper zones, with continuous positioning clamped inside the penalty-area region and only limited stepping toward the penalty spot when the ball is genuinely close. The 2D pitch has been rebuilt with clearer grass striping, centre spot, six-yard boxes, penalty spots, penalty arcs, corner arcs, stronger touch lines and improved goal/net presentation. The temporary tactical-state QA strip has been removed from the normal viewer so the screen reads as a finished match presentation rather than a development overlay."],
   ["v1.4.6","Movement & Ball Physics","PRE-PRODUCTION / VIEWER REFINEMENT","Polished movement and ball behaviour in Watch Game without changing the authoritative match engine. Players now use smoother acceleration, braking and turn-rate limits, maintain better separation from teammates and opponents, and slow naturally as they approach tactical targets. Pass reception includes a small role-based first touch before the carrier can make another decision. Ball movement now uses action-specific pace, constant-speed travel with moving-target lead, curved crosses and long switches, flatter/faster shots, and improved save trajectories. Goalkeepers react toward the shot target before contact. Some saves can visually parry into a short rebound before the keeper or a defender recovers possession; these rebounds remain presentation-only and cannot alter the predetermined match result."],
