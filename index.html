@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.22 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.24 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14495,6 +14495,82 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
  .qualificationNationCell b{font-size:7.4px!important}
  .qualificationQ{width:15px;height:15px;font-size:6.3px}
 }
+
+/* v1.1.23 Stadium lifecycle refinement */
+.stadiumConstruction{margin-top:12px;border:1px solid rgba(226,187,65,.5);border-radius:13px;padding:11px 12px;background:rgba(226,187,65,.055);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center}.stadiumConstruction span{display:block;color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.1em}.stadiumConstruction b{display:block;margin-top:4px;font-size:11px}.stadiumConstruction strong{color:#e6edf2;font-size:9px;text-align:right}.stadiumConstruction small{grid-column:1/-1;color:var(--muted);font-size:8px}.stadiumActions .btn:disabled{opacity:.58;cursor:default}@media(max-width:430px){.stadiumConstruction{grid-template-columns:1fr}.stadiumConstruction strong{text-align:left}}
+
+/* v1.1.24 Condensed Stadium Facility */
+.stadiumFacilityCard{
+  width:100%;
+  text-align:left;
+  appearance:none;
+  cursor:pointer;
+}
+.stadiumFacilityCard .facilityIcon{
+  font-size:18px;
+  line-height:1;
+}
+.stadiumFacilityCard .facilityCardValue{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.stadiumFacilityCard .facilityCardTitleRow span.warn{
+  color:var(--gold);
+}
+.stadiumDetailModal{
+  position:fixed;
+  inset:0;
+  z-index:8300;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(3,7,11,.90);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.stadiumDetailModal.hidden{display:none!important}
+.stadiumDetailShell{
+  position:relative;
+  width:min(100%,680px);
+  max-height:calc(100dvh - 32px);
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:#0b131b;
+  padding:18px 14px 14px;
+}
+.stadiumDetailClose{
+  position:sticky;
+  top:0;
+  margin-left:auto;
+  z-index:4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:#101a23;
+  color:#dce4ea;
+  font-size:24px;
+  line-height:1;
+}
+.stadiumDetailShell .stadiumManagementCard{
+  margin-top:-30px;
+  margin-bottom:0;
+}
+@media(max-width:430px){
+  .stadiumDetailModal{padding:10px}
+  .stadiumDetailShell{
+    width:100%;
+    max-height:calc(100dvh - 20px);
+    border-radius:18px;
+    padding:14px 10px 10px;
+  }
+}
 </style>
 
 </head>
@@ -14743,8 +14819,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.22 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.22";
+const BUILD_VERSION="Mini&Me Football Club v1.1.24 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.24";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -21885,6 +21961,7 @@ function showMatchResult(r,playedWeek){
 
 function ensureLifecycleState(){
  ensureStadiumState();
+ processActiveStadiumProjects();
 
  // v2.13.5.23 save repair: legacy active players aged 40+ cannot continue playing.
  if(G&&Array.isArray(G.players)){
@@ -26766,13 +26843,17 @@ function ensureStadiumState(){
        condition:Math.max(68,Math.min(96,78+Math.round((rep-70)*.45)+(i%9))),
        opened:Math.max(1900,(Number(G.season)||2026)-(18+(i%67))),
        recordAttendance:0,lastAttendance:0,avgAttendance:0,attendanceTotal:0,attendanceMatches:0,
-       lastProjectSeason:null,legacyNamed:false,legacyType:null,legacyPerson:null,history:[]};
+       supporterBase:null,demandMomentum:0,
+       lastProjectSeason:null,activeProject:null,legacyNamed:false,legacyType:null,legacyPerson:null,history:[]};
    }else{
      if(!Array.isArray(st.history))st.history=[];
      if(!Number.isFinite(Number(st.capacity)))st.capacity=stadiumBaseCapacity(i);
      if(!Number.isFinite(Number(st.condition)))st.condition=80;
      if(!st.ownership)st.ownership="OWNED";
      if(!st.name)st.name=stadiumDefaultName(i);
+     if(!Number.isFinite(Number(st.supporterBase)))st.supporterBase=null;
+     if(!Number.isFinite(Number(st.demandMomentum)))st.demandMomentum=0;
+     if(st.activeProject===undefined)st.activeProject=null;
    }
  });
  G.stadiumSystemVersion=STADIUM_SYSTEM_VERSION;
@@ -26781,8 +26862,72 @@ function stadiumForClub(clubId){ensureStadiumState();return G.stadiums&&G.stadiu
 function stadiumConditionLabel(n){n=Number(n)||0;return n>=90?"Excellent":n>=78?"Good":n>=65?"Fair":n>=50?"Aging":"Poor"}
 function stadiumOwnershipLabel(st){return st&&st.ownership==="LEASED"?"Leased":st&&st.ownership==="SHARED"?"Shared":"Owned"}
 function stadiumDemandTarget(clubId){
- let c=G.clubs[clubId],rep=Number(c&&c.rep)||70,key=clubLeagueKey(clubId),base=key==="top"?12000:6500;
- return Math.max(3500,base+Math.max(0,rep-60)*(key==="top"?1050:620));
+ let c=G.clubs[clubId],st=stadiumForClub(clubId),rep=Number(c&&c.rep)||70,key=clubLeagueKey(clubId),
+     base=key==="top"?12000:6500,
+     repDemand=Math.max(3500,base+Math.max(0,rep-60)*(key==="top"?1050:620));
+ if(st){
+   if(!Number.isFinite(Number(st.supporterBase))){
+     st.supporterBase=Math.round(Math.min(repDemand,Math.max(repDemand*.78,Number(st.avgAttendance)||repDemand*.82))/50)*50;
+   }
+   return Math.max(3500,Number(st.supporterBase)+(Number(st.demandMomentum)||0));
+ }
+ return repDemand;
+}
+function stadiumSeasonPerformanceFactor(clubId){
+ let c=G.clubs[clubId],rep=Number(c&&c.rep)||70,key=clubLeagueKey(clubId),rank=1;
+ try{let table=tableForLeague(key),idx=(table||[]).findIndex(r=>Number(r.id)===Number(clubId));if(idx>=0)rank=idx+1}catch(e){}
+ let clubs=key==="top"?20:Math.max(12,(G.clubs||[]).length);
+ return Math.max(-1,Math.min(1,((clubs/2-rank)/(clubs/2))+(rep-78)/30));
+}
+function updateStadiumSupporterBase(clubId,season){
+ let st=stadiumForClub(clubId),c=G.clubs[clubId];if(!st||!c)return;
+ let current=Number(st.supporterBase)||stadiumDemandTarget(clubId),
+     rep=Number(c.rep)||70,perf=stadiumSeasonPerformanceFactor(clubId),
+     growth=Math.max(-.025,Math.min(.055,perf*.028+(rep-78)*.0012)),
+     util=st.capacity?Number(st.avgAttendance||0)/st.capacity:0;
+ if(util>=.90)growth+=.018;
+ else if(util<.55)growth-=.010;
+ st.supporterBase=Math.round(Math.max(3500,current*(1+growth))/50)*50;
+ st.demandMomentum=Math.round((Number(st.demandMomentum)||0)*.45/50)*50;
+}
+function stadiumProjectDurationWeeks(type,capacity=0,add=0){
+ if(type==="REFURBISH")return 12;
+ if(type==="PURCHASE")return 4;
+ if(type==="EXPAND"){let ratio=add/Math.max(1,capacity);return ratio>=.30?44:ratio>=.18?34:26}
+ if(type==="NEW")return 92;
+ return 20;
+}
+function stadiumAbsoluteWeek(season,week){return Number(season||0)*60+Number(week||1)}
+function stadiumProjectCompletionLabel(project){return project?"Season "+project.completeSeason+" · Week "+project.completeWeek:""}
+function beginStadiumConstruction(clubId,project){
+ let st=stadiumForClub(clubId),c=G.clubs[clubId];if(!st||!c||!project)return false;
+ let weeks=stadiumProjectDurationWeeks(project.type,st.capacity,project.add||0),
+     endAbs=stadiumAbsoluteWeek(G.season,G.week||1)+weeks,
+     completeSeason=Math.floor(endAbs/60),completeWeek=endAbs%60||60;
+ st.activeProject={type:project.type,label:project.label,cost:project.cost,add:project.add||0,
+   startSeason:G.season,startWeek:G.week||1,completeSeason,completeWeek,weeks,
+   oldCapacity:Number(st.capacity)||0,oldOwnership:st.ownership,status:"UNDER_CONSTRUCTION"};
+ st.history.unshift({season:G.season,type:"PROJECT_START",label:project.label,cost:project.cost,completeSeason,completeWeek});
+ return true;
+}
+function applyCompletedStadiumProject(clubId){
+ let st=stadiumForClub(clubId),p=st&&st.activeProject;if(!st||!p)return false;
+ if(p.type==="REFURBISH")st.condition=Math.min(98,Math.max(Number(st.condition)||80,93));
+ if(p.type==="PURCHASE"){st.ownership="OWNED";st.condition=Math.min(97,Math.max(Number(st.condition)||80,90))}
+ if(p.type==="EXPAND"){
+   st.capacity=(Number(st.capacity)||0)+(Number(p.add)||0);
+   st.condition=Math.min(97,Math.max(Number(st.condition)||80,90));
+   st.demandMomentum=(Number(st.demandMomentum)||0)+Math.round((Number(p.add)||0)*.10);
+ }
+ if(p.type==="NEW"){st.capacity=Number(p.newCapacity)||Number(st.capacity)||0;st.condition=97;st.opened=G.season;st.ownership="OWNED";st.demandMomentum=(Number(st.demandMomentum)||0)+Math.round(st.capacity*.08)}
+ st.lastProjectSeason=G.season;
+ st.history.unshift({season:G.season,type:"PROJECT_COMPLETE",label:p.label,cost:p.cost});
+ G.feed.unshift({t:"STADIUM",m:p.label+" at "+st.name+" has been completed."});
+ st.activeProject=null;return true;
+}
+function processActiveStadiumProjects(){
+ ensureStadiumState();let now=stadiumAbsoluteWeek(G.season,G.week||1);
+ (G.clubs||[]).forEach((c,i)=>{let st=stadiumForClub(i),p=st&&st.activeProject;if(p&&now>=stadiumAbsoluteWeek(p.completeSeason,p.completeWeek))applyCompletedStadiumProject(i)});
 }
 function stadiumAttendanceForMatch(homeId,awayId,competition="LEAGUE",roundName=""){
  let st=stadiumForClub(homeId),home=G.clubs[homeId],away=G.clubs[awayId];if(!st||!home)return null;
@@ -26819,29 +26964,43 @@ function stadiumProjectNeed(clubId){
 function processStadiumOffseason(season){
  ensureStadiumState();
  (G.clubs||[]).forEach((c,i)=>{
-   if(!c)return;let st=stadiumForClub(i);st.condition=Math.max(35,Math.min(100,(Number(st.condition)||80)-(1+(i+Number(season||0))%3)));let need=stadiumProjectNeed(i);
+   if(!c)return;
+   let st=stadiumForClub(i),age=Math.max(0,(Number(season)||G.season)-Number(st.opened||G.season));
+   updateStadiumSupporterBase(i,season);
+   let roll=intelHash("STADCOND|"+season+"|"+i),decline=0;
+   if(age<15)decline=roll<.22?1:0;
+   else if(age<35)decline=roll<.48?1:0;
+   else if(age<55)decline=roll<.68?1:0;
+   else decline=roll<.82?1:0;
+   if(age>=45&&roll>.96)decline=2;
+   if(st.activeProject)decline=0;
+   st.condition=Math.max(35,Math.min(100,(Number(st.condition)||80)-decline));
+   let need=st.activeProject?null:stadiumProjectNeed(i);
    if(i===G.club){
-     G.stadiumProposal=need?{...need,season:Number(season)+1,status:"PENDING"}:null;
+     if(!st.activeProject)G.stadiumProposal=need?{...need,season:Number(season)+1,status:"PENDING"}:null;
      if(need)G.feed.unshift({t:"STADIUM",m:"The board has identified "+need.label.toLowerCase()+" at "+st.name+" as a future infrastructure decision."});
-     else if(st.condition<70)G.feed.unshift({t:"STADIUM",m:"Supporters have raised concerns about the condition of "+st.name+". The board is monitoring the ground."});
+     else if(st.condition<62&&!st.activeProject)G.feed.unshift({t:"STADIUM",m:"Supporters have raised concerns about the condition of "+st.name+". The board is monitoring the ground."});
    }else if(need&&Number(c.balance)>need.cost*1.8){
-     if(need.type==="REFURBISH"){c.balance-=need.cost;st.condition=Math.min(98,st.condition+32)}
-     if(need.type==="PURCHASE"){c.balance-=need.cost;st.ownership="OWNED";st.condition=Math.min(96,st.condition+8)}
-     if(need.type==="EXPAND"){c.balance-=need.cost;st.capacity+=need.add;st.condition=Math.min(96,st.condition+5)}
-     st.lastProjectSeason=Number(season)+1;
+     c.balance-=need.cost;
+     beginStadiumConstruction(i,need);
    }
  });
 }
 function resolveUserStadiumBoardProposal(){
- ensureStadiumState();let p=G.stadiumProposal,st=stadiumForClub(G.club),c=G.clubs[G.club];
+ ensureStadiumState();
+ let p=G.stadiumProposal,st=stadiumForClub(G.club),c=G.clubs[G.club];
+ if(st&&st.activeProject){alert("A stadium project is already under construction.");return}
  if(!p||!st||!c){alert("The board has no active stadium project for review.");return}
  if(!confirm("Submit "+p.label+" to the board?\n\nEstimated capital cost: "+money(p.cost)+"\n\nThe board will assess affordability and club need."))return;
  let approved=Number(c.balance)>=p.cost*1.35&&Number(c.rep)>=74;
- if(!approved){p.status="DECLINED";G.feed.unshift({t:"STADIUM BOARD",m:"The board declined "+p.label.toLowerCase()+" at "+st.name+" on financial or strategic grounds."});alert("The board has declined the project at this time.");save();render();return}
- c.balance-=p.cost;if(p.type==="REFURBISH")st.condition=Math.min(98,st.condition+34);if(p.type==="PURCHASE"){st.ownership="OWNED";st.condition=Math.min(96,st.condition+8)}
- if(p.type==="EXPAND"){st.capacity+=p.add;st.condition=Math.min(96,st.condition+6)}
- st.lastProjectSeason=G.season;st.history.unshift({season:G.season,type:p.type,label:p.label,cost:p.cost});
- G.feed.unshift({t:"STADIUM BOARD",m:"The board approved "+p.label.toLowerCase()+" at "+st.name+" for "+money(p.cost)+"."});G.stadiumProposal=null;save();render();
+ if(!approved){
+   p.status="DECLINED";G.feed.unshift({t:"STADIUM BOARD",m:"The board declined "+p.label.toLowerCase()+" at "+st.name+" on financial or strategic grounds."});
+   alert("The board has declined the project at this time.");save();render();setTimeout(openStadiumDetail,0);return;
+ }
+ c.balance-=p.cost;
+ beginStadiumConstruction(G.club,p);
+ G.feed.unshift({t:"STADIUM BOARD",m:"The board approved "+p.label.toLowerCase()+" at "+st.name+". Construction is now underway."});
+ G.stadiumProposal=null;save();render();setTimeout(openStadiumDetail,0);
 }
 function stadiumLegacyCandidate(){
  let career=G.userGM&&G.userGM.career||{},gmSeasons=Number(career.seasons)||0,gmTitles=Number(career.titles)||0;
@@ -26859,15 +27018,37 @@ function proposeStadiumLegacyNaming(){
  if(!confirm("Nominate "+cand.name+" ("+cand.type.toLowerCase()+") for stadium naming?\n\nProposed name: "+proposed+"\n\nThe board will make the final decision."))return;
  if(!eligible){G.feed.unshift({t:"STADIUM NAMING",m:"The board thanked the club for the proposal but decided the time is not yet right to rename "+st.name+"."});alert("The board has deferred the naming proposal.");return}
  let old=st.name;st.name=proposed;st.legacyNamed=true;st.legacyType=cand.type;st.legacyPerson=cand.name;st.history.unshift({season:G.season,type:"RENAME",label:old+" renamed "+proposed,person:cand.name});
- G.feed.unshift({t:"STADIUM NAMING",m:old+" has been renamed "+proposed+" in honour of "+cand.name+"."});save();render();
+ G.feed.unshift({t:"STADIUM NAMING",m:old+" has been renamed "+proposed+" in honour of "+cand.name+"."});save();render();setTimeout(openStadiumDetail,0);
 }
+
+function stadiumFacilityCardHtml(clubId=G.club){
+ let st=stadiumForClub(clubId);
+ if(!st)return"";
+ let active=st.activeProject,
+     badge=active?"BUILDING":stadiumConditionLabel(st.condition).toUpperCase(),
+     detail=Number(st.capacity).toLocaleString()+" seats · "+stadiumOwnershipLabel(st);
+ return '<button class="facilityCard stadiumFacilityCard" data-open-stadium="1">'+
+   '<div class="facilityIcon">🏟</div>'+
+   '<div class="facilityCardBody">'+
+     '<div class="facilityCardTitleRow"><b>Stadium</b><span class="'+(active?'warn':'')+'">'+badge+'</span></div>'+
+     '<div class="facilityCardValue">'+st.name+'</div>'+
+     '<div class="facilityCardSub">'+detail+'</div>'+
+   '</div>'+
+ '</button>';
+}
+
 function stadiumManagementHtml(clubId=G.club){
- let st=stadiumForClub(clubId);if(!st)return"";let util=st.capacity&&st.avgAttendance?Math.round(st.avgAttendance/st.capacity*100):null,p=clubId===G.club?G.stadiumProposal:null,candidate=clubId===G.club?stadiumLegacyCandidate():null;
+ let st=stadiumForClub(clubId);if(!st)return"";
+ let util=st.capacity&&st.avgAttendance?Math.round(st.avgAttendance/st.capacity*100):null,
+     p=clubId===G.club?G.stadiumProposal:null,candidate=clubId===G.club?stadiumLegacyCandidate():null,active=st.activeProject;
+ let construction=active?'<div class="stadiumConstruction"><div><span>UNDER CONSTRUCTION</span><b>'+active.label+'</b></div><strong>'+stadiumProjectCompletionLabel(active)+'</strong>'+
+   (active.type==="EXPAND"?'<small>'+Number(active.oldCapacity).toLocaleString()+' → '+Number(active.oldCapacity+active.add).toLocaleString()+' seats</small>':'')+'</div>':'';
  return '<div class="card stadiumManagementCard"><div class="sectionHead"><div><div class="screenEyebrow">STADIUM</div><div class="title">'+st.name+'</div><div class="sub">'+stadiumOwnershipLabel(st)+' · Opened '+st.opened+' · '+stadiumConditionLabel(st.condition)+' condition</div></div><div class="sectionCount">'+Number(st.capacity).toLocaleString()+'</div></div>'+
+ construction+
  '<div class="stadiumMetricGrid"><div><span>Capacity</span><b>'+Number(st.capacity).toLocaleString()+'</b></div><div><span>Condition</span><b>'+stadiumConditionLabel(st.condition)+'</b><small>'+Math.round(st.condition)+'/100</small></div><div><span>Avg. Attendance</span><b>'+(st.avgAttendance?Number(st.avgAttendance).toLocaleString():"—")+'</b><small>'+(util!==null?util+"% capacity":"No home data yet")+'</small></div><div><span>Ownership</span><b>'+stadiumOwnershipLabel(st)+'</b></div></div>'+
  (st.legacyNamed?'<div class="stadiumLegacyLine"><span>LEGACY NAME</span><b>'+st.legacyPerson+' · '+st.legacyType+'</b></div>':'')+
- (clubId===G.club?'<div class="stadiumActions"><button class="btn '+(p?'primary':'')+'" data-stadium-board="1">'+(p?'BOARD REVIEW · '+p.label.toUpperCase():'NO ACTIVE CAPITAL PROJECT')+'</button><button class="btn" data-stadium-name="1">'+(candidate&&!st.legacyNamed?'CONSIDER LEGACY NAMING':'LEGACY NAMING')+'</button></div>':'')+
- (p?'<div class="stadiumProposalNote">Estimated cost '+money(p.cost)+(p.add?' · +'+Number(p.add).toLocaleString()+' seats':'')+'. Board approval required.</div>':'')+'</div>';
+ (clubId===G.club?'<div class="stadiumActions"><button class="btn '+(p?'primary':'')+'" data-stadium-board="1" '+(active?'disabled':'')+'>'+(active?'PROJECT UNDER CONSTRUCTION':p?'BOARD REVIEW · '+p.label.toUpperCase():'NO ACTIVE CAPITAL PROJECT')+'</button><button class="btn" data-stadium-name="1">'+(candidate&&!st.legacyNamed?'CONSIDER LEGACY NAMING':'LEGACY NAMING')+'</button></div>':'')+
+ (p&&!active?'<div class="stadiumProposalNote">Estimated cost '+money(p.cost)+(p.add?' · +'+Number(p.add).toLocaleString()+' seats':'')+'. Board approval required.</div>':'')+'</div>';
 }
 function clubSeasonRevenueModel(clubId,position,divKey){
  let c=G.clubs[clubId],rep=Number(c&&c.rep)||70,base=divisionBaseRevenue(divKey);
@@ -27604,6 +27785,8 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.24","Condensed Stadium Facility","PRE-PRODUCTION / UX REFINEMENT","Reworked Club > Facilities so Stadium now appears as a compact fifth facility card alongside Training, Youth, Scouting and Medical. The card shows the stadium name, capacity, ownership and current condition/construction status without pushing the other facilities below the fold. Selecting Stadium opens the full stadium management view in a dedicated modal containing attendance, condition, construction progress, board projects and legacy naming."],
+  ["v1.1.23","Stadium Lifecycle Refinement","PRE-PRODUCTION / FEATURE TUNING","Refined the stadium system after QA. Board-approved work now enters a persistent construction phase rather than applying instantly. Existing capacity remains active until completion. Stadium condition now deteriorates slowly using an age-based probability model, with newer grounds frequently losing no condition in a season and older grounds only occasionally declining faster. Expansions and refurbishments partially renew overall condition. Attendance demand now includes a persistent supporter-base component that can grow or contract gradually with club reputation, league performance and repeated high utilisation, so expanded clubs can grow into additional capacity rather than remaining anchored to pre-expansion attendance levels."],
   ["v1.1.22","Club Workspace Reference Fix","PRE-PRODUCTION / QA FIX","Fixed the Club workspace Screen could not load error caused by an orphaned legacyClubHistoryView reference left behind during the Club navigation and Legacy refactor. The modern clubLegacyView remains the primary Legacy presentation, while persistent Club Records and GM/Coach history continue through their current renderers. Added defensive Club-tab normalization so stale historical save-state keys resolve safely instead of breaking Staff, Facilities or Finance navigation."],
   ["v1.1.21","Qualification Table Statistics","PRE-PRODUCTION / UX ENHANCEMENT","Expanded every World Cup federation qualification table to show P, W, D, L, GS, GA, GD and PTS. Removed the separate Status column and now place a compact Q marker directly beside a nation once qualification is formally secured. Tables remain horizontally scrollable on mobile so full football-table detail is retained without sacrificing nation-name readability."],
   ["v1.1.20","Stadium System","PRE-PRODUCTION / FEATURE","Introduced lightweight stadium infrastructure across domestic league clubs. Every club now has a named ground, capacity, Owned/Leased/Shared status, condition and attendance history. League match reports replace the generic points message with stadium and attendance context. Stadiums influence matchday revenue modestly, deteriorate between seasons and can trigger board-led refurbishment, purchase or expansion proposals. Club > Facilities now contains a dedicated Stadium panel. Eligible successful clubs can also submit legacy naming proposals honouring a player, coach or GM, with the board retaining final approval. No largest-victory stadium record was added."],
@@ -28090,10 +28273,24 @@ function clubOverviewView(){
    '<div class="clubDetailHeader"><div><div class="title">Club Detail</div><div class="sub">Core club indicators.</div></div></div>'+
    detail;
 }
+
+function openStadiumDetail(){
+ let modal=document.getElementById("stadiumDetailModal"),
+     host=document.getElementById("stadiumDetailContent");
+ if(!modal||!host)return;
+ host.innerHTML=stadiumManagementHtml(G.club);
+ modal.classList.remove("hidden");
+ modal.setAttribute("aria-hidden","false");
+}
+function closeStadiumDetail(){
+ let modal=document.getElementById("stadiumDetailModal");
+ if(modal){modal.classList.add("hidden");modal.setAttribute("aria-hidden","true")}
+}
+
 function clubFacilitiesView(){
  ensureFacilityState();ensureStadiumState();
- return stadiumManagementHtml(G.club)+
- '<div class="card facilitiesOverviewCard"><div class="sectionHead"><div><div class="title">Football Facilities</div><div class="sub">Permanent football infrastructure investment and annual operating cost.</div></div><div class="sectionCount">4 AREAS</div></div><div class="facilityGrid">'+["training","youth","scouting","medical"].map(facilityCard).join("")+'</div></div>';
+ return '<div class="card facilitiesOverviewCard"><div class="sectionHead"><div><div class="title">Facilities</div><div class="sub">Club infrastructure, stadium and football development.</div></div><div class="sectionCount">5 AREAS</div></div>'+
+ '<div class="facilityGrid">'+stadiumFacilityCardHtml(G.club)+["training","youth","scouting","medical"].map(facilityCard).join("")+'</div></div>';
 }
 
 function clubWorldHistoryRecord(clubId){
@@ -29387,6 +29584,10 @@ $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
 $("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
 document.addEventListener("click",e=>{
+ let openStadium=e.target&&e.target.closest&&e.target.closest("[data-open-stadium]");
+ if(openStadium){openStadiumDetail();return}
+ let closeStadium=e.target&&e.target.closest&&e.target.closest("[data-close-stadium]");
+ if(closeStadium){closeStadiumDetail();return}
  let stadiumBoard=e.target&&e.target.closest&&e.target.closest("[data-stadium-board]");
  if(stadiumBoard){resolveUserStadiumBoardProposal();return}
  let stadiumName=e.target&&e.target.closest&&e.target.closest("[data-stadium-name]");
@@ -29528,6 +29729,13 @@ document.addEventListener("click",function(e){
   <div class="worldCupCompletionCard">
     <button id="worldCupCompletionClose" class="worldCupCompletionClose" aria-label="Close">×</button>
     <div id="worldCupCompletionContent"></div>
+  </div>
+</div>
+
+<div id="stadiumDetailModal" class="stadiumDetailModal hidden" aria-hidden="true">
+  <div class="stadiumDetailShell">
+    <button class="stadiumDetailClose" data-close-stadium="1" aria-label="Close">×</button>
+    <div id="stadiumDetailContent"></div>
   </div>
 </div>
 </body>
