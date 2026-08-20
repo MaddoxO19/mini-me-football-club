@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.4.1 Pre-Production</title>
+<title>Mini&Me Football Club v1.4.3 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14782,6 +14782,43 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 .watchPlayer.carrier.designatedScorer{
   box-shadow:0 0 0 3px rgba(226,187,65,.40),0 0 16px rgba(226,187,65,.36)!important;
 }
+
+/* v1.4.2 possession intelligence */
+.watchPlayer.carrier{
+  box-shadow:0 0 0 3px rgba(255,255,255,.20),0 0 13px rgba(255,255,255,.28)!important;
+}
+.watchPlayer.home.carrier{border-color:#fff4c6!important}
+.watchPlayer.away.carrier{border-color:#d7e6f3!important}
+.watchEvent{
+  letter-spacing:.025em!important;
+}
+
+/* v1.4.3 tactical team shape */
+.watchTacticalStates{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:8px;
+  align-items:center;
+  margin-top:6px;
+  padding:6px 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  background:#0b141c;
+}
+.watchTacticalStates span{
+  color:var(--muted);
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.045em;
+}
+.watchTacticalStates span:last-child{text-align:right}
+.watchTacticalStates i{
+  color:#586571;
+  font-size:6px;
+  font-style:normal;
+  font-weight:900;
+  letter-spacing:.08em;
+}
 </style>
 
 </head>
@@ -15030,8 +15067,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.4.1 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.4.1";
+const BUILD_VERSION="Mini&Me Football Club v1.4.3 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.4.3";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22269,6 +22306,7 @@ function watchMatchShellHtml(r){
       '<div id="wmGoalFlash" class="watchGoalFlash hidden"><strong>GOAL</strong><span id="wmGoalScorer"></span></div>'+
     '</div>'+
     '<div id="wmEvent" class="watchEvent">Kick-off</div>'+
+    '<div class="watchTacticalStates"><span id="wmHomeState">BUILD UP</span><i>TEAM SHAPE</i><span id="wmAwayState">MID BLOCK</span></div>'+
    '</div>'+
    '<div id="wmLog" class="watchLog"></div>'+
    '<div class="watchControls">'+
@@ -22305,6 +22343,10 @@ const WATCH_WORLD={
  speed:1,
  possession:"home",
  phase:"BUILD",
+ tacticalStateHome:"BUILD_UP",
+ tacticalStateAway:"MID_BLOCK",
+ transitionHome:0,
+ transitionAway:0,
  phaseClock:0,
  phaseDuration:2.5,
  targetEventIndex:0,
@@ -22350,6 +22392,10 @@ function watchInitWorld(){
  WATCH_WORLD.simMinute=0;
  WATCH_WORLD.possession="home";
  WATCH_WORLD.phase="BUILD";
+ WATCH_WORLD.tacticalStateHome="BUILD_UP";
+ WATCH_WORLD.tacticalStateAway="MID_BLOCK";
+ WATCH_WORLD.transitionHome=0;
+ WATCH_WORLD.transitionAway=0;
  WATCH_WORLD.phaseClock=0;
  WATCH_WORLD.phaseDuration=2.4;
  WATCH_WORLD.targetEventIndex=0;
@@ -22413,92 +22459,417 @@ function watchWorldTick(dt){
    watchFinishWorld();
  }
 }
+
+function watchDistance(a,b){
+ return Math.hypot((a.x||0)-(b.x||0),(a.y||0)-(b.y||0));
+}
+function watchGoalProgress(side,y){
+ return side==="home" ? (100-y)/100 : y/100;
+}
+function watchPressureOn(player){
+ if(!player)return 0;
+ let opp=player.side==="home"?"away":"home",
+     defenders=WATCH_WORLD.players.filter(p=>p.side===opp),
+     pressure=0;
+ defenders.forEach(d=>{
+   let dist=watchDistance(player,d);
+   if(dist<7)pressure+=1.0;
+   else if(dist<12)pressure+=.55;
+   else if(dist<18)pressure+=.22;
+ });
+ return Math.min(2.5,pressure);
+}
+function watchLaneCongestion(side,x,y){
+ let opp=side==="home"?"away":"home",
+     defenders=WATCH_WORLD.players.filter(p=>p.side===opp),
+     congestion=0;
+ defenders.forEach(d=>{
+   let dx=Math.abs(d.x-x),dy=Math.abs(d.y-y);
+   if(dx<9&&dy<14)congestion+=1;
+   else if(dx<14&&dy<20)congestion+=.35;
+ });
+ return congestion;
+}
+function watchPassLaneRisk(from,to){
+ if(!from||!to)return 9;
+ let opp=from.side==="home"?"away":"home",
+     defenders=WATCH_WORLD.players.filter(p=>p.side===opp),
+     ax=from.x,ay=from.y,bx=to.x,by=to.y,
+     vx=bx-ax,vy=by-ay,len2=vx*vx+vy*vy||1,
+     risk=0;
+ defenders.forEach(d=>{
+   let t=((d.x-ax)*vx+(d.y-ay)*vy)/len2;
+   t=Math.max(0,Math.min(1,t));
+   let px=ax+t*vx,py=ay+t*vy,
+       dist=Math.hypot(d.x-px,d.y-py);
+   if(dist<4.5)risk+=1.6;
+   else if(dist<7.5)risk+=.8;
+   else if(dist<11)risk+=.25;
+ });
+ return risk;
+}
+function watchPassingOptions(owner){
+ if(!owner)return [];
+ let mates=WATCH_WORLD.players.filter(p=>p.side===owner.side&&p!==owner&&p.role!=="GK"),
+     currentProg=watchGoalProgress(owner.side,owner.y);
+ return mates.map(p=>{
+   let dist=watchDistance(owner,p),
+       prog=watchGoalProgress(owner.side,p.y),
+       progressGain=prog-currentProg,
+       laneRisk=watchPassLaneRisk(owner,p),
+       receiverPressure=watchPressureOn(p),
+       width=Math.abs(p.x-50)/50,
+       centrality=1-Math.abs(p.x-50)/50,
+       roleBonus=p.role==="FWD"?.18:p.role==="MID"?.10:0,
+       safeScore=1.1-dist*.012-laneRisk*.28-receiverPressure*.22,
+       progressScore=.55+progressGain*2.2-dist*.008-laneRisk*.34-receiverPressure*.18+roleBonus,
+       switchScore=.35+Math.abs(p.x-owner.x)*.018+width*.25-laneRisk*.22,
+       recycleScore=.45-progressGain*.8-dist*.006-laneRisk*.18+(p.role==="DEF"?.18:0);
+   return {player:p,dist,progressGain,laneRisk,receiverPressure,safeScore,progressScore,switchScore,recycleScore,centrality};
+ }).filter(o=>o.dist>3&&o.dist<48);
+}
+function watchBestOption(options,key){
+ if(!options.length)return null;
+ return options.slice().sort((a,b)=>b[key]-a[key])[0]||null;
+}
+function watchOpenSpaceTarget(owner){
+ let side=owner.side,
+     dir=side==="home"?-1:1,
+     candidates=[
+       {x:owner.x-9,y:owner.y+dir*8},
+       {x:owner.x+9,y:owner.y+dir*8},
+       {x:owner.x,y:owner.y+dir*10},
+       {x:owner.x-6,y:owner.y+dir*5},
+       {x:owner.x+6,y:owner.y+dir*5}
+     ];
+ candidates.forEach(c=>{
+   c.x=Math.max(8,Math.min(92,c.x));
+   c.y=Math.max(7,Math.min(93,c.y));
+   c.congestion=watchLaneCongestion(side,c.x,c.y);
+ });
+ candidates.sort((a,b)=>a.congestion-b.congestion);
+ return candidates[0];
+}
+function watchDecisionForCarrier(owner){
+ if(!owner)return {type:"RECYCLE"};
+ let pressure=watchPressureOn(owner),
+     progress=watchGoalProgress(owner.side,owner.y),
+     options=watchPassingOptions(owner),
+     safe=watchBestOption(options,"safeScore"),
+     progressive=watchBestOption(options,"progressScore"),
+     switchOpt=watchBestOption(options,"switchScore"),
+     recycle=watchBestOption(options,"recycleScore"),
+     space=watchOpenSpaceTarget(owner),
+     finalThird=progress>.72,
+     central=Math.abs(owner.x-50)<18,
+     seed="DECIDE|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*4)+"|"+owner.side+"|"+owner.index,
+     r=intelHash(seed);
+
+ // Under heavy pressure, prefer safety or switch.
+ if(pressure>1.45){
+   if(safe&&safe.safeScore>.35)return {type:"PASS",option:safe,label:"safe"};
+   if(switchOpt)return {type:"PASS",option:switchOpt,label:"switch"};
+   return {type:"RECYCLE",option:recycle};
+ }
+
+ // In final third, let visual play become more adventurous.
+ if(finalThird){
+   if(progressive&&progressive.progressScore>.95&&r>.22)return {type:"PASS",option:progressive,label:"progressive"};
+   if(space&&space.congestion<1.1&&r>.48)return {type:"CARRY",target:space};
+   if(switchOpt&&r<.18)return {type:"PASS",option:switchOpt,label:"switch"};
+   return {type:"PASS",option:safe||progressive||recycle,label:"support"};
+ }
+
+ // Midfield progression.
+ if(progressive&&progressive.progressScore>.82&&r>.30)return {type:"PASS",option:progressive,label:"progressive"};
+ if(space&&space.congestion<.8&&pressure<.7&&r>.55)return {type:"CARRY",target:space};
+ if(switchOpt&&Math.abs((switchOpt.player.x||50)-owner.x)>25&&r<.22)return {type:"PASS",option:switchOpt,label:"switch"};
+ if(safe)return {type:"PASS",option:safe,label:"safe"};
+ return {type:"RECYCLE",option:recycle};
+}
+function watchApplyCarrierDecision(owner,decision){
+ if(!owner||!decision)return;
+ if(decision.type==="PASS"&&decision.option&&decision.option.player){
+   let p=decision.option.player,
+       distance=watchDistance(owner,p),
+       duration=Math.max(.20,Math.min(.46,.16+distance*.006));
+   WATCH_WORLD.phase=decision.label==="progressive"?"PROGRESS":decision.label==="switch"?"RECYCLE":WATCH_WORLD.phase;
+   watchPassBallTo(p,duration);
+   return;
+ }
+ if(decision.type==="CARRY"&&decision.target){
+   owner.tx=decision.target.x;
+   owner.ty=decision.target.y;
+   WATCH_WORLD.phase=watchGoalProgress(owner.side,decision.target.y)>.68?"ATTACK":"PROGRESS";
+   return;
+ }
+ if(decision.type==="RECYCLE"){
+   let opt=decision.option||watchBestOption(watchPassingOptions(owner),"recycleScore");
+   if(opt&&opt.player)watchPassBallTo(opt.player,.30);
+ }
+}
+function watchSupportAroundCarrier(owner){
+ if(!owner)return;
+ let dir=owner.side==="home"?-1:1,
+     state=watchTeamTacticalState(owner.side),
+     mates=WATCH_WORLD.players.filter(p=>p.side===owner.side&&p!==owner&&p.role!=="GK"),
+     defenders=WATCH_WORLD.players.filter(p=>p.side!==owner.side);
+
+ mates.forEach(p=>{
+   let d=watchDistance(p,owner);
+   if(d>40)return;
+
+   let desiredX=p.tx,desiredY=p.ty;
+
+   // Local support angles depend on role and tactical phase.
+   if(p.role==="MID"){
+     let sideSign=p.index===5?-1:p.index===7?1:(p.index%2===0?-1:1);
+     desiredX=owner.x+sideSign*(state==="FINAL_THIRD"?8:6);
+     desiredY=owner.y+dir*(state==="BUILD_UP"?-3:state==="FINAL_THIRD"?5:2);
+   }
+   if(p.role==="FWD"){
+     if(p.index===8)desiredX=Math.min(28,owner.x-9);
+     else if(p.index===10)desiredX=Math.max(72,owner.x+9);
+     else desiredX=owner.x+(owner.x<50?7:-7);
+     desiredY=owner.y+dir*(state==="FINAL_THIRD"?10:7);
+   }
+   if(p.role==="DEF"&&(p.index===1||p.index===4)){
+     let overlap=state==="FINAL_THIRD"||state==="MIDFIELD_PROGRESSION";
+     if(overlap){
+       desiredX=p.index===1?Math.min(22,owner.x-12):Math.max(78,owner.x+12);
+       desiredY=owner.y+dir*5;
+     }
+   }
+   if(p.index===6){
+     desiredX=50+(owner.x-50)*.25;
+     desiredY=owner.y-dir*(state==="FINAL_THIRD"?12:8);
+   }
+
+   if(watchLaneCongestion(p.side,desiredX,desiredY)<1.8){
+     p.tx=p.tx*.62+Math.max(7,Math.min(93,desiredX))*.38;
+     p.ty=p.ty*.62+Math.max(5,Math.min(95,desiredY))*.38;
+   }
+ });
+
+ // Defending side: nearest defender presses, second covers, rest retain block.
+ defenders.sort((a,b)=>watchDistance(a,owner)-watchDistance(b,owner));
+ defenders.slice(0,2).forEach((d,i)=>{
+   let gap=i===0?2.7:6.2;
+   d.tx=owner.x+(d.x<owner.x?-gap:gap);
+   d.ty=owner.y+(d.side==="home"?-1:1)*(i===0?2.2:5.0);
+ });
+}
+
 function watchUpdatePhase(dt){
  WATCH_WORLD.phaseClock+=dt;
  if(WATCH_WORLD.eventActive)return;
- if(WATCH_WORLD.phaseClock<WATCH_WORLD.phaseDuration)return;
 
- WATCH_WORLD.phaseClock=0;
- let seed="FLOW|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*2)+"|"+WATCH_WORLD.possession+"|"+WATCH_WORLD.phase,
-     r=intelHash(seed),
-     lane=["LEFT","CENTRE","RIGHT"][Math.floor(intelHash(seed+"|LANE")*3)];
+ let owner=WATCH_WORLD.ball.owner;
+ if(owner)watchSupportAroundCarrier(owner);
 
- if(WATCH_WORLD.phase==="BUILD"){
-   WATCH_WORLD.phase=r>.60?"PROGRESS":"BUILD";
- }else if(WATCH_WORLD.phase==="PROGRESS"){
-   WATCH_WORLD.phase=r>.64?"ATTACK":r<.16?"BUILD":"PROGRESS";
- }else if(WATCH_WORLD.phase==="ATTACK"){
-   WATCH_WORLD.phase=r>.62?"RECYCLE":"ATTACK";
- }else{
-   WATCH_WORLD.phase=r>.45?"PROGRESS":"BUILD";
+ // Carrier makes a football decision at a short cadence rather than only when phase timer expires.
+ if(owner && WATCH_WORLD.ball.state==="CONTROLLED" && WATCH_WORLD.phaseClock>=WATCH_WORLD.phaseDuration){
+   let decision=watchDecisionForCarrier(owner);
+   watchApplyCarrierDecision(owner,decision);
+   WATCH_WORLD.phaseClock=0;
+
+   let seed="CADENCE|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*5)+"|"+owner.side+"|"+owner.index;
+   WATCH_WORLD.phaseDuration=.72+intelHash(seed)*.78;
  }
 
- WATCH_WORLD.phaseDuration=1.2+intelHash(seed+"|D")*2.0;
-
- // Each phase transition normally produces a real pass, so possession feels alive.
- let owner=WATCH_WORLD.ball.owner,
-     receiver=watchPickReceiver(
-       WATCH_WORLD.possession,
-       lane,
-       WATCH_WORLD.phase==="BUILD"?["DEF","MID"]:WATCH_WORLD.phase==="PROGRESS"?["MID","FWD"]:["FWD","MID"],
-       owner?owner.index:null
-     );
- if(receiver&&owner&&owner.side===receiver.side){
-   watchPassBallTo(receiver,.30+intelHash(seed+"|PASS")*.14);
+ // A loose visual possession is repaired immediately to keep football continuous.
+ if(!WATCH_WORLD.ball.owner && WATCH_WORLD.ball.state==="CONTROLLED"){
+   let recover=watchPickReceiver(WATCH_WORLD.possession,"CENTRE",["MID","DEF","FWD"]);
+   if(recover)watchGiveBall(recover);
  }
 
- // Less frequent, but natural, turnovers.
- if(intelHash(seed+"|TURN")>.88){
-   WATCH_WORLD.possession=WATCH_WORLD.possession==="home"?"away":"home";
-   WATCH_WORLD.phase="BUILD";
-   let regain=watchPickReceiver(WATCH_WORLD.possession,"CENTRE",["MID","DEF"]);
-   if(regain)watchPassBallTo(regain,.30);
- }
-}
-function watchUpdateShape(dt,nextEvent){
- let possession=WATCH_WORLD.eventActive && nextEvent ? nextEvent.side : WATCH_WORLD.possession,
-     attackDir=possession==="home"?-1:1,
-     ballX=WATCH_WORLD.ball.x,
-     ballY=WATCH_WORLD.ball.y,
-     phaseAdvance=WATCH_WORLD.phase==="BUILD"?2:WATCH_WORLD.phase==="PROGRESS"?7:WATCH_WORLD.phase==="ATTACK"?13:4;
-
- WATCH_WORLD.players.forEach(p=>{
-   let [bx,by]=watchBaseShape(p.side)[p.index],
-       attacking=p.side===possession,
-       dir=p.side==="home"?-1:1,
-       compactX=(50-bx)*(attacking?.03:.12),
-       lanePull=(ballX-50)*(attacking?.12:.07),
-       advance=0;
-
-   if(p.role==="GK")advance=0;
-   else if(p.role==="DEF")advance=attacking?phaseAdvance*.18:-phaseAdvance*.05;
-   else if(p.role==="MID")advance=attacking?phaseAdvance*.48:-phaseAdvance*.12;
-   else advance=attacking?phaseAdvance*.78:-phaseAdvance*.20;
-
-   let ty=by+dir*advance,
-       tx=bx+compactX+lanePull;
-
-   // Nearby players offer angles around the ball continuously.
-   let dist=Math.hypot(p.x-ballX,p.y-ballY);
-   if(attacking && p.role!=="GK" && dist<34){
-     tx += (p.index%2===0?-1:1)*3.4;
-     ty += dir*2.2;
-   }
-
-   // Defender nearest the carrier presses instead of resetting.
-   if(!attacking && WATCH_WORLD.ball.owner){
-     let owner=WATCH_WORLD.ball.owner;
-     if(p.role!=="GK" && watchNearestDefenderTo(owner)===p){
-       tx=owner.x+(p.x<owner.x?-2.2:2.2);
-       ty=owner.y-dir*2.5;
+ // Organic turnover risk is based on pressure, not a flat random flip.
+ owner=WATCH_WORLD.ball.owner;
+ if(owner && !WATCH_WORLD.eventActive){
+   let pressure=watchPressureOn(owner),
+       seed="TURNOVER|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*6)+"|"+owner.side+"|"+owner.index,
+       turnoverChance=.008+Math.max(0,pressure-.7)*.018;
+   if(intelHash(seed)<turnoverChance){
+     let newSide=owner.side==="home"?"away":"home",
+         interceptor=watchNearestDefenderTo(owner);
+     if(interceptor){
+       WATCH_WORLD.possession=newSide;
+       watchTriggerTransition(newSide);
+       WATCH_WORLD.phase="BUILD";
+       watchGiveBall(interceptor);
+       WATCH_WORLD.phaseClock=0;
      }
    }
+ }
+}
 
-   if(!WATCH_WORLD.eventActive){
-     p.tx=Math.max(6,Math.min(94,tx));
-     p.ty=Math.max(5,Math.min(95,ty));
-   }
+function watchTeamTacticalState(side){
+ return side==="home"?WATCH_WORLD.tacticalStateHome:WATCH_WORLD.tacticalStateAway;
+}
+function watchSetTeamTacticalState(side,state){
+ if(side==="home")WATCH_WORLD.tacticalStateHome=state;
+ else WATCH_WORLD.tacticalStateAway=state;
+}
+function watchTransitionTimer(side){
+ return side==="home"?WATCH_WORLD.transitionHome:WATCH_WORLD.transitionAway;
+}
+function watchSetTransitionTimer(side,value){
+ if(side==="home")WATCH_WORLD.transitionHome=value;
+ else WATCH_WORLD.transitionAway=value;
+}
+function watchOpponentSide(side){
+ return side==="home"?"away":"home";
+}
+function watchPossessionTerritory(side){
+ let y=WATCH_WORLD.ball.y;
+ return side==="home"?(100-y):y;
+}
+function watchDetermineTacticalState(side){
+ let inPossession=WATCH_WORLD.possession===side,
+     territory=watchPossessionTerritory(side),
+     timer=watchTransitionTimer(side);
+
+ if(timer>0){
+   return inPossession?"ATTACK_TRANSITION":"DEFENSIVE_TRANSITION";
+ }
+ if(inPossession){
+   if(territory<35)return"BUILD_UP";
+   if(territory<62)return"MIDFIELD_PROGRESSION";
+   return"FINAL_THIRD";
+ }else{
+   let oppTerritory=watchPossessionTerritory(watchOpponentSide(side));
+   if(oppTerritory>70)return"LOW_BLOCK";
+   if(oppTerritory>48)return"MID_BLOCK";
+   return"HIGH_PRESS";
+ }
+}
+function watchUpdateTacticalStates(dt){
+ ["home","away"].forEach(side=>{
+   let timer=Math.max(0,watchTransitionTimer(side)-dt);
+   watchSetTransitionTimer(side,timer);
+   watchSetTeamTacticalState(side,watchDetermineTacticalState(side));
  });
+}
+function watchTriggerTransition(newPossessionSide){
+ let oldSide=watchOpponentSide(newPossessionSide);
+ watchSetTransitionTimer(newPossessionSide,1.35);
+ watchSetTransitionTimer(oldSide,1.65);
+ watchSetTeamTacticalState(newPossessionSide,"ATTACK_TRANSITION");
+ watchSetTeamTacticalState(oldSide,"DEFENSIVE_TRANSITION");
+}
+function watchRoleTarget(p,state,ballX,ballY){
+ let [bx,by]=watchBaseShape(p.side)[p.index],
+     dir=p.side==="home"?-1:1,
+     tx=bx,ty=by,
+     isLeft=p.index===1||p.index===8,
+     isRight=p.index===4||p.index===10,
+     isCB=p.index===2||p.index===3,
+     isFB=p.index===1||p.index===4,
+     isDM=p.index===6,
+     isCM=p.index===5||p.index===7,
+     isWing=p.index===8||p.index===10,
+     isST=p.index===9;
+
+ if(state==="BUILD_UP"){
+   if(p.role==="GK"){tx=50;ty=by+dir*1}
+   if(isCB){tx=bx+(p.index===2?-4:4);ty=by+dir*4}
+   if(isFB){tx=isLeft?14:86;ty=by+dir*7}
+   if(isDM){tx=50;ty=by+dir*3}
+   if(isCM){tx=bx;ty=by+dir*6}
+   if(isWing){tx=isLeft?18:82;ty=by+dir*5}
+   if(isST){tx=50;ty=by+dir*3}
+ }
+ else if(state==="MIDFIELD_PROGRESSION"){
+   if(p.role==="GK"){tx=50;ty=by}
+   if(isCB){tx=bx;ty=by+dir*7}
+   if(isFB){tx=isLeft?18:82;ty=by+dir*13}
+   if(isDM){tx=50;ty=by+dir*8}
+   if(isCM){tx=bx+(p.index===5?-3:3);ty=by+dir*13}
+   if(isWing){tx=isLeft?17:83;ty=by+dir*13}
+   if(isST){tx=50;ty=by+dir*12}
+ }
+ else if(state==="FINAL_THIRD"){
+   if(p.role==="GK"){tx=50;ty=by}
+   if(isCB){tx=bx;ty=by+dir*10}
+   if(isFB){tx=isLeft?20:80;ty=by+dir*20}
+   if(isDM){tx=50;ty=by+dir*13}
+   if(isCM){tx=bx+(p.index===5?-4:4);ty=by+dir*20}
+   if(isWing){tx=isLeft?16:84;ty=by+dir*24}
+   if(isST){tx=50;ty=by+dir*25}
+ }
+ else if(state==="ATTACK_TRANSITION"){
+   if(p.role==="FWD"){ty=by+dir*18}
+   else if(p.role==="MID"){ty=by+dir*12}
+   else if(isFB){ty=by+dir*8}
+   else if(isCB){ty=by+dir*4}
+   if(isWing)tx=isLeft?20:80;
+ }
+ else if(state==="HIGH_PRESS"){
+   if(p.role==="FWD"){ty=by-dir*14}
+   if(p.role==="MID"){ty=by-dir*9}
+   if(isFB){ty=by-dir*5}
+   if(isCB){ty=by-dir*3}
+   tx=50+(tx-50)*.78;
+ }
+ else if(state==="MID_BLOCK"){
+   if(p.role==="FWD"){ty=by-dir*5}
+   if(p.role==="MID"){ty=by-dir*2}
+   tx=50+(tx-50)*.72;
+ }
+ else if(state==="LOW_BLOCK"){
+   if(p.role==="FWD"){ty=by+dir*4}
+   if(p.role==="MID"){ty=by+dir*8}
+   if(p.role==="DEF"){ty=by+dir*5}
+   tx=50+(tx-50)*.64;
+ }
+ else if(state==="DEFENSIVE_TRANSITION"){
+   if(p.role==="FWD"){ty=by+dir*3}
+   if(p.role==="MID"){ty=by+dir*7}
+   if(p.role==="DEF"){ty=by+dir*4}
+   tx=50+(tx-50)*.75;
+ }
+
+ // Ball-side shifting without collapsing the whole formation.
+ let ballShift=(ballX-50)*(state==="FINAL_THIRD"?.11:state==="LOW_BLOCK"?.045:.075);
+ tx+=ballShift;
+
+ // Weak-side winger narrows slightly in the final third.
+ if(state==="FINAL_THIRD"&&isWing){
+   let ballLeft=ballX<50;
+   if((isLeft&&!ballLeft)||(isRight&&ballLeft))tx=50+(tx-50)*.72;
+ }
+
+ // Centre midfield stagger.
+ if(state==="FINAL_THIRD"&&isCM){
+   ty += dir*(p.index===5?2:-2);
+ }
+
+ return {
+   x:Math.max(5,Math.min(95,tx)),
+   y:Math.max(3,Math.min(97,ty))
+ };
+}
+function watchApplyTacticalShape(p,state,ballX,ballY){
+ let target=watchRoleTarget(p,state,ballX,ballY),
+     blend=(state==="ATTACK_TRANSITION"||state==="DEFENSIVE_TRANSITION")?.46:.30;
+ p.tx=p.tx*(1-blend)+target.x*blend;
+ p.ty=p.ty*(1-blend)+target.y*blend;
+}
+
+function watchUpdateShape(dt,nextEvent){
+ watchUpdateTacticalStates(dt);
+
+ let ballX=WATCH_WORLD.ball.x,
+     ballY=WATCH_WORLD.ball.y,
+     owner=WATCH_WORLD.ball.owner;
+
+ WATCH_WORLD.players.forEach(p=>{
+   let state=watchTeamTacticalState(p.side);
+   watchApplyTacticalShape(p,state,ballX,ballY);
+ });
+
+ // Carrier support remains local and is layered over the coordinated team shape.
+ if(owner)watchSupportAroundCarrier(owner);
 }
 function watchUpdatePlayers(dt){
  WATCH_WORLD.players.forEach(p=>{
@@ -22522,6 +22893,9 @@ function watchWorldUpdateDom(){
  });
  let b=document.getElementById("wmBall");
  if(b){b.style.left=WATCH_WORLD.ball.x+"%";b.style.top=WATCH_WORLD.ball.y+"%";}
+ let hs=document.getElementById("wmHomeState"),as=document.getElementById("wmAwayState");
+ if(hs)hs.textContent=String(WATCH_WORLD.tacticalStateHome||"").replaceAll("_"," ");
+ if(as)as.textContent=String(WATCH_WORLD.tacticalStateAway||"").replaceAll("_"," ");
 }
 function watchGiveBall(player){
  if(!player)return;
@@ -22532,11 +22906,24 @@ function watchGiveBall(player){
  WATCH_WORLD.ball.x=player.x;WATCH_WORLD.ball.y=player.y;
 }
 function watchKickBallTo(x,y,duration=.35,targetPlayer=null,state="PASS"){
- let b=WATCH_WORLD.ball,dx=x-b.x,dy=y-b.y;
- duration=Math.max(.12,duration);
- b.owner=null;b.state=state;b.target=targetPlayer;
- b.vx=dx/duration;b.vy=dy/duration;
- b.flightTime=duration;b.elapsed=0;
+ let b=WATCH_WORLD.ball,
+     tx=targetPlayer?targetPlayer.x:x,
+     ty=targetPlayer?targetPlayer.y:y,
+     dx=tx-b.x,dy=ty-b.y,
+     dist=Math.hypot(dx,dy);
+
+ // Pace is derived from action type; duration becomes a cap rather than easing behaviour.
+ let unitsPerSecond=state==="SHOT"?150:state==="MISS"||state==="SAVE"?120:82,
+     calculated=Math.max(.12,dist/unitsPerSecond);
+ duration=Math.max(.12,Math.min(duration||calculated,Math.max(calculated,.52)));
+
+ b.owner=null;
+ b.state=state;
+ b.target=targetPlayer;
+ b.vx=dx/duration;
+ b.vy=dy/duration;
+ b.flightTime=duration;
+ b.elapsed=0;
 }
 function watchPassBallTo(player,duration=.34){
  if(!player)return;
@@ -22545,17 +22932,30 @@ function watchPassBallTo(player,duration=.34){
 function watchUpdateBall(dt){
  let b=WATCH_WORLD.ball;
  if(b.owner){
-   // Ball tracks the carrier closely with a small forward offset.
    let dir=b.owner.side==="home"?-1:1;
    b.x=b.owner.x;
    b.y=b.owner.y+dir*.8;
    return;
  }
- if(b.state==="PASS"||b.state==="SHOT"||b.state==="MISS"||b.state==="SAVE"){
+ if(["PASS","SHOT","MISS","SAVE"].includes(b.state)){
    b.elapsed+=dt;
-   b.x+=b.vx*dt;b.y+=b.vy*dt;
+
+   // During a pass, gently lead a moving target without exponential easing.
+   if(b.state==="PASS"&&b.target){
+     let remain=Math.max(.04,b.flightTime-b.elapsed),
+         tx=b.target.x+b.target.vx*.08,
+         ty=b.target.y+b.target.vy*.08;
+     b.vx=(tx-b.x)/remain;
+     b.vy=(ty-b.y)/remain;
+   }
+
+   b.x+=b.vx*dt;
+   b.y+=b.vy*dt;
+
    if(b.elapsed>=b.flightTime){
-     if(b.target && b.state==="PASS"){
+     if(b.target&&b.state==="PASS"){
+       watchGiveBall(b.target);
+     }else if(b.target&&b.state==="SAVE"){
        watchGiveBall(b.target);
      }else{
        b.vx=0;b.vy=0;
@@ -22693,10 +23093,12 @@ function watchUpdateDirectedEvent(dt){
        let keeper=WATCH_WORLD.players.find(p=>p.side!==e.side&&p.role==="GK");
        if(keeper)watchGiveBall(keeper);
        WATCH_WORLD.possession=e.side==="home"?"away":"home";
+       watchTriggerTransition(WATCH_WORLD.possession);
      }else if(e.type==="MISS"){
        let keeper=WATCH_WORLD.players.find(p=>p.side!==e.side&&p.role==="GK");
        if(keeper)watchGiveBall(keeper);
        WATCH_WORLD.possession=e.side==="home"?"away":"home";
+       watchTriggerTransition(WATCH_WORLD.possession);
      }
      watchLog(e.minute+"′",watchEventText(e));
      WATCH_WORLD.simMinute=Math.max(WATCH_WORLD.simMinute,e.minute+.08);
@@ -22708,6 +23110,7 @@ function watchUpdateDirectedEvent(dt){
        let centre=watchPickReceiver(e.side==="home"?"away":"home","CENTRE",["MID"]);
        if(centre)watchGiveBall(centre);
        WATCH_WORLD.possession=e.side==="home"?"away":"home";
+       watchTriggerTransition(WATCH_WORLD.possession);
        WATCH_WORLD.phase="BUILD";
      }
      WATCH_WORLD.targetEventIndex++;
@@ -28740,6 +29143,8 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.4.3","Tactical Team Shape","PRE-PRODUCTION / VIEWER REFINEMENT","Added coordinated tactical team states to Watch Game while preserving the authoritative match engine unchanged. Teams now move through Build Up, Midfield Progression, Final Third, High Press, Mid Block, Low Block, Attack Transition and Defensive Transition states based on possession and ball territory. Centre backs, fullbacks, holding midfielders, central midfielders, wingers and the striker now receive different movement targets in each state. Formations shift as a unit toward the ball, defensive blocks compress horizontally, fullbacks overlap selectively, weak-side attackers narrow in the final third and midfield lines stagger rather than moving in parallel. Possession turnovers now trigger short transition phases before teams settle into their next shape. A compact team-state strip has been added beneath the event banner for QA visibility."],
+  ["v1.4.2","Possession Intelligence","PRE-PRODUCTION / VIEWER REFINEMENT","Deepened the continuous Watch Game visual simulation without modifying the authoritative match engine. The ball carrier now evaluates nearby pressure, passing-lane risk, teammate pressure, field progression and open space before choosing whether to make a safe pass, progressive pass, switch play, carry or recycle possession. Supporting players form passing triangles around the carrier, wide players preserve width, overlapping fullbacks become available in attacking phases, the holding midfielder remains connected to the defensive line, and only nearby defenders step toward the ball. Team formation is now a soft tactical attractor rather than a repeated target position. Visual turnovers are pressure-led instead of flat random flips, and pass/shot motion now uses action-specific velocity with slight target leading for moving receivers."],
   ["v1.4.1","Scorer-linked Flow","PRE-PRODUCTION / VIEWER REFINEMENT","Improved the continuous 2D viewer without altering the match engine. Goal sequences are now linked to the actual scorer from the completed match data rather than defaulting to the central forward marker. The viewer maps scorer positions to an appropriate visual role, including central midfielders and wide attackers, then routes the final pass and finishing movement toward that marker. Open play now generates more frequent player-to-player passing across left, centre and right lanes, varies receivers among viable nearby options, reduces automatic central funneling, and makes turnovers less mechanical. The designated scorer is subtly highlighted during the directed goal phase so the visual sequence aligns with the recorded scorer."],
   ["v1.4.0","Continuous 2D Match Viewer","PRE-PRODUCTION / VIEWER ARCHITECTURE","Rebuilt Watch Game from an event-reset animation into a continuous visual simulation while leaving every authoritative match and competition engine unchanged. Players now persist in their current positions, accelerate toward evolving tactical targets and transition between build-up, progression, attack and recycle phases without resetting to formation. Possession continues between highlights, including natural turnovers and player-to-player passes. Ball movement now uses velocity and timed flight rather than exponential easing, giving passes and shots materially different pace. Predetermined match events act only as visual-director constraints: shortly before a known goal, save or miss, the continuous world steers into a compatible attacking sequence, resolves the already-determined outcome, then immediately resumes open play. NEXT advances the running clock toward the next directed event rather than playing an isolated animation."],
   ["v1.3.0","2D Match Viewer","PRE-PRODUCTION / VIEWER UPGRADE","Major presentation-only upgrade to Watch Game. The authoritative match engine, scoring logic and competition engines remain completely unchanged. The viewer now uses a requestAnimationFrame motion loop for smoother player and ball interpolation, maintains attacking and defensive team shape, moves the ball through a carrier and supporting attacker before the final action, adds visible goal mouths and netting at both ends, and gives goals a dedicated full-pitch GOAL overlay with immediate scoreboard update. Saves, misses and attacking phases now have visibly different final ball paths. The pitch is also reduced again on mobile so the scoreboard, event banner and controls remain visible."],
