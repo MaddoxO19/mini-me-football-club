@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.2.2 Pre-Production</title>
+<title>Mini&Me Football Club v1.3.0 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14662,6 +14662,91 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
     max-height:112px!important;
   }
 }
+
+/* v1.3.0 2D Match Viewer */
+.watchPitch{
+  width:min(100%,285px)!important;
+  max-height:38dvh!important;
+  overflow:visible!important;
+}
+.watchGoal{
+  position:absolute;
+  left:50%;
+  width:30%;
+  height:5.5%;
+  transform:translateX(-50%);
+  border-left:2px solid rgba(255,255,255,.85);
+  border-right:2px solid rgba(255,255,255,.85);
+  border-bottom:2px solid rgba(255,255,255,.85);
+  z-index:2;
+}
+.watchGoal.top{
+  top:-5.4%;
+  border-top:0;
+}
+.watchGoal.bottom{
+  bottom:-5.4%;
+  transform:translateX(-50%) rotate(180deg);
+}
+.watchNet{
+  width:100%;height:100%;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 1px,transparent 1px 8px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.14) 0 1px,transparent 1px 7px);
+}
+.watchPlayer{
+  z-index:4;
+  transition:none!important;
+}
+.watchPlayer i{
+  display:block;
+  width:3px;height:3px;border-radius:50%;
+  background:#fff9;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.watchBall{
+  z-index:7;
+  transition:none!important;
+}
+.watchGoalFlash{
+  position:absolute;
+  inset:0;
+  z-index:20;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:rgba(5,10,15,.58);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.watchGoalFlash.hidden{display:none!important}
+.watchGoalFlash strong{
+  color:var(--gold);
+  font-size:36px;
+  letter-spacing:.08em;
+  text-shadow:0 2px 14px #000;
+}
+.watchGoalFlash span{
+  margin-top:5px;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+}
+.watchPitchCard{
+  padding-top:16px!important;
+  padding-bottom:16px!important;
+}
+.watchEvent{
+  margin-top:14px!important;
+}
+@media(max-width:430px){
+  .watchPitch{
+    width:min(100%,265px)!important;
+    max-height:36dvh!important;
+  }
+  .watchGoalFlash strong{font-size:31px}
+}
 </style>
 
 </head>
@@ -14910,8 +14995,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.2.2 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.2.2";
+const BUILD_VERSION="Mini&Me Football Club v1.3.0 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.3.0";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22084,7 +22169,7 @@ function watchMatchPlayerMarkers(side){
  ];
  return coords.map((p,i)=>{
    let x=side==="home"?p[0]:100-p[0],y=side==="home"?p[1]:100-p[1];
-   return '<span class="watchPlayer '+side+'" data-base-left="'+x+'" data-base-top="'+y+'" style="left:'+x+'%;top:'+y+'%"></span>';
+   return '<span class="watchPlayer '+side+'" data-side="'+side+'" data-index="'+i+'" data-base-left="'+x+'" data-base-top="'+y+'" style="left:'+x+'%;top:'+y+'%"><i></i></span>';
  }).join("");
 }
 function watchMatchShellHtml(r){
@@ -22097,11 +22182,14 @@ function watchMatchShellHtml(r){
     '<div class="watchScoreTeam away">'+watchMatchCrest(n.awayId,n.awayName)+'<b>'+n.awayName+'</b></div>'+
    '</div>'+
    '<div class="watchPitchCard">'+
-    '<div class="watchPitch">'+
+    '<div class="watchPitch" id="watchPitch">'+
+      '<div class="watchGoal top"><div class="watchNet"></div></div>'+
+      '<div class="watchGoal bottom"><div class="watchNet"></div></div>'+
       '<div class="watchMidLine"></div><div class="watchCentreCircle"></div>'+
       '<div class="watchPenaltyBox top"></div><div class="watchPenaltyBox bottom"></div>'+
       watchMatchPlayerMarkers("home")+watchMatchPlayerMarkers("away")+
       '<span id="wmBall" class="watchBall"></span>'+
+      '<div id="wmGoalFlash" class="watchGoalFlash hidden"><strong>GOAL</strong><span id="wmGoalScorer"></span></div>'+
     '</div>'+
     '<div id="wmEvent" class="watchEvent">Kick-off</div>'+
    '</div>'+
@@ -22115,10 +22203,7 @@ function watchMatchShellHtml(r){
   '</div>'+
  '</div>';
 }
-function watchBallTo(x,y){
- let b=document.getElementById("wmBall");if(!b)return;
- b.style.left=x+"%";b.style.top=y+"%";
-}
+
 function watchLog(min,text){
  let el=document.getElementById("wmLog");if(!el)return;
  el.insertAdjacentHTML("afterbegin",'<div><b>'+min+'</b><span>'+text+'</span></div>');
@@ -22133,79 +22218,151 @@ function watchEventText(e){
  if(e.type==="ATTACK")return "ATTACKING MOVE · "+club+lane;
  return club;
 }
-function watchMoveAttackers(side,lane,phase=1){
- let players=[...document.querySelectorAll(".watchPlayer."+side)],
-     dir=side==="home"?-1:1,
-     laneShift=lane==="LEFT"?-8:lane==="RIGHT"?8:0;
- players.forEach((p,i)=>{
-   let baseL=parseFloat(p.dataset.baseLeft||p.style.left)||50,
-       baseT=parseFloat(p.dataset.baseTop||p.style.top)||50;
-   if(!p.dataset.baseLeft){p.dataset.baseLeft=baseL;p.dataset.baseTop=baseT}
-   let advanced=i>=8?11:i>=5?6:i>=1?2:0,
-       x=baseL+(i>=8?laneShift:(i>=5?laneShift*.35:0)),
-       y=baseT+(dir*advanced*phase);
-   p.style.left=Math.max(7,Math.min(93,x))+"%";
-   p.style.top=Math.max(5,Math.min(95,y))+"%";
+const WATCH_MOTION={
+ raf:null,
+ players:[],
+ ball:{x:50,y:50,targetX:50,targetY:50},
+ running:false
+};
+
+function watchInitMotion(){
+ WATCH_MOTION.players=[...document.querySelectorAll(".watchPlayer")].map(el=>({
+   el,
+   side:el.dataset.side,
+   index:Number(el.dataset.index)||0,
+   x:Number(el.dataset.baseLeft)||50,
+   y:Number(el.dataset.baseTop)||50,
+   tx:Number(el.dataset.baseLeft)||50,
+   ty:Number(el.dataset.baseTop)||50
+ }));
+ WATCH_MOTION.ball={x:50,y:50,targetX:50,targetY:50};
+ WATCH_MOTION.running=true;
+ if(WATCH_MOTION.raf)cancelAnimationFrame(WATCH_MOTION.raf);
+ const tick=()=>{
+   if(!WATCH_MOTION.running)return;
+   WATCH_MOTION.players.forEach(p=>{
+     p.x+=(p.tx-p.x)*.095;
+     p.y+=(p.ty-p.y)*.095;
+     p.el.style.left=p.x+"%";
+     p.el.style.top=p.y+"%";
+   });
+   WATCH_MOTION.ball.x+=(WATCH_MOTION.ball.targetX-WATCH_MOTION.ball.x)*.18;
+   WATCH_MOTION.ball.y+=(WATCH_MOTION.ball.targetY-WATCH_MOTION.ball.y)*.18;
+   let b=document.getElementById("wmBall");
+   if(b){b.style.left=WATCH_MOTION.ball.x+"%";b.style.top=WATCH_MOTION.ball.y+"%";}
+   WATCH_MOTION.raf=requestAnimationFrame(tick);
+ };
+ WATCH_MOTION.raf=requestAnimationFrame(tick);
+}
+function watchStopMotion(){
+ WATCH_MOTION.running=false;
+ if(WATCH_MOTION.raf)cancelAnimationFrame(WATCH_MOTION.raf);
+ WATCH_MOTION.raf=null;
+}
+function watchSetBallTarget(x,y){
+ WATCH_MOTION.ball.targetX=x;WATCH_MOTION.ball.targetY=y;
+}
+function watchResetShape(){
+ WATCH_MOTION.players.forEach(p=>{
+   p.tx=Number(p.el.dataset.baseLeft)||50;
+   p.ty=Number(p.el.dataset.baseTop)||50;
  });
 }
-function watchResetPlayers(){
- document.querySelectorAll(".watchPlayer").forEach(p=>{
-   if(p.dataset.baseLeft)p.style.left=p.dataset.baseLeft+"%";
-   if(p.dataset.baseTop)p.style.top=p.dataset.baseTop+"%";
- });
-}
-function watchAnimateEvent(e){
- let home=e.side==="home",
-     attackDir=home?-1:1,
-     lane=e.lane||"CENTRE",
-     laneX=lane==="LEFT"?28:lane==="RIGHT"?72:50,
-     startY=home?68:32,
-     midY=home?46:54,
-     boxY=home?20:80,
-     goalY=home?4:96,
-     clock=document.getElementById("wmClock"),
-     banner=document.getElementById("wmEvent"),
-     speed=Math.max(1,WATCH_MATCH.speed);
-
- if(clock)clock.textContent=e.minute+"′";
- let txt=watchEventText(e);if(banner)banner.textContent=txt;
-
- watchResetPlayers();
- watchMoveAttackers(e.side,lane,.35);
- watchBallTo(50,startY);
-
- setTimeout(()=>{
-   watchMoveAttackers(e.side,lane,.7);
-   watchBallTo(laneX,midY);
- },Math.max(70,220/speed));
-
- setTimeout(()=>{
-   watchMoveAttackers(e.side,lane,1);
-   watchBallTo(lane==="CENTRE"?50:(lane==="LEFT"?38:62),boxY);
- },Math.max(150,520/speed));
-
- setTimeout(()=>{
-   if(e.type==="GOAL"){
-     watchBallTo(50,goalY);
-   }else if(e.type==="SAVE"){
-     watchBallTo(lane==="LEFT"?46:lane==="RIGHT"?54:50,home?8:92);
-   }else if(e.type==="MISS"){
-     watchBallTo(lane==="LEFT"?17:lane==="RIGHT"?83:66,home?1:99);
+function watchShiftShape(attackingSide,lane,phase){
+ let dir=attackingSide==="home"?-1:1,
+     laneShift=lane==="LEFT"?-10:lane==="RIGHT"?10:0;
+ WATCH_MOTION.players.forEach(p=>{
+   let bx=Number(p.el.dataset.baseLeft)||50,
+       by=Number(p.el.dataset.baseTop)||50,
+       attack=p.side===attackingSide,
+       depth=p.index>=8?13:p.index>=5?8:p.index>=1?3:0;
+   if(attack){
+     p.tx=Math.max(7,Math.min(93,bx+(p.index>=8?laneShift:(p.index>=5?laneShift*.45:0))));
+     p.ty=Math.max(5,Math.min(95,by+dir*depth*phase));
    }else{
-     watchBallTo(lane==="LEFT"?34:lane==="RIGHT"?66:50,home?26:74);
+     let compact=(p.index>=8?5:p.index>=5?4:2);
+     p.tx=Math.max(7,Math.min(93,bx+(50-bx)*.08));
+     p.ty=Math.max(5,Math.min(95,by-dir*compact*phase));
    }
- },Math.max(240,820/speed));
-
- setTimeout(watchResetPlayers,Math.max(500,1250/speed));
-
- if(e.type==="GOAL"){
-   if(home)WATCH_MATCH.scoreHome++;else WATCH_MATCH.scoreAway++;
-   let h=document.getElementById("wmHome"),a=document.getElementById("wmAway");
-   if(h)h.textContent=WATCH_MATCH.scoreHome;if(a)a.textContent=WATCH_MATCH.scoreAway;
- }
- watchLog(e.minute+"′",txt);
+ });
 }
-function watchStep(){
+function watchPossessionPlayer(side,lane){
+ let candidates=WATCH_MOTION.players.filter(p=>p.side===side && p.index>=5);
+ if(!candidates.length)return null;
+ let targetX=lane==="LEFT"?30:lane==="RIGHT"?70:50;
+ candidates.sort((a,b)=>Math.abs(a.x-targetX)-Math.abs(b.x-targetX));
+ return candidates[0];
+}
+function watchPassToPlayer(player){
+ if(!player)return;
+ watchSetBallTarget(player.tx,player.ty);
+}
+function watchGoalCelebration(e){
+ let flash=document.getElementById("wmGoalFlash"),
+     scorer=document.getElementById("wmGoalScorer");
+ if(!flash)return;
+ if(scorer)scorer.textContent=e.player?displayPlayerName(e.player):watchMatchNormaliseResult(WATCH_MATCH_RESULT)[e.side==="home"?"homeName":"awayName"];
+ flash.classList.remove("hidden");
+ setTimeout(()=>flash.classList.add("hidden"),Math.max(850,1400/WATCH_MATCH.speed));
+}
+function watchAnimateSequence(e){
+ return new Promise(resolve=>{
+   let home=e.side==="home",
+       lane=e.lane||"CENTRE",
+       speed=Math.max(1,WATCH_MATCH.speed),
+       clock=document.getElementById("wmClock"),
+       banner=document.getElementById("wmEvent"),
+       txt=watchEventText(e),
+       goalY=home?1:99,
+       boxY=home?17:83,
+       wideX=lane==="LEFT"?22:lane==="RIGHT"?78:50;
+
+   if(clock)clock.textContent=e.minute+"′";
+   if(banner)banner.textContent=txt;
+
+   watchResetShape();
+   watchShiftShape(e.side,lane,.35);
+
+   let carrier=watchPossessionPlayer(e.side,lane);
+   if(carrier)watchPassToPlayer(carrier);
+
+   setTimeout(()=>{
+     watchShiftShape(e.side,lane,.7);
+     let next=WATCH_MOTION.players.filter(p=>p.side===e.side&&p.index>=8)
+       .sort((a,b)=>Math.abs(a.tx-wideX)-Math.abs(b.tx-wideX))[0];
+     if(next)watchPassToPlayer(next);
+   },Math.max(160,650/speed));
+
+   setTimeout(()=>{
+     watchShiftShape(e.side,lane,1);
+     watchSetBallTarget(lane==="LEFT"?39:lane==="RIGHT"?61:50,boxY);
+   },Math.max(360,1250/speed));
+
+   setTimeout(()=>{
+     if(e.type==="GOAL"){
+       watchSetBallTarget(50,goalY);
+       watchGoalCelebration(e);
+       if(home)WATCH_MATCH.scoreHome++;else WATCH_MATCH.scoreAway++;
+       let h=document.getElementById("wmHome"),a=document.getElementById("wmAway");
+       if(h)h.textContent=WATCH_MATCH.scoreHome;if(a)a.textContent=WATCH_MATCH.scoreAway;
+     }else if(e.type==="SAVE"){
+       watchSetBallTarget(lane==="LEFT"?46:lane==="RIGHT"?54:50,home?7:93);
+     }else if(e.type==="MISS"){
+       watchSetBallTarget(lane==="LEFT"?14:lane==="RIGHT"?86:68,home?-2:102);
+     }else{
+       watchSetBallTarget(lane==="LEFT"?34:lane==="RIGHT"?66:50,home?26:74);
+     }
+   },Math.max(620,1950/speed));
+
+   setTimeout(()=>{
+     watchLog(e.minute+"′",txt);
+     watchResetShape();
+     resolve();
+   },Math.max(1100,3100/speed));
+ });
+}
+
+async function watchStep(){
  if(!WATCH_MATCH.active)return;
  if(WATCH_MATCH.index>=WATCH_MATCH.events.length){
    let n=watchMatchNormaliseResult(WATCH_MATCH_RESULT);
@@ -22217,21 +22374,23 @@ function watchStep(){
    return;
  }
  let e=WATCH_MATCH.events[WATCH_MATCH.index++];
- watchAnimateEvent(e);
- if(WATCH_MATCH.playing)WATCH_MATCH.timer=setTimeout(watchStep,Math.max(650,2200/WATCH_MATCH.speed));
+ await watchAnimateSequence(e);
+ if(WATCH_MATCH.playing){
+   WATCH_MATCH.timer=setTimeout(()=>watchStep(),Math.max(500,900/WATCH_MATCH.speed));
+ }
 }
 function watchOpen(){
  if(!WATCH_MATCH_RESULT){alert("No completed match is available to watch.");return}
  watchClose();
  WATCH_MATCH={active:true,playing:false,speed:1,index:0,timer:null,events:watchMatchBuildEvents(WATCH_MATCH_RESULT),scoreHome:0,scoreAway:0};
  document.body.insertAdjacentHTML("beforeend",watchMatchShellHtml(WATCH_MATCH_RESULT));
- watchBallTo(50,50);watchLog("0′","Kick-off");
- setTimeout(()=>{WATCH_MATCH.playing=true;let p=document.getElementById("wmPlay");if(p)p.textContent="PAUSE";watchStep()},250);
+ watchLog("0′","Kick-off");watchInitMotion();watchSetBallTarget(50,50);
+ setTimeout(()=>{WATCH_MATCH.playing=true;let p=document.getElementById("wmPlay");if(p)p.textContent="PAUSE";watchStep()},300);
 }
 function watchClose(){
  if(WATCH_MATCH.timer)clearTimeout(WATCH_MATCH.timer);
  WATCH_MATCH.timer=null;WATCH_MATCH.active=false;WATCH_MATCH.playing=false;
- let m=document.getElementById("watchMatchModal");if(m)m.remove();
+ watchStopMotion();let m=document.getElementById("watchMatchModal");if(m)m.remove();
 }
 function watchToggle(){
  if(WATCH_MATCH.index>=WATCH_MATCH.events.length){
@@ -28204,6 +28363,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.3.0","2D Match Viewer","PRE-PRODUCTION / VIEWER UPGRADE","Major presentation-only upgrade to Watch Game. The authoritative match engine, scoring logic and competition engines remain completely unchanged. The viewer now uses a requestAnimationFrame motion loop for smoother player and ball interpolation, maintains attacking and defensive team shape, moves the ball through a carrier and supporting attacker before the final action, adds visible goal mouths and netting at both ends, and gives goals a dedicated full-pitch GOAL overlay with immediate scoreboard update. Saves, misses and attacking phases now have visibly different final ball paths. The pitch is also reduced again on mobile so the scoreboard, event banner and controls remain visible."],
   ["v1.2.2","Watch Highlight Refinement","PRE-PRODUCTION / VIEWER REFINEMENT","Refined the first Watch Game implementation after mobile QA. Reduced the bird's-eye pitch substantially so the event commentary, event log and playback controls remain visible during play. Replaced repetitive fixed ball movement with lane-based left, centre and right attacking sequences, temporary attacker movement, distinct goal/save/miss outcomes and additional attacking phases. Highlight generation is now derived from each team's shots, shots on target and goals, caps repeated saves/misses, and suppresses identical consecutive sequences. Watch Game now begins automatically rather than opening on a static pitch."],
   ["v1.2.1","Pre-match Watch Game","PRE-PRODUCTION / QA + UX FIX","Moved Watch Game from the completed-result screen to the Next Fixture card where the match mode is chosen before play. League, National Cup and Champions Tournament fixtures now present Play Game and Watch Game actions. Watch Game uses the existing authoritative simulation exactly once, then automatically opens the 2D viewer before the completed result is seen; exiting the viewer reveals the normal result screen underneath. Rewired Watch Match and playback controls through the game's established delegated input handling to correct the non-responsive iPhone button from v1.2.0."],
   ["v1.2.0","Watch Match Viewer","PRE-PRODUCTION / NEW FEATURE","Introduced the first optional Watch Match mode while preserving the existing instant-result workflow and frozen match engine. Completed matches can now be replayed through a bird's-eye 2D pitch presentation with formation-style player markers, ball movement, scoreboard, match clock, goal/miss/save sequences, event log and Play/Pause, 1x/2x/4x and Next controls. The viewer consumes the already-generated match outcome and player goal data rather than simulating a second result."],
