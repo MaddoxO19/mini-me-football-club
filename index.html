@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.28 Stable Baseline</title>
+<title>Mini&Me Football Club v1.1.29 World Cup Group Tables</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14580,6 +14580,56 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 }
 </style>
 
+
+<style id="minime-v1-1-29-world-cup-expanded-groups">
+/* World Cup finals group tables now mirror the expanded qualification-table data set. */
+.wcFinalsExpandedHead,.wcFinalsExpandedRow{
+ grid-template-columns:20px minmax(112px,1fr) repeat(8,28px)!important;
+ gap:3px!important;
+ padding-left:8px!important;
+ padding-right:8px!important;
+}
+.wcFinalsExpandedHead{
+ font-size:5.2px!important;
+}
+.wcFinalsExpandedRow{
+ font-size:6.1px!important;
+}
+.wcFinalsExpandedRow>span:nth-child(2){
+ min-width:0!important;
+}
+.wcFinalsExpandedRow>span:nth-child(2) b{
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+}
+.wcFinalsQ{
+ flex:0 0 auto;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:14px;
+ height:14px;
+ margin-left:auto;
+ border:1px solid #426a52;
+ border-radius:50%;
+ color:#72e49b;
+ font-size:5px;
+ font-style:normal;
+ font-weight:950;
+}
+@media(max-width:430px){
+ .wcFinalsExpandedHead,.wcFinalsExpandedRow{
+   grid-template-columns:16px minmax(92px,1fr) repeat(8,23px)!important;
+   gap:2px!important;
+   padding-left:6px!important;
+   padding-right:6px!important;
+ }
+ .wcFinalsExpandedHead{font-size:4.7px!important}
+ .wcFinalsExpandedRow{font-size:5.6px!important}
+ .wcFinalsQ{width:12px;height:12px;font-size:4.5px}
+}
+</style>
 </head>
 <body>
 <section id="start" class="start">
@@ -14826,7 +14876,7 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.28 Stable Baseline";
+const BUILD_VERSION="Mini&Me Football Club v1.1.29 World Cup Group Tables";
  const RELEASE_CANDIDATE_VERSION="1.1.28";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
@@ -19622,15 +19672,15 @@ function worldCupFinalsGroupsHtml(t){
    return '<div class="wcFinalsEmpty">World Cup group tables are not available yet.</div>';
  }
  let groups=(t.groups||[]).map(g=>
-   '<div class="worldCupHubGroup">'+
+   '<div class="worldCupHubGroup wcFinalsExpandedGroup">'+
      '<div class="worldCupHubGroupHead"><b>Group '+g.id+'</b><span>'+(g.complete?'Completed':'Top two advance')+'</span></div>'+
-     '<div class="worldCupHubTableHead"><span>#</span><span>Nation</span><span>P</span><span>GD</span><span>PTS</span><span>Status</span></div>'+
+     '<div class="worldCupHubTableHead wcFinalsExpandedHead"><span>#</span><span>Nation</span><span>P</span><span>W</span><span>D</span><span>L</span><span>GS</span><span>GA</span><span>GD</span><span>PTS</span></div>'+
      worldCupGroupRows(g).map((r,i)=>
-       '<div class="worldCupHubTableRow">'+
+       '<div class="worldCupHubTableRow wcFinalsExpandedRow">'+
          '<span>'+(i+1)+'</span>'+
-         '<span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b></span>'+
-         '<span>'+r.p+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong>'+
-         '<em>'+(i<2?(g.complete?'ADVANCED':'ADVANCING'):'')+'</em>'+
+         '<span>'+nationFlagHtml(r.id,16)+'<b>'+nationName(r.id)+'</b>'+(g.complete&&i<2?'<i class="wcFinalsQ">Q</i>':'')+'</span>'+
+         '<span>'+r.p+'</span><span>'+r.w+'</span><span>'+r.d+'</span><span>'+r.l+'</span>'+
+         '<span>'+r.gf+'</span><span>'+r.ga+'</span><span>'+r.gd+'</span><strong>'+r.pts+'</strong>'+
        '</div>'
      ).join('')+
    '</div>'
