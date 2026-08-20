@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.2.0 Scripted Goal Highlights</title>
+<title>Mini&Me Football Club v1.1.28 Stable Baseline</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14578,41 +14578,6 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
     padding:14px 10px 10px;
   }
 }
-
-/* v1.2.0 Scripted Goal Highlights */
-.goalWatchActions{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
-.goalWatchActions .btn{width:100%!important}
-.goalWatchAction{border-color:#705d25!important;color:var(--gold)!important;background:#d9b54a09!important}
-.goalHighlightModal{position:fixed;inset:0;z-index:7000;background:#05090ddd;display:flex;align-items:center;justify-content:center;padding:12px}
-.goalHighlightShell{width:min(100%,430px);max-height:96dvh;overflow:auto;background:#0c131a;border:1px solid var(--line);border-radius:20px;padding:13px;box-shadow:0 20px 60px #000c}
-.goalHighlightTop{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:10px}
-.goalHighlightTeam{display:flex;align-items:center;gap:7px;min-width:0;font-size:10px;font-weight:900}
-.goalHighlightTeam.away{justify-content:flex-end;text-align:right}
-.goalHighlightTeam span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.goalHighlightScore{text-align:center;font-size:24px;font-weight:950;white-space:nowrap}
-.goalHighlightScore small{display:block;margin-top:3px;color:var(--muted);font-size:8px;letter-spacing:.08em}
-.goalHighlightPitch{position:relative;width:min(100%,330px);aspect-ratio:.66;margin:0 auto 10px;border:2px solid #d9eee0aa;border-radius:3px;overflow:visible;background:repeating-linear-gradient(90deg,#174b32 0 12.5%,#194f35 12.5% 25%)}
-.goalHighlightPitch:before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid #ffffff66}
-.goalHighlightPitch:after{content:"";position:absolute;left:50%;top:50%;width:62px;height:62px;border:1px solid #ffffff66;border-radius:50%;transform:translate(-50%,-50%)}
-.ghBox{position:absolute;left:50%;width:58%;height:18%;border:1px solid #ffffff66;transform:translateX(-50%)}
-.ghBox.top{top:-1px}.ghBox.bottom{bottom:-1px}
-.ghSix{position:absolute;left:50%;width:30%;height:8%;border:1px solid #ffffff66;transform:translateX(-50%)}
-.ghSix.top{top:-1px}.ghSix.bottom{bottom:-1px}
-.ghGoal{position:absolute;left:50%;width:25%;height:4%;transform:translateX(-50%);border:2px solid #fff;border-top:0;background:repeating-linear-gradient(90deg,#ffffff2c 0 1px,transparent 1px 6px)}
-.ghGoal.top{top:-4%}.ghGoal.bottom{bottom:-4%;transform:translateX(-50%) rotate(180deg)}
-.ghPlayer,.ghBall{position:absolute;transform:translate(-50%,-50%);border-radius:50%;transition:none;will-change:left,top}
-.ghPlayer{width:13px;height:13px;border:2px solid #fff;z-index:5}
-.ghPlayer.home{background:#d9b54a}.ghPlayer.away{background:#6fa4c4}
-.ghPlayer.scorer{box-shadow:0 0 0 3px #ffffff55,0 0 14px #d9b54aaa}
-.ghBall{width:7px;height:7px;background:#fff;box-shadow:0 0 5px #fff;z-index:8}
-.ghBanner{text-align:center;min-height:54px;padding:9px;border:1px solid var(--line);border-radius:12px;background:#101922}
-.ghBanner b{display:block;color:var(--gold);font-size:13px}.ghBanner span{display:block;margin-top:4px;color:var(--muted);font-size:9px}
-.ghTemplateTag{text-align:center;color:#8fa0ad;font-size:8px;font-weight:900;letter-spacing:.1em;margin-bottom:8px}
-.ghGoalFlash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#071018b8;z-index:20}
-.ghGoalFlash.hidden{display:none}.ghGoalFlash strong{font-size:34px;color:var(--gold);letter-spacing:.08em}.ghGoalFlash span{font-size:10px;font-weight:900;margin-top:5px}
-.ghControls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.ghControls .btn{width:100%}
-@media(max-width:430px){.goalHighlightPitch{width:min(100%,292px)}.goalHighlightShell{padding:11px}}
 </style>
 
 </head>
@@ -14861,8 +14826,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.2.0 Scripted Goal Highlights";
- const RELEASE_CANDIDATE_VERSION="1.2.0";
+const BUILD_VERSION="Mini&Me Football Club v1.1.28 Stable Baseline";
+ const RELEASE_CANDIDATE_VERSION="1.1.28";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -21900,218 +21865,6 @@ function weeklyLeaguePlayerDevelopment(){
  clearStrengthCache();
 }
 
-
-const SCRIPTED_GOAL_HIGHLIGHT_VERSION="1.0";
-let GH_STATE=null;
-
-function ghNormaliseResult(r){
- let cup=r.competition==="DOM_CUP"||r.competition==="INT_CLUB";
- return {
-   homeName:cup?r.homeName:(G.clubs[r.a]&&G.clubs[r.a].name)||"Home",
-   awayName:cup?r.awayName:(G.clubs[r.b]&&G.clubs[r.b].name)||"Away",
-   homeKey:cup?r.homeKey:r.a,
-   awayKey:cup?r.awayKey:r.b,
-   hg:Number(r.ga)||0,ag:Number(r.gb)||0,
-   perfA:Array.isArray(r.perfA)?r.perfA:[],
-   perfB:Array.isArray(r.perfB)?r.perfB:[]
- };
-}
-function ghGoalEvents(r){
- let n=ghNormaliseResult(r),events=[];
- function add(perf,side){
-   perf.forEach(p=>{
-     let goals=Number(p&&p.goals)||0,mins=Array.isArray(p&&p.goalMinutes)?p.goalMinutes:[];
-     for(let i=0;i<goals;i++){
-       let minute=mins[i]||Math.max(3,Math.min(89,8+Math.floor(intelHash("GHMIN|"+G.season+"|"+G.week+"|"+side+"|"+p.name+"|"+i)*79)));
-       events.push({side,player:p.name||"Goal scorer",minute:Number(minute)||1});
-     }
-   });
- }
- add(n.perfA,"home");add(n.perfB,"away");
- events.sort((a,b)=>a.minute-b.minute);
- events.forEach((e,i)=>e.template=ghTemplateFor(e,i,n));
- return events;
-}
-function ghTemplateFor(e,i,n){
- let templates=["THROUGH_BALL","BREAKAWAY","CUTBACK","CROSS_HEADER","CORNER_HEADER","FREE_KICK","PENALTY","LONG_RANGE"];
- let seed="GHTEMPLATE|"+G.season+"|"+G.week+"|"+e.minute+"|"+e.player+"|"+i+"|"+n.homeName+"|"+n.awayName;
- return templates[Math.floor(intelHash(seed)*templates.length)];
-}
-function ghTemplateLabel(t){
- return {
-   THROUGH_BALL:"THROUGH BALL",
-   BREAKAWAY:"BREAKAWAY",
-   CUTBACK:"WINGER CUTBACK",
-   CROSS_HEADER:"CROSS & HEADER",
-   CORNER_HEADER:"CORNER",
-   FREE_KICK:"DIRECT FREE KICK",
-   PENALTY:"PENALTY",
-   LONG_RANGE:"LONG-RANGE STRIKE"
- }[t]||"GOAL";
-}
-function ghPlayersHtml(){
- let pts=[
-   ["home",50,88],["home",25,73],["home",50,70],["home",75,73],["home",25,55],["home",50,52],["home",75,55],["home",25,31],["home",50,27],["home",75,31],
-   ["away",50,12],["away",25,27],["away",50,30],["away",75,27],["away",25,45],["away",50,48],["away",75,45],["away",25,69],["away",50,73],["away",75,69]
- ];
- return pts.map((p,i)=>'<span class="ghPlayer '+p[0]+'" data-ghp="'+i+'" style="left:'+p[1]+'%;top:'+p[2]+'%"></span>').join("");
-}
-function ghCrest(key,name){
- try{return resultTeamCrestHtml(key,name,28)}catch(e){return resultGenericCrestHtml(name,28)}
-}
-function ghShell(r){
- let n=ghNormaliseResult(r);
- return '<div id="goalHighlightModal" class="goalHighlightModal"><div class="goalHighlightShell">'+
-   '<div class="goalHighlightTop"><div class="goalHighlightTeam">'+ghCrest(n.homeKey,n.homeName)+'<span>'+n.homeName+'</span></div>'+
-   '<div class="goalHighlightScore"><span id="ghHome">0</span> – <span id="ghAway">0</span><small id="ghMinute">0′</small></div>'+
-   '<div class="goalHighlightTeam away"><span>'+n.awayName+'</span>'+ghCrest(n.awayKey,n.awayName)+'</div></div>'+
-   '<div id="ghTemplateTag" class="ghTemplateTag">MATCH GOAL HIGHLIGHTS</div>'+
-   '<div id="ghPitch" class="goalHighlightPitch"><div class="ghBox top"></div><div class="ghBox bottom"></div><div class="ghSix top"></div><div class="ghSix bottom"></div><div class="ghGoal top"></div><div class="ghGoal bottom"></div>'+
-   ghPlayersHtml()+'<span id="ghBall" class="ghBall" style="left:50%;top:50%"></span>'+
-   '<div id="ghGoalFlash" class="ghGoalFlash hidden"><strong>GOAL</strong><span id="ghScorer"></span></div></div>'+
-   '<div class="ghBanner"><b id="ghBannerTitle">Goal Highlights</b><span id="ghBannerSub">Only the decisive goal sequences are replayed.</span></div>'+
-   '<div class="ghControls"><button class="btn" data-gh-exit="1">EXIT TO RESULT</button><button class="btn primary" data-gh-next="1">NEXT GOAL</button></div>'+
-   '</div></div>';
-}
-function ghEl(i){return document.querySelector('[data-ghp="'+i+'"]')}
-function ghSetPlayer(i,x,y,scorer=false){
- let el=ghEl(i);if(!el)return;
- el.style.left=x+"%";el.style.top=y+"%";
- el.classList.toggle("scorer",!!scorer);
-}
-function ghBall(x,y){let b=document.getElementById("ghBall");if(b){b.style.left=x+"%";b.style.top=y+"%"}}
-function ghReset(){
- let base=[
-   [50,88],[25,73],[50,70],[75,73],[25,55],[50,52],[75,55],[25,31],[50,27],[75,31],
-   [50,12],[25,27],[50,30],[75,27],[25,45],[50,48],[75,45],[25,69],[50,73],[75,69]
- ];
- base.forEach((p,i)=>ghSetPlayer(i,p[0],p[1],false));ghBall(50,50);
-}
-function ghIdx(side,role){
- let home=side==="home";
- let map={GK:home?0:10,LEFT:home?7:17,CENTRE:home?8:18,RIGHT:home?9:19,MID:home?5:15,WIDE_L:home?7:17,WIDE_R:home?9:19};
- return map[role];
-}
-function ghOppIdx(side,role){return ghIdx(side==="home"?"away":"home",role)}
-function ghMove(el,x,y,duration){
- return new Promise(resolve=>{
-   if(!el){resolve();return}
-   let sx=parseFloat(el.style.left)||50,sy=parseFloat(el.style.top)||50,start=performance.now();
-   function tick(now){
-     let t=Math.min(1,(now-start)/duration),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-     el.style.left=(sx+(x-sx)*e)+"%";el.style.top=(sy+(y-sy)*e)+"%";
-     if(t<1)requestAnimationFrame(tick);else resolve();
-   }requestAnimationFrame(tick);
- });
-}
-function ghMoveBall(x,y,duration){return ghMove(document.getElementById("ghBall"),x,y,duration)}
-function ghMovePlayer(i,x,y,duration){return ghMove(ghEl(i),x,y,duration)}
-function ghGoalTarget(side){return {x:50,y:side==="home"?0:100}}
-function ghAttackY(side,yHome){return side==="home"?yHome:100-yHome}
-async function ghScript(event){
- let side=event.side,t=event.template,scorer=ghIdx(side,"CENTRE"),gk=ghOppIdx(side,"GK"),goal=ghGoalTarget(side);
- ghReset();
- let tag=document.getElementById("ghTemplateTag"),title=document.getElementById("ghBannerTitle"),sub=document.getElementById("ghBannerSub");
- if(tag)tag.textContent=ghTemplateLabel(t)+" · "+event.minute+"′";
- if(title)title.textContent=event.player;
- if(sub)sub.textContent=(side==="home"?"HOME":"AWAY")+" ATTACK · "+ghTemplateLabel(t);
- ghSetPlayer(scorer,parseFloat(ghEl(scorer).style.left),parseFloat(ghEl(scorer).style.top),true);
-
- if(t==="THROUGH_BALL"){
-   let mid=ghIdx(side,"MID");
-   await Promise.all([ghMovePlayer(mid,48,ghAttackY(side,47),700),ghMovePlayer(scorer,50,ghAttackY(side,28),900)]);
-   await ghMoveBall(48,ghAttackY(side,47),250);
-   await ghMoveBall(50,ghAttackY(side,24),650);
-   await ghMovePlayer(gk,50,ghAttackY(side,8),500);
- }
- else if(t==="BREAKAWAY"){
-   await ghMovePlayer(scorer,50,ghAttackY(side,34),700);
-   ghBall(50,ghAttackY(side,36));
-   await Promise.all([ghMovePlayer(scorer,50,ghAttackY(side,14),1250),ghMovePlayer(gk,50,ghAttackY(side,7),650),ghMoveBall(50,ghAttackY(side,15),1250)]);
- }
- else if(t==="CUTBACK"){
-   let wide=ghIdx(side,"WIDE_R");
-   await Promise.all([ghMovePlayer(wide,82,ghAttackY(side,18),1000),ghMovePlayer(scorer,50,ghAttackY(side,21),950)]);
-   await ghMoveBall(82,ghAttackY(side,18),300);
-   await ghMoveBall(50,ghAttackY(side,20),650);
- }
- else if(t==="CROSS_HEADER"){
-   let wide=ghIdx(side,"WIDE_L");
-   await Promise.all([ghMovePlayer(wide,18,ghAttackY(side,22),900),ghMovePlayer(scorer,52,ghAttackY(side,14),1100)]);
-   await ghMoveBall(18,ghAttackY(side,22),300);
-   await ghMoveBall(52,ghAttackY(side,13),900);
- }
- else if(t==="CORNER_HEADER"){
-   let wide=ghIdx(side,"WIDE_L");
-   ghSetPlayer(wide,5,ghAttackY(side,4),false);ghBall(5,ghAttackY(side,4));
-   ghSetPlayer(scorer,52,ghAttackY(side,13),true);
-   [ghOppIdx(side,"LEFT"),ghOppIdx(side,"CENTRE"),ghOppIdx(side,"RIGHT")].forEach((i,k)=>ghSetPlayer(i,38+k*12,ghAttackY(side,12+k%2*5),false));
-   await new Promise(r=>setTimeout(r,450));
-   await ghMoveBall(52,ghAttackY(side,12),1100);
- }
- else if(t==="FREE_KICK"){
-   ghSetPlayer(scorer,50,ghAttackY(side,25),true);ghBall(50,ghAttackY(side,25));
-   [ghOppIdx(side,"LEFT"),ghOppIdx(side,"CENTRE"),ghOppIdx(side,"RIGHT")].forEach((i,k)=>ghSetPlayer(i,43+k*7,ghAttackY(side,15),false));
-   await new Promise(r=>setTimeout(r,500));
- }
- else if(t==="PENALTY"){
-   ghSetPlayer(scorer,50,ghAttackY(side,12),true);ghBall(50,ghAttackY(side,12));
-   ghSetPlayer(gk,50,ghAttackY(side,2),false);
-   await new Promise(r=>setTimeout(r,650));
- }
- else if(t==="LONG_RANGE"){
-   ghSetPlayer(scorer,52,ghAttackY(side,32),true);ghBall(52,ghAttackY(side,32));
-   await ghMovePlayer(gk,50,ghAttackY(side,3),350);
-   await new Promise(r=>setTimeout(r,400));
- }
-
- // Final strike: clear and fast.
- await ghMoveBall(goal.x,goal.y,420);
- let flash=document.getElementById("ghGoalFlash"),sc=document.getElementById("ghScorer");
- if(sc)sc.textContent=event.player+" · "+event.minute+"′";
- if(flash)flash.classList.remove("hidden");
- if(side==="home")GH_STATE.home++;else GH_STATE.away++;
- let h=document.getElementById("ghHome"),a=document.getElementById("ghAway");
- if(h)h.textContent=GH_STATE.home;if(a)a.textContent=GH_STATE.away;
- await new Promise(r=>setTimeout(r,1350));
- if(flash)flash.classList.add("hidden");
- await new Promise(r=>setTimeout(r,350));
-}
-async function ghPlayCurrent(){
- if(!GH_STATE||GH_STATE.playing)return;
- if(GH_STATE.index>=GH_STATE.events.length){ghFinish();return}
- GH_STATE.playing=true;
- let e=GH_STATE.events[GH_STATE.index++];
- let m=document.getElementById("ghMinute");if(m)m.textContent=e.minute+"′";
- await ghScript(e);
- GH_STATE.playing=false;
- let next=document.querySelector("[data-gh-next]");
- if(next)next.textContent=GH_STATE.index>=GH_STATE.events.length?"VIEW RESULT":"NEXT GOAL";
-}
-function ghFinish(){
- if(!GH_STATE)return;
- let r=GH_STATE.result,w=GH_STATE.playedWeek;
- let modal=document.getElementById("goalHighlightModal");if(modal)modal.remove();
- GH_STATE=null;
- window.MM_WATCH_GOALS_BYPASS=true;
- try{showMatchResult(r,w)}finally{window.MM_WATCH_GOALS_BYPASS=false}
-}
-function scriptedGoalHighlightsOpen(r,playedWeek){
- let events=ghGoalEvents(r);
- if(!events.length){
-   document.body.insertAdjacentHTML("beforeend",ghShell(r));
-   GH_STATE={result:r,playedWeek,events:[],index:0,home:0,away:0,playing:false};
-   let title=document.getElementById("ghBannerTitle"),sub=document.getElementById("ghBannerSub"),next=document.querySelector("[data-gh-next]");
-   if(title)title.textContent="NO GOALS";
-   if(sub)sub.textContent="This match finished without a goal highlight.";
-   if(next)next.textContent="VIEW RESULT";
-   return;
- }
- GH_STATE={result:r,playedWeek,events,index:0,home:0,away:0,playing:false};
- document.body.insertAdjacentHTML("beforeend",ghShell(r));
- setTimeout(ghPlayCurrent,350);
-}
-
 function advance(){
  if(G&&G.nationalGM&&G.nationalGM.pendingOffer){showNationalGMDecisionGate();return;}
  recoverMedicalConditions();
@@ -22204,11 +21957,6 @@ function resultScorerSummary(perf){
 }
 
 function showMatchResult(r,playedWeek){
- if(window.MM_WATCH_GOALS_PENDING&&!window.MM_WATCH_GOALS_BYPASS){
-   window.MM_WATCH_GOALS_PENDING=false;
-   scriptedGoalHighlightsOpen(r,playedWeek);
-   return;
- }
  let isCup=r.competition==="DOM_CUP",isIntl=r.competition==="INT_CLUB",isKnockout=isCup||isIntl;
  let userHome=isKnockout?!!r.userHome:r.a===G.club,userGoals=userHome?r.ga:r.gb,oppGoals=userHome?r.gb:r.ga,state=isKnockout?(r.userWon?"WIN":"LOSS"):(userGoals>oppGoals?"WIN":userGoals<oppGoals?"LOSS":"DRAW");
 
@@ -28173,8 +27921,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
-  ["v1.2.0","Scripted Goal Highlights","EXPERIMENTAL / WATCH GAME","New Watch Game experiment branched from the v1.1.28 stable baseline. The authoritative match engine is untouched. Watch Goals first resolves the normal match result, then replays only the goal-scoring sequences as controlled 5–8 second highlights. Eight deterministic visual templates are available: through ball, breakaway, winger cutback, cross and header, corner header, direct free kick, penalty and long-range strike. Team names, crests, home/away colours, scorer and minute remain visible, and the normal Match Complete screen appears after the final goal highlight. A 0–0 match simply reports that there are no goal highlights and proceeds to the result."],
-  ["v1.1.28","Stable Player Legacy","STABLE / PRE-WATCH BASELINE","Established the clean stable baseline before the new scripted Watch Game experiment. Player Story now incorporates national-team career achievements, including caps, goals, first World Cup and World Cup championship where recorded. Career Honours now combines individual awards with Premier Division championships, National Cup wins, Champions Tournament wins and national-team achievements. Removed the obsolete Contract Exit / Release Player panel from normal GM Actions because the expanded transfer world provides a buyer pathway. Authoritative gameplay, match, world and international engines remain frozen at v1.0.0."],
+  ["v1.1.28","Stable Baseline","STABLE / BASELINE","Established the clean stable baseline before the new scripted Watch Game experiment. Player Story now incorporates national-team career achievements, including caps, goals, first World Cup and World Cup championship where recorded. Career Honours now combines individual awards with Premier Division championships, National Cup wins, Champions Tournament wins and national-team achievements. Removed the obsolete Contract Exit / Release Player panel from normal GM Actions because the expanded transfer world provides a buyer pathway. Authoritative gameplay, match, world and international engines remain frozen at v1.0.0."],
   ["v1.1.27","Stadium Attendance Calibration","PRE-PRODUCTION / QA FIX","Corrected the stadium attendance regression introduced by the new supporter-demand model. Repeated crowds such as 20,570 at a 60,500-seat ground were caused by the old 34% capacity hard floor being hit whenever calculated demand fell too low. Attendance is now anchored to persistent supporter demand and the club's recent average, with opponent stature, rivalry pressure and match importance adjusting the crowd. Major rivalry and high-stakes fixtures now receive realistic demand floors instead of collapsing to the old minimum. Also removed the duplicate capacity badge from the Stadium detail header to reduce repeated data."],
   ["v1.1.26","Stadium Facility Alignment","PRE-PRODUCTION / QA FIX","Rebuilt the Stadium card to use the same facility-card structure and vertical rhythm as Training, Youth, Scouting and Medical. Removed the oversized Ground block and excess spacing. Stadium now uses the shared facility header, five condition pips, compact status panel, standard action button and footer while preserving access to the full stadium management view."],
   ["v1.1.25","Stadium Facility Card Fix","PRE-PRODUCTION / QA FIX","Corrected the condensed Stadium card introduced in v1.1.24. The stadium now uses the same native facility-card structure and typography as Training, Youth, Scouting and Medical rather than rendering as an oversized link-style block. Removed the emoji-style presentation, restored normal game colours and spacing, and retained a dedicated Open Stadium action for the full stadium management view."],
@@ -28265,19 +28012,19 @@ function home(){
  if(intFixture){
   let hk=intFixture.home,ak=intFixture.away,ht=internationalTeamRecord(hk),at=internationalTeamRecord(ak),meta=INTL_CLUB_ROUNDS[G.intClub.currentRound];
   let homeLink=fixtureClubIdentityHtml(ht&&ht.clubId,ht?ht.name:'Unknown','fixtureClubLink internationalFixtureName'),awayLink=fixtureClubIdentityHtml(at&&at.clubId,at?at.name:'Unknown','fixtureClubLink internationalFixtureName');
-  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeContinue goalWatchActions"><div class="btn primary homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL</div><div class="btn goalWatchAction" data-watch-goals="1" role="button" tabindex="0">WATCH GOALS</div></div></div>';
+  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL · '+meta.name.toUpperCase()+'</div></div></div>';
   return fixture;
  }
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
   let homeLink=fixtureClubIdentityHtml(homeT.clubId,homeT.name,homeT.regional?'regionalFixtureName':'fixtureClubLink'),awayLink=fixtureClubIdentityHtml(awayT.clubId,awayT.name,awayT.regional?'regionalFixtureName':'fixtureClubLink');
-  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeContinue goalWatchActions"><div class="btn primary homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP</div><div class="btn goalWatchAction" data-watch-goals="1" role="button" tabindex="0">WATCH GOALS</div></div></div>';
+  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
   return fixture;
  }
  let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club))||[G.club,nextOpp()];let homeId=pair[0],awayId=pair[1],homeClub=G.clubs[homeId],awayClub=G.clubs[awayId],opp=G.clubs[homeId===G.club?awayId:homeId];
  let homePos=tab.findIndex(x=>x.id===homeId)+1,awayPos=tab.findIndex(x=>x.id===awayId)+1,info=leagueInfo(),h2h=headToHead(G.club,opp.id);
- let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeContinue goalWatchActions"><div class="btn primary homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY GAME</div><div class="btn goalWatchAction" data-watch-goals="1" role="button" tabindex="0">WATCH GOALS</div></div></div>';
+ let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
  return fixture;
 }
 
@@ -29896,13 +29643,11 @@ let cp=e.target.closest("[data-club]");if(cp){
  showCareerConfirmation();
  return;
 }
-let simInternational=e.target.closest("[data-sim-international-week]");if(simInternational){e.preventDefault();simulatePendingInternationalWeek();return} let watchGoals=e.target.closest("[data-watch-goals]");if(watchGoals){e.preventDefault();window.MM_WATCH_GOALS_PENDING=true;advance();return} let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
+let simInternational=e.target.closest("[data-sim-international-week]");if(simInternational){e.preventDefault();simulatePendingInternationalWeek();return} let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
 let nav=e.target.closest("#nav [data-page]");if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
 let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
 let worldClub=e.target.closest("[data-world-club]");if(worldClub){showClubProfile(Number(worldClub.dataset.worldClub));return}
 let reviewPlayer=e.target.closest("[data-review-player]");if(reviewPlayer){showPlayer(reviewPlayer.dataset.reviewPlayer);return}
-let ghNext=e.target.closest("[data-gh-next]");if(ghNext){e.preventDefault();if(GH_STATE&&GH_STATE.index>=GH_STATE.events.length&&!GH_STATE.playing)ghFinish();else ghPlayCurrent();return}
-let ghExit=e.target.closest("[data-gh-exit]");if(ghExit){e.preventDefault();ghFinish();return}
 let playerProfileTab=e.target.closest("[data-player-profile-tab]");if(playerProfileTab){showPlayer(playerProfileTab.dataset.playerProfileTab,playerProfileTab.dataset.tab);return}
 let pr=e.target.closest("[data-player]");if(pr){showPlayer(pr.dataset.player);return}let buyBtn=e.target.closest("[data-buy]");if(buyBtn){buy(buyBtn.dataset.buy);return}
 let listBtn=e.target.closest("[data-list-player]");if(listBtn){toggleListed(listBtn.dataset.listPlayer);return}
