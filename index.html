@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.4.6 Pre-Production</title>
+<title>Mini&Me Football Club v1.5.0 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14862,6 +14862,93 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 .watchBall{
   box-shadow:0 0 8px rgba(255,255,255,.72)!important;
 }
+
+/* v1.5.0 Mature Watch Game pitch + keeper refinement */
+.watchPitchCard{
+  background:#0a1218!important;
+  padding:14px 12px 16px!important;
+}
+.watchPitch{
+  width:min(100%,300px)!important;
+  max-height:40dvh!important;
+  border:2px solid rgba(241,247,242,.62)!important;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.022) 50%,transparent 50%),
+    linear-gradient(#1b4b32,#163d2b)!important;
+  background-size:12.5% 100%,100% 100%!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.28);
+}
+.watchCentreSpot{
+  position:absolute;left:50%;top:50%;
+  width:4px;height:4px;border-radius:50%;
+  background:rgba(255,255,255,.72);
+  transform:translate(-50%,-50%);
+}
+.watchSixYard{
+  position:absolute;left:50%;
+  width:24%;height:7%;
+  border:2px solid rgba(255,255,255,.45);
+  transform:translateX(-50%);
+}
+.watchSixYard.top{top:-2px}
+.watchSixYard.bottom{bottom:-2px}
+.watchPenaltySpot{
+  position:absolute;left:50%;
+  width:4px;height:4px;border-radius:50%;
+  background:rgba(255,255,255,.65);
+  transform:translateX(-50%);
+}
+.watchPenaltySpot.top{top:11.5%}
+.watchPenaltySpot.bottom{bottom:11.5%}
+.watchPenaltyArc{
+  position:absolute;left:50%;
+  width:22%;height:9%;
+  border:2px solid rgba(255,255,255,.42);
+  border-radius:50%;
+  transform:translateX(-50%);
+}
+.watchPenaltyArc.top{top:10%;clip-path:inset(48% 0 0 0)}
+.watchPenaltyArc.bottom{bottom:10%;clip-path:inset(0 0 48% 0)}
+.watchCorner{
+  position:absolute;width:12px;height:12px;
+  border:2px solid rgba(255,255,255,.40);
+  border-radius:50%;
+}
+.watchCorner.tl{left:-7px;top:-7px}
+.watchCorner.tr{right:-7px;top:-7px}
+.watchCorner.bl{left:-7px;bottom:-7px}
+.watchCorner.br{right:-7px;bottom:-7px}
+.watchGoal{
+  width:28%!important;
+  height:6%!important;
+  border-color:rgba(255,255,255,.9)!important;
+  background:rgba(255,255,255,.015);
+}
+.watchNet{
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,transparent 1px 6px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.18) 0 1px,transparent 1px 6px)!important;
+}
+.watchPlayer[data-index="0"]{
+  box-shadow:0 0 0 2px rgba(255,255,255,.12)!important;
+}
+.watchEvent{
+  background:#0f1921!important;
+  border-color:rgba(255,255,255,.09)!important;
+  min-height:36px!important;
+}
+.watchLog{
+  background:#0a1219!important;
+}
+.watchControls{
+  background:linear-gradient(transparent,#060b10 28%)!important;
+}
+@media(max-width:430px){
+  .watchPitch{
+    width:min(100%,278px)!important;
+    max-height:38dvh!important;
+  }
+}
 </style>
 
 </head>
@@ -15110,8 +15197,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.4.6 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.4.6";
+const BUILD_VERSION="Mini&Me Football Club v1.5.0 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.5.0";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22342,14 +22429,17 @@ function watchMatchShellHtml(r){
     '<div class="watchPitch" id="watchPitch">'+
       '<div class="watchGoal top"><div class="watchNet"></div></div>'+
       '<div class="watchGoal bottom"><div class="watchNet"></div></div>'+
-      '<div class="watchMidLine"></div><div class="watchCentreCircle"></div>'+
+      '<div class="watchMidLine"></div><div class="watchCentreCircle"></div><div class="watchCentreSpot"></div>'+
       '<div class="watchPenaltyBox top"></div><div class="watchPenaltyBox bottom"></div>'+
+      '<div class="watchSixYard top"></div><div class="watchSixYard bottom"></div>'+
+      '<div class="watchPenaltySpot top"></div><div class="watchPenaltySpot bottom"></div>'+
+      '<div class="watchPenaltyArc top"></div><div class="watchPenaltyArc bottom"></div>'+
+      '<div class="watchCorner tl"></div><div class="watchCorner tr"></div><div class="watchCorner bl"></div><div class="watchCorner br"></div>'+
       watchMatchPlayerMarkers("home")+watchMatchPlayerMarkers("away")+
       '<span id="wmBall" class="watchBall"></span>'+
       '<div id="wmGoalFlash" class="watchGoalFlash hidden"><strong>GOAL</strong><span id="wmGoalScorer"></span></div>'+
     '</div>'+
     '<div id="wmEvent" class="watchEvent">Kick-off</div>'+
-    '<div class="watchTacticalStates"><span id="wmHomeState">BUILD UP</span><i>TEAM SHAPE</i><span id="wmAwayState">MID BLOCK</span></div>'+
    '</div>'+
    '<div id="wmLog" class="watchLog"></div>'+
    '<div class="watchControls">'+
@@ -23177,6 +23267,11 @@ function watchUpdatePlayers(dt){
    p.y+=p.vy*dt;
    p.x=Math.max(4,Math.min(96,p.x));
    p.y=Math.max(2,Math.min(98,p.y));
+   if(p.role==="GK"){
+     if(p.side==="away")p.y=Math.max(3,Math.min(19,p.y));
+     else p.y=Math.max(81,Math.min(97,p.y));
+     p.x=Math.max(42,Math.min(58,p.x));
+   }
  });
 }
 function watchWorldUpdateDom(){
@@ -23192,9 +23287,7 @@ function watchWorldUpdateDom(){
  });
  let b=document.getElementById("wmBall");
  if(b){b.style.left=WATCH_WORLD.ball.x+"%";b.style.top=WATCH_WORLD.ball.y+"%";}
- let hs=document.getElementById("wmHomeState"),as=document.getElementById("wmAwayState");
- if(hs)hs.textContent=String(WATCH_WORLD.tacticalStateHome||"").replaceAll("_"," ");
- if(as)as.textContent=String(WATCH_WORLD.tacticalStateAway||"").replaceAll("_"," ");
+
 }
 function watchGiveBall(player,incomingState="PASS"){
  if(!player)return;
@@ -23385,12 +23478,21 @@ function watchGoalSideForAttacker(side){
 function watchKeeperSetPosition(keeper,ballX,ballY,attackingSide){
  if(!keeper)return;
  let defendingSide=keeper.side,
-     goalY=defendingSide==="home"?94:6,
-     ballNearGoal=defendingSide==="home"?(100-ballY):ballY,
-     centralPull=(ballX-50)*.18,
-     stepOut=Math.max(0,Math.min(10,(70-ballNearGoal)*.16));
- keeper.tx=Math.max(42,Math.min(58,50+centralPull));
- keeper.ty=defendingSide==="home"?goalY-stepOut:goalY+stepOut;
+     topKeeper=defendingSide==="away",
+     goalY=topKeeper?6:94,
+     ballDepth=topKeeper?ballY:(100-ballY),
+     centralPull=(ballX-50)*.11,
+     stepOut=0;
+
+ // Keeper stays inside a believable zone: normally 6-yard area,
+ // stepping toward penalty spot only when the ball is genuinely close.
+ if(ballDepth<22)stepOut=Math.min(10,(22-ballDepth)*.42);
+ else if(ballDepth<38)stepOut=Math.min(5,(38-ballDepth)*.18);
+
+ keeper.tx=Math.max(44,Math.min(56,50+centralPull));
+ keeper.ty=topKeeper
+   ?Math.max(4,Math.min(18,goalY+stepOut))
+   :Math.max(82,Math.min(96,goalY-stepOut));
 }
 function watchUpdateKeeperPositioning(){
  ["home","away"].forEach(side=>{
@@ -29683,6 +29785,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.5.0","Mature Watch Game","PRE-PRODUCTION / VIEWER PRESENTATION","Advanced Watch Game into its mature presentation phase without changing any authoritative match or competition engine. Goalkeeper behaviour is now constrained to realistic keeper zones, with continuous positioning clamped inside the penalty-area region and only limited stepping toward the penalty spot when the ball is genuinely close. The 2D pitch has been rebuilt with clearer grass striping, centre spot, six-yard boxes, penalty spots, penalty arcs, corner arcs, stronger touch lines and improved goal/net presentation. The temporary tactical-state QA strip has been removed from the normal viewer so the screen reads as a finished match presentation rather than a development overlay."],
   ["v1.4.6","Movement & Ball Physics","PRE-PRODUCTION / VIEWER REFINEMENT","Polished movement and ball behaviour in Watch Game without changing the authoritative match engine. Players now use smoother acceleration, braking and turn-rate limits, maintain better separation from teammates and opponents, and slow naturally as they approach tactical targets. Pass reception includes a small role-based first touch before the carrier can make another decision. Ball movement now uses action-specific pace, constant-speed travel with moving-target lead, curved crosses and long switches, flatter/faster shots, and improved save trajectories. Goalkeepers react toward the shot target before contact. Some saves can visually parry into a short rebound before the keeper or a defender recovers possession; these rebounds remain presentation-only and cannot alter the predetermined match result."],
   ["v1.4.5","Event Integration","PRE-PRODUCTION / VIEWER REFINEMENT","Improved how predetermined match outcomes blend into the continuous 2D visual simulation without altering the authoritative match engine. Directed events now begin from the current open-play positions rather than visibly taking over from a fixed pattern. A creator and actual finisher are selected from the existing shape, defenders recover toward the penalty area, and the goalkeeper continuously adjusts position to the ball before the final action. Goal sequences now progress through creator support, finishing run, final pass/cross and shot; saves resolve toward the goalkeeper's current position; misses leave play and restart through the goalkeeper. After each outcome, possession and tactical transition resume naturally instead of snapping directly back into midfield play."],
   ["v1.4.4","Player Decision Layer","PRE-PRODUCTION / VIEWER REFINEMENT","Expanded Watch Game's visual football intelligence without changing the authoritative match engine. Individual visual roles now make different decisions: centre backs favour circulation and genuine progressive lanes, fullbacks can carry, overlap, switch or cross, holding midfielders protect structure and switch play, advanced midfielders look for carries and through balls, wingers favour width, overlaps and crosses, strikers link play or run beyond, and goalkeepers vary short and long distribution. The visual ball model now distinguishes short passes, long switches, through balls and crosses with different pace. Moving receivers are led into space, risky open-play passes can be visually intercepted, and saves/misses can restart with goalkeeper distribution rather than immediately falling back into the same midfield pattern."],
