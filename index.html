@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.14 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.15 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14502,8 +14502,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.14 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.14";
+const BUILD_VERSION="Mini&Me Football Club v1.1.15 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.15";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -16420,23 +16420,89 @@ function worldCupDrawPots(seeded){
    seeded.slice(24,32)
  ];
 }
+
+function worldCupConfederationLimit(confed){
+ // Traditional 32-team World Cup draw principle:
+ // no more than one team from each confederation in a group,
+ // except UEFA which may have up to two because of its larger allocation.
+ return confed==="UEFA"?2:1;
+}
+function worldCupGroupCanAcceptNation(group,nationId){
+ let conf=nationConfederation(nationId),
+     count=(group.teams||[]).filter(id=>nationConfederation(id)===conf).length;
+ return count<worldCupConfederationLimit(conf);
+}
+function shuffledCopy(arr){
+ let a=arr.slice();
+ for(let i=a.length-1;i>0;i--){
+   let j=Math.floor(gameRandom()*(i+1));
+   [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+function drawWorldCupGroupsWithConfederationRules(rawPots){
+ let groups=Array.from({length:8},(_,i)=>({
+   id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false
+ }));
+
+ // Assign one complete pot at a time. Backtracking is deliberate here:
+ // a locally valid placement in Pot 2 can otherwise make Pot 3 or Pot 4
+ // impossible even when a valid overall draw exists.
+ function assignPot(potIndex){
+   if(potIndex>=rawPots.length)return true;
+
+   let nations=shuffledCopy(rawPots[potIndex]);
+
+   function placeNation(index,usedGroups){
+     if(index>=nations.length)return assignPot(potIndex+1);
+
+     let nation=nations[index],
+         candidateGroups=shuffledCopy(groups.map((_,i)=>i))
+           .filter(gi=>!usedGroups.has(gi)&&worldCupGroupCanAcceptNation(groups[gi],nation));
+
+     for(let gi of candidateGroups){
+       groups[gi].teams.push(nation);
+       usedGroups.add(gi);
+
+       if(placeNation(index+1,usedGroups))return true;
+
+       usedGroups.delete(gi);
+       groups[gi].teams.pop();
+     }
+     return false;
+   }
+
+   return placeNation(0,new Set());
+ }
+
+ if(!assignPot(0))return null;
+ return groups;
+}
+function validateWorldCupConfederationDraw(groups){
+ return (groups||[]).every(g=>{
+   let counts={};
+   (g.teams||[]).forEach(id=>{
+     let c=nationConfederation(id);
+     counts[c]=(counts[c]||0)+1;
+   });
+   return Object.entries(counts).every(([c,n])=>n<=worldCupConfederationLimit(c));
+ });
+}
+
 function buildWorldCupTournament(){
  // Tournament state is created only after qualification has completed for this cycle.
- // One nation from each seeded pot is drawn into every group.
+ // Four seeded pots are retained, with confederation separation layered over the draw.
  ensureInternationalNationalState();
  let q=ensureWorldCupQualification(),seeded=seededWorldCupTeams();
  if(seeded.length<32)return null;
 
  let rawPots=worldCupDrawPots(seeded),
-     pots=rawPots.map(shuffleWorldCupPot),
-     groups=Array.from({length:8},(_,i)=>({
-       id:String.fromCharCode(65+i),teams:[],table:{},matches:[],complete:false
-     }));
+     groups=drawWorldCupGroupsWithConfederationRules(rawPots);
 
- // Every group receives exactly one Pot 1, Pot 2, Pot 3 and Pot 4 nation.
- pots.forEach(pot=>{
-   pot.forEach((id,gi)=>groups[gi].teams.push(id));
- });
+ if(!groups||!validateWorldCupConfederationDraw(groups)){
+   console.error("World Cup draw failed confederation validation.");
+   return null;
+ }
 
  groups.forEach(g=>{
    g.teams.forEach(id=>g.table[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
@@ -16449,8 +16515,13 @@ function buildWorldCupTournament(){
 
  let t={
    version:WORLD_CUP_FINALS_VERSION,
-   drawVersion:"1.1.2",
-   drawMethod:"FOUR_POT_ANCHORED_STRENGTH",
+   drawVersion:"1.1.15",
+   drawMethod:"FOUR_POT_CONFEDERATION_SEPARATION",
+   drawRules:{
+     pots:4,
+     onePerPot:true,
+     confederationCaps:{UEFA:2,AFC:1,CAF:1,CONCACAF:1,CONMEBOL:1,OFC:1}
+   },
    drawPots:rawPots.map(p=>p.slice()),
    cycle:q.cycle,
    season:G.season,
@@ -16482,7 +16553,9 @@ function ensureWorldCupTournament(){
  // v1.1.2 save migration: if the World Cup draw exists but no group match
  // has been played, safely rebuild it under the anchored four-pot system.
  // Never redraw a tournament once competition has begun.
- if(t&&Number(t.season)===Number(G.season)&&t.stage==="GROUP"&&!worldCupTournamentHasPlayedMatches(t)&&t.drawMethod!=="FOUR_POT_ANCHORED_STRENGTH"){
+ if(t&&Number(t.season)===Number(G.season)&&t.stage==="GROUP"&&!worldCupTournamentHasPlayedMatches(t)&&t.drawMethod!=="FOUR_POT_CONFEDERATION_SEPARATION"){
+   // v1.1.15 migration: redraw only an untouched World Cup. Once any
+   // group match has been played, the existing tournament is immutable.
    t=buildWorldCupTournament();
  }
  return t||null;
@@ -26854,6 +26927,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.15","World Cup Confederation Draw Integrity","PRE-PRODUCTION / QA FIX","Added confederation separation to the 32-team World Cup draw while preserving the four seeded strength pots. AFC, CAF, CONCACAF, CONMEBOL and OFC are limited to one nation per group; UEFA may have up to two where required by its larger allocation. The draw uses backtracking rather than a simple shuffle so valid later-pot placements are protected. Existing World Cups are redrawn automatically only when no group match has yet been played."],
   ["v1.1.14","International Link Routing","PRE-PRODUCTION / QA FIX","Removed remaining legacy navigation paths from the pre-v1.1.11 League-hosted International architecture. View World Cup now routes directly to International > World Cup; Manage Squad routes to International > Squad; and broader national-management shortcuts route to International > Nations. World Cup finals, federation and qualification controls now also explicitly retain the new International workspace rather than falling back to League."],
   ["v1.1.13","International Workspace Split","PRE-PRODUCTION / UX REFACTOR","Separated the International global workspace into four clear destinations: Champions, Nations, Squad and World Cup. Champions retains the Champions Tournament; Nations contains World Cup qualification, federation tables and current national results; Squad isolates national-team selection and confirmation; World Cup contains finals groups, knockout progression and finals results. The former combined Club/National state is migrated automatically and all competition/simulation engines remain unchanged."],
   ["v1.1.12","Home Navigation State Fix","PRE-PRODUCTION / QA FIX","Corrected the v1.1.11 navigation-state regression where the global Home button inherited the last Home workspace such as GM Brief or News. The global Home action now always returns to the true Home Overview and resets its scroll position, including when returning from Club or another primary section. Squad, Market, League and International continue preserving their own working sub-section state so repetitive management workflows are not disrupted."],
