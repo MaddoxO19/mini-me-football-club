@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.25 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.26 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14500,74 +14500,30 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 .stadiumConstruction{margin-top:12px;border:1px solid rgba(226,187,65,.5);border-radius:13px;padding:11px 12px;background:rgba(226,187,65,.055);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center}.stadiumConstruction span{display:block;color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.1em}.stadiumConstruction b{display:block;margin-top:4px;font-size:11px}.stadiumConstruction strong{color:#e6edf2;font-size:9px;text-align:right}.stadiumConstruction small{grid-column:1/-1;color:var(--muted);font-size:8px}.stadiumActions .btn:disabled{opacity:.58;cursor:default}@media(max-width:430px){.stadiumConstruction{grid-template-columns:1fr}.stadiumConstruction strong{text-align:left}}
 
 
-/* v1.1.25 Stadium Facility Card Fix */
-.stadiumCompactCard{
+
+/* v1.1.26 Stadium Facility Alignment */
+.stadiumFacilityNative{
   width:auto!important;
-  text-align:left!important;
-  appearance:none!important;
   display:block!important;
-  color:inherit!important;
-  background:var(--card)!important;
-  border:1px solid var(--line)!important;
 }
-.stadiumCompactCard,
-.stadiumCompactCard *{
-  text-decoration:none!important;
+.stadiumFacilityNative .facilityIcon svg{
+  width:22px;
+  height:22px;
+  display:block;
 }
-.stadiumNativeIcon{
-  color:var(--gold)!important;
-  font-size:18px!important;
-  font-weight:900!important;
+.stadiumFacilityNative .facilityInfo span{
+  white-space:normal;
 }
-.stadiumCompactCard .facilityNameRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-.stadiumCompactCard .facilityNameRow b{
-  color:var(--text)!important;
-}
-.stadiumCompactCard .facilityDesc{
-  color:var(--muted)!important;
-}
-.stadiumCompactCard .facilityStatusNeutral,
-.stadiumCompactCard .facilityStatusWarn{
-  flex:0 0 auto;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:4px 8px;
-  font-size:7px;
-  font-weight:950;
-  letter-spacing:.08em;
-  color:var(--muted);
-}
-.stadiumCompactCard .facilityStatusWarn{
-  color:var(--gold);
-  border-color:rgba(226,187,65,.45);
-}
-.stadiumCompactEffect{
-  margin-top:12px;
-}
-.stadiumCompactEffect .facilityEffectValue{
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.facilityActionButton{
-  width:100%;
-  margin-top:12px;
-  min-height:46px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:#111b25;
-  color:var(--text);
-  font-size:9px;
-  font-weight:950;
+.stadiumConditionBadge{
+  min-width:auto!important;
+  padding:5px 9px!important;
+  font-size:7px!important;
   letter-spacing:.08em;
 }
-.facilityActionButton:active{
-  transform:translateY(1px);
+.stadiumFacilityNative .facilityStatusBox,
+.stadiumFacilityNative .facilityAction,
+.stadiumFacilityNative .facilityCost{
+  margin-top:12px;
 }
 .stadiumDetailModal{
   position:fixed;
@@ -14614,16 +14570,13 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
   margin-bottom:0;
 }
 @media(max-width:430px){
- .stadiumDetailModal{padding:10px}
- .stadiumDetailShell{
-   width:100%;
-   max-height:calc(100dvh - 20px);
-   border-radius:18px;
-   padding:14px 10px 10px;
- }
- .stadiumCompactCard .facilityNameRow{
-   align-items:flex-start;
- }
+  .stadiumDetailModal{padding:10px}
+  .stadiumDetailShell{
+    width:100%;
+    max-height:calc(100dvh - 20px);
+    border-radius:18px;
+    padding:14px 10px 10px;
+  }
 }
 </style>
 
@@ -14873,8 +14826,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.25 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.25";
+const BUILD_VERSION="Mini&Me Football Club v1.1.26 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.26";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -27079,31 +27032,27 @@ function stadiumFacilityCardHtml(clubId=G.club){
  let st=stadiumForClub(clubId);
  if(!st)return"";
  let active=st.activeProject,
-     status=active?"BUILDING":stadiumConditionLabel(st.condition),
-     statusClass=active?"facilityStatusWarn":"facilityStatusNeutral",
-     sub=Number(st.capacity).toLocaleString()+" seats · "+stadiumOwnershipLabel(st),
-     detail=active
-       ?active.label+" · completes "+stadiumProjectCompletionLabel(active)
-       :st.name;
+     condition=stadiumConditionLabel(st.condition),
+     filled=Math.max(1,Math.min(5,Math.round((Number(st.condition)||0)/20))),
+     pips=[1,2,3,4,5].map(i=>'<span class="facilityPip '+(i<=filled?'on':'')+'"></span>').join(""),
+     status=active
+       ?'<div class="facilityStatusBox"><span>PROJECT</span><b>'+active.label+'</b><small>Completes '+stadiumProjectCompletionLabel(active)+'</small></div>'
+       :'<div class="facilityStatusBox"><span>STADIUM STATUS</span><b>'+condition+' · '+Math.round(st.condition)+'/100</b><small>Avg. attendance '+(st.avgAttendance?Number(st.avgAttendance).toLocaleString():'—')+'</small></div>',
+     action='<button class="btn full facilityAction" data-open-stadium="1">'+(active?'VIEW PROJECT':'OPEN STADIUM')+'</button>';
 
- return '<div class="facilityCard stadiumCompactCard">'+
+ return '<div class="facilityCard stadiumFacilityNative">'+
    '<div class="facilityTop">'+
-     '<div class="facilityIcon stadiumNativeIcon">⌂</div>'+
-     '<div class="facilityTopText">'+
-       '<div class="facilityNameRow"><b>Stadium</b><span class="'+statusClass+'">'+status+'</span></div>'+
-       '<div class="facilityDesc">'+sub+'</div>'+
-     '</div>'+
+     '<div class="facilityIcon">'+stadiumIconHtml()+'</div>'+
+     '<div class="facilityInfo"><b>Stadium</b><span>'+st.name+' · '+Number(st.capacity).toLocaleString()+' seats · '+stadiumOwnershipLabel(st)+'</span></div>'+
+     '<div class="facilityLevel stadiumConditionBadge">'+condition.toUpperCase()+'</div>'+
    '</div>'+
-   '<div class="facilityEffect stadiumCompactEffect">'+
-     '<div class="facilityEffectLabel">GROUND</div>'+
-     '<div class="facilityEffectValue">'+detail+'</div>'+
-     '<div class="facilityEffectSub">'+
-       'Avg. attendance '+(st.avgAttendance?Number(st.avgAttendance).toLocaleString():'—')+
-       ' · Condition '+Math.round(st.condition)+'/100'+
-     '</div>'+
-   '</div>'+
-   '<button class="facilityActionButton" data-open-stadium="1">OPEN STADIUM</button>'+
+   '<div class="facilityPips">'+pips+'</div>'+
+   status+action+
+   '<div class="facilityCost"><span>Matchday capacity</span><b>'+Number(st.capacity).toLocaleString()+'</b></div>'+
  '</div>';
+}
+function stadiumIconHtml(){
+ return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9l8-6 8 6v10H4Zm3-2h10v-7.9L12 5.7 7 9.1V17Zm2-1v-4h6v4H9Z" fill="currentColor"/></svg>';
 }
 
 function stadiumManagementHtml(clubId=G.club){
@@ -27854,6 +27803,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.26","Stadium Facility Alignment","PRE-PRODUCTION / QA FIX","Rebuilt the Stadium card to use the same facility-card structure and vertical rhythm as Training, Youth, Scouting and Medical. Removed the oversized Ground block and excess spacing. Stadium now uses the shared facility header, five condition pips, compact status panel, standard action button and footer while preserving access to the full stadium management view."],
   ["v1.1.25","Stadium Facility Card Fix","PRE-PRODUCTION / QA FIX","Corrected the condensed Stadium card introduced in v1.1.24. The stadium now uses the same native facility-card structure and typography as Training, Youth, Scouting and Medical rather than rendering as an oversized link-style block. Removed the emoji-style presentation, restored normal game colours and spacing, and retained a dedicated Open Stadium action for the full stadium management view."],
   ["v1.1.24","Condensed Stadium Facility","PRE-PRODUCTION / UX REFINEMENT","Reworked Club > Facilities so Stadium now appears as a compact fifth facility card alongside Training, Youth, Scouting and Medical. The card shows the stadium name, capacity, ownership and current condition/construction status without pushing the other facilities below the fold. Selecting Stadium opens the full stadium management view in a dedicated modal containing attendance, condition, construction progress, board projects and legacy naming."],
   ["v1.1.23","Stadium Lifecycle Refinement","PRE-PRODUCTION / FEATURE TUNING","Refined the stadium system after QA. Board-approved work now enters a persistent construction phase rather than applying instantly. Existing capacity remains active until completion. Stadium condition now deteriorates slowly using an age-based probability model, with newer grounds frequently losing no condition in a season and older grounds only occasionally declining faster. Expansions and refurbishments partially renew overall condition. Attendance demand now includes a persistent supporter-base component that can grow or contract gradually with club reputation, league performance and repeated high utilisation, so expanded clubs can grow into additional capacity rather than remaining anchored to pre-expansion attendance levels."],
