@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.5.0 Pre-Production</title>
+<title>Mini&Me Football Club v1.5.1 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14949,6 +14949,14 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
     max-height:38dvh!important;
   }
 }
+
+/* v1.5.1 attacking flow refinement */
+.watchPlayer.designatedScorer{
+  box-shadow:0 0 0 2px rgba(226,187,65,.26),0 0 10px rgba(226,187,65,.24)!important;
+}
+.watchEvent{
+  min-height:34px!important;
+}
 </style>
 
 </head>
@@ -15197,8 +15205,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.5.0 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.5.0";
+const BUILD_VERSION="Mini&Me Football Club v1.5.1 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.5.1";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22480,6 +22488,9 @@ const WATCH_WORLD={
  tacticalStateAway:"MID_BLOCK",
  transitionHome:0,
  transitionAway:0,
+ lastPasser:null,
+ lastReceiver:null,
+ passChain:[],
  phaseClock:0,
  phaseDuration:2.5,
  targetEventIndex:0,
@@ -22533,6 +22544,9 @@ function watchInitWorld(){
  WATCH_WORLD.tacticalStateAway="MID_BLOCK";
  WATCH_WORLD.transitionHome=0;
  WATCH_WORLD.transitionAway=0;
+ WATCH_WORLD.lastPasser=null;
+ WATCH_WORLD.lastReceiver=null;
+ WATCH_WORLD.passChain=[];
  WATCH_WORLD.phaseClock=0;
  WATCH_WORLD.phaseDuration=2.4;
  WATCH_WORLD.targetEventIndex=0;
@@ -22762,6 +22776,8 @@ function watchVisualActionLabel(action){
  if(!action)return"Open play";
  if(action.type==="THROUGH")return"THROUGH BALL";
  if(action.type==="CROSS")return"CROSS";
+ if(action.type==="CUTBACK")return"CUTBACK";
+ if(action.type==="ONE_TWO")return"ONE-TWO";
  if(action.type==="SWITCH")return"SWITCH PLAY";
  if(action.type==="OVERLAP")return"OVERLAP";
  if(action.type==="CARRY")return"CARRY";
@@ -22779,6 +22795,86 @@ function watchBriefActionBanner(action){
  },650/Math.max(1,WATCH_MATCH.speed));
 }
 
+
+function watchRememberPass(from,to,state){
+ WATCH_WORLD.lastPasser=from?from.index:null;
+ WATCH_WORLD.lastReceiver=to?to.index:null;
+ WATCH_WORLD.passChain.push({from:from&&from.index,to:to&&to.index,state,minute:WATCH_WORLD.simMinute});
+ if(WATCH_WORLD.passChain.length>6)WATCH_WORLD.passChain.shift();
+}
+function watchRecentlyUsedReceiver(player){
+ if(!player)return false;
+ return WATCH_WORLD.passChain.slice(-2).some(x=>x.to===player.index);
+}
+function watchCombinationScore(owner,opt){
+ if(!owner||!opt||!opt.player)return -99;
+ let p=opt.player,
+     score=opt.progressScore*.55+opt.safeScore*.28,
+     sameLine=(owner.role===p.role)?-.08:.10,
+     repeat=watchRecentlyUsedReceiver(p)?-.22:.05,
+     centralBonus=(Math.abs(p.x-50)<20)?.07:0,
+     thirdMan=(WATCH_WORLD.lastPasser!==null&&WATCH_WORLD.lastPasser!==owner.index&&p.index!==WATCH_WORLD.lastPasser)?.10:0;
+ return score+sameLine+repeat+centralBonus+thirdMan;
+}
+function watchBestCombination(owner,options){
+ if(!options.length)return null;
+ options.forEach(o=>o.comboScore=watchCombinationScore(owner,o));
+ return watchBestOption(options,"comboScore");
+}
+function watchCutbackOption(owner,options){
+ if(!owner||!options.length)return null;
+ let prog=watchGoalProgress(owner.side,owner.y),
+     wide=Math.abs(owner.x-50)>22;
+ if(prog<.78||!wide)return null;
+ let mids=options.filter(o=>o.player.role==="MID"||o.player.index===9);
+ mids.forEach(o=>{
+   let central=1-Math.abs(o.player.x-50)/50,
+       depth=watchGoalProgress(owner.side,o.player.y);
+   o.cutbackScore=central*.85+(1-Math.abs(depth-.70))*.45-o.receiverPressure*.18-o.laneRisk*.12;
+ });
+ return watchBestOption(mids,"cutbackScore");
+}
+function watchOneTwoOption(owner,options){
+ if(!owner||!options.length)return null;
+ let progressive=options.filter(o=>o.progressGain>.03&&o.dist<22&&o.laneRisk<1.6);
+ progressive.forEach(o=>{
+   o.oneTwoScore=o.safeScore*.45+o.progressScore*.45+(o.player.role==="MID"?.12:0);
+ });
+ return watchBestOption(progressive,"oneTwoScore");
+}
+function watchScorerRunTarget(scorer,e){
+ if(!scorer)return null;
+ let side=scorer.side,
+     home=side==="home",
+     lane=e&&e.lane||"CENTRE",
+     role=scorer.role,
+     x=scorer.x,y=scorer.y;
+
+ if(role==="FWD"&&scorer.index===9){
+   return {x:lane==="LEFT"?46:lane==="RIGHT"?54:50,y:home?12:88,type:"CENTRAL_RUN"};
+ }
+ if(role==="FWD"&&(scorer.index===8||scorer.index===10)){
+   let farPost=scorer.index===8?58:42;
+   return {x:lane==="LEFT"?farPost:lane==="RIGHT"?100-farPost:scorer.index===8?58:42,
+           y:home?14:86,type:"INSIDE_RUN"};
+ }
+ if(role==="MID"){
+   let offset=scorer.index===5?-7:scorer.index===7?7:0;
+   return {x:50+offset,y:home?22:78,type:"LATE_RUN"};
+ }
+ return {x:50,y:home?20:80,type:"SUPPORT_RUN"};
+}
+function watchKeeperZone(keeper,ballX,ballY){
+ let top=keeper.side==="away",
+     goalY=top?6:94,
+     depth=top?ballY:100-ballY,
+     x=50+(ballX-50)*.09,
+     step=depth<16?7:depth<28?4:depth<42?2:0;
+ return {
+   x:Math.max(45,Math.min(55,x)),
+   y:top?Math.max(4,Math.min(15,goalY+step)):Math.max(85,Math.min(96,goalY-step))
+ };
+}
 function watchDecisionForCarrier(owner){
  if(!owner)return {type:"RECYCLE"};
 
@@ -22787,10 +22883,13 @@ function watchDecisionForCarrier(owner){
      options=watchPassingOptions(owner),
      safe=watchBestOption(options,"safeScore"),
      progressive=watchBestOption(options,"progressScore"),
+     combination=watchBestCombination(owner,options),
      switchOpt=watchSwitchTarget(owner,options)||watchBestOption(options,"switchScore"),
      recycle=watchBestOption(options,"recycleScore"),
      through=watchThroughBallOption(owner,options),
      cross=watchCrossOption(owner,options),
+     cutback=watchCutbackOption(owner,options),
+     oneTwo=watchOneTwoOption(owner,options),
      overlap=watchOverlapOption(owner),
      space=watchOpenSpaceTarget(owner),
      profile=watchPlayerRoleProfile(owner),
@@ -22798,99 +22897,118 @@ function watchDecisionForCarrier(owner){
      seed="DECIDE|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*5)+"|"+owner.side+"|"+owner.index,
      r=intelHash(seed);
 
- // Goalkeeper decisions are fundamentally different.
  if(owner.role==="GK"){
-   if(switchOpt&&r>.62)return{type:"KEEPER_DISTRIBUTION",option:switchOpt,long:true};
+   if(switchOpt&&r>.70)return{type:"KEEPER_DISTRIBUTION",option:switchOpt,long:true};
    return{type:"KEEPER_DISTRIBUTION",option:safe||progressive||recycle,long:false};
  }
 
- // Centre backs recycle unless a progressive lane is genuinely available.
  if(owner.role==="DEF"&&owner.index!==1&&owner.index!==4){
-   if(pressure>1.05)return{type:"PASS",option:safe||recycle,label:"safe"};
-   if(progressive&&progressive.progressScore>.95&&r<profile.progress)return{type:"PASS",option:progressive,label:"progressive"};
-   if(switchOpt&&r>.78)return{type:"SWITCH",option:switchOpt};
-   return{type:"PASS",option:safe||recycle||progressive,label:"safe"};
+   if(pressure>1.0)return{type:"PASS",option:safe||recycle,label:"safe"};
+   if(progressive&&progressive.progressScore>.93&&r<.40)return{type:"PASS",option:progressive,label:"progressive"};
+   if(switchOpt&&r>.82)return{type:"SWITCH",option:switchOpt};
+   return{type:"PASS",option:combination||safe||recycle,label:"support"};
  }
 
- // Fullbacks can overlap, carry and cross.
  if(owner.role==="DEF"&&(owner.index===1||owner.index===4)){
-   if(cross&&finalThird&&r<.42)return{type:"CROSS",option:cross};
+   if(cutback&&finalThird&&r<.20)return{type:"CUTBACK",option:cutback};
+   if(cross&&finalThird&&r<.44)return{type:"CROSS",option:cross};
    if(space&&space.congestion<.9&&r<profile.carry)return{type:"CARRY",target:space};
-   if(switchOpt&&r>.72)return{type:"SWITCH",option:switchOpt};
-   return{type:"PASS",option:progressive||safe||recycle,label:progressive?"progressive":"safe"};
+   if(oneTwo&&r>.78)return{type:"ONE_TWO",option:oneTwo};
+   return{type:"PASS",option:progressive||combination||safe||recycle,label:"progressive"};
  }
 
- // Holding midfielder prioritises structure and switches.
  if(owner.role==="MID"&&owner.index===6){
    if(pressure>1.1)return{type:"PASS",option:safe||recycle,label:"safe"};
-   if(switchOpt&&r>.60)return{type:"SWITCH",option:switchOpt};
-   if(progressive&&progressive.progressScore>.88)return{type:"PASS",option:progressive,label:"progressive"};
-   return{type:"PASS",option:safe||recycle,label:"support"};
+   if(switchOpt&&r>.68)return{type:"SWITCH",option:switchOpt};
+   if(progressive&&progressive.progressScore>.86)return{type:"PASS",option:progressive,label:"progressive"};
+   return{type:"PASS",option:combination||safe||recycle,label:"support"};
  }
 
- // Advanced midfielders look for through balls, carries and late progressions.
  if(owner.role==="MID"){
-   if(through&&progress>.50&&r<.34)return{type:"THROUGH",option:through};
+   if(through&&progress>.50&&r<.30)return{type:"THROUGH",option:through};
+   if(oneTwo&&r>.68)return{type:"ONE_TWO",option:oneTwo};
    if(space&&space.congestion<.8&&pressure<.85&&r<profile.carry)return{type:"CARRY",target:space};
-   if(progressive&&progressive.progressScore>.80)return{type:"PASS",option:progressive,label:"progressive"};
-   if(switchOpt&&r>.82)return{type:"SWITCH",option:switchOpt};
-   return{type:"PASS",option:safe||recycle,label:"support"};
+   if(progressive&&progressive.progressScore>.78)return{type:"PASS",option:progressive,label:"progressive"};
+   return{type:"PASS",option:combination||safe||recycle,label:"support"};
  }
 
- // Wingers favour carries, overlaps, crosses and diagonal passes.
  if(owner.role==="FWD"&&(owner.index===8||owner.index===10)){
-   if(cross&&finalThird&&r<.38)return{type:"CROSS",option:cross};
-   if(overlap&&overlap.score>.15&&r>.70)return{type:"OVERLAP",option:{player:overlap.player}};
+   if(cutback&&finalThird&&r<.25)return{type:"CUTBACK",option:cutback};
+   if(cross&&finalThird&&r<.45)return{type:"CROSS",option:cross};
+   if(overlap&&overlap.score>.15&&r>.74)return{type:"OVERLAP",option:{player:overlap.player}};
+   if(oneTwo&&r>.66)return{type:"ONE_TWO",option:oneTwo};
    if(space&&space.congestion<1.0&&r<profile.carry)return{type:"CARRY",target:space};
-   if(through&&r<.28)return{type:"THROUGH",option:through};
-   if(switchOpt&&r>.88)return{type:"SWITCH",option:switchOpt};
-   return{type:"PASS",option:progressive||safe,label:"progressive"};
- }
-
- // Striker links play or runs beyond.
- if(owner.role==="FWD"){
    if(through&&r<.25)return{type:"THROUGH",option:through};
-   if(progressive&&progressive.player.role==="MID"&&r>.72)return{type:"PASS",option:progressive,label:"layoff"};
-   if(space&&space.congestion<.7&&pressure<.65&&r<.35)return{type:"CARRY",target:space};
-   return{type:"PASS",option:safe||progressive||recycle,label:"support"};
+   return{type:"PASS",option:progressive||combination||safe,label:"progressive"};
  }
 
- return{type:"PASS",option:safe||progressive||recycle,label:"safe"};
+ if(owner.role==="FWD"){
+   if(oneTwo&&r>.62)return{type:"ONE_TWO",option:oneTwo};
+   if(through&&r<.22)return{type:"THROUGH",option:through};
+   if(space&&space.congestion<.7&&pressure<.65&&r<.33)return{type:"CARRY",target:space};
+   return{type:"PASS",option:combination||safe||progressive||recycle,label:"support"};
+ }
+
+ return{type:"PASS",option:combination||safe||progressive||recycle,label:"safe"};
 }
 function watchApplyCarrierDecision(owner,decision){
  if(!owner||!decision)return;
  watchBriefActionBanner(decision);
 
- if(["PASS","SWITCH","THROUGH","CROSS","KEEPER_DISTRIBUTION"].includes(decision.type) && decision.option && decision.option.player){
+ if(["PASS","SWITCH","THROUGH","CROSS","CUTBACK","ONE_TWO","KEEPER_DISTRIBUTION"].includes(decision.type)
+    && decision.option && decision.option.player){
    let p=decision.option.player,
        distance=watchDistance(owner,p),
-       state=decision.type==="CROSS"?"CROSS":decision.type==="THROUGH"?"THROUGH":decision.type==="SWITCH"||decision.type==="KEEPER_DISTRIBUTION"?"LONG_PASS":"PASS",
+       state=decision.type==="CROSS"?"CROSS":
+             decision.type==="CUTBACK"?"CUTBACK":
+             decision.type==="THROUGH"?"THROUGH":
+             decision.type==="ONE_TWO"?"ONE_TWO":
+             decision.type==="SWITCH"||decision.type==="KEEPER_DISTRIBUTION"?"LONG_PASS":"PASS",
        duration;
 
-   if(state==="CROSS")duration=Math.max(.26,Math.min(.48,.18+distance*.0055));
-   else if(state==="THROUGH")duration=Math.max(.22,Math.min(.42,.16+distance*.0048));
-   else if(state==="LONG_PASS")duration=Math.max(.32,Math.min(.58,.20+distance*.006));
-   else duration=Math.max(.20,Math.min(.46,.16+distance*.006));
+   if(state==="CROSS")duration=Math.max(.25,Math.min(.46,.17+distance*.0052));
+   else if(state==="CUTBACK")duration=Math.max(.18,Math.min(.32,.14+distance*.004));
+   else if(state==="THROUGH")duration=Math.max(.20,Math.min(.40,.15+distance*.0045));
+   else if(state==="ONE_TWO")duration=Math.max(.18,Math.min(.31,.14+distance*.004));
+   else if(state==="LONG_PASS")duration=Math.max(.30,Math.min(.56,.19+distance*.0058));
+   else duration=Math.max(.19,Math.min(.43,.15+distance*.0056));
 
-   // Give receiver a small run target before the ball arrives.
    if(state==="THROUGH"){
      let dir=owner.side==="home"?-1:1;
-     p.ty=Math.max(4,Math.min(96,p.ty+dir*7));
+     p.ty=Math.max(4,Math.min(96,p.ty+dir*8));
    }
    if(state==="CROSS"){
-     p.tx=50+(p.tx-50)*.45;
+     p.tx=50+(p.tx-50)*.40;
+   }
+   if(state==="CUTBACK"){
+     p.tx=50+(p.tx-50)*.28;
    }
 
-   WATCH_WORLD.phase=state==="THROUGH"||state==="CROSS"?"ATTACK":decision.label==="progressive"?"PROGRESS":WATCH_WORLD.phase;
+   watchRememberPass(owner,p,state);
+   WATCH_WORLD.phase=["THROUGH","CROSS","CUTBACK"].includes(state)?"ATTACK":
+                     decision.label==="progressive"?"PROGRESS":WATCH_WORLD.phase;
    watchKickBallTo(p.x,p.y,duration,p,state);
+
+   if(state==="ONE_TWO"){
+     let original=owner;
+     let returnDelay=Math.max(150,380/Math.max(1,WATCH_MATCH.speed));
+     setTimeout(()=>{
+       if(!WATCH_WORLD.eventActive && WATCH_WORLD.ball.owner===p){
+         original.tx += original.index%2===0?-3:3;
+         original.ty += original.side==="home"?-5:5;
+         watchRememberPass(p,original,"ONE_TWO_RETURN");
+         watchKickBallTo(original.x,original.y,.22,original,"PASS");
+       }
+     },returnDelay);
+   }
    return;
  }
 
  if(decision.type==="OVERLAP"&&decision.option&&decision.option.player){
    let fb=decision.option.player,
        dir=owner.side==="home"?-1:1;
-   fb.tx=owner.index===8?Math.max(8,owner.x-10):Math.min(92,owner.x+10);
-   fb.ty=Math.max(5,Math.min(95,owner.y+dir*8));
+   fb.tx=owner.index===8?Math.max(8,owner.x-11):Math.min(92,owner.x+11);
+   fb.ty=Math.max(5,Math.min(95,owner.y+dir*9));
    WATCH_WORLD.phase="ATTACK";
    return;
  }
@@ -22904,7 +23022,10 @@ function watchApplyCarrierDecision(owner,decision){
 
  if(decision.type==="RECYCLE"){
    let opt=decision.option||watchBestOption(watchPassingOptions(owner),"recycleScore");
-   if(opt&&opt.player)watchKickBallTo(opt.player.x,opt.player.y,.30,opt.player,"PASS");
+   if(opt&&opt.player){
+     watchRememberPass(owner,opt.player,"PASS");
+     watchKickBallTo(opt.player.x,opt.player.y,.30,opt.player,"PASS");
+   }
  }
 }
 function watchSupportAroundCarrier(owner){
@@ -23309,9 +23430,11 @@ function watchKickBallTo(x,y,duration=.35,targetPlayer=null,state="PASS"){
  let unitsPerSecond=
        state==="SHOT"?165:
        state==="MISS"||state==="SAVE"?132:
-       state==="THROUGH"?112:
-       state==="CROSS"?104:
-       state==="LONG_PASS"?98:86;
+       state==="THROUGH"?116:
+       state==="CROSS"?106:
+       state==="CUTBACK"?94:
+       state==="ONE_TWO"?91:
+       state==="LONG_PASS"?100:88;
 
  let calculated=Math.max(.10,dist/unitsPerSecond);
  duration=Math.max(.10,Math.min(duration||calculated,Math.max(calculated,.55)));
@@ -23368,11 +23491,11 @@ function watchUpdateBall(dt){
    return;
  }
 
- if(["PASS","THROUGH","CROSS","LONG_PASS","SHOT","MISS","SAVE","REBOUND"].includes(b.state)){
+ if(["PASS","THROUGH","CROSS","CUTBACK","ONE_TWO","LONG_PASS","SHOT","MISS","SAVE","REBOUND"].includes(b.state)){
    b.elapsed+=dt;
 
    // Passes lead receivers slightly, while keeping constant pace rather than easing.
-   if(["PASS","THROUGH","CROSS","LONG_PASS"].includes(b.state)&&b.target){
+   if(["PASS","THROUGH","CROSS","CUTBACK","ONE_TWO","LONG_PASS"].includes(b.state)&&b.target){
      let remain=Math.max(.04,b.flightTime-b.elapsed),
          lead= b.state==="THROUGH"?.14:b.state==="CROSS"?.08:.06,
          tx=b.target.x+b.target.vx*lead,
@@ -23405,7 +23528,7 @@ function watchUpdateBall(dt){
    }
 
    if(b.elapsed>=b.flightTime){
-     if(b.target&&["PASS","THROUGH","CROSS","LONG_PASS"].includes(b.state)){
+     if(b.target&&["PASS","THROUGH","CROSS","CUTBACK","ONE_TWO","LONG_PASS"].includes(b.state)){
        watchGiveBall(b.target,b.state);
      }
      else if(b.target&&b.state==="SAVE"){
@@ -23444,19 +23567,28 @@ function watchPickReceiver(side,lane,roles=["MID","FWD"],excludeIndex=null){
  let targetX=lane==="LEFT"?28:lane==="RIGHT"?72:50,
      list=WATCH_WORLD.players.filter(p=>p.side===side&&roles.includes(p.role)&&(excludeIndex===null||p.index!==excludeIndex));
  if(!list.length)return null;
- let phase=WATCH_WORLD.phase,dir=side==="home"?-1:1;
- list.sort((a,b)=>{
-   let aAdvance=side==="home"?(100-a.y):a.y,
-       bAdvance=side==="home"?(100-b.y):b.y,
-       aScore=Math.abs(a.x-targetX)*.7-(phase==="ATTACK"?aAdvance*.22:aAdvance*.10),
-       bScore=Math.abs(b.x-targetX)*.7-(phase==="ATTACK"?bAdvance*.22:bAdvance*.10);
-   return aScore-bScore;
+
+ let phase=WATCH_WORLD.phase;
+ list.forEach(p=>{
+   let advance=watchGoalProgress(side,p.y),
+       widthFit=1-Math.min(1,Math.abs(p.x-targetX)/45),
+       pressure=watchPressureOn(p),
+       repeat=watchRecentlyUsedReceiver(p)?.18:0,
+       separation=Math.min(1,watchNearestTeammateDistance(p)/12);
+   p._receiverScore=
+      advance*(phase==="ATTACK"?.42:.22)+
+      widthFit*.25+
+      separation*.16-
+      pressure*.18-
+      repeat;
  });
- // do not always select the top-ranked option: vary among best three
- let top=list.slice(0,Math.min(3,list.length)),
+ list.sort((a,b)=>b._receiverScore-a._receiverScore);
+
+ let top=list.slice(0,Math.min(4,list.length)),
      seed="RCV|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*10)+"|"+side+"|"+lane+"|"+phase,
-     idx=Math.floor(intelHash(seed)*top.length);
- return top[idx]||top[0]||null;
+     roll=intelHash(seed),
+     idx=roll<.52?0:roll<.78?1:roll<.92?2:3;
+ return top[Math.min(idx,top.length-1)]||top[0]||null;
 }
 function watchNearestDefenderTo(attacker){
  let other=attacker.side==="home"?"away":"home",
@@ -23477,22 +23609,14 @@ function watchGoalSideForAttacker(side){
 }
 function watchKeeperSetPosition(keeper,ballX,ballY,attackingSide){
  if(!keeper)return;
- let defendingSide=keeper.side,
-     topKeeper=defendingSide==="away",
-     goalY=topKeeper?6:94,
-     ballDepth=topKeeper?ballY:(100-ballY),
-     centralPull=(ballX-50)*.11,
-     stepOut=0;
+ let zone=watchKeeperZone(keeper,ballX,ballY);
 
- // Keeper stays inside a believable zone: normally 6-yard area,
- // stepping toward penalty spot only when the ball is genuinely close.
- if(ballDepth<22)stepOut=Math.min(10,(22-ballDepth)*.42);
- else if(ballDepth<38)stepOut=Math.min(5,(38-ballDepth)*.18);
-
- keeper.tx=Math.max(44,Math.min(56,50+centralPull));
- keeper.ty=topKeeper
-   ?Math.max(4,Math.min(18,goalY+stepOut))
-   :Math.max(82,Math.min(96,goalY-stepOut));
+ // Keeper follows zone gradually, never teleports or chases wide.
+ keeper.tx=keeper.tx*.72+zone.x*.28;
+ keeper.ty=keeper.ty*.72+zone.y*.28;
+ keeper.tx=Math.max(45,Math.min(55,keeper.tx));
+ if(keeper.side==="away")keeper.ty=Math.max(4,Math.min(16,keeper.ty));
+ else keeper.ty=Math.max(84,Math.min(96,keeper.ty));
 }
 function watchUpdateKeeperPositioning(){
  ["home","away"].forEach(side=>{
@@ -23636,8 +23760,9 @@ function watchUpdateDirectedEvent(dt){
      creator.ty=home?34:66;
    }
    if(finisher){
-     finisher.tx=lane==="LEFT"?42:lane==="RIGHT"?58:50;
-     finisher.ty=home?20:80;
+     let run=watchScorerRunTarget(finisher,e);
+     finisher.tx=finisher.tx*.65+run.x*.35;
+     finisher.ty=finisher.ty*.65+(home?Math.max(run.y,18):Math.min(run.y,82))*.35;
    }
    watchRecoverDefenders(e.side,laneX,home?25:75);
 
@@ -23653,9 +23778,9 @@ function watchUpdateDirectedEvent(dt){
  // Stage 1: creator receives and waits for the actual finishing run.
  else if(WATCH_WORLD.eventStage===1){
    if(finisher){
-     let goalLane=lane==="LEFT"?43:lane==="RIGHT"?57:50;
-     finisher.tx=goalLane;
-     finisher.ty=home?14:86;
+     let run=watchScorerRunTarget(finisher,e);
+     finisher.tx=run.x;
+     finisher.ty=run.y;
    }
    watchRecoverDefenders(e.side,laneX,home?20:80);
 
@@ -29785,6 +29910,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.5.1","Attacking Flow Refinement","PRE-PRODUCTION / VIEWER REFINEMENT","Refined the mature Watch Game presentation without changing the authoritative match engine. Open play now remembers recent pass chains so the same receivers are not repeatedly selected, with improved combination scoring for third-man options and less predictable circulation. Added visual one-twos, cutbacks and more varied wide-to-central combinations alongside existing crosses, switches, carries and through balls. Keeper positioning is now zone-based and smoothed toward a constrained target rather than reacting directly to the ball, reducing erratic movement and wide excursions. Directed goal sequences now use role-specific scorer runs: central strikers attack the central lane, wide forwards make inside runs and midfield scorers arrive later from deeper positions rather than being pulled immediately into a striker position."],
   ["v1.5.0","Mature Watch Game","PRE-PRODUCTION / VIEWER PRESENTATION","Advanced Watch Game into its mature presentation phase without changing any authoritative match or competition engine. Goalkeeper behaviour is now constrained to realistic keeper zones, with continuous positioning clamped inside the penalty-area region and only limited stepping toward the penalty spot when the ball is genuinely close. The 2D pitch has been rebuilt with clearer grass striping, centre spot, six-yard boxes, penalty spots, penalty arcs, corner arcs, stronger touch lines and improved goal/net presentation. The temporary tactical-state QA strip has been removed from the normal viewer so the screen reads as a finished match presentation rather than a development overlay."],
   ["v1.4.6","Movement & Ball Physics","PRE-PRODUCTION / VIEWER REFINEMENT","Polished movement and ball behaviour in Watch Game without changing the authoritative match engine. Players now use smoother acceleration, braking and turn-rate limits, maintain better separation from teammates and opponents, and slow naturally as they approach tactical targets. Pass reception includes a small role-based first touch before the carrier can make another decision. Ball movement now uses action-specific pace, constant-speed travel with moving-target lead, curved crosses and long switches, flatter/faster shots, and improved save trajectories. Goalkeepers react toward the shot target before contact. Some saves can visually parry into a short rebound before the keeper or a defender recovers possession; these rebounds remain presentation-only and cannot alter the predetermined match result."],
   ["v1.4.5","Event Integration","PRE-PRODUCTION / VIEWER REFINEMENT","Improved how predetermined match outcomes blend into the continuous 2D visual simulation without altering the authoritative match engine. Directed events now begin from the current open-play positions rather than visibly taking over from a fixed pattern. A creator and actual finisher are selected from the existing shape, defenders recover toward the penalty area, and the goalkeeper continuously adjusts position to the ball before the final action. Goal sequences now progress through creator support, finishing run, final pass/cross and shot; saves resolve toward the goalkeeper's current position; misses leave play and restart through the goalkeeper. After each outcome, possession and tactical transition resume naturally instead of snapping directly back into midfield play."],
