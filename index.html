@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.2.0 Pre-Production</title>
+<title>Mini&Me Football Club v1.2.1 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14597,6 +14597,30 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 .watchLog{max-height:150px;overflow:auto;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#0d161e}.watchLog div{display:grid;grid-template-columns:42px 1fr;gap:7px;padding:8px 10px;border-bottom:1px solid #ffffff0b}.watchLog div:last-child{border-bottom:0}.watchLog b{color:var(--gold);font-size:8px}.watchLog span{font-size:9px}
 .watchControls{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px;padding-top:9px;background:linear-gradient(transparent,#060b10 25%)}.watchControls button{min-height:46px;border:1px solid var(--line);border-radius:12px;background:#111b25;color:#e7edf1;font-size:8px;font-weight:900}.watchControls button:nth-child(2){color:var(--gold);border-color:#68571f}
 @media(max-width:430px){.watchMatchShell{padding:11px 9px 20px}.watchScoreTeam b{font-size:8px}.watchScore strong{font-size:19px}.watchControls button{font-size:7px}}
+
+/* v1.2.1 Pre-match Watch Game */
+.homeMatchActions{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,.72fr);
+  gap:10px;
+  margin-top:14px;
+}
+.homeMatchActions .btn{
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.homeWatchAction{
+  border-color:#665621!important;
+  color:var(--gold)!important;
+  background:#111a20!important;
+}
+@media(max-width:430px){
+  .homeMatchActions{grid-template-columns:1fr 1fr;gap:8px}
+  .homeMatchActions .btn{min-height:54px;padding-left:9px!important;padding-right:9px!important;font-size:10px!important}
+}
 </style>
 
 </head>
@@ -14825,7 +14849,6 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
   <div id="resultSummary" class="sub broadcastSummary"></div>
   <div id="resultTeamStats" class="broadcastStats"></div>
 </div>
-<button id="watchMatchBtn" class="btn full watchMatchLaunch">WATCH MATCH</button>
 <div id="resultRatings" class="card resultSecondaryPanel"></div>
 <button id="resultContinueBtn" class="btn primary full resultHomeBtn">BACK TO HOME</button>
 </div></div>
@@ -14846,8 +14869,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.2.0 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.2.0";
+const BUILD_VERSION="Mini&Me Football Club v1.2.1 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.2.1";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -21806,6 +21829,17 @@ function weeklyLeaguePlayerDevelopment(){
  clearStrengthCache();
 }
 
+
+function watchNextFixture(){
+ WATCH_MATCH_AUTO_OPEN=true;
+ try{
+   advance();
+ }catch(e){
+   WATCH_MATCH_AUTO_OPEN=false;
+   throw e;
+ }
+}
+
 function advance(){
  if(G&&G.nationalGM&&G.nationalGM.pendingOffer){showNationalGMDecisionGate();return;}
  recoverMedicalConditions();
@@ -21904,6 +21938,7 @@ function resultScorerSummary(perf){
    ========================================================== */
 const WATCH_MATCH_VERSION="1.0.0";
 let WATCH_MATCH_RESULT=null;
+let WATCH_MATCH_AUTO_OPEN=false;
 let WATCH_MATCH={
  active:false,playing:false,speed:1,index:0,timer:null,events:[],scoreHome:0,scoreAway:0
 };
@@ -22160,6 +22195,7 @@ function showMatchResult(r,playedWeek){
 
  document.body.classList.add("match-result-active");
  $("#resultScreen").classList.remove("hidden");
+ if(WATCH_MATCH_AUTO_OPEN){WATCH_MATCH_AUTO_OPEN=false;setTimeout(watchOpen,40);}
 }
 
 function ensureLifecycleState(){
@@ -28025,6 +28061,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.2.1","Pre-match Watch Game","PRE-PRODUCTION / QA + UX FIX","Moved Watch Game from the completed-result screen to the Next Fixture card where the match mode is chosen before play. League, National Cup and Champions Tournament fixtures now present Play Game and Watch Game actions. Watch Game uses the existing authoritative simulation exactly once, then automatically opens the 2D viewer before the completed result is seen; exiting the viewer reveals the normal result screen underneath. Rewired Watch Match and playback controls through the game's established delegated input handling to correct the non-responsive iPhone button from v1.2.0."],
   ["v1.2.0","Watch Match Viewer","PRE-PRODUCTION / NEW FEATURE","Introduced the first optional Watch Match mode while preserving the existing instant-result workflow and frozen match engine. Completed matches can now be replayed through a bird's-eye 2D pitch presentation with formation-style player markers, ball movement, scoreboard, match clock, goal/miss/save sequences, event log and Play/Pause, 1x/2x/4x and Next controls. The viewer consumes the already-generated match outcome and player goal data rather than simulating a second result."],
   ["v1.1.27","Stadium Attendance Calibration","PRE-PRODUCTION / QA FIX","Corrected the stadium attendance regression introduced by the new supporter-demand model. Repeated crowds such as 20,570 at a 60,500-seat ground were caused by the old 34% capacity hard floor being hit whenever calculated demand fell too low. Attendance is now anchored to persistent supporter demand and the club's recent average, with opponent stature, rivalry pressure and match importance adjusting the crowd. Major rivalry and high-stakes fixtures now receive realistic demand floors instead of collapsing to the old minimum. Also removed the duplicate capacity badge from the Stadium detail header to reduce repeated data."],
   ["v1.1.26","Stadium Facility Alignment","PRE-PRODUCTION / QA FIX","Rebuilt the Stadium card to use the same facility-card structure and vertical rhythm as Training, Youth, Scouting and Medical. Removed the oversized Ground block and excess spacing. Stadium now uses the shared facility header, five condition pips, compact status panel, standard action button and footer while preserving access to the full stadium management view."],
@@ -28116,19 +28153,19 @@ function home(){
  if(intFixture){
   let hk=intFixture.home,ak=intFixture.away,ht=internationalTeamRecord(hk),at=internationalTeamRecord(ak),meta=INTL_CLUB_ROUNDS[G.intClub.currentRound];
   let homeLink=fixtureClubIdentityHtml(ht&&ht.clubId,ht?ht.name:'Unknown','fixtureClubLink internationalFixtureName'),awayLink=fixtureClubIdentityHtml(at&&at.clubId,at?at.name:'Unknown','fixtureClubLink internationalFixtureName');
-  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY INTERNATIONAL · '+meta.name.toUpperCase()+'</div></div></div>';
+  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">CHAMPIONS TOURNAMENT · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+nationFlagHtml(ht.nation,17)+'<span>'+nationName(ht.nation).toUpperCase()+'</span></span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+nationFlagHtml(at.nation,17)+'<span>'+nationName(at.nation).toUpperCase()+'</span></span></div></div></div>'+((Number.isFinite(ht&&ht.clubId)&&Number.isFinite(at&&at.clubId))?rivalryFixtureStripHtml(ht.clubId,at.clubId,"INT_CLUB",meta.name):'')+'<div class="homeMatchActions"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY GAME · '+meta.name.toUpperCase()+'</div><div class="btn full homeWatchAction" data-home-watch="1" role="button" tabindex="0">WATCH GAME</div></div></div>';
   return fixture;
  }
  let cupFixture=cupUserFixtureDue();
  if(cupFixture){
   let uk=cupUserKey(),homeKey=cupFixture.home,awayKey=cupFixture.away,homeT=cupTeamRecord(homeKey),awayT=cupTeamRecord(awayKey),meta=CUP_ROUNDS[G.cup.currentRound];
   let homeLink=fixtureClubIdentityHtml(homeT.clubId,homeT.name,homeT.regional?'regionalFixtureName':'fixtureClubLink'),awayLink=fixtureClubIdentityHtml(awayT.clubId,awayT.name,awayT.regional?'regionalFixtureName':'fixtureClubLink');
-  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY CUP · '+meta.name.toUpperCase()+'</div></div></div>';
+  let fixture='<div class="card homePrimaryFixture homeOverviewSinglePurpose">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">NATIONAL CUP · '+meta.name.toUpperCase()+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+homeLink+'<span class="homeFixtureRank">'+(homeT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(homeT.clubId)?'top':'lower').name.toUpperCase())+'</span></div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+awayLink+'<span class="homeFixtureRank">'+(awayT.regional?'REGIONAL':leagueInfo(G.leagues.top.clubIds.includes(awayT.clubId)?'top':'lower').name.toUpperCase())+'</span></div></div></div>'+(homeT.regional||awayT.regional?'':rivalryFixtureStripHtml(homeT.clubId,awayT.clubId,"DOM_CUP",meta.name))+'<div class="homeMatchActions"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY GAME · '+meta.name.toUpperCase()+'</div><div class="btn full homeWatchAction" data-home-watch="1" role="button" tabindex="0">WATCH GAME</div></div></div>';
   return fixture;
  }
  let round=G.schedule[currentLeagueKey()]?.[G.week]||[],pair=round.find(x=>x.includes(G.club))||[G.club,nextOpp()];let homeId=pair[0],awayId=pair[1],homeClub=G.clubs[homeId],awayClub=G.clubs[awayId],opp=G.clubs[homeId===G.club?awayId:homeId];
  let homePos=tab.findIndex(x=>x.id===homeId)+1,awayPos=tab.findIndex(x=>x.id===awayId)+1,info=leagueInfo(),h2h=headToHead(G.club,opp.id);
- let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeContinue"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">CONTINUE · WEEK '+(G.week+1)+'</div></div></div>';
+ let fixture='<div class="card homePrimaryFixture">'+homeFixtureHeadHtml()+'<div class="fixture"><div class="label">'+info.name.toUpperCase()+' · WEEK '+(G.week+1)+'</div><div class="homeMatchup"><div class="homeMatchupClub homeMatchupClubLeft"><span class="homeAwayMark">HOME</span>'+clubIdentityLinkHtml(homeClub.id,homeClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(homePos)+'</span>'+homeFormHtml(homeClub.id)+'</div><div class="homeMatchupVs">VS</div><div class="homeMatchupClub homeMatchupClubRight"><span class="homeAwayMark">AWAY</span>'+clubIdentityLinkHtml(awayClub.id,awayClub.name,'fixtureClubLink')+'<span class="homeFixtureRank">'+ordinal(awayPos)+'</span>'+homeFormHtml(awayClub.id)+'</div></div></div><div class="h2hStrip"><div><b>HEAD TO HEAD</b><span>'+(h2h.played?'Career record · Goals '+h2h.gf+'–'+h2h.ga:'Your record against this opponent will build from completed fixtures.')+'</span></div><div class="h2hRecord">'+headToHeadLabel(G.club,opp.id)+'</div></div>'+rivalryFixtureStripHtml(G.club,opp.id,"LEAGUE","League")+'<div class="homeMatchActions"><div class="btn primary full homeContinueAction" data-home-continue="1" role="button" tabindex="0">PLAY GAME · WEEK '+(G.week+1)+'</div><div class="btn full homeWatchAction" data-home-watch="1" role="button" tabindex="0">WATCH GAME</div></div></div>';
  return fixture;
 }
 
@@ -29657,6 +29694,16 @@ function startSelectedCareer(){
  }
 }
 document.addEventListener("click",function(e){
+ let wm=e.target.closest&&e.target.closest("[data-wm]");
+ if(wm){
+   e.preventDefault();
+   let a=wm.getAttribute("data-wm");
+   if(a==="exit")watchClose();
+   else if(a==="play")watchToggle();
+   else if(a==="speed")watchSpeed();
+   else if(a==="next"){if(WATCH_MATCH.timer)clearTimeout(WATCH_MATCH.timer);WATCH_MATCH.timer=null;watchStep()}
+   return;
+ }
  let exitCareer=e.target.closest&&e.target.closest("[data-exit-career]");
  if(exitCareer){e.preventDefault();if(confirm("Exit this career and return to the main menu? Your current career will be saved."))exitToCareerHub();return}
  let gmOpen=e.target.closest&&e.target.closest("[data-gm-profile-open]");
@@ -29747,7 +29794,9 @@ let cp=e.target.closest("[data-club]");if(cp){
  showCareerConfirmation();
  return;
 }
-let simInternational=e.target.closest("[data-sim-international-week]");if(simInternational){e.preventDefault();simulatePendingInternationalWeek();return} let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
+let simInternational=e.target.closest("[data-sim-international-week]");if(simInternational){e.preventDefault();simulatePendingInternationalWeek();return}
+let homeWatch=e.target.closest("[data-home-watch]");if(homeWatch){e.preventDefault();watchNextFixture();return}
+let homeContinue=e.target.closest("[data-home-continue]");if(homeContinue){e.preventDefault();advance();return}
 let nav=e.target.closest("#nav [data-page]");if(nav){e.preventDefault();navigateTo(nav.dataset.page);return}
 let worldPlayer=e.target.closest("[data-world-player]");if(worldPlayer){showPlayer(worldPlayer.dataset.worldPlayer);return}
 let worldClub=e.target.closest("[data-world-club]");if(worldClub){showClubProfile(Number(worldClub.dataset.worldClub));return}
@@ -29785,6 +29834,8 @@ if(e.target.closest("[data-close]")||e.target.id==="sheet"){
 }});
 document.addEventListener("keydown",function(e){
  if(e.key!=="Enter"&&e.key!==" ")return;
+ let homeWatch=e.target.closest&&e.target.closest("[data-home-watch]");
+ if(homeWatch){e.preventDefault();watchNextFixture();return}
  let homeContinue=e.target.closest&&e.target.closest("[data-home-continue]");
  if(homeContinue){e.preventDefault();advance();return}
  let nav=e.target.closest&&e.target.closest("#nav [data-page]");
