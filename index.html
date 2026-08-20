@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.1.17 Pre-Production</title>
+<title>Mini&Me Football Club v1.1.18 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14345,6 +14345,85 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
  .wcPastWinnerRow{grid-template-columns:42px minmax(0,1fr)}
  .wcPastWinnerRow small{grid-column:2;text-align:left;margin-top:-5px}
 }
+
+/* ==========================================================
+   v1.1.18 WORLD CUP COMPLETION SNAPSHOT
+   ========================================================== */
+.worldCupCompletionModal{
+  position:fixed;inset:0;z-index:8200;
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;
+  background:rgba(3,7,11,.93);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.worldCupCompletionModal.hidden{display:none!important}
+.worldCupCompletionCard{
+  position:relative;
+  width:min(100%,620px);
+  max-height:calc(100dvh - 36px);
+  overflow:auto;
+  border:1px solid rgba(226,187,65,.58);
+  border-radius:24px;
+  background:linear-gradient(180deg,#1a1a10,#0c151d 50%,#091017);
+  box-shadow:0 30px 90px rgba(0,0,0,.7);
+  padding:22px;
+}
+.worldCupCompletionClose{
+  position:absolute;right:14px;top:14px;
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--line);background:#101a23;color:#dce4ea;
+  font-size:24px;line-height:1
+}
+.wcCompleteEyebrow{
+  color:var(--gold);font-size:9px;font-weight:950;
+  letter-spacing:.16em;text-align:center
+}
+.wcCompleteChampion{text-align:center;padding:18px 0 14px}
+.wcCompleteChampion h2{margin:8px 0 4px;font-size:30px;line-height:1}
+.wcCompleteChampion>div:last-child{
+  color:var(--gold);font-size:10px;font-weight:950;letter-spacing:.14em
+}
+.wcCompleteFinal{
+  text-align:center;border:1px solid var(--line);border-radius:16px;
+  padding:13px;margin-bottom:12px;background:#0f1821
+}
+.wcCompleteFinal>span{
+  display:block;color:var(--muted);font-size:8px;font-weight:950;letter-spacing:.12em;margin-bottom:6px
+}
+.wcCompleteFinal>div{font-size:13px;font-weight:800}
+.wcCompleteFinal small{display:block;color:var(--gold);font-size:8px;margin-top:5px}
+.wcCompleteManaged{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  border:1px solid rgba(226,187,65,.32);border-radius:14px;padding:11px 12px;margin-bottom:12px
+}
+.wcCompleteManaged span{color:var(--muted);font-size:8px;font-weight:900}
+.wcCompleteManaged b{display:flex;align-items:center;gap:6px;font-size:10px}
+.wcCompleteManaged strong{color:var(--gold);font-size:9px}
+.wcCompleteAwards{
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px
+}
+.wcCompleteAward{
+  border:1px solid var(--line);border-radius:14px;background:#0f1821;padding:11px
+}
+.wcCompleteAward>span{
+  display:block;color:var(--gold);font-size:8px;font-weight:950;letter-spacing:.09em;margin-bottom:5px
+}
+.wcCompleteAward b{display:block;font-size:11px}
+.wcCompleteAward small{
+  display:flex;align-items:center;gap:5px;color:var(--muted);font-size:7.5px;margin-top:4px
+}
+.wcCompletePrimary{
+  width:100%;min-height:54px;margin-top:14px;border-radius:15px;
+  border:1px solid rgba(226,187,65,.55);background:var(--gold);color:#16130a;
+  font-weight:950;letter-spacing:.08em
+}
+@media(max-width:430px){
+ .worldCupCompletionCard{padding:18px 15px;border-radius:20px}
+ .wcCompleteChampion h2{font-size:27px}
+ .wcCompleteAwards{grid-template-columns:1fr}
+ .wcCompleteManaged{grid-template-columns:1fr auto}
+ .wcCompleteManaged span{grid-column:1/-1}
+}
 </style>
 
 </head>
@@ -14593,8 +14672,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.1.17 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.1.17";
+const BUILD_VERSION="Mini&Me Football Club v1.1.18 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.1.18";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -16862,6 +16941,79 @@ function buildNextWorldCupRound(stage,winners){
    played:false,winner:null
  }];
 }
+function worldCupNationFinishLabel(t,nationId){
+ if(!t||!nationId)return"";
+ if(t.champion===nationId)return"Champion";
+ if(t.runnerUp===nationId)return"Runner-up";
+
+ let checks=[
+   ["SF","Semi-finalist"],
+   ["QF","Quarter-finalist"],
+   ["R16","Round of 16"]
+ ];
+ for(let [stage,label] of checks){
+   let ms=(t.rounds&&t.rounds[stage])||[];
+   if(ms.some(m=>m&&m.played&&(m.home===nationId||m.away===nationId)))return label;
+ }
+ if((t.groups||[]).some(g=>(g.teams||[]).includes(nationId)))return"Group Stage";
+ return"Did not qualify";
+}
+
+function worldCupAwardSnapshot(t){
+ let stats=worldCupCurrentPlayerStats(t),
+     goals=stats.slice().sort((a,b)=>b.goals-a.goals||b.assists-a.assists||b.avgRating-a.avgRating)[0]||null,
+     rating=stats.slice().filter(x=>x.ratedApps>0).sort((a,b)=>b.avgRating-a.avgRating||b.ratedApps-a.ratedApps)[0]||null,
+     assists=stats.slice().sort((a,b)=>b.assists-a.assists||b.goals-a.goals||b.avgRating-a.avgRating)[0]||null,
+     glove=stats.slice().filter(x=>x.pos==="GK").sort((a,b)=>b.cleanSheets-a.cleanSheets||b.avgRating-a.avgRating||b.apps-a.apps)[0]||null;
+ return{goals,rating,assists,glove};
+}
+
+function worldCupAwardSnapshotRow(title,p,value){
+ if(!p)return '<div class="wcCompleteAward"><span>'+title+'</span><b>—</b><small>No award data</small></div>';
+ return '<div class="wcCompleteAward"><span>'+title+'</span><b>'+displayPlayerName(p.name)+'</b><small>'+nationFlagHtml(p.nation,14)+nationName(p.nation)+' · '+value+'</small></div>';
+}
+
+function showWorldCupCompletionSnapshot(t){
+ if(!t||!t.complete)return;
+
+ let modal=document.getElementById("worldCupCompletionModal"),
+     host=document.getElementById("worldCupCompletionContent");
+ if(!modal||!host)return;
+
+ let final=((t.rounds&&t.rounds.FINAL)||[])[0]||null,
+     awards=worldCupAwardSnapshot(t),
+     managed=managedNationId(),
+     managedLine=managed
+       ?'<div class="wcCompleteManaged"><span>Your Nation</span><b>'+nationFlagHtml(managed,18)+nationName(managed)+'</b><strong>'+worldCupNationFinishLabel(t,managed)+'</strong></div>'
+       :'',
+     score=final
+       ?nationFlagHtml(final.home,16)+nationName(final.home)+' <b>'+final.hg+'–'+final.ag+'</b> '+nationName(final.away)+nationFlagHtml(final.away,16)
+       :'Final completed',
+     pens=final&&final.pens?'<small>'+final.pens.home+'–'+final.pens.away+' on penalties</small>':'';
+
+ host.innerHTML=
+   '<div class="wcCompleteEyebrow">'+currentWorldCupContextYear()+' WORLD CUP · COMPLETE</div>'+
+   '<div class="wcCompleteChampion">'+nationFlagHtml(t.champion,42)+
+     '<h2>'+nationName(t.champion)+'</h2><div>WORLD CHAMPIONS</div></div>'+
+   '<div class="wcCompleteFinal"><span>FINAL</span><div>'+score+'</div>'+pens+'</div>'+
+   managedLine+
+   '<div class="wcCompleteAwards">'+
+     worldCupAwardSnapshotRow("Golden Boot",awards.goals,awards.goals?awards.goals.goals+" goals":"")+
+     worldCupAwardSnapshotRow("Top Rating",awards.rating,awards.rating?awards.rating.avgRating.toFixed(2)+" avg":"")+
+     worldCupAwardSnapshotRow("Top Assists",awards.assists,awards.assists?awards.assists.assists+" assists":"")+
+     worldCupAwardSnapshotRow("Golden Glove",awards.glove,awards.glove?awards.glove.cleanSheets+" clean sheets":"")+
+   '</div>'+
+   '<button id="worldCupCompletionView" class="wcCompletePrimary">VIEW WORLD CUP</button>';
+
+ modal.classList.remove("hidden");
+ modal.setAttribute("aria-hidden","false");
+}
+
+function closeWorldCupCompletionSnapshot(){
+ let modal=document.getElementById("worldCupCompletionModal");
+ if(modal){modal.classList.add("hidden");modal.setAttribute("aria-hidden","true")}
+}
+
 function simulateWorldCupKnockoutRound(){
  let t=ensureWorldCupTournament();if(!t||t.complete||t.stage==="GROUP")return null;
  let stage=t.stage,matches=t.rounds[stage]||[],winners=[];
@@ -16878,6 +17030,7 @@ function simulateWorldCupKnockoutRound(){
    }
    G.internationalNational.history.unshift({season:G.season,cycle:t.cycle,winner:t.champion,runnerUp:t.runnerUp});
    G.feed.unshift({t:"WORLD CUP",m:nationName(t.champion)+" are World Cup champions after defeating "+nationName(t.runnerUp)+" in the Final."});
+   setTimeout(()=>showWorldCupCompletionSnapshot(t),80);
  }else{
    buildNextWorldCupRound(stage,winners);
    t.stage=stage==="R16"?"QF":stage==="QF"?"SF":"FINAL";
@@ -27192,6 +27345,7 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.1.18","World Cup Completion Snapshot","PRE-PRODUCTION / UX ENHANCEMENT","Added a dedicated World Cup completion popup immediately after the Final. The snapshot presents the champion, runner-up and Final score, the managed nation’s tournament finish, Golden Boot, top average rating, top assists and Golden Glove, plus a direct View World Cup action. The popup uses the existing tournament data and current World Cup statistics without changing simulation logic."],
   ["v1.1.17","International Hub Refinement","PRE-PRODUCTION / UX ENHANCEMENT","Simplified Nations by removing Qualification Watch and Recent International Results, and replaced the neon qualifier cards with compact federation-grouped qualifier lists. Removed the redundant Recent World Cup Results table from the World Cup workspace. Added current top-three World Cup leaderboards for Golden Boot, average rating, assists and Golden Glove, plus a career list of past World Cup winners. Current tournament statistics are reconstructed from saved World Cup fixtures so existing in-progress tournaments populate immediately."],
   ["v1.1.16","World Cup Knockout Context","PRE-PRODUCTION / UX ENHANCEMENT","Added progression context to World Cup knockout fixtures. Round of 16 teams now identify how they qualified, such as Group A Winner or Group B Runner-up, with later rounds carrying their prior-match source. Added a persistent Groups tab beside Tournament and Last Round so completed group-stage tables remain reviewable throughout the knockout rounds and after the Final."],
   ["v1.1.15","World Cup Confederation Draw Integrity","PRE-PRODUCTION / QA FIX","Added confederation separation to the 32-team World Cup draw while preserving the four seeded strength pots. AFC, CAF, CONCACAF, CONMEBOL and OFC are limited to one nation per group; UEFA may have up to two where required by its larger allocation. The draw uses backtracking rather than a simple shuffle so valid later-pot placements are protected. Existing World Cups are redrawn automatically only when no group match has yet been played."],
@@ -28987,6 +29141,18 @@ $("#beginCareerBtn").addEventListener("click",startSelectedCareer);
 $("#continueBtn").addEventListener("click",advance);
 $("#newSeasonBtn").addEventListener("click",startSeasonTransition);
 $("#beginSeasonBtn").addEventListener("click",closeSeasonPreview);
+document.addEventListener("click",e=>{
+ let close=e.target&&e.target.closest&&e.target.closest("#worldCupCompletionClose");
+ if(close){closeWorldCupCompletionSnapshot();return}
+ let view=e.target&&e.target.closest&&e.target.closest("#worldCupCompletionView");
+ if(view){
+   closeWorldCupCompletionSnapshot();
+   page="international";
+   window.internationalSectionTab="worldcup";
+   window.worldCupFinalsView="tournament";
+   renderSoon();
+ }
+});
 $("#seasonPreviewTabs").addEventListener("click",function(e){let b=e.target.closest("[data-season-preview-tab]");if(b)renderSeasonPreview(b.dataset.seasonPreviewTab)});
 $("#adoptIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(true));
 $("#retainIdentityBtn").addEventListener("click",()=>resolveUserClubIdentityDecision(false));
@@ -29107,6 +29273,13 @@ document.addEventListener("click",function(e){
   <div class="coachEditNotice">Coach name, OVR, football identity and formation can be edited. Career record, tenure, titles and awards remain simulation controlled.</div>
   <button class="btn full" data-save-coach-editor="1">SAVE COACH</button>
  </div>
+</div>
+
+<div id="worldCupCompletionModal" class="worldCupCompletionModal hidden" aria-hidden="true">
+  <div class="worldCupCompletionCard">
+    <button id="worldCupCompletionClose" class="worldCupCompletionClose" aria-label="Close">×</button>
+    <div id="worldCupCompletionContent"></div>
+  </div>
 </div>
 </body>
 </html>
