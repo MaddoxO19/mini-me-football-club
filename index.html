@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f14">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mini&Me Football Club v1.4.4 Pre-Production</title>
+<title>Mini&Me Football Club v1.4.6 Pre-Production</title>
 <style>
 :root{--bg:#080d12;--card:#111923;--card2:#17212c;--line:#263442;--text:#f3f6f8;--muted:#91a0ae;--gold:#d9b54a;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}body{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
@@ -14835,6 +14835,33 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
   transform:translateX(-50%);
   background:rgba(255,255,255,.8);
 }
+
+/* v1.4.5 event integration */
+.watchPlayer.home[data-index="0"],
+.watchPlayer.away[data-index="0"]{
+  box-shadow:0 0 0 2px rgba(255,255,255,.08);
+}
+.watchGoalFlash{
+  animation:watchGoalPulse .22s ease-out;
+}
+@keyframes watchGoalPulse{
+  from{opacity:.35;transform:scale(.985)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* v1.4.6 movement and ball physics */
+.watchPlayer{
+  will-change:left,top,transform;
+}
+.watchPlayer.moving i{
+  transform:translate(-50%,-50%) rotate(var(--run-angle,0deg));
+}
+.watchPlayer.moving{
+  filter:brightness(1.04);
+}
+.watchBall{
+  box-shadow:0 0 8px rgba(255,255,255,.72)!important;
+}
 </style>
 
 </head>
@@ -15083,8 +15110,8 @@ body:has(#contextNav [data-context-nav="worldcup"]) #contextNav{
 (function(){
 "use strict";
 // v2.9.12.1: Rich Career Records plus clean fixture-rank treatment.
-const BUILD_VERSION="Mini&Me Football Club v1.4.4 Pre-Production";
- const RELEASE_CANDIDATE_VERSION="1.4.4";
+const BUILD_VERSION="Mini&Me Football Club v1.4.6 Pre-Production";
+ const RELEASE_CANDIDATE_VERSION="1.4.6";
 const RELEASE_STAGE="PRE-PRODUCTION";
 const GAMEPLAY_ENGINE_VERSION="1.0.0";
 const MATCH_ENGINE_VERSION="1.0.0";
@@ -22377,7 +22404,11 @@ const WATCH_WORLD={
    state:"CONTROLLED",
    target:null,
    flightTime:0,
-   elapsed:0
+   elapsed:0,
+   curve:0,
+   spin:0,
+   firstTouchLock:0,
+   reboundCount:0
  }
 };
 
@@ -22419,7 +22450,7 @@ function watchInitWorld(){
  WATCH_WORLD.eventActive=false;
  WATCH_WORLD.eventStage=0;
  WATCH_WORLD.eventStageClock=0;
- WATCH_WORLD.ball={x:50,y:50,vx:0,vy:0,owner:null,state:"CONTROLLED",target:null,flightTime:0,elapsed:0};
+ WATCH_WORLD.ball={x:50,y:50,vx:0,vy:0,owner:null,state:"CONTROLLED",target:null,flightTime:0,elapsed:0,curve:0,spin:0,firstTouchLock:0,reboundCount:0};
  let cm=WATCH_WORLD.players.find(p=>p.side==="home"&&p.index===6) || WATCH_WORLD.players[0];
  watchGiveBall(cm);
  watchWorldUpdateDom();
@@ -22457,6 +22488,7 @@ function watchWorldTick(dt){
  // Continuous tactical world always updates.
  watchUpdatePhase(dt);
  watchUpdateShape(dt,next);
+ watchUpdateKeeperPositioning();
  watchUpdatePlayers(dt);
  watchUpdateBall(dt);
 
@@ -22845,7 +22877,7 @@ function watchUpdatePhase(dt){
  if(owner)watchSupportAroundCarrier(owner);
 
  // Carrier makes a football decision at a short cadence rather than only when phase timer expires.
- if(owner && WATCH_WORLD.ball.state==="CONTROLLED" && WATCH_WORLD.phaseClock>=WATCH_WORLD.phaseDuration){
+ if(owner && WATCH_WORLD.ball.state==="CONTROLLED" && WATCH_WORLD.ball.firstTouchLock<=0 && WATCH_WORLD.phaseClock>=WATCH_WORLD.phaseDuration){
    let decision=watchDecisionForCarrier(owner);
    watchApplyCarrierDecision(owner,decision);
    WATCH_WORLD.phaseClock=0;
@@ -23048,25 +23080,115 @@ function watchUpdateShape(dt,nextEvent){
  // Carrier support remains local and is layered over the coordinated team shape.
  if(owner)watchSupportAroundCarrier(owner);
 }
+
+function watchNearestTeammateDistance(player){
+ let mates=WATCH_WORLD.players.filter(p=>p.side===player.side&&p!==player),
+     best=999;
+ mates.forEach(m=>{best=Math.min(best,watchDistance(player,m))});
+ return best;
+}
+function watchSeparationForce(player){
+ let fx=0,fy=0;
+ WATCH_WORLD.players.forEach(other=>{
+   if(other===player)return;
+   let dx=player.x-other.x,dy=player.y-other.y,d=Math.hypot(dx,dy);
+   if(d<.01)return;
+   let same=other.side===player.side,
+       min=same?4.2:3.1;
+   if(d<min){
+     let strength=(min-d)/min*(same?8:5);
+     fx+=(dx/d)*strength;
+     fy+=(dy/d)*strength;
+   }
+ });
+ return {x:fx,y:fy};
+}
+function watchTurnRateFactor(player,desiredUx,desiredUy){
+ let speed=Math.hypot(player.vx,player.vy);
+ if(speed<.4)return 1;
+ let ux=player.vx/speed,uy=player.vy/speed,
+     dot=Math.max(-1,Math.min(1,ux*desiredUx+uy*desiredUy));
+ return .48+.52*((dot+1)/2);
+}
+function watchPlayerAcceleration(player){
+ if(player.role==="FWD")return 36;
+ if(player.role==="MID")return 33;
+ if(player.role==="DEF")return 30;
+ return 26;
+}
+function watchPlayerBraking(player){
+ if(player.role==="GK")return 34;
+ return 39;
+}
+function watchFirstTouchQuality(player,state){
+ let seed="FIRSTTOUCH|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*10)+"|"+player.side+"|"+player.index+"|"+state,
+     base=player.role==="MID"?.90:player.role==="FWD"?.87:player.role==="DEF"?.84:.82,
+     noise=(intelHash(seed)-.5)*.08;
+ return Math.max(.72,Math.min(.96,base+noise));
+}
+function watchApplyFirstTouch(player,incomingState){
+ if(!player)return;
+ let quality=watchFirstTouchQuality(player,incomingState),
+     dir=player.side==="home"?-1:1,
+     lateral=(intelHash("TOUCHDIR|"+G.season+"|"+G.week+"|"+player.index+"|"+Math.floor(WATCH_WORLD.simMinute*10))-.5)*2,
+     touchDist=(1-quality)*7;
+ player.x=Math.max(4,Math.min(96,player.x+lateral*touchDist));
+ player.y=Math.max(2,Math.min(98,player.y+dir*touchDist*.55));
+ WATCH_WORLD.ball.firstTouchLock=.08+(1-quality)*.20;
+}
+
 function watchUpdatePlayers(dt){
  WATCH_WORLD.players.forEach(p=>{
-   let dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
-   if(d<.05){p.vx*=.75;p.vy*=.75;return}
-   let desired=Math.min(p.maxSpeed,d*4.2),
-       ux=dx/d,uy=dy/d,
-       targetVx=ux*desired,targetVy=uy*desired,
-       accel=32;
-   p.vx += Math.max(-accel*dt,Math.min(accel*dt,targetVx-p.vx));
-   p.vy += Math.max(-accel*dt,Math.min(accel*dt,targetVy-p.vy));
-   p.x += p.vx*dt;
-   p.y += p.vy*dt;
-   p.x=Math.max(4,Math.min(96,p.x));p.y=Math.max(2,Math.min(98,p.y));
+   let sep=watchSeparationForce(p),
+       tx=p.tx+sep.x,
+       ty=p.ty+sep.y,
+       dx=tx-p.x,dy=ty-p.y,d=Math.hypot(dx,dy),
+       speed=Math.hypot(p.vx,p.vy);
+
+   if(d<.05){
+     let brake=watchPlayerBraking(p);
+     let decay=Math.max(0,1-brake*dt/Math.max(.5,speed));
+     p.vx*=decay;p.vy*=decay;
+     return;
+   }
+
+   let ux=dx/d,uy=dy/d,
+       turn=watchTurnRateFactor(p,ux,uy),
+       desiredSpeed=Math.min(p.maxSpeed,d*3.4)*turn;
+
+   // Slow slightly as target is approached rather than overshooting or snapping.
+   if(d<3.2)desiredSpeed*=Math.max(.25,d/3.2);
+
+   let targetVx=ux*desiredSpeed,
+       targetVy=uy*desiredSpeed,
+       accel=watchPlayerAcceleration(p),
+       ax=targetVx-p.vx,
+       ay=targetVy-p.vy,
+       amag=Math.hypot(ax,ay);
+
+   if(amag>0){
+     let maxDelta=accel*dt;
+     let scale=Math.min(1,maxDelta/amag);
+     p.vx+=ax*scale;
+     p.vy+=ay*scale;
+   }
+
+   p.x+=p.vx*dt;
+   p.y+=p.vy*dt;
+   p.x=Math.max(4,Math.min(96,p.x));
+   p.y=Math.max(2,Math.min(98,p.y));
  });
 }
 function watchWorldUpdateDom(){
  WATCH_WORLD.players.forEach(p=>{
    p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";
    p.el.classList.toggle("carrier",WATCH_WORLD.ball.owner===p);
+   let sp=Math.hypot(p.vx,p.vy);
+   p.el.classList.toggle("moving",sp>2.2);
+   if(sp>.5){
+     let angle=Math.atan2(p.vy,p.vx)*180/Math.PI+90;
+     p.el.style.setProperty("--run-angle",angle+"deg");
+   }
  });
  let b=document.getElementById("wmBall");
  if(b){b.style.left=WATCH_WORLD.ball.x+"%";b.style.top=WATCH_WORLD.ball.y+"%";}
@@ -23074,12 +23196,14 @@ function watchWorldUpdateDom(){
  if(hs)hs.textContent=String(WATCH_WORLD.tacticalStateHome||"").replaceAll("_"," ");
  if(as)as.textContent=String(WATCH_WORLD.tacticalStateAway||"").replaceAll("_"," ");
 }
-function watchGiveBall(player){
+function watchGiveBall(player,incomingState="PASS"){
  if(!player)return;
+ if(WATCH_WORLD.ball.owner!==player)watchApplyFirstTouch(player,incomingState);
  WATCH_WORLD.ball.owner=player;
  WATCH_WORLD.ball.state="CONTROLLED";
  WATCH_WORLD.ball.target=null;
  WATCH_WORLD.ball.vx=0;WATCH_WORLD.ball.vy=0;
+ WATCH_WORLD.ball.curve=0;WATCH_WORLD.ball.spin=0;
  WATCH_WORLD.ball.x=player.x;WATCH_WORLD.ball.y=player.y;
 }
 function watchKickBallTo(x,y,duration=.35,targetPlayer=null,state="PASS"){
@@ -23089,14 +23213,15 @@ function watchKickBallTo(x,y,duration=.35,targetPlayer=null,state="PASS"){
      dx=tx-b.x,dy=ty-b.y,
      dist=Math.hypot(dx,dy);
 
- // Pace is derived from action type; duration becomes a cap rather than easing behaviour.
- let unitsPerSecond=state==="SHOT"?150:
-                    state==="MISS"||state==="SAVE"?120:
-                    state==="THROUGH"?108:
-                    state==="CROSS"?102:
-                    state==="LONG_PASS"?96:82,
-     calculated=Math.max(.12,dist/unitsPerSecond);
- duration=Math.max(.12,Math.min(duration||calculated,Math.max(calculated,.52)));
+ let unitsPerSecond=
+       state==="SHOT"?165:
+       state==="MISS"||state==="SAVE"?132:
+       state==="THROUGH"?112:
+       state==="CROSS"?104:
+       state==="LONG_PASS"?98:86;
+
+ let calculated=Math.max(.10,dist/unitsPerSecond);
+ duration=Math.max(.10,Math.min(duration||calculated,Math.max(calculated,.55)));
 
  b.owner=null;
  b.state=state;
@@ -23105,6 +23230,14 @@ function watchKickBallTo(x,y,duration=.35,targetPlayer=null,state="PASS"){
  b.vy=dy/duration;
  b.flightTime=duration;
  b.elapsed=0;
+ b.reboundCount=0;
+
+ // Crosses and long switches get visible curvature; shots are flatter and faster.
+ let seed="BALLCURVE|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*10)+"|"+state+"|"+Math.round(b.x)+"|"+Math.round(b.y);
+ let sign=intelHash(seed)>.5?1:-1;
+ b.curve=state==="CROSS"?sign*(7+intelHash(seed+"|C")*5):
+         state==="LONG_PASS"?sign*(3+intelHash(seed+"|L")*3):0;
+ b.spin=state==="SHOT"?.25:state==="CROSS"?.60:state==="LONG_PASS"?.35:.10;
 }
 function watchPassBallTo(player,duration=.34){
  if(!player)return;
@@ -23132,41 +23265,83 @@ function watchPossibleVisualInterception(){
 
 function watchUpdateBall(dt){
  let b=WATCH_WORLD.ball;
+
+ if(b.firstTouchLock>0)b.firstTouchLock=Math.max(0,b.firstTouchLock-dt);
+
  if(b.owner){
    let dir=b.owner.side==="home"?-1:1;
    b.x=b.owner.x;
    b.y=b.owner.y+dir*.8;
    return;
  }
- if(["PASS","THROUGH","CROSS","LONG_PASS","SHOT","MISS","SAVE"].includes(b.state)){
+
+ if(["PASS","THROUGH","CROSS","LONG_PASS","SHOT","MISS","SAVE","REBOUND"].includes(b.state)){
    b.elapsed+=dt;
 
-   // During a pass, gently lead a moving target without exponential easing.
+   // Passes lead receivers slightly, while keeping constant pace rather than easing.
    if(["PASS","THROUGH","CROSS","LONG_PASS"].includes(b.state)&&b.target){
      let remain=Math.max(.04,b.flightTime-b.elapsed),
-         tx=b.target.x+b.target.vx*.08,
-         ty=b.target.y+b.target.vy*.08;
-     b.vx=(tx-b.x)/remain;
-     b.vy=(ty-b.y)/remain;
+         lead= b.state==="THROUGH"?.14:b.state==="CROSS"?.08:.06,
+         tx=b.target.x+b.target.vx*lead,
+         ty=b.target.y+b.target.vy*lead,
+         dx=tx-b.x,dy=ty-b.y,
+         dist=Math.hypot(dx,dy),
+         currentSpeed=Math.max(20,Math.hypot(b.vx,b.vy));
+     if(dist>.01){
+       b.vx=dx/dist*currentSpeed;
+       b.vy=dy/dist*currentSpeed;
+     }
    }
 
-   b.x+=b.vx*dt;
-   b.y+=b.vy*dt;
+   // Curvature is perpendicular to current trajectory, strongest mid-flight.
+   let progress=Math.max(0,Math.min(1,b.elapsed/Math.max(.01,b.flightTime))),
+       curveWindow=Math.sin(Math.PI*progress),
+       speed=Math.max(1,Math.hypot(b.vx,b.vy)),
+       px=-b.vy/speed,py=b.vx/speed,
+       curveAccel=b.curve*curveWindow;
+
+   b.x+=(b.vx+px*curveAccel)*dt;
+   b.y+=(b.vy+py*curveAccel)*dt;
 
    let interceptor=watchPossibleVisualInterception();
    if(interceptor){
      WATCH_WORLD.possession=interceptor.side;
      watchTriggerTransition(interceptor.side);
-     watchGiveBall(interceptor);
+     watchGiveBall(interceptor,b.state);
      return;
    }
 
    if(b.elapsed>=b.flightTime){
      if(b.target&&["PASS","THROUGH","CROSS","LONG_PASS"].includes(b.state)){
-       watchGiveBall(b.target);
-     }else if(b.target&&b.state==="SAVE"){
-       watchGiveBall(b.target);
-     }else{
+       watchGiveBall(b.target,b.state);
+     }
+     else if(b.target&&b.state==="SAVE"){
+       // Some saves are caught, others are visually parried before recovery.
+       let keeper=b.target,
+           seed="PARRY|"+G.season+"|"+G.week+"|"+Math.floor(WATCH_WORLD.simMinute*10)+"|"+keeper.side;
+       if(intelHash(seed)>.58 && b.reboundCount<1){
+         b.reboundCount++;
+         b.target=null;
+         b.state="REBOUND";
+         b.elapsed=0;
+         b.flightTime=.22;
+         b.vx=(intelHash(seed+"|X")-.5)*55;
+         b.vy=(keeper.side==="home"?-1:1)*(22+intelHash(seed+"|Y")*18);
+       }else{
+         watchGiveBall(keeper,"SAVE");
+       }
+     }
+     else if(b.state==="REBOUND"){
+       // Defensive recovery ends the visual rebound without changing the real outcome.
+       let defendingSide=WATCH_WORLD.possession,
+           defender=WATCH_WORLD.players.filter(p=>p.side===defendingSide&&p.role==="DEF")
+             .sort((a,c)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y))[0],
+           keeper=watchKeeperForSide(defendingSide);
+       if(defender&&Math.hypot(defender.x-b.x,defender.y-b.y)<10)watchGiveBall(defender,"REBOUND");
+       else if(keeper)watchGiveBall(keeper,"REBOUND");
+       else{b.vx=0;b.vy=0}
+     }
+     else{
        b.vx=0;b.vy=0;
      }
    }
@@ -23197,26 +23372,119 @@ function watchNearestDefenderTo(attacker){
  list.sort((a,b)=>Math.hypot(a.x-attacker.x,a.y-attacker.y)-Math.hypot(b.x-attacker.x,b.y-attacker.y));
  return list[0];
 }
+
+function watchKeeperForSide(side){
+ return WATCH_WORLD.players.find(p=>p.side===side&&p.role==="GK")||null;
+}
+function watchDefensiveLine(side){
+ return WATCH_WORLD.players.filter(p=>p.side===side&&p.role==="DEF");
+}
+function watchGoalSideForAttacker(side){
+ return side==="home"?"top":"bottom";
+}
+function watchKeeperSetPosition(keeper,ballX,ballY,attackingSide){
+ if(!keeper)return;
+ let defendingSide=keeper.side,
+     goalY=defendingSide==="home"?94:6,
+     ballNearGoal=defendingSide==="home"?(100-ballY):ballY,
+     centralPull=(ballX-50)*.18,
+     stepOut=Math.max(0,Math.min(10,(70-ballNearGoal)*.16));
+ keeper.tx=Math.max(42,Math.min(58,50+centralPull));
+ keeper.ty=defendingSide==="home"?goalY-stepOut:goalY+stepOut;
+}
+function watchUpdateKeeperPositioning(){
+ ["home","away"].forEach(side=>{
+   let keeper=watchKeeperForSide(side);
+   if(!keeper)return;
+   let attacker=watchOpponentSide(side);
+   watchKeeperSetPosition(keeper,WATCH_WORLD.ball.x,WATCH_WORLD.ball.y,attacker);
+ });
+}
+function watchRecoverDefenders(attackingSide,focusX,focusY){
+ let defendingSide=watchOpponentSide(attackingSide),
+     defenders=watchDefensiveLine(defendingSide),
+     dir=defendingSide==="home"?1:-1;
+ defenders.forEach((d,i)=>{
+   let slot=[30,43,57,70][i]||50,
+       coverX=slot+(focusX-50)*.16,
+       coverY=focusY+dir*(i===1||i===2?7:10);
+   d.tx=Math.max(10,Math.min(90,coverX));
+   d.ty=Math.max(8,Math.min(92,coverY));
+ });
+}
+function watchSelectCreator(side,lane,excludeIndex=null){
+ let roles=["MID","FWD"],
+     options=WATCH_WORLD.players.filter(p=>p.side===side&&roles.includes(p.role)&&(excludeIndex===null||p.index!==excludeIndex));
+ if(!options.length)return null;
+ let targetX=lane==="LEFT"?31:lane==="RIGHT"?69:50;
+ options.sort((a,b)=>{
+   let as=Math.abs(a.x-targetX)+watchPressureOn(a)*5-watchGoalProgress(side,a.y)*12,
+       bs=Math.abs(b.x-targetX)+watchPressureOn(b)*5-watchGoalProgress(side,b.y)*12;
+   return as-bs;
+ });
+ return options[0]||null;
+}
+function watchSelectFinisher(side,e){
+ if(e&&e.type==="GOAL"){
+   let mapped=watchMarkerForScorer(side,e.player);
+   if(mapped)return mapped;
+ }
+ let forwards=WATCH_WORLD.players.filter(p=>p.side===side&&p.role==="FWD");
+ forwards.sort((a,b)=>watchGoalProgress(side,b.y)-watchGoalProgress(side,a.y));
+ return forwards[0]||watchPickReceiver(side,e&&e.lane||"CENTRE",["MID","FWD"]);
+}
+function watchDirectedEventSetup(e){
+ let lane=e.lane||"CENTRE",
+     finisher=watchSelectFinisher(e.side,e),
+     creator=watchSelectCreator(e.side,lane,finisher?finisher.index:null),
+     keeper=watchKeeperForSide(watchOpponentSide(e.side));
+ return {lane,finisher,creator,keeper};
+}
+function watchEventOutcomeTarget(e,keeper){
+ let home=e.side==="home",
+     lane=e.lane||"CENTRE",
+     goalY=home?-4:104;
+ if(e.type==="GOAL"){
+   return {x:lane==="LEFT"?46:lane==="RIGHT"?54:50,y:goalY,state:"SHOT"};
+ }
+ if(e.type==="SAVE"){
+   let kx=keeper?keeper.x:50,
+       ky=home?6:94;
+   return {x:kx,y:ky,state:"SAVE"};
+ }
+ if(e.type==="MISS"){
+   let x=lane==="LEFT"?13:lane==="RIGHT"?87:64;
+   return {x,y:goalY,state:"MISS"};
+ }
+ return null;
+}
+function watchRestartAfterDeadBall(defendingSide){
+ let keeper=watchKeeperForSide(defendingSide);
+ if(!keeper)return;
+ watchGiveBall(keeper);
+ WATCH_WORLD.possession=defendingSide;
+ watchTriggerTransition(defendingSide);
+ setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(180,480/Math.max(1,WATCH_MATCH.speed)));
+}
+
 function watchBeginDirectedEvent(e){
  WATCH_WORLD.eventActive=true;
  WATCH_WORLD.eventStage=0;
  WATCH_WORLD.eventStageClock=0;
  WATCH_WORLD.possession=e.side;
  WATCH_WORLD.phase="ATTACK";
+ WATCH_WORLD._directed=watchDirectedEventSetup(e);
+
  document.querySelectorAll(".watchPlayer.designatedScorer").forEach(x=>x.classList.remove("designatedScorer"));
  if(e.type==="GOAL"){
-   let scorerMarker=watchMarkerForScorer(e.side,e.player);
+   let scorerMarker=WATCH_WORLD._directed.finisher;
    if(scorerMarker&&scorerMarker.el)scorerMarker.el.classList.add("designatedScorer");
  }
 
- let banner=document.getElementById("wmEvent");
- if(banner)banner.textContent=watchEventText(e);
-
- // Begin from wherever the continuous world currently is, not a formation reset.
  let carrier=WATCH_WORLD.ball.owner;
  if(!carrier || carrier.side!==e.side){
-   carrier=watchPickReceiver(e.side,e.lane||"CENTRE",["MID","DEF"]);
-   if(carrier)watchPassBallTo(carrier,.28);
+   let start=watchPickReceiver(e.side,e.lane||"CENTRE",["MID","DEF"]);
+   if(start)watchPassBallTo(start,.26);
  }
 }
 
@@ -23242,112 +23510,155 @@ function watchGoalkeeperDistribution(keeper){
 function watchUpdateDirectedEvent(dt){
  let e=WATCH_WORLD.targetEvent;if(!e)return;
  WATCH_WORLD.eventStageClock+=dt;
- let lane=e.lane||"CENTRE",
+
+ let speed=Math.max(1,WATCH_MATCH.speed),
+     lane=e.lane||"CENTRE",
      home=e.side==="home",
-     dir=home?-1:1,
-     laneX=lane==="LEFT"?28:lane==="RIGHT"?72:50,
-     speed=Math.max(1,WATCH_MATCH.speed),
-     scorer=e.type==="GOAL"?watchMarkerForScorer(e.side,e.player):null;
+     setup=WATCH_WORLD._directed||watchDirectedEventSetup(e),
+     finisher=setup.finisher,
+     creator=setup.creator,
+     keeper=setup.keeper,
+     laneX=lane==="LEFT"?29:lane==="RIGHT"?71:50;
 
+ WATCH_WORLD._directed=setup;
+
+ // Stage 0: continue from current open play and bring a creator into support.
  if(WATCH_WORLD.eventStage===0){
-   // Progress from current possession through a midfielder or wide option.
-   let carrier=WATCH_WORLD.ball.owner;
-   if(!carrier||carrier.side!==e.side){
-     carrier=watchPickReceiver(e.side,lane,["DEF","MID"]);
-     if(carrier)watchPassBallTo(carrier,.26/Math.sqrt(speed));
+   let owner=WATCH_WORLD.ball.owner;
+   if(owner&&owner.side===e.side){
+     owner.tx=owner.tx*.7+laneX*.3;
+     owner.ty=owner.ty*.7+(home?48:52)*.3;
    }
-   if(carrier){
-     carrier.tx=lane==="CENTRE"?50:laneX;
-     carrier.ty=home?52:48;
+   if(creator){
+     creator.tx=lane==="LEFT"?31:lane==="RIGHT"?69:50;
+     creator.ty=home?34:66;
    }
-   if(WATCH_WORLD.eventStageClock>.48/speed){
-     WATCH_WORLD.eventStage=1;WATCH_WORLD.eventStageClock=0;
-     let creator=watchPickReceiver(e.side,lane,["MID","FWD"],scorer?scorer.index:null);
-     if(creator){
-       creator.tx=lane==="LEFT"?30:lane==="RIGHT"?70:50;
-       creator.ty=home?34:66;
-       watchPassBallTo(creator,.28/Math.sqrt(speed));
-     }
+   if(finisher){
+     finisher.tx=lane==="LEFT"?42:lane==="RIGHT"?58:50;
+     finisher.ty=home?20:80;
    }
- }else if(WATCH_WORLD.eventStage===1){
-   if(WATCH_WORLD.eventStageClock>.52/speed){
-     WATCH_WORLD.eventStage=2;WATCH_WORLD.eventStageClock=0;
-     if(e.type==="GOAL"&&scorer){
-       // Move the actual scorer into a role-appropriate finishing lane.
-       scorer.tx=lane==="LEFT"?38:lane==="RIGHT"?62:50;
-       if(scorer.role==="MID")scorer.ty=home?24:76;
-       else if(scorer.role==="FWD")scorer.ty=home?16:84;
-       else scorer.ty=home?26:74;
+   watchRecoverDefenders(e.side,laneX,home?25:75);
 
-       if(WATCH_WORLD.ball.owner!==scorer){
-         watchPassBallTo(scorer,.30/Math.sqrt(speed));
-       }
-     }else{
-       let finisher=watchPickReceiver(e.side,lane,["FWD","MID"]);
-       if(finisher){
-         finisher.tx=lane==="LEFT"?39:lane==="RIGHT"?61:50;
-         finisher.ty=home?18:82;
-         if(WATCH_WORLD.ball.owner!==finisher)watchPassBallTo(finisher,.30/Math.sqrt(speed));
-       }
+   if(WATCH_WORLD.eventStageClock>.42/speed){
+     WATCH_WORLD.eventStage=1;
+     WATCH_WORLD.eventStageClock=0;
+     if(creator&&WATCH_WORLD.ball.owner!==creator){
+       watchPassBallTo(creator,.26/Math.sqrt(speed));
      }
    }
- }else if(WATCH_WORLD.eventStage===2){
-   if(WATCH_WORLD.eventStageClock>.38/speed){
-     WATCH_WORLD.eventStage=3;WATCH_WORLD.eventStageClock=0;
-     let goalY=home?-4:104;
-     if(e.type==="GOAL"){
-       let shooter=scorer||WATCH_WORLD.ball.owner||watchPickReceiver(e.side,lane,["FWD","MID"]);
-       if(shooter)watchGiveBall(shooter);
-       watchKickBallTo(50,goalY,.20/Math.sqrt(speed),null,"SHOT");
-     }else if(e.type==="SAVE"){
-       let keeper=WATCH_WORLD.players.find(p=>p.side!==e.side&&p.role==="GK");
-       let x=lane==="LEFT"?46:lane==="RIGHT"?54:50,y=home?5:95;
-       watchKickBallTo(x,y,.23/Math.sqrt(speed),keeper,"SAVE");
-     }else if(e.type==="MISS"){
-       let x=lane==="LEFT"?16:lane==="RIGHT"?84:64;
-       watchKickBallTo(x,goalY,.23/Math.sqrt(speed),null,"MISS");
-     }else{
-       let recycle=watchPickReceiver(e.side,lane,["MID","DEF"]);
-       if(recycle)watchPassBallTo(recycle,.27/Math.sqrt(speed));
+ }
+
+ // Stage 1: creator receives and waits for the actual finishing run.
+ else if(WATCH_WORLD.eventStage===1){
+   if(finisher){
+     let goalLane=lane==="LEFT"?43:lane==="RIGHT"?57:50;
+     finisher.tx=goalLane;
+     finisher.ty=home?14:86;
+   }
+   watchRecoverDefenders(e.side,laneX,home?20:80);
+
+   if(WATCH_WORLD.eventStageClock>.46/speed){
+     WATCH_WORLD.eventStage=2;
+     WATCH_WORLD.eventStageClock=0;
+
+     if(finisher&&WATCH_WORLD.ball.owner!==finisher){
+       let passState=(lane==="CENTRE")?"THROUGH":"CROSS";
+       let duration=passState==="CROSS"?.30:.25;
+       watchKickBallTo(finisher.x,finisher.y,duration/Math.sqrt(speed),finisher,passState);
      }
    }
- }else if(WATCH_WORLD.eventStage===3){
-   if(WATCH_WORLD.eventStageClock>.38/speed){
+ }
+
+ // Stage 2: final touch and shot preparation.
+ else if(WATCH_WORLD.eventStage===2){
+   if(finisher){
+     let goalX=lane==="LEFT"?45:lane==="RIGHT"?55:50;
+     finisher.tx=goalX;
+     finisher.ty=home?11:89;
+   }
+   if(keeper){
+     let shotX=finisher?finisher.x:50,
+         shotY=finisher?finisher.y:(home?14:86);
+     watchKeeperSetPosition(keeper,shotX,shotY,e.side);
+   }
+
+   if(WATCH_WORLD.eventStageClock>.34/speed){
+     WATCH_WORLD.eventStage=3;
+     WATCH_WORLD.eventStageClock=0;
+
+     let shooter=finisher||WATCH_WORLD.ball.owner||watchPickReceiver(e.side,lane,["FWD","MID"]);
+     if(shooter)watchGiveBall(shooter);
+
+     let target=watchEventOutcomeTarget(e,keeper);
+     if(target){
+       if(e.type==="SAVE"&&keeper){
+         keeper.tx=target.x;
+         keeper.ty=home?6:94;
+         keeper.vx+=(target.x-keeper.x)*.45;
+         keeper.vy+=(target.y-keeper.y)*.45;
+       }
+       watchKickBallTo(target.x,target.y,.19/Math.sqrt(speed),e.type==="SAVE"?keeper:null,target.state);
+     }
+   }
+ }
+
+ // Stage 3: resolve the already-determined visual outcome.
+ else if(WATCH_WORLD.eventStage===3){
+   if(WATCH_WORLD.eventStageClock>.34/speed){
      if(e.type==="GOAL"){
        if(home)WATCH_MATCH.scoreHome++;else WATCH_MATCH.scoreAway++;
        let h=document.getElementById("wmHome"),a=document.getElementById("wmAway");
-       if(h)h.textContent=WATCH_MATCH.scoreHome;if(a)a.textContent=WATCH_MATCH.scoreAway;
+       if(h)h.textContent=WATCH_MATCH.scoreHome;
+       if(a)a.textContent=WATCH_MATCH.scoreAway;
        watchGoalCelebration(e);
-     }else if(e.type==="SAVE"){
-       let keeper=WATCH_WORLD.players.find(p=>p.side!==e.side&&p.role==="GK");
-       if(keeper){watchGiveBall(keeper);setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(180,520/Math.max(1,WATCH_MATCH.speed)));}
-       WATCH_WORLD.possession=e.side==="home"?"away":"home";
-       watchTriggerTransition(WATCH_WORLD.possession);
-     }else if(e.type==="MISS"){
-       let keeper=WATCH_WORLD.players.find(p=>p.side!==e.side&&p.role==="GK");
-       if(keeper){watchGiveBall(keeper);setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(180,520/Math.max(1,WATCH_MATCH.speed)));}
-       WATCH_WORLD.possession=e.side==="home"?"away":"home";
-       watchTriggerTransition(WATCH_WORLD.possession);
      }
+     else if(e.type==="SAVE"){
+       if(keeper)watchGiveBall(keeper);
+     }
+     else if(e.type==="MISS"){
+       // ball exits play; keeper will restart in next stage
+     }
+     else{
+       let recycler=watchPickReceiver(e.side,lane,["MID","DEF"]);
+       if(recycler)watchPassBallTo(recycler,.27);
+     }
+
      watchLog(e.minute+"′",watchEventText(e));
-     WATCH_WORLD.simMinute=Math.max(WATCH_WORLD.simMinute,e.minute+.08);
-     WATCH_WORLD.eventStage=4;WATCH_WORLD.eventStageClock=0;
+     WATCH_WORLD.simMinute=Math.max(WATCH_WORLD.simMinute,e.minute+.06);
+     WATCH_WORLD.eventStage=4;
+     WATCH_WORLD.eventStageClock=0;
    }
- }else if(WATCH_WORLD.eventStage===4){
-   if(WATCH_WORLD.eventStageClock>.48/speed){
+ }
+
+ // Stage 4: natural restart / continuation.
+ else if(WATCH_WORLD.eventStage===4){
+   if(WATCH_WORLD.eventStageClock>.42/speed){
      if(e.type==="GOAL"){
-       let centre=watchPickReceiver(e.side==="home"?"away":"home","CENTRE",["MID"]);
+       let restartSide=watchOpponentSide(e.side),
+           centre=watchPickReceiver(restartSide,"CENTRE",["MID"]);
        if(centre)watchGiveBall(centre);
-       WATCH_WORLD.possession=e.side==="home"?"away":"home";
-       watchTriggerTransition(WATCH_WORLD.possession);
+       WATCH_WORLD.possession=restartSide;
+       watchTriggerTransition(restartSide);
        WATCH_WORLD.phase="BUILD";
      }
+     else if(e.type==="SAVE"){
+       let defendingSide=watchOpponentSide(e.side);
+       WATCH_WORLD.possession=defendingSide;
+       watchTriggerTransition(defendingSide);
+       if(keeper)setTimeout(()=>watchGoalkeeperDistribution(keeper),Math.max(160,420/speed));
+     }
+     else if(e.type==="MISS"){
+       watchRestartAfterDeadBall(watchOpponentSide(e.side));
+     }
+
      WATCH_WORLD.targetEventIndex++;
      WATCH_MATCH.index=WATCH_WORLD.targetEventIndex;
      WATCH_WORLD.targetEvent=WATCH_MATCH.events[WATCH_WORLD.targetEventIndex]||null;
      WATCH_WORLD.eventActive=false;
+     WATCH_WORLD._directed=null;
      document.querySelectorAll(".watchPlayer.designatedScorer").forEach(x=>x.classList.remove("designatedScorer"));
-     WATCH_WORLD.eventStage=0;WATCH_WORLD.eventStageClock=0;
+     WATCH_WORLD.eventStage=0;
+     WATCH_WORLD.eventStageClock=0;
      let banner=document.getElementById("wmEvent");
      if(banner)banner.textContent="Open play";
    }
@@ -29372,6 +29683,8 @@ function homeExpandedBriefHtml(limit=10){
 
 function aboutBuildHistoryHtml(){
  const recentBuilds=[
+  ["v1.4.6","Movement & Ball Physics","PRE-PRODUCTION / VIEWER REFINEMENT","Polished movement and ball behaviour in Watch Game without changing the authoritative match engine. Players now use smoother acceleration, braking and turn-rate limits, maintain better separation from teammates and opponents, and slow naturally as they approach tactical targets. Pass reception includes a small role-based first touch before the carrier can make another decision. Ball movement now uses action-specific pace, constant-speed travel with moving-target lead, curved crosses and long switches, flatter/faster shots, and improved save trajectories. Goalkeepers react toward the shot target before contact. Some saves can visually parry into a short rebound before the keeper or a defender recovers possession; these rebounds remain presentation-only and cannot alter the predetermined match result."],
+  ["v1.4.5","Event Integration","PRE-PRODUCTION / VIEWER REFINEMENT","Improved how predetermined match outcomes blend into the continuous 2D visual simulation without altering the authoritative match engine. Directed events now begin from the current open-play positions rather than visibly taking over from a fixed pattern. A creator and actual finisher are selected from the existing shape, defenders recover toward the penalty area, and the goalkeeper continuously adjusts position to the ball before the final action. Goal sequences now progress through creator support, finishing run, final pass/cross and shot; saves resolve toward the goalkeeper's current position; misses leave play and restart through the goalkeeper. After each outcome, possession and tactical transition resume naturally instead of snapping directly back into midfield play."],
   ["v1.4.4","Player Decision Layer","PRE-PRODUCTION / VIEWER REFINEMENT","Expanded Watch Game's visual football intelligence without changing the authoritative match engine. Individual visual roles now make different decisions: centre backs favour circulation and genuine progressive lanes, fullbacks can carry, overlap, switch or cross, holding midfielders protect structure and switch play, advanced midfielders look for carries and through balls, wingers favour width, overlaps and crosses, strikers link play or run beyond, and goalkeepers vary short and long distribution. The visual ball model now distinguishes short passes, long switches, through balls and crosses with different pace. Moving receivers are led into space, risky open-play passes can be visually intercepted, and saves/misses can restart with goalkeeper distribution rather than immediately falling back into the same midfield pattern."],
   ["v1.4.3","Tactical Team Shape","PRE-PRODUCTION / VIEWER REFINEMENT","Added coordinated tactical team states to Watch Game while preserving the authoritative match engine unchanged. Teams now move through Build Up, Midfield Progression, Final Third, High Press, Mid Block, Low Block, Attack Transition and Defensive Transition states based on possession and ball territory. Centre backs, fullbacks, holding midfielders, central midfielders, wingers and the striker now receive different movement targets in each state. Formations shift as a unit toward the ball, defensive blocks compress horizontally, fullbacks overlap selectively, weak-side attackers narrow in the final third and midfield lines stagger rather than moving in parallel. Possession turnovers now trigger short transition phases before teams settle into their next shape. A compact team-state strip has been added beneath the event banner for QA visibility."],
   ["v1.4.2","Possession Intelligence","PRE-PRODUCTION / VIEWER REFINEMENT","Deepened the continuous Watch Game visual simulation without modifying the authoritative match engine. The ball carrier now evaluates nearby pressure, passing-lane risk, teammate pressure, field progression and open space before choosing whether to make a safe pass, progressive pass, switch play, carry or recycle possession. Supporting players form passing triangles around the carrier, wide players preserve width, overlapping fullbacks become available in attacking phases, the holding midfielder remains connected to the defensive line, and only nearby defenders step toward the ball. Team formation is now a soft tactical attractor rather than a repeated target position. Visual turnovers are pressure-led instead of flat random flips, and pass/shot motion now uses action-specific velocity with slight target leading for moving receivers."],
